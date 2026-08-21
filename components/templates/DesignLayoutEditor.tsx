@@ -14509,21 +14509,40 @@ selectedBlock?.type === "comparison_table" ? (
 
 <div className="space-y-3">
   {(() => {
-    const linkType =
-      ((selectedBlock.data as any).linkType ?? "url") as
-        | "url"
-        | "page";
+    const linkType:
+      | "url"
+      | "page"
+      | "bookmark" =
+      (selectedBlock.data as any).linkType === "page"
+        ? "page"
+        : (selectedBlock.data as any).linkType === "bookmark"
+          ? "bookmark"
+          : "url";
 
-    const siteBaseUrl = `https://${currentSiteSlug}.ko-host.com`;
+    const siteBaseUrl =
+      `https://${currentSiteSlug}.ko-host.com`;
+
+    const currentPageBaseUrl =
+      currentPageSlug &&
+      currentPageSlug !== "home"
+        ? `${siteBaseUrl}/${currentPageSlug}`
+        : siteBaseUrl;
+
+    const bookmarkBlocks = draft.blocks.filter(
+      (block) => block.id !== selectedBlock.id,
+    );
 
     const currentButtonUrl =
-      String(selectedBlock.data.buttonUrl ?? "").trim();
+      String(
+        selectedBlock.data.buttonUrl ?? "",
+      ).trim();
 
     const resolvedButtonUrl =
       currentButtonUrl.startsWith("http://") ||
       currentButtonUrl.startsWith("https://")
         ? currentButtonUrl
-        : currentButtonUrl === "/" || !currentButtonUrl
+        : currentButtonUrl === "/" ||
+            !currentButtonUrl
           ? siteBaseUrl
           : currentButtonUrl.startsWith("/")
             ? `${siteBaseUrl}${currentButtonUrl}`
@@ -14541,10 +14560,15 @@ selectedBlock?.type === "comparison_table" ? (
           <select
             value={linkType}
             onChange={(e) => {
-              const nextLinkType =
+              const nextLinkType:
+                | "url"
+                | "page"
+                | "bookmark" =
                 e.target.value === "page"
                   ? "page"
-                  : "url";
+                  : e.target.value === "bookmark"
+                    ? "bookmark"
+                    : "url";
 
               updateSelectedBlock((block) => {
                 if (block.type !== "cta") {
@@ -14559,7 +14583,8 @@ selectedBlock?.type === "comparison_table" ? (
                   existingUrl.startsWith("http://") ||
                   existingUrl.startsWith("https://")
                     ? existingUrl
-                    : existingUrl === "/" || !existingUrl
+                    : existingUrl === "/" ||
+                        !existingUrl
                       ? siteBaseUrl
                       : existingUrl.startsWith("/")
                         ? `${siteBaseUrl}${existingUrl}`
@@ -14567,15 +14592,27 @@ selectedBlock?.type === "comparison_table" ? (
 
                 return {
                   ...block,
+
                   data: {
                     ...block.data,
 
-                    linkType: nextLinkType,
+                    linkType:
+                      nextLinkType,
 
-                    /*
-                     * Always keep Button Link as a full URL.
-                     */
-                    buttonUrl: normalizedUrl,
+                    buttonUrl:
+                      nextLinkType === "bookmark"
+                        ? currentPageBaseUrl
+                        : normalizedUrl,
+
+                    pageId:
+                      nextLinkType === "page"
+                        ? block.data.pageId ?? ""
+                        : "",
+
+                    bookmarkBlockId:
+                      nextLinkType === "bookmark"
+                        ? block.data.bookmarkBlockId ?? ""
+                        : "",
                   },
                 };
               });
@@ -14589,6 +14626,10 @@ selectedBlock?.type === "comparison_table" ? (
             <option value="page">
               Site Page
             </option>
+
+            <option value="bookmark">
+              Bookmark
+            </option>
           </select>
         </label>
 
@@ -14601,21 +14642,29 @@ selectedBlock?.type === "comparison_table" ? (
             </span>
 
             <select
-              value={(selectedBlock.data as any).pageId ?? ""}
+              value={
+                selectedBlock.data.pageId ?? ""
+              }
               onChange={(e) => {
-                const nextPageId = e.target.value;
+                const nextPageId =
+                  e.target.value;
 
                 const selectedPage =
                   (pages ?? []).find(
-                    (page) => page.id === nextPageId,
+                    (page) =>
+                      page.id === nextPageId,
                   );
 
-                const selectedPageSlug = String(
-                  selectedPage?.slug ?? "",
-                )
-                  .trim()
-                  .toLowerCase()
-                  .replace(/^\/+|\/+$/g, "");
+                const selectedPageSlug =
+                  String(
+                    selectedPage?.slug ?? "",
+                  )
+                    .trim()
+                    .toLowerCase()
+                    .replace(
+                      /^\/+|\/+$/g,
+                      "",
+                    );
 
                 const nextButtonUrl =
                   !selectedPageSlug ||
@@ -14623,24 +14672,31 @@ selectedBlock?.type === "comparison_table" ? (
                     ? siteBaseUrl
                     : `${siteBaseUrl}/${selectedPageSlug}`;
 
-                updateSelectedBlock((block) =>
-                  block.type !== "cta"
-                    ? block
-                    : {
-                        ...block,
-                        data: {
-                          ...block.data,
+                updateSelectedBlock(
+                  (block) =>
+                    block.type !== "cta"
+                      ? block
+                      : {
+                          ...block,
 
-                          linkType: "page",
+                          data: {
+                            ...block.data,
 
-                          pageId: nextPageId,
+                            linkType:
+                              "page",
 
-                          buttonUrl:
-                            nextPageId
-                              ? nextButtonUrl
-                              : siteBaseUrl,
+                            pageId:
+                              nextPageId,
+
+                            bookmarkBlockId:
+                              "",
+
+                            buttonUrl:
+                              nextPageId
+                                ? nextButtonUrl
+                                : siteBaseUrl,
+                          },
                         },
-                      },
                 );
               }}
               className="mt-1 h-10 w-full rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-900 outline-none"
@@ -14649,46 +14705,140 @@ selectedBlock?.type === "comparison_table" ? (
                 Select a page...
               </option>
 
-              {(pages ?? []).map((page) => {
-                const slug = String(
-                  page.slug ?? "",
-                )
-                  .trim()
-                  .replace(/^\/+|\/+$/g, "");
-
-                const rawTitle = String(
-                  page.title ?? "",
-                ).trim();
-
-                const slugLabel =
-                  slug === "home"
-                    ? "Home"
-                    : slug
-                        .replace(/[-_]+/g, " ")
-                        .replace(/\s+/g, " ")
-                        .trim()
-                        .replace(/\b\w/g, (char) =>
-                          char.toUpperCase(),
-                        );
-
-                const pageLabel =
-                  rawTitle &&
-                  !(
-                    rawTitle.toLowerCase() === "home" &&
-                    slug !== "home"
+              {(pages ?? []).map(
+                (page) => {
+                  const slug = String(
+                    page.slug ?? "",
                   )
-                    ? rawTitle
-                    : slugLabel || "Untitled Page";
+                    .trim()
+                    .replace(
+                      /^\/+|\/+$/g,
+                      "",
+                    );
 
-                return (
-                  <option
-                    key={page.id}
-                    value={page.id}
-                  >
-                    {pageLabel}
-                  </option>
+                  const rawTitle =
+                    String(
+                      page.title ?? "",
+                    ).trim();
+
+                  const slugLabel =
+                    slug === "home"
+                      ? "Home"
+                      : slug
+                          .replace(
+                            /[-_]+/g,
+                            " ",
+                          )
+                          .replace(
+                            /\s+/g,
+                            " ",
+                          )
+                          .trim()
+                          .replace(
+                            /\b\w/g,
+                            (char) =>
+                              char.toUpperCase(),
+                          );
+
+                  const pageLabel =
+                    rawTitle &&
+                    !(
+                      rawTitle.toLowerCase() ===
+                        "home" &&
+                      slug !== "home"
+                    )
+                      ? rawTitle
+                      : slugLabel ||
+                        "Untitled Page";
+
+                  return (
+                    <option
+                      key={page.id}
+                      value={page.id}
+                    >
+                      {pageLabel}
+                    </option>
+                  );
+                },
+              )}
+            </select>
+          </label>
+        ) : null}
+
+        {/* BOOKMARK */}
+
+        {linkType === "bookmark" ? (
+          <label className="block">
+            <span className="text-xs font-medium text-neutral-600">
+              Bookmark
+            </span>
+
+            <select
+              value={
+                selectedBlock.data
+                  .bookmarkBlockId ?? ""
+              }
+              onChange={(e) => {
+                const nextBookmarkBlockId =
+                  e.target.value;
+
+                const selectedBookmark =
+                  bookmarkBlocks.find(
+                    (bookmarkBlock) =>
+                      bookmarkBlock.id ===
+                      nextBookmarkBlockId,
+                  );
+
+                const nextButtonUrl =
+                  selectedBookmark
+                    ? `${currentPageBaseUrl}#block-${selectedBookmark.id}`
+                    : currentPageBaseUrl;
+
+                updateSelectedBlock(
+                  (block) =>
+                    block.type !== "cta"
+                      ? block
+                      : {
+                          ...block,
+
+                          data: {
+                            ...block.data,
+
+                            linkType:
+                              "bookmark",
+
+                            pageId: "",
+
+                            bookmarkBlockId:
+                              nextBookmarkBlockId,
+
+                            buttonUrl:
+                              nextButtonUrl,
+                          },
+                        },
                 );
-              })}
+              }}
+              className="mt-1 h-10 w-full rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-900 outline-none"
+            >
+              <option value="">
+                Select a section...
+              </option>
+
+              {bookmarkBlocks.map(
+                (bookmarkBlock) => (
+                  <option
+                    key={
+                      bookmarkBlock.id
+                    }
+                    value={
+                      bookmarkBlock.id
+                    }
+                  >
+                    {bookmarkBlock.label ||
+                      bookmarkBlock.type}
+                  </option>
+                ),
+              )}
             </select>
           </label>
         ) : null}
@@ -14703,25 +14853,33 @@ selectedBlock?.type === "comparison_table" ? (
           <input
             type="text"
             value={resolvedButtonUrl}
-            disabled={linkType === "page"}
+            disabled={
+              linkType === "page" ||
+              linkType === "bookmark"
+            }
             onChange={(e) =>
-              updateSelectedBlock((block) =>
-                block.type !== "cta"
-                  ? block
-                  : {
-                      ...block,
-                      data: {
-                        ...block.data,
-                        buttonUrl: e.target.value,
+              updateSelectedBlock(
+                (block) =>
+                  block.type !== "cta"
+                    ? block
+                    : {
+                        ...block,
+
+                        data: {
+                          ...block.data,
+
+                          buttonUrl:
+                            e.target.value,
+                        },
                       },
-                    },
               )
             }
             placeholder={siteBaseUrl}
             className={[
               "mt-1 h-10 w-full rounded-xl border px-3 text-sm outline-none",
 
-              linkType === "page"
+              linkType === "page" ||
+              linkType === "bookmark"
                 ? "cursor-not-allowed border-neutral-200 bg-neutral-100 text-neutral-500"
                 : "border-neutral-300 bg-white text-neutral-900",
             ].join(" ")}
@@ -14731,7 +14889,15 @@ selectedBlock?.type === "comparison_table" ? (
             <div className="mt-1 text-xs text-neutral-500">
               This address is generated automatically from the selected site page.
             </div>
-          ) : null}
+          ) : linkType === "bookmark" ? (
+            <div className="mt-1 text-xs text-neutral-500">
+              This address is generated automatically from the selected section on this page.
+            </div>
+          ) : (
+            <div className="mt-1 text-xs text-neutral-500">
+              Enter the full web address for this button.
+            </div>
+          )}
         </label>
       </>
     );

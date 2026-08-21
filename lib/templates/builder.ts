@@ -175,8 +175,9 @@ export type LinkItem = {
   label: string;
   url: string;
 
-  linkType?: "url" | "page";
+  linkType?: "url" | "page" | "bookmark";
   pageId?: string;
+  bookmarkBlockId?: string;
 
   description?: string;
   showUrl?: boolean;
@@ -628,6 +629,7 @@ export type LinksBlock = BaseBlock & {
 
 export type CtaBlock = BaseBlock & {
   type: "cta";
+
   data: {
     heading?: string;
     body?: string;
@@ -635,17 +637,32 @@ export type CtaBlock = BaseBlock & {
     buttonText: string;
     buttonUrl: string;
 
-    linkType?: "url" | "page";
+    linkType?:
+      | "url"
+      | "page"
+      | "bookmark";
+
     pageId?: string;
+
+    bookmarkBlockId?: string;
 
     buttonImageUrl?: string;
     buttonImageSize?: number;
+
     buttonPaddingY?: number;
     buttonPaddingX?: number;
-    buttonImagePlacement?: "before" | "above" | "after";
+
+    buttonImagePlacement?:
+      | "before"
+      | "above"
+      | "after";
 
     style?: TextStyle;
-    styleType?: "solid" | "outline" | "soft";
+
+    styleType?:
+      | "solid"
+      | "outline"
+      | "soft";
   };
 };
 
@@ -4678,6 +4695,7 @@ case "cta":
     label: "Button",
     grid,
     appearance: createDefaultBlockAppearance(),
+
     data: {
       heading: "",
       body: "",
@@ -4687,6 +4705,7 @@ case "cta":
 
       linkType: "url",
       pageId: "",
+      bookmarkBlockId: "",
 
       buttonImageUrl: "",
       buttonImageSize: 20,
@@ -4697,7 +4716,8 @@ case "cta":
       style: createDefaultTextStyle(),
     },
   };
-    case "countdown":
+
+      case "countdown":
       return {
         id: makeId("countdown"),
         type: "countdown",

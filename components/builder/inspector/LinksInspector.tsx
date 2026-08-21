@@ -9,6 +9,12 @@ type SitePage = {
   display_order?: number | null;
 };
 
+type BookmarkBlock = {
+  id: string;
+  type: string;
+  label?: string;
+};
+
 type LinksInspectorProps = {
   selectedBlock: any;
   updateSelectedBlock: any;
@@ -16,12 +22,17 @@ type LinksInspectorProps = {
   makeClientId: (prefix: string) => string;
 
   pages?: SitePage[];
+  blocks?: BookmarkBlock[];
+
   currentSiteSlug: string;
+  currentPageSlug?: string;
 
   linksHeadingInputRef: RefObject<HTMLInputElement | null>;
+
   linksItemLabelInputRefs: RefObject<
     Record<string, HTMLInputElement | null>
   >;
+
   linksItemUrlInputRefs: RefObject<
     Record<string, HTMLInputElement | null>
   >;
@@ -66,13 +77,30 @@ function getPageDisplayLabel(page: SitePage) {
   return slugLabel || "Untitled Page";
 }
 
+function getBookmarkDisplayLabel(block: BookmarkBlock) {
+  const rawLabel = String(block.label ?? "").trim();
+
+  if (rawLabel) {
+    return rawLabel;
+  }
+
+  return String(block.type ?? "Section")
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
 export function LinksInspector({
   selectedBlock,
   updateSelectedBlock,
   makeClientId,
 
   pages,
+  blocks,
+
   currentSiteSlug,
+  currentPageSlug,
 
   linksHeadingInputRef,
   linksItemLabelInputRefs,
@@ -83,7 +111,26 @@ export function LinksInspector({
   inspectorInputClass,
   toolSetButtonClass,
 }: LinksInspectorProps) {
-  const siteBaseUrl = `https://${currentSiteSlug}.ko-host.com`;
+  const siteBaseUrl =
+    `https://${currentSiteSlug}.ko-host.com`;
+
+  const normalizedCurrentPageSlug =
+    String(currentPageSlug ?? "home")
+      .trim()
+      .toLowerCase()
+      .replace(/^\/+|\/+$/g, "");
+
+  const currentPageBaseUrl =
+    !normalizedCurrentPageSlug ||
+    normalizedCurrentPageSlug === "home"
+      ? siteBaseUrl
+      : `${siteBaseUrl}/${normalizedCurrentPageSlug}`;
+
+  const bookmarkBlocks =
+    (blocks ?? []).filter(
+      (block) =>
+        block.id !== selectedBlock.id,
+    );
 
   function updateLinkItem(
     itemId: string,
@@ -94,8 +141,10 @@ export function LinksInspector({
         ? block
         : {
             ...block,
+
             data: {
               ...block.data,
+
               items: block.data.items.map(
                 (entry: any) =>
                   entry.id === itemId
@@ -111,7 +160,8 @@ export function LinksInspector({
   }
 
   function normalizeFullUrl(value: unknown) {
-    const raw = String(value ?? "").trim();
+    const raw =
+      String(value ?? "").trim();
 
     if (
       raw.startsWith("http://") ||
@@ -120,7 +170,11 @@ export function LinksInspector({
       return raw;
     }
 
-    if (!raw || raw === "#" || raw === "/") {
+    if (
+      !raw ||
+      raw === "#" ||
+      raw === "/"
+    ) {
       return siteBaseUrl;
     }
 
@@ -140,7 +194,9 @@ export function LinksInspector({
         Links
       </div>
 
+      {/* ================================================================ */}
       {/* HEADING */}
+      {/* ================================================================ */}
 
       <div className="mt-4">
         <div className={inspectorLabelClass()}>
@@ -150,36 +206,52 @@ export function LinksInspector({
         <input
           ref={linksHeadingInputRef}
           type="text"
-          value={selectedBlock.data.heading ?? ""}
+          value={
+            selectedBlock.data.heading ??
+            ""
+          }
           onChange={(e) =>
-            updateSelectedBlock((block: any) =>
-              block.type !== "links"
-                ? block
-                : {
-                    ...block,
-                    data: {
-                      ...block.data,
-                      heading: e.target.value,
+            updateSelectedBlock(
+              (block: any) =>
+                block.type !== "links"
+                  ? block
+                  : {
+                      ...block,
+
+                      data: {
+                        ...block.data,
+                        heading:
+                          e.target.value,
+                      },
                     },
-                  },
             )
           }
           className={inspectorInputClass()}
         />
       </div>
 
+      {/* ================================================================ */}
       {/* LINK ITEMS */}
+      {/* ================================================================ */}
 
       <div className="mt-4 space-y-3">
         {selectedBlock.data.items.map(
-          (item: any, index: number) => {
+          (
+            item: any,
+            index: number,
+          ) => {
             const linkType =
               item.linkType === "page"
                 ? "page"
-                : "url";
+                : item.linkType ===
+                    "bookmark"
+                  ? "bookmark"
+                  : "url";
 
             const resolvedUrl =
-              normalizeFullUrl(item.url);
+              normalizeFullUrl(
+                item.url,
+              );
 
             return (
               <div
@@ -190,9 +262,15 @@ export function LinksInspector({
                   Link {index + 1}
                 </div>
 
+                {/* ====================================================== */}
                 {/* LABEL */}
+                {/* ====================================================== */}
 
-                <div className={inspectorLabelClass()}>
+                <div
+                  className={
+                    inspectorLabelClass()
+                  }
+                >
                   Label
                 </div>
 
@@ -203,19 +281,33 @@ export function LinksInspector({
                     ] = el;
                   }}
                   type="text"
-                  value={item.label}
-                  onChange={(e) =>
-                    updateLinkItem(item.id, {
-                      label: e.target.value,
-                    })
+                  value={
+                    item.label ?? ""
                   }
-                  className={inspectorInputClass()}
+                  onChange={(e) =>
+                    updateLinkItem(
+                      item.id,
+                      {
+                        label:
+                          e.target.value,
+                      },
+                    )
+                  }
+                  className={
+                    inspectorInputClass()
+                  }
                 />
 
+                {/* ====================================================== */}
                 {/* LINK TYPE */}
+                {/* ====================================================== */}
 
                 <div className="mt-4">
-                  <div className={inspectorLabelClass()}>
+                  <div
+                    className={
+                      inspectorLabelClass()
+                    }
+                  >
                     Link To
                   </div>
 
@@ -223,21 +315,53 @@ export function LinksInspector({
                     value={linkType}
                     onChange={(e) => {
                       const nextLinkType =
-                        e.target.value === "page"
+                        e.target.value ===
+                        "page"
                           ? "page"
-                          : "url";
+                          : e.target
+                                .value ===
+                              "bookmark"
+                            ? "bookmark"
+                            : "url";
 
-                      updateLinkItem(item.id, {
-                        linkType: nextLinkType,
+                      updateLinkItem(
+                        item.id,
+                        {
+                          linkType:
+                            nextLinkType,
 
-                        /*
-                         * Make sure the URL is represented as
-                         * a full URL regardless of mode.
-                         */
-                        url: resolvedUrl,
-                      });
+                          /*
+                           * Web Address keeps the existing
+                           * URL. Site Page keeps its resolved
+                           * URL. Bookmark starts at the
+                           * current page until a section is
+                           * selected.
+                           */
+                          url:
+                            nextLinkType ===
+                            "bookmark"
+                              ? currentPageBaseUrl
+                              : resolvedUrl,
+
+                          pageId:
+                            nextLinkType ===
+                            "page"
+                              ? item.pageId ??
+                                ""
+                              : "",
+
+                          bookmarkBlockId:
+                            nextLinkType ===
+                            "bookmark"
+                              ? item.bookmarkBlockId ??
+                                ""
+                              : "",
+                        },
+                      );
                     }}
-                    className={inspectorInputClass()}
+                    className={
+                      inspectorInputClass()
+                    }
                   >
                     <option value="url">
                       Web Address
@@ -246,10 +370,16 @@ export function LinksInspector({
                     <option value="page">
                       Site Page
                     </option>
+
+                    <option value="bookmark">
+                      Bookmark
+                    </option>
                   </select>
                 </div>
 
+                {/* ====================================================== */}
                 {/* SITE PAGE */}
+                {/* ====================================================== */}
 
                 {linkType === "page" ? (
                   <div className="mt-4">
@@ -262,13 +392,17 @@ export function LinksInspector({
                     </div>
 
                     <select
-                      value={item.pageId ?? ""}
+                      value={
+                        item.pageId ?? ""
+                      }
                       onChange={(e) => {
                         const nextPageId =
                           e.target.value;
 
                         const selectedPage =
-                          (pages ?? []).find(
+                          (
+                            pages ?? []
+                          ).find(
                             (page) =>
                               page.id ===
                               nextPageId,
@@ -296,12 +430,19 @@ export function LinksInspector({
                         updateLinkItem(
                           item.id,
                           {
-                            linkType: "page",
-                            pageId: nextPageId,
+                            linkType:
+                              "page",
 
-                            url: nextPageId
-                              ? nextUrl
-                              : siteBaseUrl,
+                            pageId:
+                              nextPageId,
+
+                            bookmarkBlockId:
+                              "",
+
+                            url:
+                              nextPageId
+                                ? nextUrl
+                                : siteBaseUrl,
                           },
                         );
                       }}
@@ -329,10 +470,110 @@ export function LinksInspector({
                   </div>
                 ) : null}
 
+                {/* ====================================================== */}
+                {/* BOOKMARK */}
+                {/* ====================================================== */}
+
+                {linkType ===
+                "bookmark" ? (
+                  <div className="mt-4">
+                    <div
+                      className={
+                        inspectorLabelClass()
+                      }
+                    >
+                      Bookmark
+                    </div>
+
+                    <select
+                      value={
+                        item.bookmarkBlockId ??
+                        ""
+                      }
+                      onChange={(e) => {
+                        const nextBookmarkBlockId =
+                          e.target.value;
+
+                        const selectedBookmark =
+                          bookmarkBlocks.find(
+                            (
+                              bookmarkBlock,
+                            ) =>
+                              bookmarkBlock.id ===
+                              nextBookmarkBlockId,
+                          );
+
+                        const nextUrl =
+                          selectedBookmark
+                            ? `${currentPageBaseUrl}#block-${selectedBookmark.id}`
+                            : currentPageBaseUrl;
+
+                        updateLinkItem(
+                          item.id,
+                          {
+                            linkType:
+                              "bookmark",
+
+                            pageId: "",
+
+                            bookmarkBlockId:
+                              nextBookmarkBlockId,
+
+                            url:
+                              nextUrl,
+                          },
+                        );
+                      }}
+                      className={
+                        inspectorInputClass()
+                      }
+                    >
+                      <option value="">
+                        Select a section...
+                      </option>
+
+                      {bookmarkBlocks.map(
+                        (
+                          bookmarkBlock,
+                        ) => (
+                          <option
+                            key={
+                              bookmarkBlock.id
+                            }
+                            value={
+                              bookmarkBlock.id
+                            }
+                          >
+                            {getBookmarkDisplayLabel(
+                              bookmarkBlock,
+                            )}
+                          </option>
+                        ),
+                      )}
+                    </select>
+
+                    {!bookmarkBlocks.length ? (
+                      <div className="mt-1 text-[11px] leading-4 text-neutral-500">
+                        Add another
+                        block to this
+                        page before
+                        creating a
+                        bookmark link.
+                      </div>
+                    ) : null}
+                  </div>
+                ) : null}
+
+                {/* ====================================================== */}
                 {/* URL — ALWAYS VISIBLE */}
+                {/* ====================================================== */}
 
                 <div className="mt-4">
-                  <div className={inspectorLabelClass()}>
+                  <div
+                    className={
+                      inspectorLabelClass()
+                    }
+                  >
                     URL
                   </div>
 
@@ -343,59 +584,100 @@ export function LinksInspector({
                       ] = el;
                     }}
                     type="text"
-                    value={resolvedUrl}
-                    disabled={linkType === "page"}
-                    onChange={(e) =>
-                      updateLinkItem(item.id, {
-                        url: e.target.value,
-                      })
+                    value={
+                      resolvedUrl
                     }
-                    placeholder={siteBaseUrl}
+                    disabled={
+                      linkType ===
+                        "page" ||
+                      linkType ===
+                        "bookmark"
+                    }
+                    onChange={(e) =>
+                      updateLinkItem(
+                        item.id,
+                        {
+                          url:
+                            e.target
+                              .value,
+                        },
+                      )
+                    }
+                    placeholder={
+                      siteBaseUrl
+                    }
                     className={[
                       "mt-2 h-10 w-full rounded-xl border px-3 text-sm outline-none",
 
-                      linkType === "page"
+                      linkType ===
+                        "page" ||
+                      linkType ===
+                        "bookmark"
                         ? "cursor-not-allowed border-neutral-200 bg-neutral-100 text-neutral-500"
                         : "border-neutral-300 bg-white text-neutral-900",
                     ].join(" ")}
                   />
 
-                  {linkType === "page" ? (
+                  {linkType ===
+                  "page" ? (
                     <div className="mt-1 text-[11px] leading-4 text-neutral-500">
-                      This address is generated
-                      automatically from the
-                      selected site page.
+                      This address is
+                      generated
+                      automatically from
+                      the selected site
+                      page.
+                    </div>
+                  ) : linkType ===
+                    "bookmark" ? (
+                    <div className="mt-1 text-[11px] leading-4 text-neutral-500">
+                      This address is
+                      generated
+                      automatically from
+                      the selected
+                      section on this
+                      page.
                     </div>
                   ) : (
                     <div className="mt-1 text-[11px] leading-4 text-neutral-500">
-                      Enter the full web address
-                      for this link.
+                      Enter the full web
+                      address for this
+                      link.
                     </div>
                   )}
                 </div>
 
+                {/* ====================================================== */}
                 {/* REMOVE */}
+                {/* ====================================================== */}
 
                 <div className="mt-3 flex justify-end">
                   <button
                     type="button"
-                    className={toolSetButtonClass(
-                      "remove",
-                    )}
+                    className={
+                      toolSetButtonClass(
+                        "remove",
+                      )
+                    }
                     onClick={() =>
                       updateSelectedBlock(
-                        (block: any) =>
-                          block.type !== "links"
+                        (
+                          block: any,
+                        ) =>
+                          block.type !==
+                          "links"
                             ? block
                             : {
                                 ...block,
+
                                 data: {
                                   ...block.data,
 
                                   items:
-                                    block.data
+                                    block
+                                      .data
                                       .items
-                                      .length > 1
+                                      .length >
+                                    1
                                       ? block.data.items.filter(
                                           (
                                             entry: any,
@@ -403,7 +685,8 @@ export function LinksInspector({
                                             entry.id !==
                                             item.id,
                                         )
-                                      : block.data
+                                      : block
+                                          .data
                                           .items,
                                 },
                               },
@@ -419,39 +702,60 @@ export function LinksInspector({
           },
         )}
 
+        {/* ================================================================ */}
         {/* ADD LINK */}
+        {/* ================================================================ */}
 
         <button
           type="button"
-          className={toolSetButtonClass("front")}
+          className={
+            toolSetButtonClass(
+              "front",
+            )
+          }
           onClick={() =>
-            updateSelectedBlock((block: any) =>
-              block.type !== "links"
-                ? block
-                : {
-                    ...block,
-                    data: {
-                      ...block.data,
+            updateSelectedBlock(
+              (block: any) =>
+                block.type !==
+                "links"
+                  ? block
+                  : {
+                      ...block,
 
-                      items: [
-                        ...block.data.items,
+                      data: {
+                        ...block.data,
 
-                        {
-                          id: makeClientId("link"),
-                          label: "New Link",
+                        items: [
+                          ...block.data
+                            .items,
 
-                          /*
-                           * New links begin as editable
-                           * Web Address links pointing to
-                           * the microsite home page.
-                           */
-                          url: siteBaseUrl,
-                          linkType: "url",
-                          pageId: "",
-                        },
-                      ],
+                          {
+                            id: makeClientId(
+                              "link",
+                            ),
+
+                            label:
+                              "New Link",
+
+                            /*
+                             * New links begin as editable
+                             * Web Address links pointing
+                             * to the microsite home page.
+                             */
+                            url:
+                              siteBaseUrl,
+
+                            linkType:
+                              "url",
+
+                            pageId: "",
+
+                            bookmarkBlockId:
+                              "",
+                          },
+                        ],
+                      },
                     },
-                  },
             )
           }
         >

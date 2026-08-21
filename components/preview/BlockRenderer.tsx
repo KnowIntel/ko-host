@@ -2508,13 +2508,23 @@ function renderCta(
     const [submitting, setSubmitting] = useState(false);
 
     const appearance = getAppearanceStyle(block);
-    const style = getContainerTextStyle(block.data.style, designKey);
+
+    const style = getContainerTextStyle(
+      block.data.style,
+      designKey,
+    );
+
     const buttonStyleType =
-      ((block.data as any).styleType as "solid" | "outline" | "soft" | undefined) ??
-      "solid";
+      ((block.data as any).styleType as
+        | "solid"
+        | "outline"
+        | "soft"
+        | undefined) ?? "solid";
 
     const submittedText =
-      ((block.data as any).submittedText as string | undefined) || "Submitted";
+      ((block.data as any).submittedText as
+        | string
+        | undefined) || "Submitted";
 
     const justifyContent =
       block.data.style?.align === "left"
@@ -2524,40 +2534,65 @@ function renderCta(
           : "center";
 
     const solidStyle: React.CSSProperties = {
-      background:
-        submitted
-          ? "#16a34a"
-          : appearance.backgroundColor && appearance.backgroundColor !== "transparent"
-            ? appearance.backgroundColor
-            : "#111827",
+      background: submitted
+        ? "#16a34a"
+        : appearance.backgroundColor &&
+            appearance.backgroundColor !== "transparent"
+          ? appearance.backgroundColor
+          : "#111827",
+
       color: style.color || "#ffffff",
-      borderColor: submitted ? "#16a34a" : appearance.borderColor || "transparent",
+
+      borderColor: submitted
+        ? "#16a34a"
+        : appearance.borderColor || "transparent",
+
       borderWidth: appearance.borderWidth,
       borderStyle: appearance.borderStyle,
       borderRadius: appearance.borderRadius,
     };
 
     const outlineStyle: React.CSSProperties = {
-      background: submitted ? "#dcfce7" : "transparent",
-      color: submitted ? "#166534" : style.color || appearance.borderColor || "#111827",
-      borderColor: submitted ? "#16a34a" : appearance.borderColor || "#111827",
+      background: submitted
+        ? "#dcfce7"
+        : "transparent",
+
+      color: submitted
+        ? "#166534"
+        : style.color ||
+          appearance.borderColor ||
+          "#111827",
+
+      borderColor: submitted
+        ? "#16a34a"
+        : appearance.borderColor ||
+          "#111827",
+
       borderWidth:
         typeof appearance.borderWidth === "string"
           ? appearance.borderWidth
           : "1px",
+
       borderStyle: "solid",
       borderRadius: appearance.borderRadius,
     };
 
     const softStyle: React.CSSProperties = {
-      background:
-        submitted
-          ? "#dcfce7"
-          : appearance.backgroundColor && appearance.backgroundColor !== "transparent"
-            ? appearance.backgroundColor
-            : "rgba(17, 24, 39, 0.10)",
-      color: submitted ? "#166534" : style.color || "#111827",
-      borderColor: submitted ? "#16a34a" : appearance.borderColor || "transparent",
+      background: submitted
+        ? "#dcfce7"
+        : appearance.backgroundColor &&
+            appearance.backgroundColor !== "transparent"
+          ? appearance.backgroundColor
+          : "rgba(17, 24, 39, 0.10)",
+
+      color: submitted
+        ? "#166534"
+        : style.color || "#111827",
+
+      borderColor: submitted
+        ? "#16a34a"
+        : appearance.borderColor || "transparent",
+
       borderWidth: appearance.borderWidth,
       borderStyle: appearance.borderStyle,
       borderRadius: appearance.borderRadius,
@@ -2570,296 +2605,628 @@ function renderCta(
           ? softStyle
           : solidStyle;
 
-          function resolveCtaDestination() {
-  const linkType =
-    (block.data as any).linkType === "page"
-      ? "page"
-      : "url";
+    function resolveCtaDestination() {
+      const linkType:
+        | "url"
+        | "page"
+        | "bookmark" =
+        block.data.linkType === "page"
+          ? "page"
+          : block.data.linkType === "bookmark"
+            ? "bookmark"
+            : "url";
 
-  if (linkType === "page") {
-    const pageId = String(
-      (block.data as any).pageId ?? "",
-    ).trim();
+      /*
+       * ================================================================
+       * BOOKMARK
+       * ================================================================
+       */
 
-    if (!pageId) {
-      return "";
+      if (linkType === "bookmark") {
+        const bookmarkBlockId =
+          String(
+            block.data.bookmarkBlockId ?? "",
+          ).trim();
+
+        if (bookmarkBlockId) {
+          return `#block-${bookmarkBlockId}`;
+        }
+
+        /*
+         * Fall back to any hash already stored in buttonUrl.
+         */
+        const rawButtonUrl =
+          String(
+            block.data.buttonUrl ?? "",
+          ).trim();
+
+        const hashIndex =
+          rawButtonUrl.indexOf("#");
+
+        if (hashIndex >= 0) {
+          return rawButtonUrl.slice(
+            hashIndex,
+          );
+        }
+
+        return "";
+      }
+
+      /*
+       * ================================================================
+       * SITE PAGE
+       * ================================================================
+       */
+
+      if (linkType === "page") {
+        const pageId =
+          String(
+            block.data.pageId ?? "",
+          ).trim();
+
+        if (!pageId) {
+          return "";
+        }
+
+        const linkedPage =
+          pages?.find(
+            (page) =>
+              page.id === pageId,
+          );
+
+        if (!linkedPage) {
+          return "";
+        }
+
+        const slug =
+          String(
+            linkedPage.slug ?? "",
+          )
+            .trim()
+            .replace(
+              /^\/+|\/+$/g,
+              "",
+            );
+
+        if (
+          !slug ||
+          slug === "home"
+        ) {
+          return "/";
+        }
+
+        return `/${slug}`;
+      }
+
+      /*
+       * ================================================================
+       * WEB ADDRESS
+       * ================================================================
+       */
+
+      return String(
+        block.data.buttonUrl ?? "",
+      ).trim();
     }
 
-    const linkedPage = pages?.find(
-      (page) => page.id === pageId,
-    );
+    function navigateCtaDestination() {
+      const destination =
+        resolveCtaDestination();
 
-    if (!linkedPage) {
-      return "";
-    }
-
-    const slug = String(
-      linkedPage.slug ?? "",
-    )
-      .trim()
-      .replace(/^\/+|\/+$/g, "");
-
-    if (!slug || slug === "home") {
-      return "/";
-    }
-
-    return `/${slug}`;
-  }
-
-  return String(
-    block.data.buttonUrl ?? "",
-  ).trim();
-}
-
-function navigateCtaDestination() {
-  const destination =
-    resolveCtaDestination();
-
-  if (!destination) {
-    return;
-  }
-
-  /*
-   * Internal microsite page.
-   */
-  if (destination.startsWith("/")) {
-    window.location.assign(destination);
-    return;
-  }
-
-  /*
-   * Same-page bookmark.
-   */
-  if (destination.startsWith("#")) {
-    document
-      .querySelector(destination)
-      ?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-
-    return;
-  }
-
-  /*
-   * External destination.
-   */
-  const href = normalizePreviewHref(
-    destination,
-    micrositeSlug,
-  );
-
-  window.open(
-    href,
-    "_blank",
-    "noopener,noreferrer",
-  );
-}
-
-async function handleLinkedFieldSubmit() {
-  if (submitting) return;
-
-  const fields = Array.from(
-    document.querySelectorAll<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >(`[data-linked-button="${block.id}"]`),
-  );
-
-if (!fields.length) {
-  navigateCtaDestination();
-  return;
-}
-  const checkboxFields = fields.filter(
-    (field): field is HTMLInputElement =>
-      field instanceof HTMLInputElement && field.type === "checkbox",
-  );
-
-  const checkboxGroups = new Map<string, HTMLInputElement[]>();
-
-  checkboxFields.forEach((field) => {
-    const groupKey = field.dataset.checkboxGroup || block.id;
-    const current = checkboxGroups.get(groupKey) ?? [];
-    checkboxGroups.set(groupKey, [...current, field]);
-  });
-
-  checkboxGroups.forEach((groupFields) => {
-    const allowMultiple = groupFields.some(
-      (field) => field.dataset.allowMultipleSelections === "true",
-    );
-
-    if (allowMultiple) return;
-
-    const checkedFields = groupFields.filter((field) => field.checked);
-
-    checkedFields.slice(1).forEach((field) => {
-      field.checked = false;
-    });
-  });
-
-  const missingRequired = fields.find((field) => {
-    if (field.dataset.required !== "true") return false;
-
-    if (field instanceof HTMLInputElement && field.type === "checkbox") {
-      return !field.checked;
-    }
-
-    return !field.value.trim();
-  });
-
-  if (missingRequired) {
-    missingRequired.focus();
-    return;
-  }
-
-  const values = fields.map((field) => {
-    const label = field.dataset.fieldLabel || "Field";
-
-    if (field instanceof HTMLInputElement && field.type === "checkbox") {
-      return {
-        label,
-        value: field.checked ? "true" : "false",
-      };
-    }
-
-    return {
-      label,
-      value: field.value.trim(),
-    };
-  });
-
-  const message = values
-    .map((field) => `${field.label}: ${field.value}`)
-    .join("<|>");
-
-  try {
-    setSubmitting(true);
-
-    const startedAt = Date.now();
-
-    const res = await fetch("/api/public/general-submissions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        micrositeId: (block as any).micrositeId ?? "",
-        hostname:
-          typeof window !== "undefined" ? window.location.hostname : "",
-        pageSlug:
-          typeof window !== "undefined"
-            ? window.location.pathname.split("/").filter(Boolean)[1] || "home"
-            : "home",
-        linkedButtonId: block.id,
-        message,
-        fields: values,
-      }),
-    });
-
-    const elapsed = Date.now() - startedAt;
-    const remaining = Math.max(0, 2000 - elapsed);
-
-    await new Promise((resolve) => window.setTimeout(resolve, remaining));
-
-    if (!res.ok) throw new Error("Submission failed");
-
-    setSubmitted(true);
-
-    fields.forEach((field) => {
-      if (field instanceof HTMLInputElement && field.type === "checkbox") {
-        field.checked = false;
+      if (!destination) {
         return;
       }
 
-      field.value = "";
-    });
+      const linkType:
+        | "url"
+        | "page"
+        | "bookmark" =
+        block.data.linkType === "page"
+          ? "page"
+          : block.data.linkType === "bookmark"
+            ? "bookmark"
+            : "url";
 
-    window.setTimeout(() => {
-      setSubmitted(false);
-    }, 2500);
-  } catch {
-    setSubmitted(false);
-  } finally {
-    setSubmitting(false);
-  }
-}
+      /*
+       * ================================================================
+       * BOOKMARK
+       * ================================================================
+       */
 
-const posX = Number((block.data as any).posX ?? 50);
-const posY = Number((block.data as any).posY ?? 50);
+      if (
+        linkType === "bookmark" ||
+        destination.startsWith("#")
+      ) {
+        const hash =
+          destination.startsWith("#")
+            ? destination
+            : destination.includes("#")
+              ? `#${destination.split("#").pop()}`
+              : "";
 
-const buttonImagePlacement =
-  ((block.data as any).buttonImagePlacement as
-    | "before"
-    | "above"
-    | "after"
-    | undefined) ?? "before";
+        if (!hash) {
+          return;
+        }
 
-return (
-  <div className="h-full w-full overflow-hidden">
-    <div
-      className="flex h-full w-full px-4 py-2"
-      style={{
-        justifyContent,
-        alignItems: "center",
-        textAlign: block.data.style?.align ?? "center",
-      }}
-    >
-<button
-  type="button"
-  onClick={handleLinkedFieldSubmit}
-  disabled={submitting}
-  className={[
-    "inline-flex cursor-pointer items-center justify-center transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-70",
-    buttonImagePlacement === "above"
-      ? "flex-col gap-2"
-      : "flex-row gap-2",
-  ].join(" ")}
-  style={{
-    ...style,
-    ...variantStyle,
-    transform: `translate(${posX - 50}%, ${posY - 50}%)`,
-    paddingTop: `${(block.data as any).buttonPaddingY ?? 8}px`,
-    paddingBottom: `${(block.data as any).buttonPaddingY ?? 8}px`,
-    paddingLeft: `${(block.data as any).buttonPaddingX ?? 20}px`,
-    paddingRight: `${(block.data as any).buttonPaddingX ?? 20}px`,
-  }}
->
-  {block.data.buttonImageUrl &&
-  buttonImagePlacement !== "after" ? (
-    <img
-      src={block.data.buttonImageUrl}
-      alt=""
-      style={{
-        width: `${(block.data as any).buttonImageSize ?? 20}px`,
-        height: `${(block.data as any).buttonImageSize ?? 20}px`,
-      }}
-      className="shrink-0 object-cover"
-    />
-  ) : null}
+        const target =
+          document.querySelector(hash);
 
-  <span>
-    {submitted
-      ? submittedText
-      : submitting
-        ? "Submitting..."
-        : block.data.buttonText || "Button"}
-  </span>
+        if (!target) {
+          return;
+        }
 
-  {block.data.buttonImageUrl &&
-  buttonImagePlacement === "after" ? (
-    <img
-      src={block.data.buttonImageUrl}
-      alt=""
-      style={{
-        width: `${(block.data as any).buttonImageSize ?? 20}px`,
-        height: `${(block.data as any).buttonImageSize ?? 20}px`,
-      }}
-      className="shrink-0 object-cover"
-    />
-  ) : null}
-</button>
-    </div>
-  </div>
-);
+        target.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+
+        window.history.replaceState(
+          null,
+          "",
+          hash,
+        );
+
+        return;
+      }
+
+      /*
+       * ================================================================
+       * SITE PAGE
+       * ================================================================
+       */
+
+      if (
+        linkType === "page" ||
+        destination.startsWith("/")
+      ) {
+        window.location.assign(
+          destination,
+        );
+
+        return;
+      }
+
+      /*
+       * ================================================================
+       * WEB ADDRESS
+       * ================================================================
+       */
+
+      const href =
+        normalizePreviewHref(
+          destination,
+          micrositeSlug,
+        );
+
+      window.open(
+        href,
+        "_blank",
+        "noopener,noreferrer",
+      );
+    }
+
+    async function handleLinkedFieldSubmit() {
+      if (submitting) {
+        return;
+      }
+
+      const fields = Array.from(
+        document.querySelectorAll<
+          | HTMLInputElement
+          | HTMLTextAreaElement
+          | HTMLSelectElement
+        >(
+          `[data-linked-button="${block.id}"]`,
+        ),
+      );
+
+      if (!fields.length) {
+        navigateCtaDestination();
+        return;
+      }
+
+      const checkboxFields =
+        fields.filter(
+          (
+            field,
+          ): field is HTMLInputElement =>
+            field instanceof
+              HTMLInputElement &&
+            field.type ===
+              "checkbox",
+        );
+
+      const checkboxGroups =
+        new Map<
+          string,
+          HTMLInputElement[]
+        >();
+
+      checkboxFields.forEach(
+        (field) => {
+          const groupKey =
+            field.dataset
+              .checkboxGroup ||
+            block.id;
+
+          const current =
+            checkboxGroups.get(
+              groupKey,
+            ) ?? [];
+
+          checkboxGroups.set(
+            groupKey,
+            [
+              ...current,
+              field,
+            ],
+          );
+        },
+      );
+
+      checkboxGroups.forEach(
+        (groupFields) => {
+          const allowMultiple =
+            groupFields.some(
+              (field) =>
+                field.dataset
+                  .allowMultipleSelections ===
+                "true",
+            );
+
+          if (allowMultiple) {
+            return;
+          }
+
+          const checkedFields =
+            groupFields.filter(
+              (field) =>
+                field.checked,
+            );
+
+          checkedFields
+            .slice(1)
+            .forEach(
+              (field) => {
+                field.checked =
+                  false;
+              },
+            );
+        },
+      );
+
+      const missingRequired =
+        fields.find((field) => {
+          if (
+            field.dataset
+              .required !==
+            "true"
+          ) {
+            return false;
+          }
+
+          if (
+            field instanceof
+              HTMLInputElement &&
+            field.type ===
+              "checkbox"
+          ) {
+            return !field.checked;
+          }
+
+          return !field.value.trim();
+        });
+
+      if (missingRequired) {
+        missingRequired.focus();
+        return;
+      }
+
+      const values =
+        fields.map((field) => {
+          const label =
+            field.dataset
+              .fieldLabel ||
+            "Field";
+
+          if (
+            field instanceof
+              HTMLInputElement &&
+            field.type ===
+              "checkbox"
+          ) {
+            return {
+              label,
+              value:
+                field.checked
+                  ? "true"
+                  : "false",
+            };
+          }
+
+          return {
+            label,
+            value:
+              field.value.trim(),
+          };
+        });
+
+      const message =
+        values
+          .map(
+            (field) =>
+              `${field.label}: ${field.value}`,
+          )
+          .join("<|>");
+
+      try {
+        setSubmitting(true);
+
+        const startedAt =
+          Date.now();
+
+        const res =
+          await fetch(
+            "/api/public/general-submissions",
+            {
+              method: "POST",
+
+              headers: {
+                "Content-Type":
+                  "application/json",
+              },
+
+              body: JSON.stringify({
+                micrositeId:
+                  (block as any)
+                    .micrositeId ??
+                  "",
+
+                hostname:
+                  typeof window !==
+                  "undefined"
+                    ? window.location
+                        .hostname
+                    : "",
+
+                pageSlug:
+                  typeof window !==
+                  "undefined"
+                    ? window.location.pathname
+                        .split("/")
+                        .filter(
+                          Boolean,
+                        )[1] ||
+                      "home"
+                    : "home",
+
+                linkedButtonId:
+                  block.id,
+
+                message,
+
+                fields: values,
+              }),
+            },
+          );
+
+        const elapsed =
+          Date.now() -
+          startedAt;
+
+        const remaining =
+          Math.max(
+            0,
+            2000 - elapsed,
+          );
+
+        await new Promise(
+          (resolve) =>
+            window.setTimeout(
+              resolve,
+              remaining,
+            ),
+        );
+
+        if (!res.ok) {
+          throw new Error(
+            "Submission failed",
+          );
+        }
+
+        setSubmitted(true);
+
+        fields.forEach(
+          (field) => {
+            if (
+              field instanceof
+                HTMLInputElement &&
+              field.type ===
+                "checkbox"
+            ) {
+              field.checked =
+                false;
+
+              return;
+            }
+
+            field.value = "";
+          },
+        );
+
+        window.setTimeout(
+          () => {
+            setSubmitted(false);
+          },
+          2500,
+        );
+      } catch {
+        setSubmitted(false);
+      } finally {
+        setSubmitting(false);
+      }
+    }
+
+    const posX =
+      Number(
+        (block.data as any)
+          .posX ?? 50,
+      );
+
+    const posY =
+      Number(
+        (block.data as any)
+          .posY ?? 50,
+      );
+
+    const buttonImagePlacement =
+      ((block.data as any)
+        .buttonImagePlacement as
+        | "before"
+        | "above"
+        | "after"
+        | undefined) ??
+      "before";
+
+    return (
+      <div className="h-full w-full overflow-hidden">
+        <div
+          className="flex h-full w-full px-4 py-2"
+          style={{
+            justifyContent,
+
+            alignItems:
+              "center",
+
+            textAlign:
+              block.data.style
+                ?.align ??
+              "center",
+          }}
+        >
+          <button
+            type="button"
+            onClick={
+              handleLinkedFieldSubmit
+            }
+            disabled={
+              submitting
+            }
+            className={[
+              "inline-flex cursor-pointer items-center justify-center transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-70",
+
+              buttonImagePlacement ===
+              "above"
+                ? "flex-col gap-2"
+                : "flex-row gap-2",
+            ].join(" ")}
+            style={{
+              ...style,
+              ...variantStyle,
+
+              transform:
+                `translate(${posX - 50}%, ${posY - 50}%)`,
+
+              paddingTop:
+                `${
+                  (block.data as any)
+                    .buttonPaddingY ??
+                  8
+                }px`,
+
+              paddingBottom:
+                `${
+                  (block.data as any)
+                    .buttonPaddingY ??
+                  8
+                }px`,
+
+              paddingLeft:
+                `${
+                  (block.data as any)
+                    .buttonPaddingX ??
+                  20
+                }px`,
+
+              paddingRight:
+                `${
+                  (block.data as any)
+                    .buttonPaddingX ??
+                  20
+                }px`,
+            }}
+          >
+            {block.data
+              .buttonImageUrl &&
+            buttonImagePlacement !==
+              "after" ? (
+              <img
+                src={
+                  block.data
+                    .buttonImageUrl
+                }
+                alt=""
+                style={{
+                  width:
+                    `${
+                      (block.data as any)
+                        .buttonImageSize ??
+                      20
+                    }px`,
+
+                  height:
+                    `${
+                      (block.data as any)
+                        .buttonImageSize ??
+                      20
+                    }px`,
+                }}
+                className="shrink-0 object-cover"
+              />
+            ) : null}
+
+            <span>
+              {submitted
+                ? submittedText
+                : submitting
+                  ? "Submitting..."
+                  : block.data
+                      .buttonText ||
+                    "Button"}
+            </span>
+
+            {block.data
+              .buttonImageUrl &&
+            buttonImagePlacement ===
+              "after" ? (
+              <img
+                src={
+                  block.data
+                    .buttonImageUrl
+                }
+                alt=""
+                style={{
+                  width:
+                    `${
+                      (block.data as any)
+                        .buttonImageSize ??
+                      20
+                    }px`,
+
+                  height:
+                    `${
+                      (block.data as any)
+                        .buttonImageSize ??
+                      20
+                    }px`,
+                }}
+                className="shrink-0 object-cover"
+              />
+            ) : null}
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return <CtaButtonLive />;
@@ -10022,16 +10389,26 @@ function renderLinks(
     display_order?: number | null;
   }>,
 ) {
-  const typedBlock = block as typeof block & {
-    data: typeof block.data & {
-      layout?: "vertical" | "horizontal" | "grid";
-      backgroundColor?: string;
-      transparentBackground?: boolean;
-    };
-  };
+  const typedBlock =
+    block as typeof block & {
+      data: typeof block.data & {
+        layout?:
+          | "vertical"
+          | "horizontal"
+          | "grid";
 
-  const layout = typedBlock.data.layout || "vertical";
-  const containerAppearance = getAppearanceStyle(block);
+        backgroundColor?: string;
+
+        transparentBackground?: boolean;
+      };
+    };
+
+  const layout =
+    typedBlock.data.layout ||
+    "vertical";
+
+  const containerAppearance =
+    getAppearanceStyle(block);
 
   const listClass =
     layout === "horizontal"
@@ -10044,135 +10421,291 @@ function renderLinks(
             ? "space-y-2"
             : "grid gap-2";
 
-
   return (
     <div
       className="h-full w-full space-y-3 p-2"
       style={{
         ...containerAppearance,
-        backgroundColor: typedBlock.data.transparentBackground
-          ? "transparent"
-          : (typedBlock.data.backgroundColor ?? containerAppearance.backgroundColor),
+
+        backgroundColor:
+          typedBlock.data
+            .transparentBackground
+            ? "transparent"
+            : typedBlock.data
+                  .backgroundColor ??
+              containerAppearance.backgroundColor,
       }}
     >
       {block.data.heading ? (
-        <div style={getContainerTextStyle(block.data.style, designKey)}>
+        <div
+          style={getContainerTextStyle(
+            block.data.style,
+            designKey,
+          )}
+        >
           {block.data.heading}
         </div>
       ) : null}
 
       <div className={listClass}>
-        {block.data.items.map((item: LinkItem) => {
-          const linkType =
-  (item as any).linkType === "page"
-    ? "page"
-    : "url";
+        {block.data.items.map(
+          (item: LinkItem) => {
+            const linkType:
+              | "url"
+              | "page"
+              | "bookmark" =
+              item.linkType === "page"
+                ? "page"
+                : item.linkType ===
+                    "bookmark"
+                  ? "bookmark"
+                  : "url";
 
-let normalizedHref = "";
+            let normalizedHref = "";
 
-if (linkType === "page") {
-  const pageId = String(
-    (item as any).pageId ?? "",
-  ).trim();
+            /*
+             * ============================================================
+             * SITE PAGE
+             * ============================================================
+             */
 
-  const linkedPage = pages?.find(
-    (page) => page.id === pageId,
-  );
+            if (
+              linkType === "page"
+            ) {
+              const pageId =
+                String(
+                  item.pageId ??
+                    "",
+                ).trim();
 
-  if (linkedPage) {
-    const pageSlug = String(
-      linkedPage.slug ?? "",
-    )
-      .trim()
-      .replace(/^\/+|\/+$/g, "");
+              const linkedPage =
+                pages?.find(
+                  (page) =>
+                    page.id ===
+                    pageId,
+                );
 
-    normalizedHref =
-      !pageSlug || pageSlug === "home"
-        ? "/"
-        : `/${pageSlug}`;
-  }
-} else {
-  const rawUrl =
-    typeof item.url === "string"
-      ? item.url.trim()
-      : "";
+              if (linkedPage) {
+                const pageSlug =
+                  String(
+                    linkedPage.slug ??
+                      "",
+                  )
+                    .trim()
+                    .replace(
+                      /^\/+|\/+$/g,
+                      "",
+                    );
 
-  normalizedHref = rawUrl
-    ? normalizePreviewHref(
-        rawUrl,
-        micrositeSlug,
-      )
-    : "";
-}
+                normalizedHref =
+                  !pageSlug ||
+                  pageSlug ===
+                    "home"
+                    ? "/"
+                    : `/${pageSlug}`;
+              }
+            }
 
-          const content = item.label || "Link";
+            /*
+             * ============================================================
+             * BOOKMARK
+             * ============================================================
+             */
 
-const itemIsTransparent = typedBlock.data.transparentBackground === true;
+            else if (
+              linkType ===
+              "bookmark"
+            ) {
+              const bookmarkBlockId =
+                String(
+                  item.bookmarkBlockId ??
+                    "",
+                ).trim();
 
-const className =
-  layout === "horizontal"
-    ? [
-        "inline-flex items-center justify-center rounded-full px-3 py-2",
-        itemIsTransparent
-          ? "border border-transparent bg-transparent"
-          : isLightDesign(designKey)
-            ? "border border-neutral-200 bg-white"
-            : "border border-white/10 bg-white/5",
-      ].join(" ")
-    : layout === "grid"
-      ? itemIsTransparent
-        ? "block rounded-xl border border-transparent bg-transparent px-3 py-2"
-        : getLinkItemClass(designKey)
-      : designKey === "showcase"
-        ? "block"
-        : itemIsTransparent
-          ? "block rounded-xl border border-transparent bg-transparent px-3 py-2"
-          : getLinkItemClass(designKey);
+              if (
+                bookmarkBlockId
+              ) {
+                normalizedHref =
+                  `#block-${bookmarkBlockId}`;
+              } else {
+                const rawUrl =
+                  typeof item.url ===
+                  "string"
+                    ? item.url.trim()
+                    : "";
 
-          const style = getContainerTextStyle(block.data.style, designKey);
+                const hashIndex =
+                  rawUrl.indexOf(
+                    "#",
+                  );
 
-          if (!normalizedHref) {
+                normalizedHref =
+                  hashIndex >= 0
+                    ? rawUrl.slice(
+                        hashIndex,
+                      )
+                    : "";
+              }
+            }
+
+            /*
+             * ============================================================
+             * WEB ADDRESS
+             * ============================================================
+             */
+
+            else {
+              const rawUrl =
+                typeof item.url ===
+                "string"
+                  ? item.url.trim()
+                  : "";
+
+              normalizedHref =
+                rawUrl
+                  ? normalizePreviewHref(
+                      rawUrl,
+                      micrositeSlug,
+                    )
+                  : "";
+            }
+
+            const content =
+              item.label || "Link";
+
+            const itemIsTransparent =
+              typedBlock.data
+                .transparentBackground ===
+              true;
+
+            const className =
+              layout ===
+              "horizontal"
+                ? [
+                    "inline-flex items-center justify-center rounded-full px-3 py-2",
+
+                    itemIsTransparent
+                      ? "border border-transparent bg-transparent"
+                      : isLightDesign(
+                            designKey,
+                          )
+                        ? "border border-neutral-200 bg-white"
+                        : "border border-white/10 bg-white/5",
+                  ].join(" ")
+                : layout ===
+                    "grid"
+                  ? itemIsTransparent
+                    ? "block rounded-xl border border-transparent bg-transparent px-3 py-2"
+                    : getLinkItemClass(
+                        designKey,
+                      )
+                  : designKey ===
+                      "showcase"
+                    ? "block"
+                    : itemIsTransparent
+                      ? "block rounded-xl border border-transparent bg-transparent px-3 py-2"
+                      : getLinkItemClass(
+                          designKey,
+                        );
+
+            const style =
+              getContainerTextStyle(
+                block.data.style,
+                designKey,
+              );
+
+            if (!normalizedHref) {
+              return (
+                <div
+                  key={item.id}
+                  className={`${className} cursor-default opacity-60`}
+                  style={style}
+                >
+                  {content}
+                </div>
+              );
+            }
+
+            const Tag =
+              previewMode
+                ? "span"
+                : "a";
+
+            const isExternalLink =
+              linkType === "url" &&
+              (
+                normalizedHref.startsWith(
+                  "http://",
+                ) ||
+                normalizedHref.startsWith(
+                  "https://",
+                )
+              );
+
             return (
-              <div
+              <Tag
                 key={item.id}
-                className={`${className} opacity-60 cursor-default`}
+                {...(!previewMode
+                  ? {
+                      href:
+                        normalizedHref,
+
+                      target:
+                        isExternalLink
+                          ? "_blank"
+                          : undefined,
+
+                      rel:
+                        isExternalLink
+                          ? "noreferrer noopener"
+                          : undefined,
+
+                      onClick:
+                        linkType ===
+                        "bookmark"
+                          ? (
+                              event: React.MouseEvent<HTMLAnchorElement>,
+                            ) => {
+                              event.preventDefault();
+
+                              const target =
+                                document.querySelector(
+                                  normalizedHref,
+                                );
+
+                              if (!target) {
+                                return;
+                              }
+
+                              target.scrollIntoView(
+                                {
+                                  behavior:
+                                    "smooth",
+
+                                  block:
+                                    "start",
+                                },
+                              );
+
+                              window.history.replaceState(
+                                null,
+                                "",
+                                normalizedHref,
+                              );
+                            }
+                          : undefined,
+                    }
+                  : {})}
+                className={
+                  className
+                }
                 style={style}
               >
                 {content}
-              </div>
+              </Tag>
             );
-          }
-
-const Tag = previewMode ? "span" : "a";
-
-const isExternalLink =
-  linkType === "url" &&
-  (
-    normalizedHref.startsWith("http://") ||
-    normalizedHref.startsWith("https://")
-  );
-
-return (
-  <Tag
-    key={item.id}
-    {...(!previewMode
-      ? {
-          href: normalizedHref,
-          target: isExternalLink
-            ? "_blank"
-            : undefined,
-          rel: isExternalLink
-            ? "noreferrer noopener"
-            : undefined,
-        }
-      : {})}
-    className={className}
-    style={style}
-  >
-    {content}
-  </Tag>
-);
-        })}
+          },
+        )}
       </div>
     </div>
   );

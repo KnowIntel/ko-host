@@ -939,39 +939,48 @@ zIndex:
       : block;
 
 return (
-  <BlockRenderer
+  <div
     key={`${previewBlock.id}-${JSON.stringify(previewBlock.data)}`}
-    block={previewBlock}
-    blocks={draft.blocks}
-    pages={typedDraft.pages}
-    designKey={designKey}
-    micrositeId={micrositeId}
-    micrositeSlug={
-      micrositeSlug ||
-      (draft as any).slug ||
-      (draft as any).siteSlug ||
-      (draft as any).micrositeSlug ||
-      null
-    }
-    serverNow={serverNow}
-    previewMode={previewMode}
-    cartItems={cartItems}
-    cartSubtotal={cartSubtotal}
-    listingQuantities={listingQuantities}
-    onDownloadFrame={handleDownloadFrame as any}
-    onChangeListingQuantity={(
-      listingId: string,
-      nextQuantity: number,
-    ) => {
-      setListingQuantities((prev) => ({
-        ...prev,
-        [listingId]: Math.max(
-          0,
-          Math.floor(nextQuantity || 0),
-        ),
-      }));
+    id={`block-${previewBlock.id}`}
+    data-public-block-id={previewBlock.id}
+    className="h-full w-full"
+    style={{
+      scrollMarginTop: "24px",
     }}
-  />
+  >
+    <BlockRenderer
+      block={previewBlock}
+      blocks={draft.blocks}
+      pages={typedDraft.pages}
+      designKey={designKey}
+      micrositeId={micrositeId}
+      micrositeSlug={
+        micrositeSlug ||
+        (draft as any).slug ||
+        (draft as any).siteSlug ||
+        (draft as any).micrositeSlug ||
+        null
+      }
+      serverNow={serverNow}
+      previewMode={previewMode}
+      cartItems={cartItems}
+      cartSubtotal={cartSubtotal}
+      listingQuantities={listingQuantities}
+      onDownloadFrame={handleDownloadFrame as any}
+      onChangeListingQuantity={(
+        listingId: string,
+        nextQuantity: number,
+      ) => {
+        setListingQuantities((prev) => ({
+          ...prev,
+          [listingId]: Math.max(
+            0,
+            Math.floor(nextQuantity || 0),
+          ),
+        }));
+      }}
+    />
+  </div>
 );
 })()}
     </div>
