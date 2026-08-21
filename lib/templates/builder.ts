@@ -1346,9 +1346,32 @@ export type OptionButtonBlock = BaseBlock & {
   };
 };
 
+export type ListingStyleVariant =
+  | "showcase"
+  | "itemized";
+
+export type ListingItemizedColumnKey =
+  | "item"
+  | "value";
+
 export type ListingBlock = BaseBlock & {
   type: "listing";
+
   data: {
+    /*
+     * ================================================================
+     * STYLE VARIANT
+     * ================================================================
+     */
+
+    styleVariant?: ListingStyleVariant;
+
+    /*
+     * ================================================================
+     * SHOWCASE LISTING
+     * ================================================================
+     */
+
     image: {
       id: string;
       url: string;
@@ -1362,13 +1385,21 @@ export type ListingBlock = BaseBlock & {
       scale?: number;
       opacity?: number;
     };
+
     title: string;
     description: string;
+
     price?: number;
     addToCart?: boolean;
     sku?: string;
+
     metadata: ListingMetadataItem[];
-    metadataSeparator?: "none" | ":" | "-" | "|";
+
+    metadataSeparator?:
+      | "none"
+      | ":"
+      | "-"
+      | "|";
 
     pricePlacement?: "mid" | "lower";
     quantityPlacement?: "mid" | "lower";
@@ -1380,23 +1411,106 @@ export type ListingBlock = BaseBlock & {
     quantityStyle?: TextStyle;
 
     cardVariant?: ListingCardVariant;
+
     imageHeightPercent?: number;
     imageWidthPercent?: number;
+
     rotation?: number;
     scale?: number;
 
     showTitle?: boolean;
     showPrice?: boolean;
-    pricePosition?: "left" | "right" | "belowTitle";
+
+    pricePosition?:
+      | "left"
+      | "right"
+      | "belowTitle";
+
     showImage?: boolean;
-    imageShape?: "square" | "rounded" | "circle" | "ticket" | "badge";
+
+    imageShape?:
+      | "square"
+      | "rounded"
+      | "circle"
+      | "ticket"
+      | "badge";
+
     featureBullets?: string[];
     showBullets?: boolean;
-    bulletStyle?: "dot" | "checkmark" | "arrow" | "star" | "icon";
+
+    bulletStyle?:
+      | "dot"
+      | "checkmark"
+      | "arrow"
+      | "star"
+      | "icon";
+
     showButton?: boolean;
     buttonText?: string;
     buttonLink?: string;
-    buttonAlignment?: "left" | "center" | "right" | "hidden";
+
+    buttonAlignment?:
+      | "left"
+      | "center"
+      | "right"
+      | "hidden";
+
+    /*
+     * ================================================================
+     * ITEMIZED LIST
+     * ================================================================
+     */
+
+    itemizedHeading?: string;
+
+    showItemizedColumnHeaders?: boolean;
+
+    itemColumnLabel?: string;
+    valueColumnLabel?: string;
+
+    itemizedColumnOrder?: ListingItemizedColumnKey[];
+
+    itemizedItems?: Array<{
+      id: string;
+      item: string;
+      value: number;
+    }>;
+
+    totalLabel?: string;
+
+    valuePrefix?: string;
+    valueSuffix?: string;
+
+    decimalPlaces?: number;
+
+    /*
+     * Itemized text formatting targets
+     */
+
+    itemizedHeadingStyle?: TextStyle;
+    itemizedColumnHeaderStyle?: TextStyle;
+    itemizedItemStyle?: TextStyle;
+    itemizedValueStyle?: TextStyle;
+    itemizedTotalLabelStyle?: TextStyle;
+    itemizedTotalValueStyle?: TextStyle;
+
+    /*
+     * Itemized appearance targets
+     */
+
+    itemizedRowStyle?: {
+      backgroundColor?: string;
+      borderColor?: string;
+      borderWidth?: number;
+      borderRadius?: number;
+    };
+
+    itemizedTotalRowStyle?: {
+      backgroundColor?: string;
+      borderColor?: string;
+      borderWidth?: number;
+      borderRadius?: number;
+    };
   };
 };
 
@@ -7291,7 +7405,9 @@ case "listing":
     id: makeId("listing"),
     type: "listing",
     label: "Listing",
+
     grid: createDefaultListingGrid(),
+
     appearance: {
       ...createDefaultBlockAppearance(),
       backgroundColor: "#FFFFFF",
@@ -7299,7 +7415,22 @@ case "listing":
       borderWidth: 1,
       borderRadius: 20,
     },
+
     data: {
+      /*
+       * ================================================================
+       * STYLE
+       * ================================================================
+       */
+
+      styleVariant: "showcase",
+
+      /*
+       * ================================================================
+       * SHOWCASE LISTING
+       * ================================================================
+       */
+
       image: {
         id: makeId("img"),
         url: "",
@@ -7315,18 +7446,33 @@ case "listing":
       },
 
       title: "Listing Title",
-      description: "Add a short description here.",
+
+      description:
+        "Add a short description here.",
+
       price: 0,
+
       addToCart: false,
+
       sku: "",
 
       metadata: [
-        { id: makeId("meta"), label: "Price", value: "$0" },
-        { id: makeId("meta"), label: "Location", value: "City, State" },
+        {
+          id: makeId("meta"),
+          label: "Price",
+          value: "$0",
+        },
+        {
+          id: makeId("meta"),
+          label: "Location",
+          value: "City, State",
+        },
       ],
+
       metadataSeparator: ":",
 
       pricePlacement: "mid",
+
       quantityPlacement: "mid",
 
       titleStyle: {
@@ -7359,10 +7505,13 @@ case "listing":
       cardVariant: "stacked",
 
       showTitle: true,
+
       showPrice: true,
+
       pricePosition: "right",
 
       showImage: true,
+
       imageShape: "rounded",
 
       featureBullets: [
@@ -7373,20 +7522,122 @@ case "listing":
       ],
 
       showBullets: true,
+
       bulletStyle: "dot",
 
       showButton: true,
+
       buttonText: "Buy Ticket",
+
       buttonLink: "",
+
       buttonAlignment: "right",
 
       imageHeightPercent: 50,
+
       imageWidthPercent: 35,
 
       rotation: 0,
+
+      scale: 1,
+
+      /*
+       * ================================================================
+       * ITEMIZED LIST
+       * ================================================================
+       */
+
+      itemizedHeading: "",
+
+      showItemizedColumnHeaders: true,
+
+      itemColumnLabel: "ITEM",
+
+      valueColumnLabel: "EST. COST (USD)",
+
+      itemizedColumnOrder: [
+        "item",
+        "value",
+      ],
+
+      itemizedItems: [
+        {
+          id: makeId("itemized"),
+          item: "Round Trip Flights",
+          value: 1150,
+        },
+        {
+          id: makeId("itemized"),
+          item: "Accommodation",
+          value: 600,
+        },
+        {
+          id: makeId("itemized"),
+          item: "Activities & Tours",
+          value: 650,
+        },
+      ],
+
+      totalLabel:
+        "TOTAL ESTIMATED COST",
+
+      valuePrefix: "$",
+
+      valueSuffix: "",
+
+      decimalPlaces: 2,
+
+      itemizedHeadingStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 20,
+        bold: true,
+      },
+
+      itemizedColumnHeaderStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 12,
+        bold: true,
+      },
+
+      itemizedItemStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+      },
+
+      itemizedValueStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+      },
+
+      itemizedTotalLabelStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        bold: true,
+      },
+
+      itemizedTotalValueStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        bold: true,
+      },
+
+      itemizedRowStyle: {
+        backgroundColor: "transparent",
+        borderColor: "#e5e7eb",
+        borderWidth: 1,
+        borderRadius: 0,
+      },
+
+      itemizedTotalRowStyle: {
+        backgroundColor: "#fbf4e8",
+        borderColor: "#e5e7eb",
+        borderWidth: 0,
+        borderRadius: 0,
+      },
     },
   };
-      case "content_panel":
+
+  case "content_panel":
       return {
         id: makeId("contentpanel"),
         type: "content_panel",

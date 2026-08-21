@@ -1602,8 +1602,504 @@ function renderListing(
   block: Extract<MicrositeBlock, { type: "listing" }>,
   designKey?: string,
   listingQuantities: Record<string, number> = {},
-  onChangeListingQuantity?: (listingId: string, nextQuantity: number) => void,
+  onChangeListingQuantity?: (
+    listingId: string,
+    nextQuantity: number,
+  ) => void,
 ) {
+  const data = block.data as any;
+
+  const styleVariant =
+    data.styleVariant === "itemized"
+      ? "itemized"
+      : "showcase";
+
+  /*
+   * ================================================================
+   * ITEMIZED LIST
+   * ================================================================
+   */
+
+  if (styleVariant === "itemized") {
+    type ItemizedColumnKey =
+      | "item"
+      | "value";
+
+    const itemizedItems = Array.isArray(
+      data.itemizedItems,
+    )
+      ? data.itemizedItems
+      : [];
+
+    /*
+     * Normalize the owner-controlled column order.
+     */
+    const rawColumnOrder =
+      Array.isArray(
+        data.itemizedColumnOrder,
+      )
+        ? data.itemizedColumnOrder
+        : [];
+
+    const validColumnKeys =
+      new Set<ItemizedColumnKey>([
+        "item",
+        "value",
+      ]);
+
+    const itemizedColumnOrder =
+      rawColumnOrder.filter(
+        (
+          key: unknown,
+        ): key is ItemizedColumnKey =>
+          typeof key === "string" &&
+          validColumnKeys.has(
+            key as ItemizedColumnKey,
+          ),
+      );
+
+    if (
+      !itemizedColumnOrder.includes(
+        "item",
+      )
+    ) {
+      itemizedColumnOrder.push(
+        "item",
+      );
+    }
+
+    if (
+      !itemizedColumnOrder.includes(
+        "value",
+      )
+    ) {
+      itemizedColumnOrder.push(
+        "value",
+      );
+    }
+
+    const finalColumnOrder =
+      itemizedColumnOrder.slice(
+        0,
+        2,
+      );
+
+    /*
+     * Text styles.
+     */
+    const headingStyle =
+      getContainerTextStyle(
+        data.itemizedHeadingStyle ??
+          {},
+        designKey,
+      );
+
+    const columnHeaderStyle =
+      getContainerTextStyle(
+        data.itemizedColumnHeaderStyle ??
+          {},
+        designKey,
+      );
+
+    const itemStyle =
+      getContainerTextStyle(
+        data.itemizedItemStyle ??
+          {},
+        designKey,
+      );
+
+    const valueStyle =
+      getContainerTextStyle(
+        data.itemizedValueStyle ??
+          {},
+        designKey,
+      );
+
+    const totalLabelStyle =
+      getContainerTextStyle(
+        data.itemizedTotalLabelStyle ??
+          {},
+        designKey,
+      );
+
+    const totalValueStyle =
+      getContainerTextStyle(
+        data.itemizedTotalValueStyle ??
+          {},
+        designKey,
+      );
+
+    /*
+     * Row appearance.
+     */
+    const rowStyle =
+      data.itemizedRowStyle ?? {};
+
+    const totalRowStyle =
+      data.itemizedTotalRowStyle ??
+      {};
+
+    /*
+     * Number formatting.
+     */
+    const decimalPlaces =
+      Math.max(
+        0,
+        Math.min(
+          4,
+          Number(
+            data.decimalPlaces ?? 2,
+          ),
+        ),
+      );
+
+    const valuePrefix =
+      String(
+        data.valuePrefix ?? "$",
+      );
+
+    const valueSuffix =
+      String(
+        data.valueSuffix ?? "",
+      );
+
+    function normalizeItemValue(
+      value: unknown,
+    ) {
+      const numericValue =
+        Number(value);
+
+      return Number.isFinite(
+        numericValue,
+      )
+        ? numericValue
+        : 0;
+    }
+
+    function formatItemizedValue(
+      value: unknown,
+    ) {
+      const numericValue =
+        normalizeItemValue(value);
+
+      const formatted =
+        numericValue.toLocaleString(
+          undefined,
+          {
+            minimumFractionDigits:
+              decimalPlaces,
+            maximumFractionDigits:
+              decimalPlaces,
+          },
+        );
+
+      return `${valuePrefix}${formatted}${valueSuffix}`;
+    }
+
+    /*
+     * Automatic grand total.
+     */
+    const grandTotal =
+      itemizedItems.reduce(
+        (
+          total: number,
+          item: any,
+        ) =>
+          total +
+          normalizeItemValue(
+            item.value,
+          ),
+        0,
+      );
+
+    function getColumnWidth(
+      key: ItemizedColumnKey,
+    ) {
+      return key === "item"
+        ? "minmax(240px,1.8fr)"
+        : "minmax(140px,0.8fr)";
+    }
+
+    const gridTemplateColumns =
+      finalColumnOrder
+        .map(getColumnWidth)
+        .join(" ");
+
+    function getColumnLabel(
+      key: ItemizedColumnKey,
+    ) {
+      return key === "item"
+        ? data.itemColumnLabel ??
+            "ITEM"
+        : data.valueColumnLabel ??
+            "VALUE";
+    }
+
+    function renderHeaderCell(
+      key: ItemizedColumnKey,
+    ) {
+      return (
+        <div
+          key={`itemized-header-${key}`}
+          className={[
+            "min-w-0 text-xs font-semibold uppercase tracking-[0.1em]",
+            key === "value"
+              ? "text-right"
+              : "text-left",
+          ].join(" ")}
+          style={columnHeaderStyle}
+        >
+          {getColumnLabel(key)}
+        </div>
+      );
+    }
+
+    function renderItemCell(
+      item: any,
+      key: ItemizedColumnKey,
+    ) {
+      if (key === "item") {
+        return (
+          <div
+            key={`${item.id}-item`}
+            className="min-w-0"
+            style={itemStyle}
+          >
+            {item.item || ""}
+          </div>
+        );
+      }
+
+      return (
+        <div
+          key={`${item.id}-value`}
+          className="min-w-0 text-right tabular-nums"
+          style={valueStyle}
+        >
+          {formatItemizedValue(
+            item.value,
+          )}
+        </div>
+      );
+    }
+
+    function renderTotalCell(
+      key: ItemizedColumnKey,
+    ) {
+      if (key === "item") {
+        return (
+          <div
+            key="itemized-total-label"
+            className="min-w-0 font-semibold uppercase tracking-[0.04em]"
+            style={
+              totalLabelStyle
+            }
+          >
+            {data.totalLabel ??
+              "TOTAL"}
+          </div>
+        );
+      }
+
+      return (
+        <div
+          key="itemized-total-value"
+          className="min-w-0 text-right font-semibold tabular-nums"
+          style={
+            totalValueStyle
+          }
+        >
+          {formatItemizedValue(
+            grandTotal,
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <div
+        className="h-full w-full overflow-hidden"
+        style={
+          getAppearanceStyle(
+            block,
+          )
+        }
+      >
+        <div className="flex h-full w-full flex-col overflow-y-auto">
+          {String(
+            data.itemizedHeading ??
+              "",
+          ).trim() ? (
+            <div
+              className="px-4 pb-3 pt-4 text-lg font-semibold"
+              style={
+                headingStyle
+              }
+            >
+              {
+                data.itemizedHeading
+              }
+            </div>
+          ) : null}
+
+          <div className="w-full overflow-x-auto">
+            <div className="min-w-[520px]">
+              {/* COLUMN HEADERS */}
+
+              {data.showItemizedColumnHeaders !==
+              false ? (
+                <div
+                  className="grid items-center gap-5 border-b px-5 py-3"
+                  style={{
+                    gridTemplateColumns,
+                    borderColor:
+                      rowStyle.borderColor ??
+                      "#e5e7eb",
+                  }}
+                >
+                  {finalColumnOrder.map(
+                    renderHeaderCell,
+                  )}
+                </div>
+              ) : null}
+
+              {/* ITEM ROWS */}
+
+              {itemizedItems.length ? (
+                <div>
+                  {itemizedItems.map(
+                    (
+                      item: any,
+                    ) => (
+                      <div
+                        key={
+                          item.id
+                        }
+                        className="grid items-center gap-5 px-5 py-3"
+                        style={{
+                          gridTemplateColumns,
+
+                          backgroundColor:
+                            rowStyle.backgroundColor ??
+                            "transparent",
+
+                          borderColor:
+                            rowStyle.borderColor ??
+                            "#e5e7eb",
+
+                          borderBottomWidth:
+                            typeof rowStyle.borderWidth ===
+                            "number"
+                              ? `${rowStyle.borderWidth}px`
+                              : "1px",
+
+                          borderStyle:
+                            "solid",
+
+                          borderLeftWidth:
+                            0,
+
+                          borderRightWidth:
+                            0,
+
+                          borderTopWidth:
+                            0,
+
+                          borderRadius:
+                            typeof rowStyle.borderRadius ===
+                            "number" &&
+                            rowStyle.borderRadius >
+                              0
+                              ? `${rowStyle.borderRadius}px`
+                              : undefined,
+                        }}
+                      >
+{finalColumnOrder.map(
+  (
+    columnKey: ItemizedColumnKey,
+  ) =>
+    renderItemCell(
+      item,
+      columnKey,
+    ),
+)}
+                      </div>
+                    ),
+                  )}
+                </div>
+              ) : (
+                <div
+                  className={[
+                    "mx-4 my-4 rounded-xl border border-dashed px-4 py-6 text-sm",
+                    isLightDesign(
+                      designKey,
+                    )
+                      ? "border-neutral-300 bg-neutral-50 text-neutral-500"
+                      : "border-white/15 bg-white/5 text-white/60",
+                  ].join(" ")}
+                >
+                  No items yet.
+                </div>
+              )}
+
+              {/* GRAND TOTAL */}
+
+              <div
+                className="grid items-center gap-5 px-5 py-4"
+                style={{
+                  gridTemplateColumns,
+
+                  backgroundColor:
+                    totalRowStyle.backgroundColor ??
+                    "#fbf4e8",
+
+                  borderColor:
+                    totalRowStyle.borderColor ??
+                    "#e5e7eb",
+
+                  borderTopWidth:
+                    typeof totalRowStyle.borderWidth ===
+                    "number" &&
+                    totalRowStyle.borderWidth >
+                      0
+                      ? `${totalRowStyle.borderWidth}px`
+                      : "1px",
+
+                  borderStyle:
+                    "solid",
+
+                  borderLeftWidth: 0,
+                  borderRightWidth: 0,
+                  borderBottomWidth: 0,
+
+                  borderRadius:
+                    typeof totalRowStyle.borderRadius ===
+                    "number" &&
+                    totalRowStyle.borderRadius >
+                      0
+                      ? `${totalRowStyle.borderRadius}px`
+                      : undefined,
+                }}
+              >
+                {finalColumnOrder.map(
+                  renderTotalCell,
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  /*
+   * ================================================================
+   * SHOWCASE LISTING
+   * ================================================================
+   *
+   * Existing Listing renderer continues below unchanged.
+   */
+
   const image = block.data.image;
   const metadata = Array.isArray(block.data.metadata) ? block.data.metadata : [];
   const metadataSeparator = (block.data as any).metadataSeparator ?? ":";

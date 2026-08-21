@@ -75,6 +75,17 @@ import {
 } from "@/components/builder/formatting/imageFormatting";
 
 import {
+  applyListingStylePatch,
+  applyListingTextStylePatch,
+  getListingTextStyle,
+} from "@/components/builder/formatting/listingFormatting";
+
+import type {
+  ListingStyleTarget,
+  ListingTextTarget,
+} from "@/components/builder/formatting/listingFormatting";
+
+import {
   applyDataPyramidStylePatch,
   applyDataPyramidTextStylePatch,
   getDataPyramidTextStyle,
@@ -961,23 +972,92 @@ const CATEGORY_BUTTONS: Record<
 
     { kind: "block", label: "Photo Placeholder", type: "icon", iconName: "photo-placeholder" },
   ],
-  Layout: [
-    { kind: "shape", label: "Rectangle", type: "rectangle" },
-    { kind: "shape", label: "Circle", type: "circle" },
-    { kind: "shape", label: "Line", type: "line" },
-    // { kind: "block", label: "Wave", type: "wave" },
-    { kind: "block", label: "Frame", type: "frame" },
-    { kind: "block", label: "Content Panel", type: "content_panel" },
-    { kind: "block", label: "Listing", type: "listing" },
-    // { kind: "block", label: "Spacer", type: "padding" },
-  ],
+Layout: [
+  {
+    kind: "shape",
+    label: "Rectangle",
+    type: "rectangle",
+  },
+
+  {
+    kind: "shape",
+    label: "Circle",
+    type: "circle",
+  },
+
+  {
+    kind: "shape",
+    label: "Line",
+    type: "line",
+  },
+
+  // {
+  //   kind: "block",
+  //   label: "Wave",
+  //   type: "wave",
+  // },
+
+  {
+    kind: "block",
+    label: "Frame",
+    type: "frame",
+  },
+
+  {
+    kind: "block",
+    label: "Content Panel",
+    type: "content_panel",
+  },
+
+  // {
+  //   kind: "block",
+  //   label: "Spacer",
+  //   type: "padding",
+  // },
+],
+
 Forms: [
-  { kind: "block", label: "Input Field", type: "form_field" },
-  { kind: "block", label: "Option Button", type: "option_button" },
-  { kind: "block", label: "Poll", type: "poll" },
-  { kind: "block", label: "RSVP", type: "rsvp" },
-  { kind: "block", label: "Enrollment Board", type: "enrollment_board" },
-  { kind: "block", label: "FAQ", type: "faq" },
+  {
+    kind: "block",
+    label: "Input Field",
+    type: "form_field",
+  },
+
+  {
+    kind: "block",
+    label: "Option Button",
+    type: "option_button",
+  },
+
+  {
+    kind: "block",
+    label: "Listing",
+    type: "listing",
+  },
+
+  {
+    kind: "block",
+    label: "Poll",
+    type: "poll",
+  },
+
+  {
+    kind: "block",
+    label: "RSVP",
+    type: "rsvp",
+  },
+
+  {
+    kind: "block",
+    label: "Enrollment Board",
+    type: "enrollment_board",
+  },
+
+  {
+    kind: "block",
+    label: "FAQ",
+    type: "faq",
+  },
 ],
 Exchange: [
   { kind: "block", label: "Thread", type: "thread" },
@@ -2244,9 +2324,11 @@ export default function DesignLayoutEditor({
     
 /* ------------------------------------ TARGET TEXT/STYLE BLOCKS - START ------------------------------------ */
 
-const [listingStyleTarget, setListingStyleTarget] = useState<
-  "title" | "description" | "metadata" | "price" | "quantity"
->("title");
+const [listingTextTarget, setListingTextTarget] =
+  useState<ListingTextTarget>("title");
+
+const [listingStyleTarget, setListingStyleTarget] =
+  useState<ListingStyleTarget>("block");
 
 const [mapLocationTextTarget, setMapLocationTextTarget] =
   useState<MapLocationTextTarget>("heading");
@@ -2883,16 +2965,11 @@ const selectedStyle =
                     : tournamentDisplayStyleTarget === "champion"
                       ? ((selectedBlockFromDraft.data as any).championStyle ?? {})
                       : ((selectedBlockFromDraft.data as any).style ?? {})
-        : selectedBlockFromDraft?.type === "listing"
-          ? listingStyleTarget === "description"
-            ? (selectedBlockFromDraft.data.descriptionStyle ?? {})
-            : listingStyleTarget === "metadata"
-              ? (selectedBlockFromDraft.data.metadataStyle ?? {})
-              : listingStyleTarget === "price"
-                ? ((selectedBlockFromDraft.data as any).priceStyle ?? {})
-                : listingStyleTarget === "quantity"
-                  ? ((selectedBlockFromDraft.data as any).quantityStyle ?? {})
-                  : (selectedBlockFromDraft.data.titleStyle ?? {})
+: selectedBlockFromDraft?.type === "listing"
+  ? (getListingTextStyle(
+      selectedBlockFromDraft,
+      listingTextTarget,
+    ) as TextStyle)
 : selectedBlockFromDraft?.type === "form_field"
   ? (getFormFieldTextStyle(
       selectedBlockFromDraft,
@@ -5763,51 +5840,18 @@ if (selectedBlock?.type === "tournament_display") {
 if (selectedBlock?.type === "listing") {
   setDraft((prev) => ({
     ...prev,
+
     blocks: prev.blocks.map((block) =>
-      block.id === selectedBlock.id && block.type === "listing"
-        ? {
-            ...block,
-            data: {
-              ...block.data,
-              ...(listingStyleTarget === "description"
-                ? {
-                    descriptionStyle: {
-                      ...(block.data.descriptionStyle ?? {}),
-                      ...patch,
-                    },
-                  }
-                : listingStyleTarget === "metadata"
-                  ? {
-                      metadataStyle: {
-                        ...(block.data.metadataStyle ?? {}),
-                        ...patch,
-                      },
-                    }
-                  : listingStyleTarget === "price"
-                    ? {
-                        priceStyle: {
-                          ...((block.data as any).priceStyle ?? {}),
-                          ...patch,
-                        },
-                      }
-                    : listingStyleTarget === "quantity"
-                      ? {
-                          quantityStyle: {
-                            ...((block.data as any).quantityStyle ?? {}),
-                            ...patch,
-                          },
-                        }
-                      : {
-                          titleStyle: {
-                            ...(block.data.titleStyle ?? {}),
-                            ...patch,
-                          },
-                        }),
-            },
-          }
+      block.id === selectedBlock.id
+        ? applyListingTextStylePatch(
+            block,
+            listingTextTarget,
+            patch,
+          )
         : block,
     ),
   }));
+
   return;
 }
 
@@ -9327,45 +9371,84 @@ if (block.type === "summary") {
   );
 }
 
-    if (block.type === "listing") {
-      return block.data.image.url ? (
-        <div
-          className="h-full w-full"
-          onDoubleClick={() => void uploadImageToSelectedBlock(block.id)}
-          title="Double-click to replace listing image"
-        >
-<BlockRenderer
-  block={block}
-  blocks={draft.blocks}
-  designKey={designKey}
-/>
-        </div>
-      ) : (
-        <ImageUploadDropzone
-          label="Drag listing image here or click to browse"
-          className="h-full w-full"
-          onUploaded={(url) => {
-            setDraft((prev) => ({
-              ...prev,
-              blocks: prev.blocks.map((item) =>
-                item.id === block.id && item.type === "listing"
-                  ? {
-                      ...item,
-                      data: {
-                        ...item.data,
-                        image: {
-                          ...item.data.image,
-                          url,
-                        },
-                      },
-                    }
-                  : item,
-              ),
-            }));
-          }}
+if (block.type === "listing") {
+  const listingStyleVariant =
+    (block.data as any).styleVariant === "itemized"
+      ? "itemized"
+      : "showcase";
+
+  /*
+   * ================================================================
+   * ITEMIZED LIST
+   * ================================================================
+   *
+   * Itemized List does not require an image, so it should always
+   * render directly through BlockRenderer.
+   */
+  if (listingStyleVariant === "itemized") {
+    return (
+      <div className="h-full w-full">
+        <BlockRenderer
+          block={block}
+          blocks={draft.blocks}
+          designKey={designKey}
         />
-      );
-    }
+      </div>
+    );
+  }
+
+  /*
+   * ================================================================
+   * SHOWCASE LISTING
+   * ================================================================
+   *
+   * Preserve the existing image-upload behavior for the original
+   * Showcase Listing variant.
+   */
+  return block.data.image.url ? (
+    <div
+      className="h-full w-full"
+      onDoubleClick={() =>
+        void uploadImageToSelectedBlock(block.id)
+      }
+      title="Double-click to replace listing image"
+    >
+      <BlockRenderer
+        block={block}
+        blocks={draft.blocks}
+        designKey={designKey}
+      />
+    </div>
+  ) : (
+    <ImageUploadDropzone
+      label="Drag listing image here or click to browse"
+      className="h-full w-full"
+      onUploaded={(url) => {
+        setDraft((prev) => ({
+          ...prev,
+
+          blocks: prev.blocks.map((item) =>
+            item.id === block.id &&
+            item.type === "listing"
+              ? {
+                  ...item,
+
+                  data: {
+                    ...item.data,
+
+                    image: {
+                      ...item.data.image,
+                      url,
+                    },
+                  },
+                }
+              : item,
+          ),
+        }));
+      }}
+    />
+  );
+}
 
     if (block.type === "cart") {
   return (
@@ -14246,15 +14329,38 @@ selectedBlock?.type === "comparison_table" ? (
   <ListingInspector
     selectedBlock={selectedBlock}
     updateSelectedBlock={updateSelectedBlock}
+
+    listingTextTarget={listingTextTarget}
+    setListingTextTarget={setListingTextTarget}
+
     listingStyleTarget={listingStyleTarget}
     setListingStyleTarget={setListingStyleTarget}
+
     makeClientId={makeClientId}
-    uploadImageToSelectedBlock={uploadImageToSelectedBlock}
-    inspectorCardClass={inspectorCardClass}
-    inspectorLabelClass={inspectorLabelClass}
-    inspectorInputClass={inspectorInputClass}
-    inspectorTextareaClass={inspectorTextareaClass}
-    toolSetButtonClass={toolSetButtonClass}
+
+    uploadImageToSelectedBlock={
+      uploadImageToSelectedBlock
+    }
+
+    inspectorCardClass={
+      inspectorCardClass
+    }
+
+    inspectorLabelClass={
+      inspectorLabelClass
+    }
+
+    inspectorInputClass={
+      inspectorInputClass
+    }
+
+    inspectorTextareaClass={
+      inspectorTextareaClass
+    }
+
+    toolSetButtonClass={
+      toolSetButtonClass
+    }
   />
 ) : null}
 
