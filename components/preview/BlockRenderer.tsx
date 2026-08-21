@@ -20182,13 +20182,11 @@ function renderScheduleAgenda(
 
   if (!isProfessional) {
     return (
-      <Surface
-        block={block}
-        designKey={designKey}
-        className={`${getSoftSurfaceClass(
-          designKey,
-        )} overflow-y-auto`}
-      >
+<Surface
+  block={block}
+  designKey={designKey}
+  className="overflow-y-auto"
+>
         <div
           className="mb-3 text-base font-semibold"
           style={headingStyle}
@@ -20346,13 +20344,11 @@ function renderScheduleAgenda(
    */
 
   return (
-    <Surface
-      block={block}
-      designKey={designKey}
-      className={`${getSoftSurfaceClass(
-        designKey,
-      )} overflow-y-auto`}
-    >
+<Surface
+  block={block}
+  designKey={designKey}
+  className="overflow-y-auto"
+>
       {/* HEADER */}
 
       <div className="mb-5 flex items-start justify-between gap-6">
