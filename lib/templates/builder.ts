@@ -644,7 +644,7 @@ export type CtaBlock = BaseBlock & {
 
     pageId?: string;
 
-    bookmarkBlockId?: string;
+    bookmarkName?: string;
 
     buttonImageUrl?: string;
     buttonImageSize?: number;
@@ -4705,7 +4705,7 @@ case "cta":
 
       linkType: "url",
       pageId: "",
-      bookmarkBlockId: "",
+      bookmarkName: "",
 
       buttonImageUrl: "",
       buttonImageSize: 20,

@@ -470,181 +470,129 @@ export function LinksInspector({
                   </div>
                 ) : null}
 
-                {/* ====================================================== */}
-                {/* BOOKMARK */}
-                {/* ====================================================== */}
+{/* ====================================================== */}
+{/* BOOKMARK */}
+{/* ====================================================== */}
 
-                {linkType ===
-                "bookmark" ? (
-                  <div className="mt-4">
-                    <div
-                      className={
-                        inspectorLabelClass()
-                      }
-                    >
-                      Bookmark
-                    </div>
+{linkType === "bookmark" ? (
+  <div className="mt-4">
+    <div
+      className={
+        inspectorLabelClass()
+      }
+    >
+      Bookmark
+    </div>
 
-                    <select
-                      value={
-                        item.bookmarkBlockId ??
-                        ""
-                      }
-                      onChange={(e) => {
-                        const nextBookmarkBlockId =
-                          e.target.value;
+    <input
+      type="text"
+      value={
+        item.bookmarkName ?? ""
+      }
+      onChange={(e) => {
+        const rawValue =
+          e.target.value.trim();
 
-                        const selectedBookmark =
-                          bookmarkBlocks.find(
-                            (
-                              bookmarkBlock,
-                            ) =>
-                              bookmarkBlock.id ===
-                              nextBookmarkBlockId,
-                          );
+        const normalizedBookmark =
+          !rawValue
+            ? ""
+            : rawValue.startsWith("#")
+              ? rawValue
+              : `#${rawValue}`;
 
-                        const nextUrl =
-                          selectedBookmark
-                            ? `${currentPageBaseUrl}#block-${selectedBookmark.id}`
-                            : currentPageBaseUrl;
+        updateLinkItem(
+          item.id,
+          {
+            linkType:
+              "bookmark",
 
-                        updateLinkItem(
-                          item.id,
-                          {
-                            linkType:
-                              "bookmark",
+            pageId: "",
 
-                            pageId: "",
+            bookmarkName:
+              normalizedBookmark,
 
-                            bookmarkBlockId:
-                              nextBookmarkBlockId,
+            url:
+              normalizedBookmark
+                ? `${currentPageBaseUrl}${normalizedBookmark}`
+                : currentPageBaseUrl,
+          },
+        );
+      }}
+      placeholder="#mybookmark"
+      className={
+        inspectorInputClass()
+      }
+    />
 
-                            url:
-                              nextUrl,
-                          },
-                        );
-                      }}
-                      className={
-                        inspectorInputClass()
-                      }
-                    >
-                      <option value="">
-                        Select a section...
-                      </option>
+    <div className="mt-1 text-[11px] leading-4 text-neutral-500">
+      Enter the bookmark name, for example #mybookmark.
+    </div>
+  </div>
+) : null}
 
-                      {bookmarkBlocks.map(
-                        (
-                          bookmarkBlock,
-                        ) => (
-                          <option
-                            key={
-                              bookmarkBlock.id
-                            }
-                            value={
-                              bookmarkBlock.id
-                            }
-                          >
-                            {getBookmarkDisplayLabel(
-                              bookmarkBlock,
-                            )}
-                          </option>
-                        ),
-                      )}
-                    </select>
+{/* ====================================================== */}
+{/* URL — ALWAYS VISIBLE */}
+{/* ====================================================== */}
 
-                    {!bookmarkBlocks.length ? (
-                      <div className="mt-1 text-[11px] leading-4 text-neutral-500">
-                        Add another
-                        block to this
-                        page before
-                        creating a
-                        bookmark link.
-                      </div>
-                    ) : null}
-                  </div>
-                ) : null}
+<div className="mt-4">
+  <div
+    className={
+      inspectorLabelClass()
+    }
+  >
+    URL
+  </div>
 
-                {/* ====================================================== */}
-                {/* URL — ALWAYS VISIBLE */}
-                {/* ====================================================== */}
+  <input
+    ref={(el) => {
+      linksItemUrlInputRefs.current[
+        item.id
+      ] = el;
+    }}
+    type="text"
+    value={
+      resolvedUrl
+    }
+    disabled={
+      linkType === "page" ||
+      linkType === "bookmark"
+    }
+    onChange={(e) =>
+      updateLinkItem(
+        item.id,
+        {
+          url:
+            e.target.value,
+        },
+      )
+    }
+    placeholder={
+      siteBaseUrl
+    }
+    className={[
+      "mt-2 h-10 w-full rounded-xl border px-3 text-sm outline-none",
 
-                <div className="mt-4">
-                  <div
-                    className={
-                      inspectorLabelClass()
-                    }
-                  >
-                    URL
-                  </div>
+      linkType === "page" ||
+      linkType === "bookmark"
+        ? "cursor-not-allowed border-neutral-200 bg-neutral-100 text-neutral-500"
+        : "border-neutral-300 bg-white text-neutral-900",
+    ].join(" ")}
+  />
 
-                  <input
-                    ref={(el) => {
-                      linksItemUrlInputRefs.current[
-                        item.id
-                      ] = el;
-                    }}
-                    type="text"
-                    value={
-                      resolvedUrl
-                    }
-                    disabled={
-                      linkType ===
-                        "page" ||
-                      linkType ===
-                        "bookmark"
-                    }
-                    onChange={(e) =>
-                      updateLinkItem(
-                        item.id,
-                        {
-                          url:
-                            e.target
-                              .value,
-                        },
-                      )
-                    }
-                    placeholder={
-                      siteBaseUrl
-                    }
-                    className={[
-                      "mt-2 h-10 w-full rounded-xl border px-3 text-sm outline-none",
-
-                      linkType ===
-                        "page" ||
-                      linkType ===
-                        "bookmark"
-                        ? "cursor-not-allowed border-neutral-200 bg-neutral-100 text-neutral-500"
-                        : "border-neutral-300 bg-white text-neutral-900",
-                    ].join(" ")}
-                  />
-
-                  {linkType ===
-                  "page" ? (
-                    <div className="mt-1 text-[11px] leading-4 text-neutral-500">
-                      This address is
-                      generated
-                      automatically from
-                      the selected site
-                      page.
-                    </div>
-                  ) : linkType ===
-                    "bookmark" ? (
-                    <div className="mt-1 text-[11px] leading-4 text-neutral-500">
-                      This address is
-                      generated
-                      automatically from
-                      the selected
-                      section on this
-                      page.
-                    </div>
-                  ) : (
-                    <div className="mt-1 text-[11px] leading-4 text-neutral-500">
-                      Enter the full web
-                      address for this
-                      link.
-                    </div>
-                  )}
-                </div>
+  {linkType === "page" ? (
+    <div className="mt-1 text-[11px] leading-4 text-neutral-500">
+      This address is generated automatically from the selected site page.
+    </div>
+  ) : linkType === "bookmark" ? (
+    <div className="mt-1 text-[11px] leading-4 text-neutral-500">
+      This address is generated automatically from the bookmark entered above.
+    </div>
+  ) : (
+    <div className="mt-1 text-[11px] leading-4 text-neutral-500">
+      Enter the full web address for this link.
+    </div>
+  )}
+</div>
 
                 {/* ====================================================== */}
                 {/* REMOVE */}

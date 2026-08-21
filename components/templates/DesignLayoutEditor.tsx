@@ -14611,7 +14611,7 @@ selectedBlock?.type === "comparison_table" ? (
 
                     bookmarkBlockId:
                       nextLinkType === "bookmark"
-                        ? block.data.bookmarkBlockId ?? ""
+                        ? block.data.bookmarkName ?? ""
                         : "",
                   },
                 };
@@ -14765,83 +14765,67 @@ selectedBlock?.type === "comparison_table" ? (
           </label>
         ) : null}
 
-        {/* BOOKMARK */}
+{/* BOOKMARK */}
 
-        {linkType === "bookmark" ? (
-          <label className="block">
-            <span className="text-xs font-medium text-neutral-600">
-              Bookmark
-            </span>
+{linkType === "bookmark" ? (
+  <label className="block">
+    <span className="text-xs font-medium text-neutral-600">
+      Bookmark
+    </span>
 
-            <select
-              value={
-                selectedBlock.data
-                  .bookmarkBlockId ?? ""
-              }
-              onChange={(e) => {
-                const nextBookmarkBlockId =
-                  e.target.value;
+    <input
+      type="text"
+      value={
+        (selectedBlock.data as any).bookmarkName ?? ""
+      }
+      onChange={(e) => {
+        const rawValue = e.target.value.trim();
 
-                const selectedBookmark =
-                  bookmarkBlocks.find(
-                    (bookmarkBlock) =>
-                      bookmarkBlock.id ===
-                      nextBookmarkBlockId,
-                  );
+        const normalizedBookmark =
+          !rawValue
+            ? ""
+            : rawValue.startsWith("#")
+              ? rawValue
+              : `#${rawValue}`;
 
-                const nextButtonUrl =
-                  selectedBookmark
-                    ? `${currentPageBaseUrl}#block-${selectedBookmark.id}`
-                    : currentPageBaseUrl;
+        const nextButtonUrl =
+          normalizedBookmark
+            ? `${currentPageBaseUrl}${normalizedBookmark}`
+            : currentPageBaseUrl;
 
-                updateSelectedBlock(
-                  (block) =>
-                    block.type !== "cta"
-                      ? block
-                      : {
-                          ...block,
+        updateSelectedBlock((block) =>
+          block.type !== "cta"
+            ? block
+            : {
+                ...block,
 
-                          data: {
-                            ...block.data,
+                data: {
+                  ...block.data,
 
-                            linkType:
-                              "bookmark",
+                  linkType: "bookmark",
 
-                            pageId: "",
+                  pageId: "",
 
-                            bookmarkBlockId:
-                              nextBookmarkBlockId,
+                  bookmarkName:
+                    normalizedBookmark,
 
-                            buttonUrl:
-                              nextButtonUrl,
-                          },
-                        },
-                );
-              }}
-              className="mt-1 h-10 w-full rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-900 outline-none"
-            >
-              <option value="">
-                Select a section...
-              </option>
+                  bookmarkBlockId: "",
 
-              {bookmarkBlocks.map(
-                (bookmarkBlock) => (
-                  <option
-                    key={
-                      bookmarkBlock.id
-                    }
-                    value={
-                      bookmarkBlock.id
-                    }
-                  >
-                    {bookmarkBlock.label ||
-                      bookmarkBlock.type}
-                  </option>
-                ),
-              )}
-            </select>
-          </label>
-        ) : null}
+                  buttonUrl:
+                    nextButtonUrl,
+                },
+              },
+        );
+      }}
+      placeholder="#mybookmark"
+      className="mt-1 h-10 w-full rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-900 outline-none"
+    />
+
+    <div className="mt-1 text-xs text-neutral-500">
+      Enter the bookmark name, for example #mybookmark.
+    </div>
+  </label>
+) : null}
 
         {/* BUTTON LINK — ALWAYS VISIBLE */}
 

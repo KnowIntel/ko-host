@@ -2622,36 +2622,35 @@ function renderCta(
        * ================================================================
        */
 
-      if (linkType === "bookmark") {
-        const bookmarkBlockId =
-          String(
-            block.data.bookmarkBlockId ?? "",
-          ).trim();
+if (linkType === "bookmark") {
+  const bookmarkName = String(
+    block.data.bookmarkName ?? "",
+  ).trim();
 
-        if (bookmarkBlockId) {
-          return `#block-${bookmarkBlockId}`;
-        }
+  if (bookmarkName) {
+    return bookmarkName.startsWith("#")
+      ? bookmarkName
+      : `#${bookmarkName}`;
+  }
 
-        /*
-         * Fall back to any hash already stored in buttonUrl.
-         */
-        const rawButtonUrl =
-          String(
-            block.data.buttonUrl ?? "",
-          ).trim();
+  /*
+   * Fall back to any hash already stored in buttonUrl.
+   */
+  const rawButtonUrl = String(
+    block.data.buttonUrl ?? "",
+  ).trim();
 
-        const hashIndex =
-          rawButtonUrl.indexOf("#");
+  const hashIndex =
+    rawButtonUrl.indexOf("#");
 
-        if (hashIndex >= 0) {
-          return rawButtonUrl.slice(
-            hashIndex,
-          );
-        }
+  if (hashIndex >= 0) {
+    return rawButtonUrl.slice(
+      hashIndex,
+    );
+  }
 
-        return "";
-      }
-
+  return "";
+}
       /*
        * ================================================================
        * SITE PAGE
