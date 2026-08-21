@@ -20356,13 +20356,12 @@ function renderScheduleAgenda(
       {/* HEADER */}
 
       <div className="mb-5 flex items-start justify-between gap-6">
-        <div
-          className="min-w-0 text-lg font-semibold uppercase tracking-[0.18em]"
-          style={headingStyle}
-        >
-          {block.data.heading ||
-            "Itinerary at a Glance"}
-        </div>
+<div
+  className="min-w-0 text-lg font-semibold uppercase tracking-[0.18em]"
+  style={headingStyle}
+>
+  {block.data.heading || ""}
+</div>
 
         {String(
           data.headerNote ?? "",
