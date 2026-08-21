@@ -1609,17 +1609,95 @@ iconColor?: string;
   };
 };
 
+export type ScheduleAgendaStyleVariant =
+  | "standard"
+  | "professional";
+
+export type ScheduleAgendaColumnKey =
+  | "date"
+  | "event"
+  | "location"
+  | "time";
+
 export type ScheduleAgendaBlock = BaseBlock & {
   type: "schedule_agenda";
+
   data: {
     heading?: string;
+
+    styleVariant?: ScheduleAgendaStyleVariant;
+
+    allowUserEngagement?: boolean;
+
+    /*
+     * Professional header settings
+     */
+    showColumnHeaders?: boolean;
+
+    headerNote?: string;
+
+    dateColumnLabel?: string;
+    eventColumnLabel?: string;
+    locationColumnLabel?: string;
+    timeColumnLabel?: string;
+
+    /*
+     * Indicator column remains fixed on the far left.
+     * These four owner-editable columns can be reordered.
+     */
+    columnOrder?: ScheduleAgendaColumnKey[];
+
     items: Array<{
       id: string;
+
+      /*
+       * Standard + Professional
+       */
       time: string;
       title: string;
       description?: string;
+
+      /*
+       * Professional
+       */
+      date?: string;
+      location?: string;
+      indicatorColor?: string;
     }>;
+
+    /*
+     * Main / fallback text style
+     */
     style?: TextStyle;
+
+    /*
+     * Professional targeted text styles
+     */
+    headingStyle?: TextStyle;
+    headerNoteStyle?: TextStyle;
+    columnHeaderStyle?: TextStyle;
+    dateStyle?: TextStyle;
+    timeStyle?: TextStyle;
+    titleStyle?: TextStyle;
+    descriptionStyle?: TextStyle;
+    locationStyle?: TextStyle;
+
+    /*
+     * Appearance targets
+     */
+    panelStyle?: {
+      backgroundColor?: string;
+      borderColor?: string;
+      borderWidth?: number;
+      borderRadius?: number;
+    };
+
+    professionalRowStyle?: {
+      backgroundColor?: string;
+      borderColor?: string;
+      borderWidth?: number;
+      borderRadius?: number;
+    };
   };
 };
 
@@ -7765,36 +7843,105 @@ iconColor: "#111111",
       },
     },
   };
-    case "schedule_agenda":
-      return {
-        id: makeId("agenda"),
-        type: "schedule_agenda",
-        label: "Schedule / Agenda",
-        grid: {
-          ...grid,
-          rowSpan: 4,
-        },
-        appearance: createDefaultBlockAppearance(),
-        data: {
-          heading: "Schedule",
-          items: [
-            {
-              id: makeId("agendaitem"),
-              time: "10:00 AM",
-              title: "Opening",
-              description: "",
-            },
-            {
-              id: makeId("agendaitem"),
-              time: "11:00 AM",
-              title: "Session",
-              description: "",
-            },
-          ],
-          style: createDefaultTextStyle(),
-        },
-      };
+case "schedule_agenda":
+  return {
+    id: makeId("agenda"),
+    type: "schedule_agenda",
+    label: "Schedule / Agenda",
 
+    grid: {
+      ...grid,
+      rowSpan: 4,
+    },
+
+    appearance: createDefaultBlockAppearance(),
+
+    data: {
+      heading: "Schedule",
+
+      styleVariant: "standard",
+
+      allowUserEngagement: false,
+
+      showColumnHeaders: true,
+
+      headerNote: "All times local",
+
+      dateColumnLabel: "DATE",
+      eventColumnLabel: "EVENT / ACTIVITY",
+      locationColumnLabel: "LOCATION",
+      timeColumnLabel: "TIME",
+
+      columnOrder: [
+        "date",
+        "event",
+        "location",
+        "time",
+      ],
+
+      items: [
+        {
+          id: makeId("agendaitem"),
+
+          date: "MAY 15",
+
+          time: "7:00 PM",
+
+          title: "Arrival in Rome",
+
+          description:
+            "Check in & welcome dinner",
+
+          location: "Rome",
+
+          indicatorColor: "#8fa45b",
+        },
+
+        {
+          id: makeId("agendaitem"),
+
+          date: "MAY 16",
+
+          time: "9:00 AM",
+
+          title: "Colosseum & Roman Forum Tour",
+
+          description:
+            "Explore ancient Rome",
+
+          location: "Rome",
+
+          indicatorColor: "#e87564",
+        },
+      ],
+
+      style: createDefaultTextStyle(),
+
+      headingStyle: createDefaultTextStyle(),
+      headerNoteStyle: createDefaultTextStyle(),
+      columnHeaderStyle: createDefaultTextStyle(),
+      dateStyle: createDefaultTextStyle(),
+      timeStyle: createDefaultTextStyle(),
+      titleStyle: createDefaultTextStyle(),
+      descriptionStyle: createDefaultTextStyle(),
+      locationStyle: createDefaultTextStyle(),
+
+      panelStyle: {
+        backgroundColor: "#ffffff",
+        borderColor: "#e5e7eb",
+        borderWidth: 1,
+        borderRadius: 12,
+      },
+
+      professionalRowStyle: {
+        backgroundColor: "transparent",
+        borderColor: "#e5e7eb",
+        borderWidth: 0,
+        borderRadius: 0,
+      },
+    },
+  };
+  
     case "tournament_display":
       return {
         id: makeId("tournament"),

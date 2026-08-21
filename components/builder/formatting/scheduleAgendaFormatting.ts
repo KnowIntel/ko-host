@@ -7,9 +7,13 @@ type ScheduleAgendaBlock = Extract<
 
 export type ScheduleAgendaTextTarget =
   | "heading"
+  | "headerNote"
+  | "columnHeader"
+  | "date"
   | "time"
-  | "opening"
-  | "description";
+  | "title"
+  | "description"
+  | "location";
 
 export type ScheduleAgendaStyleTarget =
   | "panel"
@@ -21,26 +25,60 @@ function isScheduleAgendaBlock(
   return block.type === "schedule_agenda";
 }
 
-function getTextStyleKey(target: ScheduleAgendaTextTarget) {
-  return target === "heading"
-    ? "headingStyle"
-    : target === "time"
-      ? "timeStyle"
-      : target === "opening"
-        ? "titleStyle"
-        : "descriptionStyle";
+function getTextStyleKey(
+  target: ScheduleAgendaTextTarget,
+) {
+  switch (target) {
+    case "heading":
+      return "headingStyle";
+
+    case "headerNote":
+      return "headerNoteStyle";
+
+    case "columnHeader":
+      return "columnHeaderStyle";
+
+    case "date":
+      return "dateStyle";
+
+    case "time":
+      return "timeStyle";
+
+    case "title":
+      return "titleStyle";
+
+    case "description":
+      return "descriptionStyle";
+
+    case "location":
+      return "locationStyle";
+
+    default:
+      return "style";
+  }
 }
 
 export function getScheduleAgendaTextStyle(
   block: MicrositeBlock | null | undefined,
   target: ScheduleAgendaTextTarget,
 ) {
-  if (!block || block.type !== "schedule_agenda") return {};
+  if (
+    !block ||
+    block.type !== "schedule_agenda"
+  ) {
+    return {};
+  }
 
   const data = block.data as any;
-  const styleKey = getTextStyleKey(target);
 
-  return data[styleKey] ?? data.style ?? {};
+  const styleKey =
+    getTextStyleKey(target);
+
+  return (
+    data[styleKey] ??
+    data.style ??
+    {}
+  );
 }
 
 export function applyScheduleAgendaTextStylePatch(
@@ -48,17 +86,30 @@ export function applyScheduleAgendaTextStylePatch(
   target: ScheduleAgendaTextTarget,
   patch: Record<string, any>,
 ): MicrositeBlock {
-  if (!isScheduleAgendaBlock(block)) return block;
+  if (
+    !isScheduleAgendaBlock(block)
+  ) {
+    return block;
+  }
 
   const data = block.data as any;
-  const styleKey = getTextStyleKey(target);
+
+  const styleKey =
+    getTextStyleKey(target);
 
   return {
     ...block,
+
     data: {
       ...data,
+
       [styleKey]: {
-        ...(data[styleKey] ?? data.style ?? {}),
+        ...(
+          data[styleKey] ??
+          data.style ??
+          {}
+        ),
+
         ...patch,
       },
     },
@@ -70,11 +121,16 @@ export function applyScheduleAgendaStylePatch(
   target: ScheduleAgendaStyleTarget,
   patch: Record<string, any>,
 ): MicrositeBlock {
-  if (!isScheduleAgendaBlock(block)) return block;
+  if (
+    !isScheduleAgendaBlock(block)
+  ) {
+    return block;
+  }
 
   if (target === "block") {
     return {
       ...block,
+
       appearance: {
         ...(block.appearance ?? {}),
         ...patch,
@@ -84,12 +140,30 @@ export function applyScheduleAgendaStylePatch(
 
   const data = block.data as any;
 
+  const isProfessional =
+    data.styleVariant ===
+    "professional";
+
+  /*
+   * Standard:
+   * panel → panelStyle
+   *
+   * Professional:
+   * panel → professionalRowStyle
+   */
+  const styleKey =
+    isProfessional
+      ? "professionalRowStyle"
+      : "panelStyle";
+
   return {
     ...block,
+
     data: {
       ...data,
-      panelStyle: {
-        ...(data.panelStyle ?? {}),
+
+      [styleKey]: {
+        ...(data[styleKey] ?? {}),
         ...patch,
       },
     },
