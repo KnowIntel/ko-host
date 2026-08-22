@@ -1761,8 +1761,11 @@ export type ScheduleAgendaBlock = BaseBlock & {
     allowUserEngagement?: boolean;
 
     /*
-     * Professional header settings
+     * ================================================================
+     * PROFESSIONAL HEADER / LAYOUT SETTINGS
+     * ================================================================
      */
+
     showColumnHeaders?: boolean;
     showColorIndicators?: boolean;
     headerNote?: string;
@@ -1777,6 +1780,12 @@ export type ScheduleAgendaBlock = BaseBlock & {
      * These four owner-editable columns can be reordered.
      */
     columnOrder?: ScheduleAgendaColumnKey[];
+
+    /*
+     * ================================================================
+     * ITEMS
+     * ================================================================
+     */
 
     items: Array<{
       id: string;
@@ -1797,16 +1806,27 @@ export type ScheduleAgendaBlock = BaseBlock & {
     }>;
 
     /*
-     * Main / fallback text style
+     * ================================================================
+     * TEXT FORMATTING
+     * ================================================================
+     */
+
+    /*
+     * Main / fallback text style.
      */
     style?: TextStyle;
 
     /*
-     * Professional targeted text styles
+     * Individual text targets.
+     *
+     * These must be part of the block data so the formatting chosen
+     * by the owner survives save / publish and is available to the
+     * public BlockRenderer.
      */
     headingStyle?: TextStyle;
     headerNoteStyle?: TextStyle;
     columnHeaderStyle?: TextStyle;
+
     dateStyle?: TextStyle;
     timeStyle?: TextStyle;
     titleStyle?: TextStyle;
@@ -1814,20 +1834,31 @@ export type ScheduleAgendaBlock = BaseBlock & {
     locationStyle?: TextStyle;
 
     /*
-     * Appearance targets
+     * ================================================================
+     * APPEARANCE FORMATTING
+     * ================================================================
+     */
+
+    /*
+     * Standard schedule item panel.
      */
     panelStyle?: {
       backgroundColor?: string;
       borderColor?: string;
       borderWidth?: number;
       borderRadius?: number;
+      boxShadow?: string;
     };
 
+    /*
+     * Professional schedule row.
+     */
     professionalRowStyle?: {
       backgroundColor?: string;
       borderColor?: string;
       borderWidth?: number;
       borderRadius?: number;
+      boxShadow?: string;
     };
   };
 };
