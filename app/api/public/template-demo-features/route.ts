@@ -6,11 +6,13 @@ function formatBlockTypeLabel(blockType: string) {
     label: "Text Label",
     text_fx: "Text Effects",
     rich_text: "Rich Text",
+
     image: "Image",
     image_carousel: "Image Carousel",
     gallery: "Gallery",
     video: "Video",
     audio: "Audio",
+
     icon: "Icon",
     frame: "Frame",
     shape: "Shape",
@@ -37,32 +39,42 @@ function formatBlockTypeLabel(blockType: string) {
     visitor_counter: "Visitor Counter",
     progress_bar: "Progress Meter",
     countdown: "Countdown",
+
     statistic_cards: "Statistic Cards",
     comparison_table: "Comparison Table",
 
     donation: "Donation",
     registry: "Registry",
+
     cart: "Cart",
     checkout: "Checkout",
 
     file_share: "File Share",
     spreadsheet: "Spreadsheet",
+
     post_board: "Post Board",
     thread: "Thread",
 
     content_panel: "Content Panel",
     process_flow: "Process Flow",
+
     circular_hub: "Circular Hub",
     data_pyramid: "Data Pyramid",
     formula_board: "Formula Board",
+
     story_cards: "Story Cards",
     interactive_hotspots: "Interactive Hotspots",
 
     tournament_display: "Tournament Display",
     speed_dating: "Speed Dating",
+
     spin_wheel: "Spin Wheel",
     pop_balloon: "Pop Balloon",
     puzzle: "Puzzle",
+
+    highlight: "Highlight",
+    summary: "Summary",
+    bookmark: "Bookmark",
   };
 
   if (labels[blockType]) {
@@ -73,79 +85,101 @@ function formatBlockTypeLabel(blockType: string) {
     .replace(/[_-]+/g, " ")
     .replace(/\s+/g, " ")
     .trim()
-    .replace(/\b\w/g, (char) => char.toUpperCase());
+    .replace(/\b\w/g, (char) =>
+      char.toUpperCase(),
+    );
 }
 
-function extractBlockTypesFromDraft(value: unknown) {
-  const found = new Set<string>();
-
-  function walk(node: unknown) {
-    if (!node) return;
-
-    if (Array.isArray(node)) {
-      node.forEach(walk);
-      return;
-    }
-
-    if (typeof node !== "object") {
-      return;
-    }
-
-    const obj = node as Record<string, unknown>;
-
-    if (
-      typeof obj.type === "string" &&
-      obj.type.trim()
-    ) {
-      found.add(obj.type.trim());
-    }
-
-    for (const value of Object.values(obj)) {
-      walk(value);
-    }
+function getDraftBlockTypes(
+  draft: unknown,
+) {
+  if (
+    !draft ||
+    typeof draft !== "object"
+  ) {
+    return [];
   }
 
-  walk(value);
+  const blocks =
+    (draft as any).blocks;
 
-  return Array.from(found);
+  if (!Array.isArray(blocks)) {
+    return [];
+  }
+
+  return blocks
+    .map((block: any) =>
+      String(
+        block?.type ?? "",
+      ).trim(),
+    )
+    .filter(
+      (blockType: string) =>
+        blockType.length > 0,
+    );
 }
 
-export async function GET(req: Request) {
+export async function GET(
+  req: Request,
+) {
   try {
-    const { searchParams } = new URL(req.url);
+    const { searchParams } =
+      new URL(req.url);
 
-    const demoSlug = String(
-      searchParams.get("slug") ?? "",
-    )
-      .trim()
-      .toLowerCase();
+    const demoSlug =
+      String(
+        searchParams.get("slug") ??
+          "",
+      )
+        .trim()
+        .toLowerCase();
 
     if (!demoSlug) {
       return NextResponse.json(
         {
           ok: false,
-          error: "Missing demo slug",
+          error:
+            "Missing demo slug",
         },
-        { status: 400 },
+        {
+          status: 400,
+        },
       );
     }
 
-    const supabase = getSupabaseAdmin();
+    const supabase =
+      getSupabaseAdmin();
 
-    const { data: microsite, error: micrositeError } =
-      await supabase
-        .from("microsites")
-        .select("*")
-        .eq("slug", demoSlug)
-        .maybeSingle();
+    /*
+     * ================================================================
+     * FIND DEMO MICROSITE
+     * ================================================================
+     */
+
+    const {
+      data: microsite,
+      error: micrositeError,
+    } = await supabase
+      .from("microsites")
+      .select(
+        "id, slug, draft",
+      )
+      .eq(
+        "slug",
+        demoSlug,
+      )
+      .maybeSingle();
 
     if (micrositeError) {
       return NextResponse.json(
         {
           ok: false,
-          error: micrositeError.message,
+          error:
+            micrositeError.message,
         },
-        { status: 500 },
+        {
+          status: 500,
+        },
       );
     }
 
@@ -153,76 +187,185 @@ export async function GET(req: Request) {
       return NextResponse.json(
         {
           ok: false,
-          error: "Demo microsite not found",
+          error:
+            "Demo microsite not found",
         },
-        { status: 404 },
+        {
+          status: 404,
+        },
       );
     }
 
     /*
-     * We deliberately inspect the microsite row broadly because
-     * Ko-Host drafts may be stored under different JSON fields
-     * depending on the current schema/version.
+     * ================================================================
+     * LOAD ALL MICROSITE PAGES
+     * ================================================================
+     *
+     * We intentionally load every page because the Included list
+     * should represent all unique blocks used throughout the
+     * demo microsite, not just its home page.
      */
-    const possibleDrafts = [
-      (microsite as any).published_draft,
-      (microsite as any).publishedDraft,
-      (microsite as any).draft,
-      (microsite as any).content,
-      (microsite as any).data,
-    ].filter(Boolean);
 
-    const blockTypes = new Set<string>();
-
-    possibleDrafts.forEach((draft) => {
-      extractBlockTypesFromDraft(draft).forEach(
-        (type) => {
-          /*
-           * Do not include page-text pseudo-types if they appear
-           * in nested draft structures.
-           */
-          if (
-            type === "title" ||
-            type === "subtitle" ||
-            type === "subtitle_secondary" ||
-            type === "tagline" ||
-            type === "tagline_secondary" ||
-            type === "description" ||
-            type === "description_secondary"
-          ) {
-            return;
-          }
-
-          blockTypes.add(type);
+    const {
+      data: pages,
+      error: pagesError,
+    } = await supabase
+      .from("microsite_pages")
+      .select(
+        "id, slug, draft, display_order",
+      )
+      .eq(
+        "microsite_id",
+        microsite.id,
+      )
+      .order(
+        "display_order",
+        {
+          ascending: true,
+        },
+      )
+      .order(
+        "created_at",
+        {
+          ascending: true,
         },
       );
-    });
 
-    const features = Array.from(blockTypes)
-      .map(formatBlockTypeLabel)
-      .sort((a, b) =>
-        a.localeCompare(
-          b,
-          undefined,
-          {
-            sensitivity: "base",
-          },
-        ),
+    if (pagesError) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error:
+            pagesError.message,
+        },
+        {
+          status: 500,
+        },
       );
+    }
+
+    /*
+     * ================================================================
+     * COLLECT UNIQUE BLOCK TYPES
+     * ================================================================
+     */
+
+    const blockTypes =
+      new Set<string>();
+
+    /*
+     * First use the actual page drafts.
+     */
+    if (
+      Array.isArray(pages)
+    ) {
+      pages.forEach(
+        (page: any) => {
+          getDraftBlockTypes(
+            page?.draft,
+          ).forEach(
+            (
+              blockType: string,
+            ) => {
+              blockTypes.add(
+                blockType,
+              );
+            },
+          );
+        },
+      );
+    }
+
+    /*
+     * Fall back to microsites.draft if the microsite
+     * does not yet have page-level block data.
+     */
+    if (
+      blockTypes.size === 0
+    ) {
+      getDraftBlockTypes(
+        microsite.draft,
+      ).forEach(
+        (
+          blockType: string,
+        ) => {
+          blockTypes.add(
+            blockType,
+          );
+        },
+      );
+    }
+
+    /*
+     * ================================================================
+     * FRIENDLY UNIQUE LABELS
+     * ================================================================
+     */
+
+    const features: string[] =
+      Array.from(
+        blockTypes,
+      )
+        .map(
+          (
+            blockType: string,
+          ) =>
+            formatBlockTypeLabel(
+              blockType,
+            ),
+        )
+        .filter(
+          (
+            feature: string,
+          ) =>
+            feature.length > 0,
+        )
+        .sort(
+          (
+            a: string,
+            b: string,
+          ) =>
+            a.localeCompare(
+              b,
+              undefined,
+              {
+                sensitivity:
+                  "base",
+              },
+            ),
+        );
 
     return NextResponse.json({
       ok: true,
-      slug: demoSlug,
+
+      slug:
+        demoSlug,
+
+      pageCount:
+        Array.isArray(pages)
+          ? pages.length
+          : 0,
+
+      blockCount:
+        blockTypes.size,
+
       features,
     });
-  } catch {
+  } catch (error) {
+    console.error(
+      "template demo features failed",
+      error,
+    );
+
     return NextResponse.json(
       {
         ok: false,
         error:
           "Unable to load demo features",
       },
-      { status: 500 },
+      {
+        status: 500,
+      },
     );
   }
 }
