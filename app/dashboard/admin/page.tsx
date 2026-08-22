@@ -27,6 +27,13 @@ const adminSections = [
     href: "/dashboard/claim-offers",
     status: "Live",
   },
+  {
+  title: "Help & Feedback",
+  description:
+    "Review customer questions, technical issues, suggestions, feature requests, and account inquiries.",
+  href: "/dashboard/admin/help-feedback",
+  status: "Live",
+},
 
   {
   title: "Feature Requests",
@@ -275,6 +282,10 @@ const quickStats = [
       ["Manage Microsites", "/dashboard/admin/microsites"],
       ["Email Center", "/dashboard/admin/email"],
       ["Review Claim Offers", "/dashboard/claim-offers"],
+      ["Feature Requests", "/dashboard/admin/feature-requests"],
+      ["Email Center", "/dashboard/admin/email"],
+      ["Review Claim Offers", "/dashboard/claim-offers"],
+      ["Help & Feedback", "/dashboard/admin/help-feedback"],
       ["Feature Requests", "/dashboard/admin/feature-requests"],
       ["Open Support Queue", "/dashboard/admin/support"],
       ["Platform Settings", "/dashboard/admin/settings"],

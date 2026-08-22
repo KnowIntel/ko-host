@@ -208,18 +208,25 @@ const visibleRecentSites = useMemo(() => {
         </div>
       </div>
 
-      <div className="flex shrink-0 items-center gap-2">
-        <a
-          href="/claim-offer"
-          className="rounded-full bg-neutral-950 px-4 py-2 text-xs font-bold text-white transition hover:bg-neutral-800"
-        >
-          Claim Offer
-        </a>
+<div className="flex shrink-0 flex-wrap items-center gap-2">
+  <a
+    href="/claim-offer"
+    className="rounded-full bg-neutral-950 px-4 py-2 text-xs font-bold text-white transition hover:bg-neutral-800"
+  >
+    Claim Offer
+  </a>
 
-        <div className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-amber-700">
-          Ends Soon
-        </div>
-      </div>
+  <a
+    href="/help"
+    className="rounded-full border border-neutral-300 bg-white px-4 py-2 text-xs font-bold text-neutral-800 transition hover:bg-neutral-50"
+  >
+    Help & Feedback
+  </a>
+
+  <div className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-amber-700">
+    Ends Soon
+  </div>
+</div>
     </div>
   </div>
 </div>
@@ -810,18 +817,25 @@ const visibleRecentSites = useMemo(() => {
             </div>
           </div>
 
-          <div className="flex shrink-0 items-center gap-2">
-            <a
-              href="/claim-offer"
-              className="rounded-full bg-neutral-950 px-4 py-2 text-xs font-bold text-white transition hover:bg-neutral-800"
-            >
-              Claim Offer
-            </a>
+<div className="flex shrink-0 flex-wrap items-center gap-2">
+  <a
+    href="/claim-offer"
+    className="rounded-full bg-neutral-950 px-4 py-2 text-xs font-bold text-white transition hover:bg-neutral-800"
+  >
+    Claim Offer
+  </a>
 
-            <div className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-amber-700">
-              Ends Soon
-            </div>
-          </div>
+  <a
+    href="/help"
+    className="rounded-full border border-neutral-300 bg-white px-4 py-2 text-xs font-bold text-neutral-800 transition hover:bg-neutral-50"
+  >
+    Help & Feedback
+  </a>
+
+  <div className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-amber-700">
+    Ends Soon
+  </div>
+</div>
         </div>
       </div>
     </div>
@@ -873,12 +887,21 @@ const visibleRecentSites = useMemo(() => {
         ) : null}
 
 <div className="mt-12 flex items-center justify-between gap-4">
-  <Link
-    href="/faq"
-    className="inline-flex items-center rounded-2xl border border-neutral-200 bg-white/85 px-4 py-3 text-sm font-semibold text-neutral-700 shadow-sm backdrop-blur transition hover:bg-white"
-  >
-    FAQ
-  </Link>
+  <div className="flex flex-wrap items-center gap-3">
+    <Link
+      href="/faq"
+      className="inline-flex items-center rounded-2xl border border-neutral-200 bg-white/85 px-4 py-3 text-sm font-semibold text-neutral-700 shadow-sm backdrop-blur transition hover:bg-white"
+    >
+      FAQ
+    </Link>
+
+    <Link
+      href="/help"
+      className="inline-flex items-center rounded-2xl border border-neutral-200 bg-white/85 px-4 py-3 text-sm font-semibold text-neutral-700 shadow-sm backdrop-blur transition hover:bg-white"
+    >
+      Help & Feedback
+    </Link>
+  </div>
 
   <div className="inline-flex items-center gap-3 rounded-2xl border border-neutral-200 bg-white/85 px-4 py-3 shadow-sm backdrop-blur">
     <Image
