@@ -276,25 +276,24 @@ export async function GET(
       );
     }
 
-    /*
-     * Fall back to microsites.draft if the microsite
-     * does not yet have page-level block data.
-     */
-    if (
-      blockTypes.size === 0
-    ) {
-      getDraftBlockTypes(
-        microsite.draft,
-      ).forEach(
-        (
-          blockType: string,
-        ) => {
-          blockTypes.add(
-            blockType,
-          );
-        },
-      );
-    }
+/*
+ * Also merge in microsites.draft.
+ *
+ * Some preset/demo microsites may keep their primary
+ * published block data here even when microsite_pages
+ * rows also exist.
+ */
+getDraftBlockTypes(
+  microsite.draft,
+).forEach(
+  (
+    blockType: string,
+  ) => {
+    blockTypes.add(
+      blockType,
+    );
+  },
+);
 
     /*
      * ================================================================
@@ -335,22 +334,30 @@ export async function GET(
             ),
         );
 
-    return NextResponse.json({
-      ok: true,
+return NextResponse.json({
+  ok: true,
 
-      slug:
-        demoSlug,
+  slug:
+    demoSlug,
 
-      pageCount:
-        Array.isArray(pages)
-          ? pages.length
-          : 0,
+  micrositeId:
+    microsite.id,
 
-      blockCount:
-        blockTypes.size,
+  pageCount:
+    Array.isArray(pages)
+      ? pages.length
+      : 0,
 
-      features,
-    });
+  blockCount:
+    blockTypes.size,
+
+  hasMicrositeDraft:
+    Boolean(
+      microsite.draft,
+    ),
+
+  features,
+});
   } catch (error) {
     console.error(
       "template demo features failed",
