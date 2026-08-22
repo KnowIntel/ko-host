@@ -93,30 +93,109 @@ function formatBlockTypeLabel(blockType: string) {
 function getDraftBlockTypes(
   draft: unknown,
 ) {
-  if (
-    !draft ||
-    typeof draft !== "object"
+  const blockTypes =
+    new Set<string>();
+
+  function collectBlocks(
+    node: unknown,
   ) {
-    return [];
-  }
+    if (
+      !node ||
+      typeof node !== "object"
+    ) {
+      return;
+    }
 
-  const blocks =
-    (draft as any).blocks;
+    if (Array.isArray(node)) {
+      node.forEach(
+        (entry) =>
+          collectBlocks(entry),
+      );
 
-  if (!Array.isArray(blocks)) {
-    return [];
-  }
+      return;
+    }
 
-  return blocks
-    .map((block: any) =>
-      String(
-        block?.type ?? "",
-      ).trim(),
-    )
-    .filter(
-      (blockType: string) =>
-        blockType.length > 0,
+    const obj =
+      node as Record<
+        string,
+        unknown
+      >;
+
+    /*
+     * Current and legacy Ko-Host drafts can store
+     * block arrays at different levels.
+     *
+     * Only inspect arrays explicitly named "blocks"
+     * so nested config objects with their own "type"
+     * properties are not mistakenly counted.
+     */
+    if (
+      Array.isArray(
+        obj.blocks,
+      )
+    ) {
+      obj.blocks.forEach(
+        (block: unknown) => {
+          if (
+            !block ||
+            typeof block !==
+              "object"
+          ) {
+            return;
+          }
+
+          const blockType =
+            String(
+              (
+                block as Record<
+                  string,
+                  unknown
+                >
+              ).type ?? "",
+            ).trim();
+
+          if (blockType) {
+            blockTypes.add(
+              blockType,
+            );
+          }
+
+          /*
+           * Continue through the block in case a
+           * legacy structure contains nested pages
+           * or nested block collections.
+           */
+          collectBlocks(
+            block,
+          );
+        },
+      );
+    }
+
+    /*
+     * Continue looking for legacy nested draft/page
+     * structures.
+     */
+    Object.entries(
+      obj,
+    ).forEach(
+      ([key, value]) => {
+        if (key === "blocks") {
+          return;
+        }
+
+        collectBlocks(
+          value,
+        );
+      },
     );
+  }
+
+  collectBlocks(draft);
+
+  return Array.from(
+    blockTypes,
+  );
 }
 
 export async function GET(
