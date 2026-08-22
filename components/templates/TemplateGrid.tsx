@@ -479,7 +479,10 @@ async function openPreview(
                 ).features,
               )
             ) {
-              return design;
+              return {
+  ...design,
+  features: t.features ?? [],
+};
             }
 
             const rawFeatures =
@@ -516,14 +519,20 @@ async function openPreview(
                 ),
               );
 
-            return {
-              ...design,
-              features:
-                uniqueFeatures,
-            };
+return {
+  ...design,
+
+  features:
+    uniqueFeatures.length > 0
+      ? uniqueFeatures
+      : (t.features ?? []),
+};
           } catch {
-            return design;
-          }
+  return {
+    ...design,
+    features: t.features ?? [],
+  };
+}
         },
       ),
     );
