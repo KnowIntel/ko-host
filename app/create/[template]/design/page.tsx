@@ -148,6 +148,7 @@ const draftPageCountByTemplateDesignKey: Record<string, number> = {
 
   "mediation:shared": 2,
 
+  "group_trip:dolce": 1,
 
 
 
