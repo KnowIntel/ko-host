@@ -4,7 +4,10 @@
 import { useEffect, useMemo, useState } from "react";
 import TemplateCard from "./TemplateCard";
 import { getTemplateLayoutRegistry } from "@/lib/templates/layout-presets/layoutRegistry";
-import TemplatePreviewModal, { type PreviewMeta } from "./TemplatePreviewModal";
+import TemplatePreviewModal, {
+  type PreviewMeta,
+  type TemplateDesignPreview,
+} from "./TemplatePreviewModal";
 import {
   TEMPLATE_DEFS,
   type TemplateDef,
@@ -79,6 +82,244 @@ function getDesignCount(templateKey: string) {
   return getTemplateLayoutRegistry(templateKey as any)?.layouts.length ?? 0;
 }
 
+function formatBlockTypeLabel(blockType: string) {
+  const labels: Record<string, string> = {
+    label: "Text Label",
+    text_fx: "Text Effects",
+    rich_text: "Rich Text",
+    image: "Image",
+    image_carousel: "Image Carousel",
+    gallery: "Gallery",
+    video: "Video",
+    audio: "Audio",
+    icon: "Icon",
+    frame: "Frame",
+    shape: "Shape",
+    wave: "Wave",
+
+    cta: "Button",
+    links: "Navigation Links",
+    link_hub: "Link Hub",
+
+    form_field: "Input Field",
+    option_button: "Option Button",
+    poll: "Poll",
+    rsvp: "RSVP",
+    enrollment_board: "Enrollment Board",
+    faq: "FAQ",
+    listing: "Listing",
+
+    checklist: "Checklist",
+    schedule_agenda: "Schedule / Agenda",
+    calendar_event: "Calendar Event",
+    timeline: "Timeline",
+    map_location: "Map / Location",
+
+    visitor_counter: "Visitor Counter",
+    progress_bar: "Progress Meter",
+    countdown: "Countdown",
+    statistic_cards: "Statistic Cards",
+    comparison_table: "Comparison Table",
+
+    donation: "Donation",
+    registry: "Registry",
+    cart: "Cart",
+    checkout: "Checkout",
+
+    file_share: "File Share",
+    spreadsheet: "Spreadsheet",
+    post_board: "Post Board",
+    thread: "Thread",
+
+    content_panel: "Content Panel",
+    process_flow: "Process Flow",
+    circular_hub: "Circular Hub",
+    data_pyramid: "Data Pyramid",
+    formula_board: "Formula Board",
+    story_cards: "Story Cards",
+    interactive_hotspots: "Interactive Hotspots",
+
+    tournament_display: "Tournament Display",
+    speed_dating: "Speed Dating",
+    spin_wheel: "Spin Wheel",
+    pop_balloon: "Pop Balloon",
+    puzzle: "Puzzle",
+  };
+
+  if (labels[blockType]) {
+    return labels[blockType];
+  }
+
+  return String(blockType || "Block")
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function normalizeLayoutThumbnail(value: unknown) {
+  const raw = String(value ?? "").trim();
+
+  if (!raw) {
+    return "";
+  }
+
+  if (
+    raw.startsWith("http://") ||
+    raw.startsWith("https://") ||
+    raw.startsWith("/")
+  ) {
+    return raw;
+  }
+
+  return `/${raw.replace(/^\/+/, "")}`;
+}
+
+function getLayoutBlocks(layout: any) {
+  if (Array.isArray(layout?.blocks)) {
+    return layout.blocks;
+  }
+
+  if (Array.isArray(layout?.draft?.blocks)) {
+    return layout.draft.blocks;
+  }
+
+  if (Array.isArray(layout?.data?.blocks)) {
+    return layout.data.blocks;
+  }
+
+  if (Array.isArray(layout?.preset?.blocks)) {
+    return layout.preset.blocks;
+  }
+
+  return [];
+}
+
+function getUniqueLayoutFeatures(layout: any) {
+  const blocks = getLayoutBlocks(layout);
+
+return Array.from(
+  new Set<string>(
+    blocks
+      .map((block: any) =>
+        String(block?.type ?? "").trim(),
+      )
+      .filter(
+        (blockType: string) =>
+          blockType.length > 0,
+      ),
+  ),
+).map((blockType: string) =>
+  formatBlockTypeLabel(blockType),
+);
+}
+
+function getLayoutDemoUrl(layout: any) {
+  const explicitUrl = String(
+    layout?.demoUrl ??
+      layout?.demoURL ??
+      "",
+  ).trim();
+
+  if (explicitUrl) {
+    return explicitUrl;
+  }
+
+  const demoSlug = String(
+    layout?.demoSlug ??
+      layout?.demoSiteSlug ??
+      layout?.slug ??
+      "",
+  )
+    .trim()
+    .toLowerCase();
+
+  if (!demoSlug) {
+    return "";
+  }
+
+  return `https://${demoSlug}.ko-host.com/s/demo`;
+}
+
+function getTemplateDesignPreviews(
+  templateKey: string,
+): TemplateDesignPreview[] {
+  const registry =
+    getTemplateLayoutRegistry(
+      templateKey as any,
+    );
+
+  const layouts =
+    Array.isArray(registry?.layouts)
+      ? registry.layouts
+      : [];
+
+  return layouts
+    .filter((layout: any) => {
+      const designKey = String(
+        layout?.designKey ?? "",
+      )
+        .trim()
+        .toLowerCase();
+
+      const label = String(
+        layout?.card?.label ?? "",
+      )
+        .trim()
+        .toLowerCase();
+
+      return !(
+        designKey === "blank" ||
+        designKey === "default" ||
+        designKey === "starter" ||
+        designKey === "custom" ||
+        label === "blank" ||
+        label === "blank design" ||
+        label === "start blank" ||
+        label === "custom"
+      );
+    })
+    .map(
+      (
+        layout: any,
+        index: number,
+      ): TemplateDesignPreview => {
+        const designKey = String(
+          layout?.designKey ??
+            `${templateKey}-${index}`,
+        ).trim();
+
+        const label = String(
+          layout?.card?.label ??
+            `Design ${index + 1}`,
+        ).trim();
+
+        const thumbnailUrl = String(
+          layout?.card?.thumbnail ??
+            "",
+        ).trim();
+
+        const demoSlug =
+          `${templateKey}-${designKey}-preset`;
+
+        return {
+          id: designKey,
+          label,
+          thumbnailUrl,
+          demoUrl:
+            `https://ko-host.com/s/${demoSlug}`,
+          features: [],
+        };
+      },
+    )
+    .filter(
+      (design) =>
+        Boolean(
+          design.thumbnailUrl,
+        ),
+    );
+}
+
 export default function TemplateGrid(props: {
   searchQuery: string;
   category: Category;
@@ -98,8 +339,17 @@ export default function TemplateGrid(props: {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewTemplate, setPreviewTemplate] = useState<TemplateDef | null>(null);
   const [previewDescription, setPreviewDescription] = useState("");
-  const [previewThumb, setPreviewThumb] = useState("");
-  const [previewMeta, setPreviewMeta] = useState<PreviewMeta>({
+const [previewThumb, setPreviewThumb] = useState("");
+
+const [
+  previewDesigns,
+  setPreviewDesigns,
+] = useState<
+  TemplateDesignPreview[]
+>([]);
+
+const [previewMeta, setPreviewMeta] =
+  useState<PreviewMeta>({
     tags: [],
     setupMins: 3,
     features: [],
@@ -142,16 +392,146 @@ export default function TemplateGrid(props: {
     });
   }
 
-  function openPreview(templateKey: string) {
-    const t = allTemplates.find((x) => x.key === templateKey);
-    if (!t) return;
+async function openPreview(
+  templateKey: string,
+) {
+  const t =
+    allTemplates.find(
+      (template) =>
+        template.key ===
+        templateKey,
+    );
 
-    setPreviewTemplate(t);
-    setPreviewDescription(t.description);
-    setPreviewThumb(thumbToImageUrl(t.thumb));
-    setPreviewMeta(metaForTemplate(t));
-    setPreviewOpen(true);
+  if (!t) {
+    return;
   }
+
+  const initialDesignPreviews =
+    getTemplateDesignPreviews(
+      templateKey,
+    );
+
+  setPreviewTemplate(t);
+
+  setPreviewDescription(
+    t.description,
+  );
+
+  setPreviewThumb(
+    thumbToImageUrl(
+      t.thumb,
+    ),
+  );
+
+  setPreviewMeta(
+    metaForTemplate(t),
+  );
+
+  /*
+   * Open immediately so the user does not wait
+   * for the demo feature lookups.
+   */
+  setPreviewDesigns(
+    initialDesignPreviews,
+  );
+
+  setPreviewOpen(true);
+
+  const hydratedDesignPreviews:
+    TemplateDesignPreview[] =
+    await Promise.all(
+      initialDesignPreviews.map(
+        async (
+          design,
+        ): Promise<TemplateDesignPreview> => {
+          const demoSlug =
+            `${templateKey}-${design.id}-preset`;
+
+          try {
+            const res =
+              await fetch(
+                `/api/public/template-demo-features?slug=${encodeURIComponent(
+                  demoSlug,
+                )}`,
+                {
+                  method: "GET",
+                  cache: "no-store",
+                },
+              );
+
+            const data: unknown =
+              await res
+                .json()
+                .catch(
+                  () => ({}),
+                );
+
+            if (
+              !res.ok ||
+              typeof data !==
+                "object" ||
+              data === null ||
+              !Array.isArray(
+                (
+                  data as {
+                    features?: unknown;
+                  }
+                ).features,
+              )
+            ) {
+              return design;
+            }
+
+            const rawFeatures =
+              (
+                data as {
+                  features: unknown[];
+                }
+              ).features;
+
+            const normalizedFeatures:
+              string[] =
+              rawFeatures
+                .map(
+                  (
+                    feature: unknown,
+                  ) =>
+                    String(
+                      feature ?? "",
+                    ).trim(),
+                )
+                .filter(
+                  (
+                    feature: string,
+                  ) =>
+                    feature.length >
+                    0,
+                );
+
+            const uniqueFeatures:
+              string[] =
+              Array.from(
+                new Set<string>(
+                  normalizedFeatures,
+                ),
+              );
+
+            return {
+              ...design,
+              features:
+                uniqueFeatures,
+            };
+          } catch {
+            return design;
+          }
+        },
+      ),
+    );
+
+  setPreviewDesigns(
+    hydratedDesignPreviews,
+  );
+}
 
   const filteredTemplates = useMemo(() => {
     const q = (searchQuery || "").trim().toLowerCase();
@@ -320,14 +700,28 @@ const gridStyle = useMemo(() => {
         ))}
       </div>
 
-      <TemplatePreviewModal
-        open={previewOpen}
-        onClose={() => setPreviewOpen(false)}
-        template={previewTemplate}
-        description={previewDescription}
-        thumbnailUrl={previewThumb}
-        meta={previewMeta}
-      />
+<TemplatePreviewModal
+  open={previewOpen}
+onClose={() => {
+  setPreviewOpen(false);
+  setPreviewDesigns([]);
+}}
+  template={
+    previewTemplate
+  }
+  description={
+    previewDescription
+  }
+  thumbnailUrl={
+    previewThumb
+  }
+  meta={
+    previewMeta
+  }
+  designPreviews={
+    previewDesigns
+  }
+/>
     </div>
   );
 }
