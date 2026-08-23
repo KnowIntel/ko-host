@@ -16707,283 +16707,266 @@ function renderTextFx(
    * ================================================================
    */
 
-  if (
-    mode === "straight" ||
-    intensity === 0
-  ) {
-    const textAlign =
-      (
-        block.data.style
-          ?.align ?? "center"
-      ) as
-        | "left"
-        | "center"
-        | "right";
+if (mode === "straight" || intensity === 0) {
+  const textAlign = (block.data.style?.align ?? "center") as
+    | "left"
+    | "center"
+    | "right";
 
-    const alignItems =
-      textAlign === "left"
-        ? "flex-start"
-        : textAlign ===
-            "right"
-          ? "flex-end"
-          : "center";
+  const alignItems =
+    textAlign === "left"
+      ? "flex-start"
+      : textAlign === "right"
+        ? "flex-end"
+        : "center";
 
+  /*
+   * ================================================================
+   * TEXTURED STRAIGHT TEXT
+   * ================================================================
+   *
+   * IMPORTANT:
+   * Do NOT split textured text into individual character spans.
+   *
+   * background-clip:text must be applied directly to the element
+   * containing the actual text glyphs. Rendering each character as
+   * an independently transformed inline-block fragments the clipping
+   * layer and causes the distorted/broken texture effect.
+   */
+
+  if (hasTexture && textureImageUrl) {
     return (
       <div
         className="flex h-full w-full p-2"
         style={{
-          ...getAppearanceStyle(
-            block,
-          ),
-
-          alignItems:
-            "center",
-
-          justifyContent:
-            "center",
-
-          transform:
-            `translate(${translateX}%, ${translateY}%)`,
+          ...getAppearanceStyle(block),
+          alignItems: "center",
+          justifyContent: "center",
+          transform: `translate(${translateX}%, ${translateY}%)`,
         }}
       >
         <div
           style={{
-            ...style,
-
-            /*
-             * Texture is painted behind the text.
-             */
-            backgroundImage:
-              hasTexture
-                ? `url("${textureImageUrl}")`
-                : style.backgroundImage,
-
-            backgroundClip:
-              hasTexture
-                ? "text"
-                : style.backgroundClip,
-
-            WebkitBackgroundClip:
-              hasTexture
-                ? "text"
-                : (
-                    style as any
-                  )
-                    .WebkitBackgroundClip,
-
-            /*
-             * Glyph fill must become transparent
-             * so the texture can show through.
-             */
-            color:
-              hasTexture
-                ? "transparent"
-                : style.color,
-
-            WebkitTextFillColor:
-              hasTexture
-                ? "transparent"
-                : undefined,
-
-            backgroundRepeat:
-              hasTexture
-                ? "no-repeat"
-                : style.backgroundRepeat,
-
-            backgroundPosition:
-              hasTexture
-                ? `${texturePositionX}% ${texturePositionY}%`
-                : style.backgroundPosition,
-
-            backgroundSize:
-              hasTexture
-                ? `${textureScale}%`
-                : style.backgroundSize,
-
-            display:
-              "flex",
-
-            flexDirection:
-              "column",
-
+            display: "flex",
+            flexDirection: "column",
             alignItems,
-
-            width:
-              "100%",
-
+            width: "100%",
             textAlign,
 
-            transform:
-              `rotate(${rotation}deg) scaleX(${letterScaleX})`,
-
-            transformOrigin:
-              "center center",
+            transform: `rotate(${rotation}deg) scaleX(${letterScaleX})`,
+            transformOrigin: "center center",
 
             opacity,
 
+            fontFamily: style.fontFamily,
+            fontSize: style.fontSize,
+            fontWeight: style.fontWeight,
+            fontStyle: style.fontStyle,
+            textDecoration: style.textDecoration,
+            letterSpacing: style.letterSpacing,
+            lineHeight: style.lineHeight ?? 1.2,
+
             textShadow,
 
-            WebkitTextStroke:
-              outlineEnabled
-                ? `${outlineWidth}px ${outlineColor}`
-                : undefined,
+            WebkitTextStroke: outlineEnabled
+              ? `${outlineWidth}px ${outlineColor}`
+              : undefined,
 
-            paintOrder:
-              outlineEnabled
-                ? "stroke fill"
-                : undefined,
-
-            lineHeight:
-              style.lineHeight ??
-              1.2,
+            paintOrder: outlineEnabled
+              ? "stroke fill"
+              : undefined,
           }}
         >
-          {lineCharacters.map(
-            (
-              characters,
-              lineIndex,
-            ) => (
-              <div
-                key={`${block.id}-straight-line-${lineIndex}`}
-                style={{
-                  display:
-                    "block",
+          {lines.map((line, lineIndex) => (
+            <div
+              key={`${block.id}-textured-line-${lineIndex}`}
+              style={{
+                display: "block",
 
-                  minHeight:
-                    `${fontSize * 1.2}px`,
+                minHeight: `${fontSize * 1.2}px`,
 
-                  whiteSpace:
-                    "pre",
-                }}
-              >
-                {characters.length ? (
-                  characters.map(
-                    (
-                      character,
-                      characterIndex,
-                    ) => {
-                      const verticalOffset =
-                        transformStyle ===
-                        "wave"
-                          ? Math.sin(
-                              characterIndex *
-                                0.9,
-                            ) *
-                            6 *
-                            transformMultiplier
+                whiteSpace: "pre",
 
-                          : transformStyle ===
-                              "rise"
-                            ? -characterIndex *
-                              1.5 *
-                              transformMultiplier
+                /*
+                 * The texture is painted directly on the
+                 * element containing this line's glyphs.
+                 */
+                backgroundImage: `url("${textureImageUrl}")`,
 
-                            : transformStyle ===
-                                "dipLetters"
-                              ? characterIndex *
-                                1.5 *
-                                transformMultiplier
+                backgroundRepeat: "no-repeat",
 
-                              : transformStyle ===
-                                  "stagger"
-                                ? (
-                                    characterIndex %
-                                        2 ===
-                                      0
-                                      ? -5
-                                      : 5
-                                  ) *
-                                  transformMultiplier
+                backgroundPosition:
+                  `${texturePositionX}% ${texturePositionY}%`,
 
-                                : transformStyle ===
-                                    "bounce"
-                                  ? (
-                                      characterIndex %
-                                          2 ===
-                                        0
-                                        ? -7
-                                        : 0
-                                    ) *
-                                    transformMultiplier
+                backgroundSize:
+                  `${textureScale}%`,
 
-                                  : 0;
+                backgroundClip: "text",
 
-                      const characterRotation =
-                        transformStyle ===
-                        "tiltLeft"
-                          ? -8 *
-                            transformMultiplier
+                WebkitBackgroundClip: "text",
 
-                          : transformStyle ===
-                              "tiltRight"
-                            ? 8 *
-                              transformMultiplier
+                color: "transparent",
 
-                            : 0;
-
-                      return (
-                        <span
-                          key={`${block.id}-straight-${lineIndex}-${characterIndex}`}
-                          style={{
-                            display:
-                              "inline-block",
-
-                            /*
-                             * Texture must remain visible.
-                             * Per-character colors only apply
-                             * when texture is disabled.
-                             */
-                            color:
-                              hasTexture
-                                ? "transparent"
-                                : getCharacterColor(
-                                    lineIndex,
-                                    characterIndex,
-                                  ),
-
-                            WebkitTextFillColor:
-                              hasTexture
-                                ? "transparent"
-                                : undefined,
-
-                            transform:
-                              `translateY(${verticalOffset}px) rotate(${characterRotation}deg)`,
-
-                            transformOrigin:
-                              "center center",
-
-                            whiteSpace:
-                              character ===
-                              " "
-                                ? "pre"
-                                : undefined,
-                          }}
-                        >
-                          {character ===
-                          " "
-                            ? "\u00A0"
-                            : character}
-                        </span>
-                      );
-                    },
-                  )
-                ) : (
-                  /*
-                   * Preserve intentionally blank lines.
-                   */
-                  <span
-                    aria-hidden="true"
-                  >
-                    &nbsp;
-                  </span>
-                )}
-              </div>
-            ),
-          )}
+                WebkitTextFillColor: "transparent",
+              }}
+            >
+              {line.length
+                ? line
+                : "\u00A0"}
+            </div>
+          ))}
         </div>
       </div>
     );
   }
+
+  /*
+   * ================================================================
+   * NORMAL STRAIGHT TEXT
+   * ================================================================
+   *
+   * No texture is active, so preserve TextFX's existing
+   * per-character colors and transform effects.
+   */
+
+  return (
+    <div
+      className="flex h-full w-full p-2"
+      style={{
+        ...getAppearanceStyle(block),
+        alignItems: "center",
+        justifyContent: "center",
+        transform: `translate(${translateX}%, ${translateY}%)`,
+      }}
+    >
+      <div
+        style={{
+          ...style,
+
+          display: "flex",
+          flexDirection: "column",
+          alignItems,
+          width: "100%",
+          textAlign,
+
+          transform: `rotate(${rotation}deg) scaleX(${letterScaleX})`,
+          transformOrigin: "center center",
+
+          opacity,
+
+          textShadow,
+
+          WebkitTextStroke: outlineEnabled
+            ? `${outlineWidth}px ${outlineColor}`
+            : undefined,
+
+          paintOrder: outlineEnabled
+            ? "stroke fill"
+            : undefined,
+
+          lineHeight:
+            style.lineHeight ?? 1.2,
+        }}
+      >
+        {lineCharacters.map(
+          (characters, lineIndex) => (
+            <div
+              key={`${block.id}-straight-line-${lineIndex}`}
+              style={{
+                display: "block",
+                minHeight: `${fontSize * 1.2}px`,
+                whiteSpace: "pre",
+              }}
+            >
+              {characters.length ? (
+                characters.map(
+                  (
+                    character,
+                    characterIndex,
+                  ) => {
+                    const verticalOffset =
+                      transformStyle === "wave"
+                        ? Math.sin(
+                            characterIndex * 0.9,
+                          ) *
+                          6 *
+                          transformMultiplier
+                        : transformStyle === "rise"
+                          ? -characterIndex *
+                            1.5 *
+                            transformMultiplier
+                          : transformStyle === "dipLetters"
+                            ? characterIndex *
+                              1.5 *
+                              transformMultiplier
+                            : transformStyle === "stagger"
+                              ? (
+                                  characterIndex % 2 === 0
+                                    ? -5
+                                    : 5
+                                ) *
+                                transformMultiplier
+                              : transformStyle === "bounce"
+                                ? (
+                                    characterIndex % 2 === 0
+                                      ? -7
+                                      : 0
+                                  ) *
+                                  transformMultiplier
+                                : 0;
+
+                    const characterRotation =
+                      transformStyle === "tiltLeft"
+                        ? -8 *
+                          transformMultiplier
+                        : transformStyle === "tiltRight"
+                          ? 8 *
+                            transformMultiplier
+                          : 0;
+
+                    return (
+                      <span
+                        key={`${block.id}-straight-${lineIndex}-${characterIndex}`}
+                        style={{
+                          display: "inline-block",
+
+                          color:
+                            getCharacterColor(
+                              lineIndex,
+                              characterIndex,
+                            ),
+
+                          transform:
+                            `translateY(${verticalOffset}px) rotate(${characterRotation}deg)`,
+
+                          transformOrigin:
+                            "center center",
+
+                          whiteSpace:
+                            character === " "
+                              ? "pre"
+                              : undefined,
+                        }}
+                      >
+                        {character === " "
+                          ? "\u00A0"
+                          : character}
+                      </span>
+                    );
+                  },
+                )
+              ) : (
+                <span aria-hidden="true">
+                  &nbsp;
+                </span>
+              )}
+            </div>
+          ),
+        )}
+      </div>
+    </div>
+  );
+}
 
   /*
    * ================================================================
