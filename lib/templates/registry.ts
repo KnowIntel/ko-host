@@ -907,19 +907,6 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "secure",
     defaultDraft: { title: "Secure Documents", slugSuggestion: "securedocument" },
   }, */
-{
-  key: "local_classified_ad",
-  title: "Local Classified Ad",
-  description:
-    "Create a local classified listing for services, items, offers, and community promotions.",
-  thumb: "localclassifiedad",
-  setupMins: 2,
-  demoSlug: "localclassifiedad",
-  defaultDraft: {
-    title: "Local Classified Ad",
-    slugSuggestion: "localclassifiedad",
-  },
-},
 /*   {
     key: "settlement_info",
     title: "Settlement Info",
