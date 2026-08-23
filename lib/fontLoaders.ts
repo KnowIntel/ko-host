@@ -1,4 +1,7 @@
 import {
+  Aboreto,
+  Antonio,
+  Rubik_Wet_Paint,
   Abril_Fatface,
   Advent_Pro,
   Alfa_Slab_One,
@@ -268,6 +271,12 @@ export const grenzeGotisch = Grenze_Gotisch({
 
 // Display / Decorative
 
+export const aboreto = Aboreto({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-aboreto",
+});
+
 export const abril = Abril_Fatface({
   subsets: ["latin"],
   weight: "400",
@@ -284,6 +293,11 @@ export const amaticSC = Amatic_SC({
   subsets: ["latin"],
   weight: ["400", "700"],
   variable: "--font-amatic-sc",
+});
+
+export const antonio = Antonio({
+  subsets: ["latin"],
+  variable: "--font-antonio",
 });
 
 export const anton = Anton({
@@ -427,6 +441,12 @@ export const rockSalt = Rock_Salt({
   variable: "--font-rock-salt",
 });
 
+export const rubikWetPaint = Rubik_Wet_Paint({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-rubik-wet-paint",
+});
+
 export const sairaStencil = Saira_Stencil_One({
   subsets: ["latin"],
   weight: "400",
@@ -510,9 +530,11 @@ export const APP_FONT_VARIABLES = [
   grenzeGotisch.variable,
 
   // Display / Decorative
+  aboreto.variable,
   abril.variable,
   alfa.variable,
   amaticSC.variable,
+  antonio.variable,
   anton.variable,
   architectsDaughter.variable,
   bangers.variable,
@@ -537,6 +559,7 @@ export const APP_FONT_VARIABLES = [
   rajdhani.variable,
   righteous.variable,
   rockSalt.variable,
+  rubikWetPaint.variable,
   sairaStencil.variable,
   sixCaps.variable,
   teko.variable,

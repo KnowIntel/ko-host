@@ -1,11 +1,13 @@
 export const FONT_FAMILY_OPTIONS = [
   "inherit",
 
-  // Display / Decorative
+// Display / Decorative
+  "Aboreto",
   "Abril Fatface",
   "Advent Pro",
   "Alfa Slab One",
   "Amatic SC",
+  "Antonio",
   "Anton",
   "Architects Daughter",
   "Bangers",
@@ -36,6 +38,7 @@ export const FONT_FAMILY_OPTIONS = [
   "Rajdhani",
   "Righteous",
   "Rock Salt",
+  "Rubik Wet Paint",
   "Saira Stencil",
   "Six Caps",
   "Smooch Sans",
@@ -199,6 +202,9 @@ export const FONT_FAMILY_MAP: Record<string, string> = {
   "Grenze Gotisch":
     'var(--font-grenze-gotisch), "Grenze Gotisch", serif',
 
+  Aboreto:
+  'var(--font-aboreto), Aboreto, serif',
+
   // Display / Decorative
   "Abril Fatface":
     'var(--font-abril-fatface), "Abril Fatface", serif',
@@ -211,6 +217,9 @@ export const FONT_FAMILY_MAP: Record<string, string> = {
 
   "Amatic SC":
     'var(--font-amatic-sc), "Amatic SC", cursive',
+
+  Antonio:
+  'var(--font-antonio), Antonio, ui-sans-serif, system-ui, sans-serif',
 
   Anton:
     'var(--font-anton), Anton, sans-serif',
@@ -286,6 +295,9 @@ export const FONT_FAMILY_MAP: Record<string, string> = {
 
   Righteous:
     'var(--font-righteous), Righteous, cursive',
+
+  "Rubik Wet Paint":
+  'var(--font-rubik-wet-paint), "Rubik Wet Paint", cursive',
 
   "Rock Salt":
     'var(--font-rock-salt), "Rock Salt", cursive',
