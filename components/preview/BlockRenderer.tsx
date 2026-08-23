@@ -16371,19 +16371,80 @@ function renderTextFx(
 
   /*
    * Normalize Windows, Mac, and Unix line endings.
-   * Newline characters separate lines but do not consume a letter-color slot.
+   * Newline characters separate lines but do not consume
+   * a letter-color slot.
    */
   const normalizedText = text
     .replace(/\r\n/g, "\n")
     .replace(/\r/g, "\n");
 
   const lines = normalizedText.split("\n");
-  const lineCharacters = lines.map((line) => Array.from(line));
 
-  const style = getContainerTextStyle(block.data.style, designKey);
+  const lineCharacters = lines.map(
+    (line) => Array.from(line),
+  );
+
+  const style = getContainerTextStyle(
+    block.data.style,
+    designKey,
+  );
+
   const fx = (block.data.fx || {}) as any;
 
-  const mode = String(fx.mode ?? "straight") as
+  /*
+   * ================================================================
+   * TEXTURE
+   * ================================================================
+   */
+
+  const hasTexture = Boolean(
+    block.data.style?.textureEnabled &&
+      block.data.style?.textureImageUrl,
+  );
+
+  const textureImageUrl = String(
+    block.data.style?.textureImageUrl ?? "",
+  ).trim();
+
+  const textureScale = Math.max(
+    10,
+    Math.min(
+      400,
+      Number(
+        block.data.style?.textureScale ?? 100,
+      ),
+    ),
+  );
+
+  const texturePositionX = Math.max(
+    0,
+    Math.min(
+      100,
+      Number(
+        block.data.style?.texturePositionX ?? 50,
+      ),
+    ),
+  );
+
+  const texturePositionY = Math.max(
+    0,
+    Math.min(
+      100,
+      Number(
+        block.data.style?.texturePositionY ?? 50,
+      ),
+    ),
+  );
+
+  /*
+   * ================================================================
+   * TEXT FX SETTINGS
+   * ================================================================
+   */
+
+  const mode = String(
+    fx.mode ?? "straight",
+  ) as
     | "straight"
     | "arch"
     | "dip"
@@ -16391,130 +16452,279 @@ function renderTextFx(
 
   const intensity = Math.max(
     0,
-    Math.min(100, Number(fx.intensity ?? 0)),
+    Math.min(
+      100,
+      Number(
+        fx.intensity ?? 0,
+      ),
+    ),
   );
 
   const rotation = Math.max(
     -180,
-    Math.min(180, Number(fx.rotation ?? 0)),
+    Math.min(
+      180,
+      Number(
+        fx.rotation ?? 0,
+      ),
+    ),
   );
 
   const opacity = Math.max(
     0,
-    Math.min(1, Number(fx.opacity ?? 1)),
+    Math.min(
+      1,
+      Number(
+        fx.opacity ?? 1,
+      ),
+    ),
   );
 
   const letterScaleX = Math.max(
     0.5,
-    Math.min(2, Number(fx.letterScaleX ?? 1)),
+    Math.min(
+      2,
+      Number(
+        fx.letterScaleX ?? 1,
+      ),
+    ),
   );
 
-  const transformStyle = String(fx.transformStyle ?? "normal");
+  const transformStyle = String(
+    fx.transformStyle ?? "normal",
+  );
 
   const transformStrength = Math.max(
     0,
-    Math.min(200, Number(fx.transformStrength ?? 100)),
+    Math.min(
+      200,
+      Number(
+        fx.transformStrength ?? 100,
+      ),
+    ),
   );
 
-  const transformMultiplier = transformStrength / 100;
+  const transformMultiplier =
+    transformStrength / 100;
+
+  /*
+   * ================================================================
+   * POSITION
+   * ================================================================
+   */
 
   const positionX = Math.max(
     0,
-    Math.min(100, Number(block.data.positionX ?? 50)),
+    Math.min(
+      100,
+      Number(
+        block.data.positionX ?? 50,
+      ),
+    ),
   );
 
   const positionY = Math.max(
     0,
-    Math.min(100, Number(block.data.positionY ?? 50)),
+    Math.min(
+      100,
+      Number(
+        block.data.positionY ?? 50,
+      ),
+    ),
   );
 
-  const translateX = (positionX - 50) * 0.6;
-  const translateY = (positionY - 50) * 0.6;
+  const translateX =
+    (positionX - 50) * 0.6;
 
-  const shadowEnabled = fx.shadowEnabled === true;
-  const shadowColor = String(fx.shadowColor ?? "#000000");
-  const shadowOffsetX = Number(fx.shadowOffsetX ?? 2);
-  const shadowOffsetY = Number(fx.shadowOffsetY ?? 2);
-  const shadowBlur = Math.max(0, Number(fx.shadowBlur ?? 4));
+  const translateY =
+    (positionY - 50) * 0.6;
 
-  const outlineEnabled = fx.outlineEnabled === true;
-  const outlineColor = String(fx.outlineColor ?? "#000000");
+  /*
+   * ================================================================
+   * SHADOW
+   * ================================================================
+   */
+
+  const shadowEnabled =
+    fx.shadowEnabled === true;
+
+  const shadowColor = String(
+    fx.shadowColor ?? "#000000",
+  );
+
+  const shadowOffsetX = Number(
+    fx.shadowOffsetX ?? 2,
+  );
+
+  const shadowOffsetY = Number(
+    fx.shadowOffsetY ?? 2,
+  );
+
+  const shadowBlur = Math.max(
+    0,
+    Number(
+      fx.shadowBlur ?? 4,
+    ),
+  );
+
+  /*
+   * ================================================================
+   * OUTLINE
+   * ================================================================
+   */
+
+  const outlineEnabled =
+    fx.outlineEnabled === true;
+
+  const outlineColor = String(
+    fx.outlineColor ?? "#000000",
+  );
 
   const outlineWidth = Math.max(
     0,
-    Math.min(12, Number(fx.outlineWidth ?? 2)),
+    Math.min(
+      12,
+      Number(
+        fx.outlineWidth ?? 2,
+      ),
+    ),
   );
+
+  /*
+   * ================================================================
+   * TEXT COLOR
+   * ================================================================
+   */
 
   const defaultTextColor = String(
-    block.data.style?.color || style.color || "#000000",
+    block.data.style?.color ||
+      style.color ||
+      "#000000",
   );
 
-  const letterColors: string[] = Array.isArray(fx.letterColors)
-    ? fx.letterColors
-    : [];
+  const letterColors: string[] =
+    Array.isArray(
+      fx.letterColors,
+    )
+      ? fx.letterColors
+      : [];
 
   const fontSize =
-    typeof block.data.style?.fontSize === "number"
+    typeof block.data.style?.fontSize ===
+    "number"
       ? block.data.style.fontSize
       : 48;
 
-  const fontFamily = style.fontFamily;
-  const fontWeight = style.fontWeight;
-  const fontStyle = style.fontStyle;
+  const fontFamily =
+    style.fontFamily;
 
-  const textShadow = shadowEnabled
-    ? `${shadowOffsetX}px ${shadowOffsetY}px ${shadowBlur}px ${shadowColor}`
-    : undefined;
+  const fontWeight =
+    style.fontWeight;
+
+  const fontStyle =
+    style.fontStyle;
+
+  const textShadow =
+    shadowEnabled
+      ? `${shadowOffsetX}px ${shadowOffsetY}px ${shadowBlur}px ${shadowColor}`
+      : undefined;
 
   /*
    * Determine the starting color index for each line.
    *
-   * Newlines are excluded from the count, so adding a line break does not
-   * shift or consume one of the saved per-character colors.
+   * Newlines are excluded from the count, so adding a
+   * line break does not consume a saved character color.
    */
-  const lineColorOffsets = lineCharacters.reduce<number[]>(
-    (offsets, characters, lineIndex) => {
-      if (lineIndex === 0) {
-        offsets.push(0);
+  const lineColorOffsets =
+    lineCharacters.reduce<number[]>(
+      (
+        offsets,
+        characters,
+        lineIndex,
+      ) => {
+        if (lineIndex === 0) {
+          offsets.push(0);
+
+          return offsets;
+        }
+
+        const previousOffset =
+          offsets[
+            lineIndex - 1
+          ] ?? 0;
+
+        const previousLength =
+          lineCharacters[
+            lineIndex - 1
+          ]?.length ?? 0;
+
+        offsets.push(
+          previousOffset +
+            previousLength,
+        );
+
         return offsets;
-      }
-
-      const previousOffset = offsets[lineIndex - 1] ?? 0;
-      const previousLength = lineCharacters[lineIndex - 1]?.length ?? 0;
-
-      offsets.push(previousOffset + previousLength);
-      return offsets;
-    },
-    [],
-  );
+      },
+      [],
+    );
 
   function getCharacterColor(
     lineIndex: number,
     characterIndex: number,
   ) {
     const colorIndex =
-      (lineColorOffsets[lineIndex] ?? 0) + characterIndex;
+      (lineColorOffsets[
+        lineIndex
+      ] ?? 0) +
+      characterIndex;
 
-    const savedColor = letterColors[colorIndex];
+    const savedColor =
+      letterColors[
+        colorIndex
+      ];
 
-    return typeof savedColor === "string" && savedColor.trim()
-      ? savedColor
-      : defaultTextColor;
+    return (
+      typeof savedColor ===
+        "string" &&
+      savedColor.trim()
+        ? savedColor
+        : defaultTextColor
+    );
   }
 
   /*
-   * Curve level zero is always rendered as completely straight text.
+   * ================================================================
+   * STRAIGHT TEXT
+   * ================================================================
+   *
+   * Curve level zero is always rendered as completely
+   * straight text.
+   *
+   * Important:
+   * When texture is enabled, no individual character may
+   * repaint itself with a solid color. The image is painted
+   * on the text container and clipped through the glyphs.
+   * ================================================================
    */
-  if (mode === "straight" || intensity === 0) {
-    const textAlign = (block.data.style?.align ?? "center") as
-      | "left"
-      | "center"
-      | "right";
+
+  if (
+    mode === "straight" ||
+    intensity === 0
+  ) {
+    const textAlign =
+      (
+        block.data.style
+          ?.align ?? "center"
+      ) as
+        | "left"
+        | "center"
+        | "right";
 
     const alignItems =
       textAlign === "left"
         ? "flex-start"
-        : textAlign === "right"
+        : textAlign ===
+            "right"
           ? "flex-end"
           : "center";
 
@@ -16522,153 +16732,329 @@ function renderTextFx(
       <div
         className="flex h-full w-full p-2"
         style={{
-          ...getAppearanceStyle(block),
-          alignItems: "center",
-          justifyContent: "center",
-          transform: `translate(${translateX}%, ${translateY}%)`,
+          ...getAppearanceStyle(
+            block,
+          ),
+
+          alignItems:
+            "center",
+
+          justifyContent:
+            "center",
+
+          transform:
+            `translate(${translateX}%, ${translateY}%)`,
         }}
       >
         <div
           style={{
             ...style,
-            display: "flex",
-            flexDirection: "column",
+
+            /*
+             * Texture is painted behind the text.
+             */
+            backgroundImage:
+              hasTexture
+                ? `url("${textureImageUrl}")`
+                : style.backgroundImage,
+
+            backgroundClip:
+              hasTexture
+                ? "text"
+                : style.backgroundClip,
+
+            WebkitBackgroundClip:
+              hasTexture
+                ? "text"
+                : (
+                    style as any
+                  )
+                    .WebkitBackgroundClip,
+
+            /*
+             * Glyph fill must become transparent
+             * so the texture can show through.
+             */
+            color:
+              hasTexture
+                ? "transparent"
+                : style.color,
+
+            WebkitTextFillColor:
+              hasTexture
+                ? "transparent"
+                : undefined,
+
+            backgroundRepeat:
+              hasTexture
+                ? "no-repeat"
+                : style.backgroundRepeat,
+
+            backgroundPosition:
+              hasTexture
+                ? `${texturePositionX}% ${texturePositionY}%`
+                : style.backgroundPosition,
+
+            backgroundSize:
+              hasTexture
+                ? `${textureScale}%`
+                : style.backgroundSize,
+
+            display:
+              "flex",
+
+            flexDirection:
+              "column",
+
             alignItems,
-            width: "100%",
+
+            width:
+              "100%",
+
             textAlign,
-            transform: `rotate(${rotation}deg) scaleX(${letterScaleX})`,
-            transformOrigin: "center center",
+
+            transform:
+              `rotate(${rotation}deg) scaleX(${letterScaleX})`,
+
+            transformOrigin:
+              "center center",
+
             opacity,
+
             textShadow,
-            WebkitTextStroke: outlineEnabled
-              ? `${outlineWidth}px ${outlineColor}`
-              : undefined,
-            paintOrder: outlineEnabled ? "stroke fill" : undefined,
-            lineHeight: style.lineHeight ?? 1.2,
+
+            WebkitTextStroke:
+              outlineEnabled
+                ? `${outlineWidth}px ${outlineColor}`
+                : undefined,
+
+            paintOrder:
+              outlineEnabled
+                ? "stroke fill"
+                : undefined,
+
+            lineHeight:
+              style.lineHeight ??
+              1.2,
           }}
         >
-          {lineCharacters.map((characters, lineIndex) => (
-            <div
-              key={`${block.id}-straight-line-${lineIndex}`}
-              style={{
-                display: "block",
-                minHeight: `${fontSize * 1.2}px`,
-                whiteSpace: "pre",
-              }}
-            >
-              {characters.length ? (
-                characters.map((character, characterIndex) => {
-                  const verticalOffset =
-                    transformStyle === "wave"
-                      ? Math.sin(characterIndex * 0.9) *
-                        6 *
-                        transformMultiplier
-                      : transformStyle === "rise"
-                        ? -characterIndex *
-                          1.5 *
-                          transformMultiplier
-                        : transformStyle === "dipLetters"
-                          ? characterIndex *
-                            1.5 *
+          {lineCharacters.map(
+            (
+              characters,
+              lineIndex,
+            ) => (
+              <div
+                key={`${block.id}-straight-line-${lineIndex}`}
+                style={{
+                  display:
+                    "block",
+
+                  minHeight:
+                    `${fontSize * 1.2}px`,
+
+                  whiteSpace:
+                    "pre",
+                }}
+              >
+                {characters.length ? (
+                  characters.map(
+                    (
+                      character,
+                      characterIndex,
+                    ) => {
+                      const verticalOffset =
+                        transformStyle ===
+                        "wave"
+                          ? Math.sin(
+                              characterIndex *
+                                0.9,
+                            ) *
+                            6 *
                             transformMultiplier
-                          : transformStyle === "stagger"
-                            ? (characterIndex % 2 === 0 ? -5 : 5) *
+
+                          : transformStyle ===
+                              "rise"
+                            ? -characterIndex *
+                              1.5 *
                               transformMultiplier
-                            : transformStyle === "bounce"
-                              ? (characterIndex % 2 === 0 ? -7 : 0) *
+
+                            : transformStyle ===
+                                "dipLetters"
+                              ? characterIndex *
+                                1.5 *
                                 transformMultiplier
-                              : 0;
 
-                  const characterRotation =
-                    transformStyle === "tiltLeft"
-                      ? -8 * transformMultiplier
-                      : transformStyle === "tiltRight"
-                        ? 8 * transformMultiplier
-                        : 0;
+                              : transformStyle ===
+                                  "stagger"
+                                ? (
+                                    characterIndex %
+                                        2 ===
+                                      0
+                                      ? -5
+                                      : 5
+                                  ) *
+                                  transformMultiplier
 
-                  return (
-                    <span
-                      key={`${block.id}-straight-${lineIndex}-${characterIndex}`}
-                      style={{
-                        display: "inline-block",
-                        color: getCharacterColor(
-                          lineIndex,
-                          characterIndex,
-                        ),
-                        transform: `translateY(${verticalOffset}px) rotate(${characterRotation}deg)`,
-                        transformOrigin: "center center",
-                        whiteSpace:
-                          character === " " ? "pre" : undefined,
-                      }}
-                    >
-                      {character === " " ? "\u00A0" : character}
-                    </span>
-                  );
-                })
-              ) : (
-                /*
-                 * Preserve intentionally blank lines.
-                 */
-                <span aria-hidden="true">&nbsp;</span>
-              )}
-            </div>
-          ))}
+                                : transformStyle ===
+                                    "bounce"
+                                  ? (
+                                      characterIndex %
+                                          2 ===
+                                        0
+                                        ? -7
+                                        : 0
+                                    ) *
+                                    transformMultiplier
+
+                                  : 0;
+
+                      const characterRotation =
+                        transformStyle ===
+                        "tiltLeft"
+                          ? -8 *
+                            transformMultiplier
+
+                          : transformStyle ===
+                              "tiltRight"
+                            ? 8 *
+                              transformMultiplier
+
+                            : 0;
+
+                      return (
+                        <span
+                          key={`${block.id}-straight-${lineIndex}-${characterIndex}`}
+                          style={{
+                            display:
+                              "inline-block",
+
+                            /*
+                             * Texture must remain visible.
+                             * Per-character colors only apply
+                             * when texture is disabled.
+                             */
+                            color:
+                              hasTexture
+                                ? "transparent"
+                                : getCharacterColor(
+                                    lineIndex,
+                                    characterIndex,
+                                  ),
+
+                            WebkitTextFillColor:
+                              hasTexture
+                                ? "transparent"
+                                : undefined,
+
+                            transform:
+                              `translateY(${verticalOffset}px) rotate(${characterRotation}deg)`,
+
+                            transformOrigin:
+                              "center center",
+
+                            whiteSpace:
+                              character ===
+                              " "
+                                ? "pre"
+                                : undefined,
+                          }}
+                        >
+                          {character ===
+                          " "
+                            ? "\u00A0"
+                            : character}
+                        </span>
+                      );
+                    },
+                  )
+                ) : (
+                  /*
+                   * Preserve intentionally blank lines.
+                   */
+                  <span
+                    aria-hidden="true"
+                  >
+                    &nbsp;
+                  </span>
+                )}
+              </div>
+            ),
+          )}
         </div>
       </div>
     );
   }
 
-  const longestLineLength = Math.max(
-    1,
-    ...lineCharacters.map((characters) => characters.length),
-  );
-
   /*
-   * Use a fixed SVG coordinate system for curved TextFX.
-   *
-   * The canvas must not grow with fontSize because the SVG would then scale
-   * the larger coordinate system back into the same block dimensions,
-   * visually canceling larger font sizes.
+   * ================================================================
+   * CURVED TEXT
+   * ================================================================
    */
-  const canvasWidth = 1600;
 
-  const lineSpacing = Math.max(
-    fontSize * 1.75,
-    fontSize + outlineWidth * 2 + shadowBlur,
-  );
+  const canvasWidth =
+    1600;
 
-  const totalLineHeight = Math.max(
-    lineSpacing,
-    lineSpacing * lines.length,
-  );
+  const lineSpacing =
+    Math.max(
+      fontSize * 1.75,
+
+      fontSize +
+        outlineWidth * 2 +
+        shadowBlur,
+    );
 
   /*
-   * Keep the base height stable while allowing extra room for additional
-   * lines. Font size itself no longer enlarges the viewBox.
+   * Keep the base height stable while allowing extra
+   * room for additional lines.
    */
   const canvasHeight =
-    800 + Math.max(0, lines.length - 1) * 220;
+    800 +
+    Math.max(
+      0,
+      lines.length - 1,
+    ) *
+      220;
 
-  const centerX = canvasWidth / 2;
-  const centerY = canvasHeight / 2;
+  const centerX =
+    canvasWidth / 2;
+
+  const centerY =
+    canvasHeight / 2;
 
   /*
-   * Curve strength changes only the radius—not the SVG dimensions or font
-   * size—so larger font sizes remain visibly larger.
+   * Curve strength changes radius only.
    */
-  const maximumRadius = canvasWidth * 3;
-  const minimumRadius = canvasWidth * 0.34;
+  const maximumRadius =
+    canvasWidth * 3;
 
-  const curveProgress = intensity / 100;
+  const minimumRadius =
+    canvasWidth * 0.34;
+
+  const curveProgress =
+    intensity / 100;
 
   const radius =
     maximumRadius -
-    (maximumRadius - minimumRadius) * curveProgress;
+    (maximumRadius -
+      minimumRadius) *
+      curveProgress;
 
-  const safeBlockId = String(block.id)
-    .toLowerCase()
-    .replace(/[^a-z0-9_-]+/g, "-")
-    .replace(/^-+|-+$/g, "");
+  const safeBlockId =
+    String(
+      block.id,
+    )
+      .toLowerCase()
+      .replace(
+        /[^a-z0-9_-]+/g,
+        "-",
+      )
+      .replace(
+        /^-+|-+$/g,
+        "",
+      );
+
+  const texturePatternId =
+    `textfx-texture-${safeBlockId}`;
 
   const horizontalScaleTransform =
     letterScaleX === 1
@@ -16679,14 +17065,22 @@ function renderTextFx(
    * Center multiple lines vertically around the same midpoint.
    */
   const firstLineOffset =
-    -((lines.length - 1) * lineSpacing) / 2;
+    -(
+      (lines.length - 1) *
+      lineSpacing
+    ) /
+    2;
 
   return (
     <div
       className="h-full w-full overflow-visible"
       style={{
-        ...getAppearanceStyle(block),
-        transform: `translate(${translateX}%, ${translateY}%)`,
+        ...getAppearanceStyle(
+          block,
+        ),
+
+        transform:
+          `translate(${translateX}%, ${translateY}%)`,
       }}
     >
       <svg
@@ -16695,176 +17089,394 @@ function renderTextFx(
         viewBox={`0 0 ${canvasWidth} ${canvasHeight}`}
         preserveAspectRatio="xMidYMid meet"
         style={{
-          transform: `rotate(${rotation}deg)`,
-          transformOrigin: "center center",
+          transform:
+            `rotate(${rotation}deg)`,
+
+          transformOrigin:
+            "center center",
+
           opacity,
-          overflow: "visible",
+
+          overflow:
+            "visible",
         }}
       >
         <defs>
-          {lineCharacters.map((characters, lineIndex) => {
-            const lineLength = Math.max(characters.length, 1);
+          {/*
+           * ============================================================
+           * TEXTURE PATTERN
+           * ============================================================
+           *
+           * SVG text cannot use CSS background-clip:text reliably.
+           * The imported texture therefore becomes an SVG pattern and
+           * that pattern is used as the glyph fill.
+           */}
 
-            const estimatedNaturalTextWidth = Math.max(
-              fontSize * lineLength * 0.62,
-              fontSize,
-            );
+          {hasTexture &&
+          textureImageUrl ? (
+            <pattern
+              id={
+                texturePatternId
+              }
+              patternUnits="userSpaceOnUse"
+              x="0"
+              y="0"
+              width={
+                canvasWidth
+              }
+              height={
+                canvasHeight
+              }
+            >
+              <image
+                href={
+                  textureImageUrl
+                }
+                x={
+                  ((texturePositionX -
+                    50) /
+                    100) *
+                  canvasWidth
+                }
+                y={
+                  ((texturePositionY -
+                    50) /
+                    100) *
+                  canvasHeight
+                }
+                width={
+                  canvasWidth *
+                  (100 /
+                    textureScale)
+                }
+                height={
+                  canvasHeight *
+                  (100 /
+                    textureScale)
+                }
+                preserveAspectRatio="xMidYMid slice"
+              />
+            </pattern>
+          ) : null}
 
-            const desiredPathWidth = Math.max(
-              estimatedNaturalTextWidth * 1.25,
-              canvasWidth * 0.22,
-            );
+          {/*
+           * ============================================================
+           * CURVE PATHS
+           * ============================================================
+           */}
 
-            const maximumPathWidth = canvasWidth * 0.82;
-
-            const pathWidth = Math.min(
-              maximumPathWidth,
-              desiredPathWidth,
-              radius * 1.8,
-            );
-
-            const halfPathWidth = pathWidth / 2;
-            const leftX = centerX - halfPathWidth;
-            const rightX = centerX + halfPathWidth;
-
-            const halfChord = Math.min(
-              halfPathWidth,
-              radius * 0.999,
-            );
-
-            const arcRise =
-              radius -
-              Math.sqrt(
+          {lineCharacters.map(
+            (
+              characters,
+              lineIndex,
+            ) => {
+              const lineLength =
                 Math.max(
-                  0,
-                  radius * radius - halfChord * halfChord,
-                ),
-              );
+                  characters.length,
+                  1,
+                );
 
-            const lineOffset =
-              firstLineOffset + lineIndex * lineSpacing;
+              const estimatedNaturalTextWidth =
+                Math.max(
+                  fontSize *
+                    lineLength *
+                    0.62,
+
+                  fontSize,
+                );
+
+              const desiredPathWidth =
+                Math.max(
+                  estimatedNaturalTextWidth *
+                    1.25,
+
+                  canvasWidth *
+                    0.22,
+                );
+
+              const maximumPathWidth =
+                canvasWidth *
+                0.82;
+
+              const pathWidth =
+                Math.min(
+                  maximumPathWidth,
+
+                  desiredPathWidth,
+
+                  radius *
+                    1.8,
+                );
+
+              const halfPathWidth =
+                pathWidth / 2;
+
+              const leftX =
+                centerX -
+                halfPathWidth;
+
+              const rightX =
+                centerX +
+                halfPathWidth;
+
+              const halfChord =
+                Math.min(
+                  halfPathWidth,
+
+                  radius *
+                    0.999,
+                );
+
+              const arcRise =
+                radius -
+                Math.sqrt(
+                  Math.max(
+                    0,
+
+                    radius *
+                      radius -
+                      halfChord *
+                        halfChord,
+                  ),
+                );
+
+              const lineOffset =
+                firstLineOffset +
+                lineIndex *
+                  lineSpacing;
+
+              const pathId =
+                `textfx-path-${safeBlockId}-${mode}-${lineIndex}`;
+
+              let path =
+                "";
+
+              /*
+               * ARCH
+               */
+              if (
+                mode === "arch"
+              ) {
+                const pathBaselineY =
+                  centerY +
+                  lineOffset +
+                  arcRise /
+                    2;
+
+                path = [
+                  `M ${leftX} ${pathBaselineY}`,
+
+                  `A ${radius} ${radius} 0 0 1 ${rightX} ${pathBaselineY}`,
+                ].join(
+                  " ",
+                );
+              }
+
+              /*
+               * DIP
+               */
+              if (
+                mode === "dip"
+              ) {
+                const pathBaselineY =
+                  centerY +
+                  lineOffset -
+                  arcRise /
+                    2;
+
+                path = [
+                  `M ${leftX} ${pathBaselineY}`,
+
+                  `A ${radius} ${radius} 0 0 0 ${rightX} ${pathBaselineY}`,
+                ].join(
+                  " ",
+                );
+              }
+
+              /*
+               * CIRCLE
+               */
+              if (
+                mode ===
+                "circle"
+              ) {
+                const largestCircleRadius =
+                  Math.min(
+                    canvasWidth *
+                      0.34,
+
+                    canvasHeight *
+                      0.38,
+                  );
+
+                const smallestCircleRadius =
+                  Math.max(
+                    fontSize *
+                      2.5,
+
+                    Math.min(
+                      canvasWidth,
+                      canvasHeight,
+                    ) *
+                      0.16,
+                  );
+
+                const baseCircleRadius =
+                  largestCircleRadius -
+                  (
+                    largestCircleRadius -
+                    smallestCircleRadius
+                  ) *
+                    curveProgress;
+
+                /*
+                 * Multiple circle lines use concentric paths.
+                 */
+                const centeredLineIndex =
+                  lineIndex -
+                  (
+                    lines.length -
+                    1
+                  ) /
+                    2;
+
+                const circleRadius =
+                  Math.max(
+                    fontSize *
+                      1.5,
+
+                    baseCircleRadius -
+                      centeredLineIndex *
+                        lineSpacing,
+                  );
+
+                path = [
+                  `M ${centerX} ${centerY}`,
+
+                  `m -${circleRadius} 0`,
+
+                  `a ${circleRadius} ${circleRadius} 0 1 1 ${circleRadius * 2} 0`,
+
+                  `a ${circleRadius} ${circleRadius} 0 1 1 -${circleRadius * 2} 0`,
+                ].join(
+                  " ",
+                );
+              }
+
+              return (
+                <path
+                  key={`${block.id}-definition-${lineIndex}`}
+                  id={
+                    pathId
+                  }
+                  d={
+                    path
+                  }
+                  fill="none"
+                />
+              );
+            },
+          )}
+        </defs>
+
+        {/*
+         * ================================================================
+         * CURVED GLYPHS
+         * ================================================================
+         */}
+
+        {lineCharacters.map(
+          (
+            characters,
+            lineIndex,
+          ) => {
+            /*
+             * Empty curved lines retain their path definition
+             * but render no glyphs.
+             */
+            if (
+              !characters.length
+            ) {
+              return null;
+            }
 
             const pathId =
               `textfx-path-${safeBlockId}-${mode}-${lineIndex}`;
 
-            let path = "";
-
-            if (mode === "arch") {
-              const pathBaselineY =
-                centerY + lineOffset + arcRise / 2;
-
-              path = [
-                `M ${leftX} ${pathBaselineY}`,
-                `A ${radius} ${radius} 0 0 1 ${rightX} ${pathBaselineY}`,
-              ].join(" ");
-            }
-
-            if (mode === "dip") {
-              const pathBaselineY =
-                centerY + lineOffset - arcRise / 2;
-
-              path = [
-                `M ${leftX} ${pathBaselineY}`,
-                `A ${radius} ${radius} 0 0 0 ${rightX} ${pathBaselineY}`,
-              ].join(" ");
-            }
-
-            if (mode === "circle") {
-              const largestCircleRadius = Math.min(
-                canvasWidth * 0.34,
-                canvasHeight * 0.38,
-              );
-
-              const smallestCircleRadius = Math.max(
-                fontSize * 2.5,
-                Math.min(canvasWidth, canvasHeight) * 0.16,
-              );
-
-              const baseCircleRadius =
-                largestCircleRadius -
-                (largestCircleRadius - smallestCircleRadius) *
-                  curveProgress;
-
-              /*
-               * Multiple circle lines use concentric paths.
-               */
-              const centeredLineIndex =
-                lineIndex - (lines.length - 1) / 2;
-
-              const circleRadius = Math.max(
-                fontSize * 1.5,
-                baseCircleRadius -
-                  centeredLineIndex * lineSpacing,
-              );
-
-              path = [
-                `M ${centerX} ${centerY}`,
-                `m -${circleRadius} 0`,
-                `a ${circleRadius} ${circleRadius} 0 1 1 ${circleRadius * 2} 0`,
-                `a ${circleRadius} ${circleRadius} 0 1 1 -${circleRadius * 2} 0`,
-              ].join(" ");
-            }
-
             return (
-              <path
-                key={`${block.id}-definition-${lineIndex}`}
-                id={pathId}
-                d={path}
-                fill="none"
-              />
-            );
-          })}
-        </defs>
-
-        {lineCharacters.map((characters, lineIndex) => {
-          /*
-           * An empty curved line cannot display characters, but its path is
-           * still retained so subsequent lines preserve their vertical slot.
-           */
-          if (!characters.length) {
-            return null;
-          }
-
-          const pathId =
-            `textfx-path-${safeBlockId}-${mode}-${lineIndex}`;
-
-          return (
-            <text
-              key={`${block.id}-curved-line-${lineIndex}`}
-              fontFamily={fontFamily}
-              fontSize={fontSize}
-              fontWeight={fontWeight}
-              fontStyle={fontStyle}
-              stroke={outlineEnabled ? outlineColor : undefined}
-              strokeWidth={outlineEnabled ? outlineWidth : undefined}
-              paintOrder={outlineEnabled ? "stroke fill" : undefined}
-              transform={horizontalScaleTransform}
-              style={{
-                filter: shadowEnabled
-                  ? `drop-shadow(${shadowOffsetX}px ${shadowOffsetY}px ${shadowBlur}px ${shadowColor})`
-                  : undefined,
-              }}
-            >
-              <textPath
-                href={`#${pathId}`}
-                startOffset="50%"
-                textAnchor="middle"
+              <text
+                key={`${block.id}-curved-line-${lineIndex}`}
+                fontFamily={
+                  fontFamily
+                }
+                fontSize={
+                  fontSize
+                }
+                fontWeight={
+                  fontWeight
+                }
+                fontStyle={
+                  fontStyle
+                }
+                stroke={
+                  outlineEnabled
+                    ? outlineColor
+                    : undefined
+                }
+                strokeWidth={
+                  outlineEnabled
+                    ? outlineWidth
+                    : undefined
+                }
+                paintOrder={
+                  outlineEnabled
+                    ? "stroke fill"
+                    : undefined
+                }
+                transform={
+                  horizontalScaleTransform
+                }
+                style={{
+                  filter:
+                    shadowEnabled
+                      ? `drop-shadow(${shadowOffsetX}px ${shadowOffsetY}px ${shadowBlur}px ${shadowColor})`
+                      : undefined,
+                }}
               >
-                {characters.map((character, characterIndex) => (
-                  <tspan
-                    key={`${block.id}-curved-${lineIndex}-${characterIndex}`}
-                    fill={getCharacterColor(
-                      lineIndex,
+                <textPath
+                  href={`#${pathId}`}
+                  startOffset="50%"
+                  textAnchor="middle"
+                >
+                  {characters.map(
+                    (
+                      character,
                       characterIndex,
-                    )}
-                  >
-                    {character === " " ? "\u00A0" : character}
-                  </tspan>
-                ))}
-              </textPath>
-            </text>
-          );
-        })}
+                    ) => (
+                      <tspan
+                        key={`${block.id}-curved-${lineIndex}-${characterIndex}`}
+                        fill={
+                          hasTexture &&
+                          textureImageUrl
+                            ? `url(#${texturePatternId})`
+                            : getCharacterColor(
+                                lineIndex,
+                                characterIndex,
+                              )
+                        }
+                      >
+                        {character ===
+                        " "
+                          ? "\u00A0"
+                          : character}
+                      </tspan>
+                    ),
+                  )}
+                </textPath>
+              </text>
+            );
+          },
+        )}
       </svg>
     </div>
   );
