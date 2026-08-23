@@ -541,6 +541,7 @@ export type TextFxBlock = BaseBlock & {
 
       transformStrength?: number;
       letterScaleX?: number;
+      letterScaleY?: number;
 
       letterColors?: string[];
 
@@ -4429,6 +4430,7 @@ case "text_fx":
         transformStyle: "normal",
         transformStrength: 100,
         letterScaleX: 1,
+        letterScaleY: 1,
 
         letterColors: [],
 

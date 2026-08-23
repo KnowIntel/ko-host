@@ -16490,6 +16490,16 @@ function renderTextFx(
     ),
   );
 
+  const letterScaleY = Math.max(
+  0.5,
+  Math.min(
+    2,
+    Number(
+      fx.letterScaleY ?? 1,
+    ),
+  ),
+);
+
   const transformStyle = String(
     fx.transformStyle ?? "normal",
   );
@@ -16753,7 +16763,7 @@ if (mode === "straight" || intensity === 0) {
             width: "100%",
             textAlign,
 
-            transform: `rotate(${rotation}deg) scaleX(${letterScaleX})`,
+            transform: `rotate(${rotation}deg) scaleX(${letterScaleX}) scaleY(${letterScaleY})`,
             transformOrigin: "center center",
 
             opacity,
@@ -16849,7 +16859,7 @@ if (mode === "straight" || intensity === 0) {
           width: "100%",
           textAlign,
 
-          transform: `rotate(${rotation}deg) scaleX(${letterScaleX})`,
+          transform: `rotate(${rotation}deg) scaleX(${letterScaleX}) scaleY(${letterScaleY})`,
           transformOrigin: "center center",
 
           opacity,
@@ -17039,10 +17049,11 @@ if (mode === "straight" || intensity === 0) {
   const texturePatternId =
     `textfx-texture-${safeBlockId}`;
 
-  const horizontalScaleTransform =
-    letterScaleX === 1
-      ? undefined
-      : `translate(${centerX} 0) scale(${letterScaleX} 1) translate(${-centerX} 0)`;
+const textScaleTransform =
+  letterScaleX === 1 &&
+  letterScaleY === 1
+    ? undefined
+    : `translate(${centerX} ${centerY}) scale(${letterScaleX} ${letterScaleY}) translate(${-centerX} ${-centerY})`;
 
   /*
    * Center multiple lines vertically around the same midpoint.
@@ -17416,9 +17427,9 @@ if (mode === "straight" || intensity === 0) {
                     ? "stroke fill"
                     : undefined
                 }
-                transform={
-                  horizontalScaleTransform
-                }
+transform={
+  textScaleTransform
+}
                 style={{
                   filter:
                     shadowEnabled

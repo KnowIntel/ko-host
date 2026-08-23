@@ -430,29 +430,101 @@ onChange={(e) => {
                 />
               </div>
 
-              <div>
-                <div className={inspectorLabelClass()}>Letter Width (%)</div>
+<div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
+  <div className={inspectorLabelClass()}>Character Stretch</div>
 
-                <input
-                  type="number"
-                  min={50}
-                  max={200}
-                  value={Math.round(
-                    ((selectedTextFxBlock.data.fx as any)?.letterScaleX ?? 1) *
-                      100,
-                  )}
-                  onChange={(event) =>
-                    updateTextFx({
-                      letterScaleX:
-                        Math.max(
-                          50,
-                          Math.min(200, Number(event.target.value) || 100),
-                        ) / 100,
-                    })
-                  }
-                  className={inspectorInputClass()}
-                />
-              </div>
+  <div className="mt-4">
+    <div className="flex items-center justify-between gap-3">
+      <div className="text-xs font-medium text-neutral-700">
+        Horizontal Stretch
+      </div>
+
+      <div className="text-xs font-medium text-neutral-500">
+        {Math.round(
+          ((selectedTextFxBlock.data.fx as any)?.letterScaleX ?? 1) *
+            100,
+        )}
+        %
+      </div>
+    </div>
+
+    <input
+      type="range"
+      min={50}
+      max={200}
+      step={1}
+      value={Math.round(
+        ((selectedTextFxBlock.data.fx as any)?.letterScaleX ?? 1) *
+          100,
+      )}
+      onChange={(event) =>
+        updateTextFx({
+          letterScaleX:
+            Math.max(
+              50,
+              Math.min(
+                200,
+                Number(event.target.value) || 100,
+              ),
+            ) / 100,
+        })
+      }
+      className="mt-2 w-full"
+    />
+
+    <div className="mt-1 flex justify-between text-[10px] text-neutral-400">
+      <span>50%</span>
+      <span>100%</span>
+      <span>200%</span>
+    </div>
+  </div>
+
+  <div className="mt-5">
+    <div className="flex items-center justify-between gap-3">
+      <div className="text-xs font-medium text-neutral-700">
+        Vertical Stretch
+      </div>
+
+      <div className="text-xs font-medium text-neutral-500">
+        {Math.round(
+          ((selectedTextFxBlock.data.fx as any)?.letterScaleY ?? 1) *
+            100,
+        )}
+        %
+      </div>
+    </div>
+
+    <input
+      type="range"
+      min={50}
+      max={200}
+      step={1}
+      value={Math.round(
+        ((selectedTextFxBlock.data.fx as any)?.letterScaleY ?? 1) *
+          100,
+      )}
+      onChange={(event) =>
+        updateTextFx({
+          letterScaleY:
+            Math.max(
+              50,
+              Math.min(
+                200,
+                Number(event.target.value) || 100,
+              ),
+            ) / 100,
+        })
+      }
+      className="mt-2 w-full"
+    />
+
+    <div className="mt-1 flex justify-between text-[10px] text-neutral-400">
+      <span>50%</span>
+      <span>100%</span>
+      <span>200%</span>
+    </div>
+  </div>
+</div>
 
               <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
                 <label className="flex items-center gap-3 text-sm font-medium text-neutral-800">
