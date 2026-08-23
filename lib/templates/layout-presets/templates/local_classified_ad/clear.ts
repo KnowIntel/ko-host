@@ -9,7 +9,7 @@ export default createLayoutPreset({
     "Professional junk removal and hauling service layout featuring service offerings, pricing highlights, customer testimonials, before-and-after showcases, and quick booking options",
 
   thumbnail:
-    "/designs/design-cards/design-card_service_ad_clear.webp",
+    "/designs/design-cards/design-card_local_classified_ad_clear.webp",
 
   recommended: false,
 });

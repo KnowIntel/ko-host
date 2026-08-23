@@ -9,7 +9,7 @@ export default createLayoutPreset({
     "Refreshing pool service advertisement layout featuring maintenance packages, seasonal offers, service details, customer reviews, and easy booking options",
 
   thumbnail:
-    "/designs/design-cards/design-card_service_ad_vibes.webp",
+    "/designs/design-cards/design-card_local_classified_ad_vibes.webp",
 
   recommended: false,
 });

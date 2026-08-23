@@ -32,6 +32,7 @@ import meetLayouts from "./templates/meet_and_greet";
 import gameLayouts from "./templates/game_day_central";
 import engagementLayouts from "./templates/engagement_announcement";
 import serviceLayouts from "./templates/service_ad";
+import localClassifiedLayouts from "./templates/local_classified_ad";
 import gameNightLayouts from "./templates/game_night";
 import bookLayouts from "./templates/book_club";
 import productLayouts from "./templates/product_showcase";
@@ -81,7 +82,7 @@ const registry: Record<string, TemplateLayoutRegistry> = {
   party_time: partyLayouts,
   mediation: mediationLayouts,
   group_trip: groupLayouts,
-
+  local_classified_ad: localClassifiedLayouts,
 
   
 };

@@ -55,7 +55,7 @@ export type TemplateKey =
   | "online_course"
   | "school_fundraiser"
   | "secure_document"
-  | "service_ad"
+  | "local_classified_ad"
   | "settlement_info"
   | "software_trial"
   | "stock_trade_thesis"
@@ -312,7 +312,7 @@ function inferCategory(key: TemplateKey): TemplateCategory {
     "influencer",
     "creator_link_hub",
     "patreon",
-    "service_ad",
+    "local_classified_ad",
     "service_promo",
     "software_trial",
     "online_course",
@@ -907,15 +907,19 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "secure",
     defaultDraft: { title: "Secure Documents", slugSuggestion: "securedocument" },
   }, */
-  {
-    key: "service_ad",
-    title: "Service Ad",
-    description: "Promote a service with pricing and contact.",
-    thumb: "servicead",
-    setupMins: 2,
-    demoSlug: "servicead",
-    defaultDraft: { title: "Service Ad", slugSuggestion: "servicead" },
+{
+  key: "local_classified_ad",
+  title: "Local Classified Ad",
+  description:
+    "Create a local classified listing for services, items, offers, and community promotions.",
+  thumb: "localclassifiedad",
+  setupMins: 2,
+  demoSlug: "localclassifiedad",
+  defaultDraft: {
+    title: "Local Classified Ad",
+    slugSuggestion: "localclassifiedad",
   },
+},
 /*   {
     key: "settlement_info",
     title: "Settlement Info",
