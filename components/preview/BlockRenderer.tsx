@@ -27424,9 +27424,104 @@ export default function BlockRenderer({
   onDownloadFrame,
   onFocusTimelineEntry,
 }: Props) {
-  const safeCartItems = cartItems ?? [];
-  const safeCartSubtotal = cartSubtotal ?? 0;
-  const safeListingQuantities = listingQuantities ?? {};
+const safeListingQuantities =
+  listingQuantities ?? {};
+
+/*
+ * ================================================================
+ * LISTING → CART
+ * ================================================================
+ *
+ * Build the cart directly from Listing blocks and their current
+ * quantities.
+ *
+ * A Listing enters the cart when its quantity is greater than zero.
+ * Reducing the quantity back to zero automatically removes it.
+ */
+
+const derivedCartItems: CartItem[] =
+  Array.isArray(blocks)
+    ? blocks
+        .filter(
+          (
+            candidate,
+          ): candidate is Extract<
+            MicrositeBlock,
+            { type: "listing" }
+          > =>
+            candidate.type ===
+            "listing",
+        )
+        .map((listing) => {
+          const quantity =
+            Math.max(
+              0,
+              Math.floor(
+                Number(
+                  safeListingQuantities[
+                    listing.id
+                  ] ?? 0,
+                ),
+              ),
+            );
+
+          const price =
+            typeof listing.data
+              .price === "number" &&
+            Number.isFinite(
+              listing.data.price,
+            )
+              ? Math.max(
+                  0,
+                  listing.data.price,
+                )
+              : 0;
+
+          return {
+            id: listing.id,
+
+            title:
+              listing.data.title ||
+              listing.label ||
+              "Listing",
+
+            description:
+              String(
+                listing.data
+                  .description ?? "",
+              ).trim(),
+
+            price,
+
+            quantity,
+          };
+        })
+        .filter(
+          (item) =>
+            item.quantity > 0 &&
+            item.price > 0,
+        )
+    : [];
+
+/*
+ * Prefer explicitly supplied cart items if another caller eventually
+ * provides them. Otherwise use the cart automatically derived from
+ * Listing blocks.
+ */
+const safeCartItems: CartItem[] =
+  Array.isArray(cartItems) &&
+  cartItems.length > 0
+    ? cartItems
+    : derivedCartItems;
+
+const safeCartSubtotal =
+  safeCartItems.reduce(
+    (sum, item) =>
+      sum +
+      item.price *
+        item.quantity,
+    0,
+  );
 
   
   switch (block.type) {

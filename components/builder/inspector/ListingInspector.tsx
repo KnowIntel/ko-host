@@ -130,6 +130,28 @@ inspectorCardClass,
     );
   }
 
+  function updateListingImage(
+  patch: Record<string, any>,
+) {
+  updateSelectedBlock(
+    (block: any) =>
+      block.type !== "listing"
+        ? block
+        : {
+            ...block,
+
+            data: {
+              ...block.data,
+
+              image: {
+                ...block.data.image,
+                ...patch,
+              },
+            },
+          },
+  );
+}
+
   function updateItemizedItem(
     itemId: string,
     patch: Record<string, any>,
@@ -1255,6 +1277,162 @@ inspectorCardClass,
             >
               Browse Listing Image
             </button>
+
+<div className="mt-5 rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
+  <div
+    className={
+      inspectorLabelClass()
+    }
+  >
+    Image Controls
+  </div>
+
+  {/* IMAGE SIZE */}
+
+  <div className="mt-4">
+    <div className="flex items-center justify-between gap-3">
+      <div className="text-xs font-medium text-neutral-700">
+        Image Size
+      </div>
+
+      <div className="text-xs font-medium text-neutral-500">
+        {Math.round(
+          Number(
+            selectedBlock.data.image?.zoom ??
+              1,
+          ) * 100,
+        )}
+        %
+      </div>
+    </div>
+
+    <input
+      type="range"
+      min={50}
+      max={200}
+      step={1}
+      value={Math.round(
+        Number(
+          selectedBlock.data.image?.zoom ??
+            1,
+        ) * 100,
+      )}
+      onChange={(e) =>
+        updateListingImage({
+          zoom:
+            Math.max(
+              50,
+              Math.min(
+                200,
+                Number(
+                  e.target.value,
+                ) || 100,
+              ),
+            ) / 100,
+        })
+      }
+      className="mt-2 w-full"
+    />
+
+    <div className="mt-1 flex justify-between text-[10px] text-neutral-400">
+      <span>50%</span>
+      <span>100%</span>
+      <span>200%</span>
+    </div>
+  </div>
+
+  {/* HORIZONTAL POSITION */}
+
+  <div className="mt-5">
+    <div className="flex items-center justify-between gap-3">
+      <div className="text-xs font-medium text-neutral-700">
+        Horizontal Position
+      </div>
+
+      <div className="text-xs font-medium text-neutral-500">
+        {Math.round(
+          Number(
+            selectedBlock.data.image?.positionX ??
+              50,
+          ),
+        )}
+        %
+      </div>
+    </div>
+
+    <input
+      type="range"
+      min={0}
+      max={100}
+      step={1}
+      value={
+        selectedBlock.data.image?.positionX ??
+        50
+      }
+      onChange={(e) =>
+        updateListingImage({
+          positionX:
+            Math.max(
+              0,
+              Math.min(
+                100,
+                Number(
+                  e.target.value,
+                ) || 0,
+              ),
+            ),
+        })
+      }
+      className="mt-2 w-full"
+    />
+  </div>
+
+  {/* VERTICAL POSITION */}
+
+  <div className="mt-5">
+    <div className="flex items-center justify-between gap-3">
+      <div className="text-xs font-medium text-neutral-700">
+        Vertical Position
+      </div>
+
+      <div className="text-xs font-medium text-neutral-500">
+        {Math.round(
+          Number(
+            selectedBlock.data.image?.positionY ??
+              50,
+          ),
+        )}
+        %
+      </div>
+    </div>
+
+    <input
+      type="range"
+      min={0}
+      max={100}
+      step={1}
+      value={
+        selectedBlock.data.image?.positionY ??
+        50
+      }
+      onChange={(e) =>
+        updateListingImage({
+          positionY:
+            Math.max(
+              0,
+              Math.min(
+                100,
+                Number(
+                  e.target.value,
+                ) || 0,
+              ),
+            ),
+        })
+      }
+      className="mt-2 w-full"
+    />
+  </div>
+</div>
 
             {/* VISIBILITY */}
 
