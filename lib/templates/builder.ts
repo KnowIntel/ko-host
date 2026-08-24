@@ -1448,11 +1448,23 @@ export type ListingBlock = BaseBlock & {
     /*
      * Showcase visibility controls.
      */
-    showTitle?: boolean;
-    showDescription?: boolean;
-    showPrice?: boolean;
-    showCity?: boolean;
-    showState?: boolean;
+showTitle?: boolean;
+showDescription?: boolean;
+
+/*
+ * Main numeric price.
+ * This is the price used for cart/backend calculations.
+ */
+showPrice?: boolean;
+
+/*
+ * Optional "Price" row stored in metadata.
+ * Hiding this does not change the numeric listing price.
+ */
+showMetadataPrice?: boolean;
+
+showCity?: boolean;
+showState?: boolean;
 
     pricePosition?:
       | "left"
@@ -7607,15 +7619,17 @@ case "listing":
       /*
        * Visibility defaults.
        */
-      showTitle: true,
+showTitle: true,
 
-      showDescription: true,
+showDescription: true,
 
-      showPrice: true,
+showPrice: true,
 
-      showCity: true,
+showMetadataPrice: true,
 
-      showState: true,
+showCity: true,
+
+showState: true,
 
       pricePosition: "right",
 

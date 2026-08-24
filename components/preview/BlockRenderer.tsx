@@ -2229,21 +2229,31 @@ function renderListing(
    * ================================================================
    */
 
-  const showTitle =
-    data.showTitle !== false;
+const showTitle =
+  data.showTitle !== false;
 
-  const showDescription =
-    data.showDescription !==
-    false;
+const showDescription =
+  data.showDescription !==
+  false;
 
-  const showPrice =
-    data.showPrice !== false;
+/*
+ * Main numeric listing price.
+ * Visibility has no effect on the stored price or cart calculations.
+ */
+const showPrice =
+  data.showPrice !== false;
 
-  const showCity =
-    data.showCity !== false;
+/*
+ * Separate metadata Price row.
+ */
+const showMetadataPrice =
+  data.showMetadataPrice !== false;
 
-  const showState =
-    data.showState !== false;
+const showCity =
+  data.showCity !== false;
+
+const showState =
+  data.showState !== false;
 
   /*
    * Existing Listing data stores location as metadata:
@@ -2330,41 +2340,63 @@ function renderListing(
     return "";
   }
 
-  const visibleMetadata =
-    metadata
-      .map(
-        (item: any) => {
-          const isLocation =
-            String(
-              item.label ??
-                "",
-            )
-              .trim()
-              .toLowerCase() ===
-            "location";
-
-          if (
-            !isLocation
-          ) {
-            return item;
-          }
-
-          return {
-            ...item,
-            value:
-              getVisibleLocationValue(
-                item.value,
-              ),
-          };
-        },
-      )
-      .filter(
-        (item: any) =>
+const visibleMetadata =
+  metadata
+    .map(
+      (item: any) => {
+        const normalizedLabel =
           String(
-            item.value ??
-              "",
-          ).trim(),
-      );
+            item.label ?? "",
+          )
+            .trim()
+            .toLowerCase();
+
+        /*
+         * The metadata Price row is independent from
+         * block.data.price, which remains the numeric
+         * price used for cart/backend calculations.
+         */
+        if (
+          normalizedLabel === "price" &&
+          !showMetadataPrice
+        ) {
+          return null;
+        }
+
+        const isLocation =
+          normalizedLabel ===
+          "location";
+
+        if (!isLocation) {
+          return item;
+        }
+
+        const visibleLocationValue =
+          getVisibleLocationValue(
+            item.value,
+          );
+
+        if (
+          !visibleLocationValue
+        ) {
+          return null;
+        }
+
+        return {
+          ...item,
+
+          value:
+            visibleLocationValue,
+        };
+      },
+    )
+    .filter(
+      (item: any) =>
+        item !== null &&
+        String(
+          item.value ?? "",
+        ).trim(),
+    );
 
   /*
    * ================================================================
