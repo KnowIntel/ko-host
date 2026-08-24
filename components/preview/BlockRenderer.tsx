@@ -1631,9 +1631,6 @@ function renderListing(
       ? data.itemizedItems
       : [];
 
-    /*
-     * Normalize the owner-controlled column order.
-     */
     const rawColumnOrder =
       Array.isArray(
         data.itemizedColumnOrder,
@@ -1684,9 +1681,6 @@ function renderListing(
         2,
       );
 
-    /*
-     * Text styles.
-     */
     const headingStyle =
       getContainerTextStyle(
         data.itemizedHeadingStyle ??
@@ -1729,9 +1723,6 @@ function renderListing(
         designKey,
       );
 
-    /*
-     * Row appearance.
-     */
     const rowStyle =
       data.itemizedRowStyle ?? {};
 
@@ -1739,9 +1730,6 @@ function renderListing(
       data.itemizedTotalRowStyle ??
       {};
 
-    /*
-     * Number formatting.
-     */
     const decimalPlaces =
       Math.max(
         0,
@@ -1796,9 +1784,6 @@ function renderListing(
       return `${valuePrefix}${formatted}${valueSuffix}`;
     }
 
-    /*
-     * Automatic grand total.
-     */
     const grandTotal =
       itemizedItems.reduce(
         (
@@ -1891,9 +1876,7 @@ function renderListing(
           <div
             key="itemized-total-label"
             className="min-w-0 font-semibold uppercase tracking-[0.04em]"
-            style={
-              totalLabelStyle
-            }
+            style={totalLabelStyle}
           >
             {data.totalLabel ??
               "TOTAL"}
@@ -1905,9 +1888,7 @@ function renderListing(
         <div
           key="itemized-total-value"
           className="min-w-0 text-right font-semibold tabular-nums"
-          style={
-            totalValueStyle
-          }
+          style={totalValueStyle}
         >
           {formatItemizedValue(
             grandTotal,
@@ -1932,9 +1913,7 @@ function renderListing(
           ).trim() ? (
             <div
               className="px-4 pb-3 pt-4 text-lg font-semibold"
-              style={
-                headingStyle
-              }
+              style={headingStyle}
             >
               {
                 data.itemizedHeading
@@ -1944,8 +1923,6 @@ function renderListing(
 
           <div className="w-full overflow-x-auto">
             <div className="min-w-[520px]">
-              {/* COLUMN HEADERS */}
-
               {data.showItemizedColumnHeaders !==
               false ? (
                 <div
@@ -1962,8 +1939,6 @@ function renderListing(
                   )}
                 </div>
               ) : null}
-
-              {/* ITEM ROWS */}
 
               {itemizedItems.length ? (
                 <div>
@@ -2014,15 +1989,15 @@ function renderListing(
                               : undefined,
                         }}
                       >
-{finalColumnOrder.map(
-  (
-    columnKey: ItemizedColumnKey,
-  ) =>
-    renderItemCell(
-      item,
-      columnKey,
-    ),
-)}
+                        {finalColumnOrder.map(
+                          (
+                            columnKey: ItemizedColumnKey,
+                          ) =>
+                            renderItemCell(
+                              item,
+                              columnKey,
+                            ),
+                        )}
                       </div>
                     ),
                   )}
@@ -2041,8 +2016,6 @@ function renderListing(
                   No items yet.
                 </div>
               )}
-
-              {/* GRAND TOTAL */}
 
               <div
                 className="grid items-center gap-5 px-5 py-4"
@@ -2096,177 +2069,621 @@ function renderListing(
    * ================================================================
    * SHOWCASE LISTING
    * ================================================================
-   *
-   * Existing Listing renderer continues below unchanged.
    */
 
-  const image = block.data.image;
-  const metadata = Array.isArray(block.data.metadata) ? block.data.metadata : [];
-  const metadataSeparator = (block.data as any).metadataSeparator ?? ":";
-const renderedMetadataSeparator =
-  metadataSeparator === "none" ? "" : ` ${metadataSeparator} `;
-  const price = typeof block.data.price === "number" ? block.data.price : 0;
-  const addToCart = !!block.data.addToCart;
-  const isSelectable = addToCart && price > 0;
+  const image =
+    block.data.image;
 
-  const pricePlacement = (block.data as any).pricePlacement ?? "mid";
-  const quantityPlacement = (block.data as any).quantityPlacement ?? "mid";
+  const metadata =
+    Array.isArray(
+      block.data.metadata,
+    )
+      ? block.data.metadata
+      : [];
 
-  const quantity =
-    typeof listingQuantities[block.id] === "number" &&
-    Number.isFinite(listingQuantities[block.id])
-      ? Math.max(0, Math.floor(listingQuantities[block.id]))
+  const metadataSeparator =
+    (block.data as any)
+      .metadataSeparator ?? ":";
+
+  const renderedMetadataSeparator =
+    metadataSeparator === "none"
+      ? ""
+      : ` ${metadataSeparator} `;
+
+  const price =
+    typeof block.data.price ===
+    "number"
+      ? block.data.price
       : 0;
 
-  const cardVariant = block.data.cardVariant ?? "stacked";
-  const imageHeightPercent = Math.max(
-    20,
-    Math.min(80, Number(block.data.imageHeightPercent) || 50),
-  );
+  const addToCart =
+    !!block.data.addToCart;
 
-  const cardRotation = Math.max(
-    -45,
-    Math.min(45, Number((block.data as any).rotation) || 0),
-  );
+  const isSelectable =
+    addToCart &&
+    price > 0;
 
-  const cardScale = Math.max(
-    0.5,
-    Math.min(1, Number((block.data as any).scale) || 1),
-  );
+  const pricePlacement =
+    (block.data as any)
+      .pricePlacement ?? "mid";
 
-  const positionX = image.positionX ?? 50;
-  const positionY = image.positionY ?? 50;
-  const zoom = image.zoom ?? 1;
-  const rotation = image.rotation ?? 0;
+  const quantityPlacement =
+    (block.data as any)
+      .quantityPlacement ?? "mid";
 
-  const translateX = (positionX - 50) * 0.6;
-  const translateY = (positionY - 50) * 0.6;
+  const quantity =
+    typeof listingQuantities[
+      block.id
+    ] === "number" &&
+    Number.isFinite(
+      listingQuantities[
+        block.id
+      ],
+    )
+      ? Math.max(
+          0,
+          Math.floor(
+            listingQuantities[
+              block.id
+            ],
+          ),
+        )
+      : 0;
 
-  const imageObjectFit: React.CSSProperties["objectFit"] =
+  const cardVariant =
+    block.data.cardVariant ??
+    "stacked";
+
+  /*
+   * ================================================================
+   * IMAGE AREA SIZE
+   * ================================================================
+   */
+
+  const imageHeightPercent =
+    Math.max(
+      20,
+      Math.min(
+        80,
+        Number(
+          block.data
+            .imageHeightPercent ??
+            50,
+        ),
+      ),
+    );
+
+  const imageWidthPercent =
+    Math.max(
+      15,
+      Math.min(
+        80,
+        Number(
+          block.data
+            .imageWidthPercent ??
+            35,
+        ),
+      ),
+    );
+
+  const cardRotation =
+    Math.max(
+      -45,
+      Math.min(
+        45,
+        Number(
+          (block.data as any)
+            .rotation,
+        ) || 0,
+      ),
+    );
+
+  const cardScale =
+    Math.max(
+      0.5,
+      Math.min(
+        1,
+        Number(
+          (block.data as any)
+            .scale,
+        ) || 1,
+      ),
+    );
+
+  const positionX =
+    image.positionX ??
+    50;
+
+  const positionY =
+    image.positionY ??
+    50;
+
+  const zoom =
+    image.zoom ??
+    1;
+
+  const rotation =
+    image.rotation ??
+    0;
+
+  const translateX =
+    (positionX - 50) *
+    0.6;
+
+  const translateY =
+    (positionY - 50) *
+    0.6;
+
+  const imageObjectFit:
+    React.CSSProperties["objectFit"] =
     image.fitMode === "clip"
       ? "contain"
-      : image.fitMode === "stretch"
+      : image.fitMode ===
+          "stretch"
         ? "fill"
         : "cover";
 
+  /*
+   * ================================================================
+   * VISIBILITY
+   * ================================================================
+   */
+
+  const showTitle =
+    data.showTitle !== false;
+
+  const showDescription =
+    data.showDescription !==
+    false;
+
+  const showPrice =
+    data.showPrice !== false;
+
+  const showCity =
+    data.showCity !== false;
+
+  const showState =
+    data.showState !== false;
+
+  /*
+   * Existing Listing data stores location as metadata:
+   *
+   *   label: "Location"
+   *   value: "City, State"
+   *
+   * City/State visibility is therefore applied to the location
+   * metadata value at render time.
+   */
+  function getVisibleLocationValue(
+    value: unknown,
+  ) {
+    const raw =
+      String(
+        value ?? "",
+      ).trim();
+
+    if (
+      !raw ||
+      (!showCity &&
+        !showState)
+    ) {
+      return "";
+    }
+
+    const parts =
+      raw
+        .split(",")
+        .map(
+          (part) =>
+            part.trim(),
+        )
+        .filter(Boolean);
+
+    if (
+      parts.length < 2
+    ) {
+      if (
+        showCity &&
+        !showState
+      ) {
+        return raw;
+      }
+
+      if (
+        !showCity &&
+        showState
+      ) {
+        return raw;
+      }
+
+      return raw;
+    }
+
+    const city =
+      parts[0] ?? "";
+
+    const state =
+      parts
+        .slice(1)
+        .join(", ");
+
+    if (
+      showCity &&
+      showState
+    ) {
+      return [
+        city,
+        state,
+      ]
+        .filter(Boolean)
+        .join(", ");
+    }
+
+    if (showCity) {
+      return city;
+    }
+
+    if (showState) {
+      return state;
+    }
+
+    return "";
+  }
+
+  const visibleMetadata =
+    metadata
+      .map(
+        (item: any) => {
+          const isLocation =
+            String(
+              item.label ??
+                "",
+            )
+              .trim()
+              .toLowerCase() ===
+            "location";
+
+          if (
+            !isLocation
+          ) {
+            return item;
+          }
+
+          return {
+            ...item,
+            value:
+              getVisibleLocationValue(
+                item.value,
+              ),
+          };
+        },
+      )
+      .filter(
+        (item: any) =>
+          String(
+            item.value ??
+              "",
+          ).trim(),
+      );
+
+  /*
+   * ================================================================
+   * PRICE
+   * ================================================================
+   */
+
   const priceNode =
+    showPrice &&
     price > 0 ? (
       <div
         className="text-sm font-semibold"
-        style={getContainerTextStyle((block.data as any).priceStyle, designKey)}
+        style={getContainerTextStyle(
+          (block.data as any)
+            .priceStyle,
+          designKey,
+        )}
       >
-        ${formatCurrency(price)}
+        $
+        {formatCurrency(
+          price,
+        )}
       </div>
     ) : null;
 
-  const quantityNode = isSelectable ? (
-    <div
-      className={[
-        "flex items-center gap-2 text-sm",
-        ((block.data as any).quantityStyle?.align ?? "left") === "center"
-          ? "justify-center"
-          : ((block.data as any).quantityStyle?.align ?? "left") === "right"
-            ? "justify-end"
-            : "justify-start",
-      ].join(" ")}
-      style={getContainerTextStyle((block.data as any).quantityStyle, designKey)}
-    >
-      <span>Qty</span>
+  /*
+   * ================================================================
+   * QUANTITY
+   * ================================================================
+   */
 
-      <button
-        type="button"
-        className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-neutral-300 bg-white text-sm font-medium"
-        onClick={(e) => {
-          e.stopPropagation();
-          onChangeListingQuantity?.(block.id, Math.max(0, quantity - 1));
-        }}
+  const quantityStyle =
+    getContainerTextStyle(
+      (block.data as any)
+        .quantityStyle,
+      designKey,
+    );
+
+  const quantityFontSize =
+    typeof (
+      block.data as any
+    ).quantityStyle
+      ?.fontSize === "number"
+      ? Math.max(
+          8,
+          (
+            block.data as any
+          ).quantityStyle
+            .fontSize,
+        )
+      : 14;
+
+  /*
+   * Scale the button frame with the configured Quantity font size.
+   */
+  const quantityButtonSize =
+    Math.max(
+      24,
+      Math.round(
+        quantityFontSize *
+          2.15,
+      ),
+    );
+
+  const quantityNode =
+    isSelectable ? (
+      <div
+        className={[
+          "flex items-center gap-2",
+          ((block.data as any)
+            .quantityStyle
+            ?.align ??
+            "left") ===
+          "center"
+            ? "justify-center"
+            : ((block.data as any)
+                  .quantityStyle
+                  ?.align ??
+                "left") ===
+              "right"
+              ? "justify-end"
+              : "justify-start",
+        ].join(" ")}
+        style={quantityStyle}
       >
-        -
-      </button>
+        <span>
+          Qty
+        </span>
 
-      <div className="min-w-[28px] text-center font-semibold">{quantity}</div>
+        <button
+          type="button"
+          className="inline-flex shrink-0 items-center justify-center rounded-lg border border-neutral-300 bg-white font-medium"
+          style={{
+            width:
+              `${quantityButtonSize}px`,
+            height:
+              `${quantityButtonSize}px`,
+            fontSize:
+              `${quantityFontSize}px`,
+            lineHeight: 1,
+            color:
+              quantityStyle.color,
+            fontFamily:
+              quantityStyle.fontFamily,
+            fontWeight:
+              quantityStyle.fontWeight,
+            fontStyle:
+              quantityStyle.fontStyle,
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
 
-      <button
-        type="button"
-        className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-neutral-300 bg-white text-sm font-medium"
-        onClick={(e) => {
-          e.stopPropagation();
-          onChangeListingQuantity?.(block.id, quantity + 1);
-        }}
-      >
-        +
-      </button>
-    </div>
-  ) : null;
+            onChangeListingQuantity?.(
+              block.id,
+              Math.max(
+                0,
+                quantity - 1,
+              ),
+            );
+          }}
+        >
+          −
+        </button>
 
-  const metadataNode = metadata.length ? (
-    <div className="flex flex-wrap gap-x-3 gap-y-1">
-      {metadata.map((item) => (
-        <div key={item.id} className="min-w-0">
-          <span
-            className="mr-1 opacity-60"
-            style={getContainerTextStyle(block.data.metadataStyle, designKey)}
-          >
-            {item.label}
-{renderedMetadataSeparator}
-          </span>
-          <span style={getContainerTextStyle(block.data.metadataStyle, designKey)}>
-            {item.value}
-          </span>
+        <div
+          className="min-w-[28px] text-center font-semibold"
+          style={{
+            fontSize:
+              `${quantityFontSize}px`,
+          }}
+        >
+          {quantity}
         </div>
-      ))}
-    </div>
-  ) : null;
+
+        <button
+          type="button"
+          className="inline-flex shrink-0 items-center justify-center rounded-lg border border-neutral-300 bg-white font-medium"
+          style={{
+            width:
+              `${quantityButtonSize}px`,
+            height:
+              `${quantityButtonSize}px`,
+            fontSize:
+              `${quantityFontSize}px`,
+            lineHeight: 1,
+            color:
+              quantityStyle.color,
+            fontFamily:
+              quantityStyle.fontFamily,
+            fontWeight:
+              quantityStyle.fontWeight,
+            fontStyle:
+              quantityStyle.fontStyle,
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
+
+            onChangeListingQuantity?.(
+              block.id,
+              quantity + 1,
+            );
+          }}
+        >
+          +
+        </button>
+      </div>
+    ) : null;
+
+  /*
+   * ================================================================
+   * METADATA
+   * ================================================================
+   */
+
+  const metadataNode =
+    visibleMetadata.length ? (
+      <div className="flex flex-wrap gap-x-3 gap-y-1">
+        {visibleMetadata.map(
+          (item: any) => (
+            <div
+              key={item.id}
+              className="min-w-0"
+            >
+              <span
+                className="mr-1 opacity-60"
+                style={getContainerTextStyle(
+                  block.data
+                    .metadataStyle,
+                  designKey,
+                )}
+              >
+                {item.label}
+                {
+                  renderedMetadataSeparator
+                }
+              </span>
+
+              <span
+                style={getContainerTextStyle(
+                  block.data
+                    .metadataStyle,
+                  designKey,
+                )}
+              >
+                {item.value}
+              </span>
+            </div>
+          ),
+        )}
+      </div>
+    ) : null;
+
+  /*
+   * ================================================================
+   * CONTENT
+   * ================================================================
+   */
 
   const contentNode = (
     <>
-      <div
-        className="font-semibold"
-        style={getContainerTextStyle(block.data.titleStyle, designKey)}
-      >
-        {block.data.title || "Listing Title"}
-      </div>
+      {showTitle ? (
+        <div
+          className="font-semibold"
+          style={getContainerTextStyle(
+            block.data
+              .titleStyle,
+            designKey,
+          )}
+        >
+          {block.data.title ||
+            "Listing Title"}
+        </div>
+      ) : null}
 
-      {pricePlacement === "mid" ? priceNode : null}
-      {quantityPlacement === "mid" ? quantityNode : null}
+      {pricePlacement ===
+      "mid"
+        ? priceNode
+        : null}
 
-      {block.data.description ? (
+      {quantityPlacement ===
+      "mid"
+        ? quantityNode
+        : null}
+
+      {showDescription &&
+      block.data.description ? (
         <div
           className="text-sm"
-          style={getContainerTextStyle(block.data.descriptionStyle, designKey)}
+          style={getContainerTextStyle(
+            block.data
+              .descriptionStyle,
+            designKey,
+          )}
         >
-          {block.data.description}
+          {
+            block.data
+              .description
+          }
         </div>
       ) : null}
 
       <div className="mt-auto space-y-2">
         {metadataNode}
-        {pricePlacement === "lower" ? priceNode : null}
-        {quantityPlacement === "lower" ? quantityNode : null}
+
+        {pricePlacement ===
+        "lower"
+          ? priceNode
+          : null}
+
+        {quantityPlacement ===
+        "lower"
+          ? quantityNode
+          : null}
       </div>
     </>
   );
+
+  /*
+   * ================================================================
+   * IMAGE
+   * ================================================================
+   */
 
   const imageNode = (
     <>
       {image.url ? (
         <img
           src={image.url}
-          alt={image.alt || ""}
+          alt={
+            image.alt ||
+            ""
+          }
           className="h-full w-full"
           style={{
-            objectFit: imageObjectFit,
-            objectPosition: "center center",
-            transform: `translate(${translateX}%, ${translateY}%) scale(${zoom}) rotate(${rotation}deg)`,
-            transformOrigin: "center center",
-            opacity: image.opacity ?? 1,
+            objectFit:
+              imageObjectFit,
+
+            objectPosition:
+              "center center",
+
+            transform:
+              `translate(${translateX}%, ${translateY}%) scale(${zoom}) rotate(${rotation}deg)`,
+
+            transformOrigin:
+              "center center",
+
+            opacity:
+              image.opacity ??
+              1,
           }}
         />
       ) : (
         <div
           className={[
             "flex h-full w-full items-center justify-center border-dashed text-sm",
-            getPlaceholderClass(designKey),
+
+            getPlaceholderClass(
+              designKey,
+            ),
           ].join(" ")}
         >
           Add image
@@ -2275,71 +2692,216 @@ const renderedMetadataSeparator =
     </>
   );
 
-  if (cardVariant === "feature") {
-    const showTitle = (block.data as any).showTitle ?? true;
-    const showPrice = (block.data as any).showPrice ?? true;
-    const showImage = (block.data as any).showImage ?? true;
-    const showBullets = (block.data as any).showBullets ?? true;
-    const showButton = (block.data as any).showButton ?? true;
+  /*
+   * ================================================================
+   * BADGE
+   * ================================================================
+   */
 
-    const pricePosition = (block.data as any).pricePosition ?? "right";
-    const imageShape = (block.data as any).imageShape ?? "rounded";
-    const bulletStyle = (block.data as any).bulletStyle ?? "dot";
-    const buttonText = (block.data as any).buttonText || "Buy Ticket";
-    const buttonLink = (block.data as any).buttonLink || "";
-    const buttonAlignment = (block.data as any).buttonAlignment ?? "right";
-
-    const featureBullets = Array.isArray((block.data as any).featureBullets)
-      ? (block.data as any).featureBullets.filter(
-          (item: unknown): item is string =>
-            typeof item === "string" && item.trim().length > 0,
-        )
-      : [];
-
-    const featureImageWidth = Math.max(
-      20,
-      Math.min(50, Number((block.data as any).imageWidthPercent) || 35),
+  const showBadge =
+    data.showBadge === true &&
+    Boolean(
+      String(
+        data.badgeImageUrl ??
+          "",
+      ).trim(),
     );
 
+  const badgePosition =
+    data.badgePosition ===
+    "center"
+      ? "center"
+      : data.badgePosition ===
+          "right"
+        ? "right"
+        : "left";
+
+  const badgeSize =
+    Math.max(
+      25,
+      Math.min(
+        200,
+        Number(
+          data.badgeSize ??
+            100,
+        ),
+      ),
+    );
+
+  /*
+   * 100% badge size corresponds to a 72px reference frame.
+   */
+  const badgePixelSize =
+    Math.max(
+      24,
+      Math.round(
+        72 *
+          (badgeSize /
+            100),
+      ),
+    );
+
+  const badgeJustify =
+    badgePosition ===
+    "center"
+      ? "justify-center"
+      : badgePosition ===
+          "right"
+        ? "justify-end"
+        : "justify-start";
+
+  const badgeNode =
+    showBadge ? (
+      <div
+        className={[
+          "pointer-events-none absolute left-0 right-0 top-0 z-20 flex p-3",
+          badgeJustify,
+        ].join(" ")}
+      >
+        <div
+          className="flex items-center justify-center overflow-visible"
+          style={{
+            width:
+              `${badgePixelSize}px`,
+            height:
+              `${badgePixelSize}px`,
+          }}
+        >
+          <img
+            src={
+              data.badgeImageUrl
+            }
+            alt=""
+            className="h-full w-full object-contain"
+            style={{
+              backgroundColor:
+                "transparent",
+            }}
+          />
+        </div>
+      </div>
+    ) : null;
+
+  /*
+   * ================================================================
+   * FEATURE
+   * ================================================================
+   */
+
+  if (
+    cardVariant ===
+    "feature"
+  ) {
+    const showImage =
+      data.showImage !== false;
+
+    const showBullets =
+      data.showBullets !==
+      false;
+
+    const showButton =
+      data.showButton !==
+      false;
+
+    const pricePosition =
+      data.pricePosition ??
+      "right";
+
+    const imageShape =
+      data.imageShape ??
+      "rounded";
+
+    const bulletStyle =
+      data.bulletStyle ??
+      "dot";
+
+    const buttonText =
+      data.buttonText ||
+      "Buy Ticket";
+
+    const buttonLink =
+      data.buttonLink ||
+      "";
+
+    const buttonAlignment =
+      data.buttonAlignment ??
+      "right";
+
+    const featureBullets =
+      Array.isArray(
+        data.featureBullets,
+      )
+        ? data.featureBullets.filter(
+            (
+              item: unknown,
+            ): item is string =>
+              typeof item ===
+                "string" &&
+              item.trim()
+                .length > 0,
+          )
+        : [];
+
     const bulletMark =
-      bulletStyle === "checkmark"
+      bulletStyle ===
+      "checkmark"
         ? "✓"
-        : bulletStyle === "arrow"
+        : bulletStyle ===
+            "arrow"
           ? "→"
-          : bulletStyle === "star"
+          : bulletStyle ===
+              "star"
             ? "★"
-            : bulletStyle === "icon"
+            : bulletStyle ===
+                "icon"
               ? "◆"
               : "•";
 
     const imageShapeClass =
-      imageShape === "circle"
+      imageShape ===
+      "circle"
         ? "rounded-full"
-        : imageShape === "ticket"
+        : imageShape ===
+            "ticket"
           ? "rounded-[22px]"
-          : imageShape === "badge"
+          : imageShape ===
+              "badge"
             ? "rounded-full"
-            : imageShape === "rounded"
+            : imageShape ===
+                "rounded"
               ? "rounded-2xl"
               : "rounded-none";
 
     const buttonJustify =
-      buttonAlignment === "center"
+      buttonAlignment ===
+      "center"
         ? "justify-center"
-        : buttonAlignment === "left"
+        : buttonAlignment ===
+            "left"
           ? "justify-start"
           : "justify-end";
 
     const featureButton =
-      showButton && buttonAlignment !== "hidden" ? (
-        <div className={["mt-auto flex", buttonJustify].join(" ")}>
+      showButton &&
+      buttonAlignment !==
+        "hidden" ? (
+        <div
+          className={[
+            "mt-auto flex",
+            buttonJustify,
+          ].join(" ")}
+        >
           {buttonLink ? (
             <a
-              href={buttonLink}
+              href={
+                buttonLink
+              }
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center justify-center rounded-full bg-neutral-950 px-4 py-2 text-xs font-semibold text-white shadow-sm"
-              onClick={(e) => e.stopPropagation()}
+              onClick={(e) =>
+                e.stopPropagation()
+              }
             >
               {buttonText}
             </a>
@@ -2347,7 +2909,9 @@ const renderedMetadataSeparator =
             <button
               type="button"
               className="inline-flex items-center justify-center rounded-full bg-neutral-950 px-4 py-2 text-xs font-semibold text-white shadow-sm"
-              onClick={(e) => e.stopPropagation()}
+              onClick={(e) =>
+                e.stopPropagation()
+              }
             >
               {buttonText}
             </button>
@@ -2359,18 +2923,29 @@ const renderedMetadataSeparator =
       <div
         className="h-full w-full overflow-visible"
         style={{
-          transform: `scale(${cardScale}) rotate(${cardRotation}deg)`,
-          transformOrigin: "center center",
+          transform:
+            `scale(${cardScale}) rotate(${cardRotation}deg)`,
+
+          transformOrigin:
+            "center center",
         }}
       >
         <div
-          className="flex h-full w-full flex-col gap-3 overflow-hidden p-4"
-          style={getAppearanceStyle(block)}
+          className="relative flex h-full w-full flex-col gap-3 overflow-hidden p-4"
+          style={
+            getAppearanceStyle(
+              block,
+            )
+          }
         >
+          {badgeNode}
+
           <div
             className={[
               "flex gap-3",
-              pricePosition === "belowTitle"
+
+              pricePosition ===
+              "belowTitle"
                 ? "flex-col items-start"
                 : "items-start justify-between",
             ].join(" ")}
@@ -2379,17 +2954,35 @@ const renderedMetadataSeparator =
               {showTitle ? (
                 <div
                   className="font-semibold uppercase tracking-[0.04em]"
-                  style={getContainerTextStyle(block.data.titleStyle, designKey)}
+                  style={getContainerTextStyle(
+                    block.data
+                      .titleStyle,
+                    designKey,
+                  )}
                 >
-                  {block.data.title || "Listing Title"}
+                  {block.data.title ||
+                    "Listing Title"}
                 </div>
               ) : null}
 
-              {showPrice && pricePosition === "belowTitle" ? priceNode : null}
+              {showPrice &&
+              pricePosition ===
+                "belowTitle"
+                ? priceNode
+                : null}
             </div>
 
-            {showPrice && pricePosition !== "belowTitle" ? (
-              <div className={pricePosition === "left" ? "order-first" : ""}>
+            {showPrice &&
+            pricePosition !==
+              "belowTitle" ? (
+              <div
+                className={
+                  pricePosition ===
+                  "left"
+                    ? "order-first"
+                    : ""
+                }
+              >
                 {priceNode}
               </div>
             ) : null}
@@ -2403,7 +2996,11 @@ const renderedMetadataSeparator =
                   imageShapeClass,
                 ].join(" ")}
                 style={{
-                  width: `${featureImageWidth}%`,
+                  width:
+                    `${imageWidthPercent}%`,
+
+                  minWidth:
+                    `${imageWidthPercent}%`,
                 }}
               >
                 {imageNode}
@@ -2411,18 +3008,56 @@ const renderedMetadataSeparator =
             ) : null}
 
             <div className="flex min-w-0 flex-1 flex-col gap-3">
-              {showBullets ? (
-                <div className="space-y-1.5 text-sm">
-                  {featureBullets.map((item: string, index: number) => (
-                    <div key={`${item}-${index}`} className="flex gap-2">
-                      <span className="shrink-0 opacity-70">{bulletMark}</span>
-                      <span>{item}</span>
-                    </div>
-                  ))}
+              {showDescription &&
+              block.data.description ? (
+                <div
+                  className="text-sm"
+                  style={getContainerTextStyle(
+                    block.data
+                      .descriptionStyle,
+                    designKey,
+                  )}
+                >
+                  {
+                    block.data
+                      .description
+                  }
                 </div>
               ) : null}
 
-              {featureButton}
+              {metadataNode}
+
+              {quantityNode}
+
+              {showBullets ? (
+                <div className="space-y-1.5 text-sm">
+                  {featureBullets.map(
+                    (
+                      item: string,
+                      index: number,
+                    ) => (
+                      <div
+                        key={`${item}-${index}`}
+                        className="flex gap-2"
+                      >
+                        <span className="shrink-0 opacity-70">
+                          {
+                            bulletMark
+                          }
+                        </span>
+
+                        <span>
+                          {item}
+                        </span>
+                      </div>
+                    ),
+                  )}
+                </div>
+              ) : null}
+
+              {
+                featureButton
+              }
             </div>
           </div>
         </div>
@@ -2430,35 +3065,59 @@ const renderedMetadataSeparator =
     );
   }
 
-  if (cardVariant === "compact") {
+  /*
+   * ================================================================
+   * COMPACT
+   * ================================================================
+   */
+
+  if (
+    cardVariant ===
+    "compact"
+  ) {
     return (
       <div
         className="h-full w-full overflow-visible"
         style={{
-          transform: `scale(${cardScale}) rotate(${cardRotation}deg)`,
-          transformOrigin: "center center",
+          transform:
+            `scale(${cardScale}) rotate(${cardRotation}deg)`,
+
+          transformOrigin:
+            "center center",
         }}
       >
         <div
-          className="h-full w-full overflow-hidden"
+          className="relative h-full w-full overflow-hidden"
           style={{
-            ...getAppearanceStyle(block),
-            display: "flex",
-            flexDirection: "row",
+            ...getAppearanceStyle(
+              block,
+            ),
+
+            display:
+              "flex",
+
+            flexDirection:
+              "row",
           }}
         >
+          {badgeNode}
+
           <div
             className="relative h-full overflow-hidden"
             style={{
-              width: `${block.data.imageWidthPercent ?? 35}%`,
-              minWidth: `${block.data.imageWidthPercent ?? 35}%`,
+              width:
+                `${imageWidthPercent}%`,
+
+              minWidth:
+                `${imageWidthPercent}%`,
+
               flexShrink: 0,
             }}
           >
             {imageNode}
           </div>
 
-          <div className="flex min-w-0 flex-1 flex-col gap-2 px-3 pt-3 pb-6">
+          <div className="flex min-w-0 flex-1 flex-col gap-2 px-3 pb-6 pt-3">
             {contentNode}
           </div>
         </div>
@@ -2466,24 +3125,45 @@ const renderedMetadataSeparator =
     );
   }
 
+  /*
+   * ================================================================
+   * STACKED
+   * ================================================================
+   */
+
   return (
     <div
       className="h-full w-full overflow-visible"
       style={{
-        transform: `scale(${cardScale}) rotate(${cardRotation}deg)`,
-        transformOrigin: "center center",
+        transform:
+          `scale(${cardScale}) rotate(${cardRotation}deg)`,
+
+        transformOrigin:
+          "center center",
       }}
     >
-      <div className="h-full w-full overflow-hidden" style={getAppearanceStyle(block)}>
+      <div
+        className="relative h-full w-full overflow-hidden"
+        style={
+          getAppearanceStyle(
+            block,
+          )
+        }
+      >
+        {badgeNode}
+
         <div className="flex h-full w-full flex-col">
           <div
-            className="relative w-full overflow-hidden"
-            style={{ height: `${imageHeightPercent}%` }}
+            className="relative w-full shrink-0 overflow-hidden"
+            style={{
+              height:
+                `${imageHeightPercent}%`,
+            }}
           >
             {imageNode}
           </div>
 
-          <div className="flex min-h-0 flex-1 flex-col gap-2 px-3 pt-3 pb-6">
+          <div className="flex min-h-0 flex-1 flex-col gap-2 px-3 pb-6 pt-3">
             {contentNode}
           </div>
         </div>

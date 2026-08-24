@@ -7310,6 +7310,65 @@ return block;
   });
 }
 
+async function uploadListingBadgeImage(
+  blockId: string,
+) {
+  await openImagePicker({
+    onSelect: async (files) => {
+      const file = files[0];
+
+      if (!file) {
+        return;
+      }
+
+      const uploaded =
+        await uploadBuilderImageFile(
+          file,
+        );
+
+      setDraft((prev) => ({
+        ...prev,
+
+        blocks: prev.blocks.map(
+          (block) => {
+            if (
+              block.id !== blockId ||
+              block.type !== "listing"
+            ) {
+              return block;
+            }
+
+            return {
+              ...block,
+
+              data: {
+                ...block.data,
+
+                showBadge: true,
+
+                badgeImageUrl:
+                  uploaded.url,
+
+                badgeImageStoragePath:
+                  uploaded.storagePath,
+
+                badgeImageSizeBytes:
+                  uploaded.imageSizeBytes,
+
+                badgeImageOriginalSizeBytes:
+                  uploaded.imageOriginalSizeBytes,
+
+                badgeImageMimeType:
+                  uploaded.imageMimeType,
+              },
+            };
+          },
+        ),
+      }));
+    },
+  });
+}
+
 async function uploadGalleryImagesToBlock(blockId: string) {
   await openImagePicker({
     multiple: true,
@@ -14362,6 +14421,10 @@ selectedBlock?.type === "comparison_table" ? (
 
     uploadImageToSelectedBlock={
       uploadImageToSelectedBlock
+    }
+
+    uploadListingBadgeImage={
+      uploadListingBadgeImage
     }
 
     inspectorCardClass={

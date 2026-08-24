@@ -10,12 +10,6 @@ import type {
   ListingTextTarget,
 } from "@/components/builder/formatting/listingFormatting";
 
-type ListingMetadataItem = {
-  id: string;
-  label: string;
-  value: string;
-};
-
 type ListingItemizedColumnKey =
   | "item"
   | "value";
@@ -40,9 +34,13 @@ type ListingInspectorProps = {
     prefix: string,
   ) => string;
 
-  uploadImageToSelectedBlock: (
-    blockId: string,
-  ) => Promise<any> | void;
+uploadImageToSelectedBlock: (
+  blockId: string,
+) => Promise<any> | void;
+
+uploadListingBadgeImage: (
+  blockId: string,
+) => Promise<any> | void;
 
   inspectorCardClass: () => string;
   inspectorLabelClass: () => string;
@@ -64,11 +62,13 @@ export function ListingInspector({
   listingStyleTarget,
   setListingStyleTarget,
 
-  makeClientId,
+makeClientId,
 
-  uploadImageToSelectedBlock,
+uploadImageToSelectedBlock,
 
-  inspectorCardClass,
+uploadListingBadgeImage,
+
+inspectorCardClass,
   inspectorLabelClass,
   inspectorInputClass,
   inspectorTextareaClass,
@@ -84,6 +84,10 @@ export function ListingInspector({
   const isItemized =
     styleVariant === "itemized";
 
+  const cardVariant =
+    selectedBlock?.data?.cardVariant ??
+    "stacked";
+
   const itemizedColumnOrder:
     ListingItemizedColumnKey[] =
     Array.isArray(
@@ -98,6 +102,15 @@ export function ListingInspector({
           "item",
           "value",
         ];
+
+  const itemizedItems =
+    Array.isArray(
+      selectedBlock.data
+        .itemizedItems,
+    )
+      ? selectedBlock.data
+          .itemizedItems
+      : [];
 
   function updateListingData(
     patch: Record<string, any>,
@@ -119,7 +132,6 @@ export function ListingInspector({
 
   function updateItemizedItem(
     itemId: string,
-
     patch: Record<string, any>,
   ) {
     updateSelectedBlock(
@@ -152,7 +164,6 @@ export function ListingInspector({
 
   function moveItemizedColumn(
     key: ListingItemizedColumnKey,
-
     direction: "left" | "right",
   ) {
     const currentIndex =
@@ -199,7 +210,6 @@ export function ListingInspector({
 
   function moveItemizedRow(
     itemId: string,
-
     direction: "up" | "down",
   ) {
     updateSelectedBlock(
@@ -259,15 +269,6 @@ export function ListingInspector({
       },
     );
   }
-
-  const itemizedItems =
-    Array.isArray(
-      selectedBlock.data
-        .itemizedItems,
-    )
-      ? selectedBlock.data
-          .itemizedItems
-      : [];
 
   return (
     <div className="space-y-4">
@@ -433,34 +434,39 @@ export function ListingInspector({
 
           <select
             value={styleVariant}
-onChange={(e) => {
-  const nextVariant =
-    e.target.value === "itemized"
-      ? "itemized"
-      : "showcase";
+            onChange={(e) => {
+              const nextVariant =
+                e.target.value ===
+                "itemized"
+                  ? "itemized"
+                  : "showcase";
 
-  updateListingData({
-    styleVariant: nextVariant,
-  });
+              updateListingData({
+                styleVariant:
+                  nextVariant,
+              });
 
-  if (nextVariant === "itemized") {
-    setListingTextTarget(
-      "itemizedItem",
-    );
+              if (
+                nextVariant ===
+                "itemized"
+              ) {
+                setListingTextTarget(
+                  "itemizedItem",
+                );
 
-    setListingStyleTarget(
-      "block",
-    );
-  } else {
-    setListingTextTarget(
-      "title",
-    );
+                setListingStyleTarget(
+                  "block",
+                );
+              } else {
+                setListingTextTarget(
+                  "title",
+                );
 
-    setListingStyleTarget(
-      "block",
-    );
-  }
-}}
+                setListingStyleTarget(
+                  "block",
+                );
+              }
+            }}
             className={
               inspectorInputClass()
             }
@@ -1096,214 +1102,586 @@ onChange={(e) => {
       {/* ================================================================ */}
 
       {!isItemized ? (
-        <div
-          className={
-            inspectorCardClass()
-          }
-        >
+        <>
           <div
             className={
-              inspectorLabelClass()
+              inspectorCardClass()
             }
           >
-            Showcase Listing
-          </div>
-
-          <div className="mt-4">
             <div
               className={
                 inspectorLabelClass()
               }
             >
-              Card Variant
+              Showcase Listing
             </div>
 
-            <select
-              value={
-                selectedBlock.data
-                  .cardVariant ??
+            <div className="mt-4">
+              <div
+                className={
+                  inspectorLabelClass()
+                }
+              >
+                Card Variant
+              </div>
+
+              <select
+                value={
+                  cardVariant
+                }
+                onChange={(e) =>
+                  updateListingData({
+                    cardVariant:
+                      e.target.value,
+                  })
+                }
+                className={
+                  inspectorInputClass()
+                }
+              >
+                <option value="stacked">
+                  Stacked
+                </option>
+
+                <option value="compact">
+                  Compact
+                </option>
+
+                <option value="feature">
+                  Feature
+                </option>
+              </select>
+            </div>
+
+            {/* IMAGE AREA SIZE */}
+
+            <div className="mt-5">
+              <div className="flex items-center justify-between gap-3">
+                <div
+                  className={
+                    inspectorLabelClass()
+                  }
+                >
+                  {cardVariant ===
+                  "stacked"
+                    ? "Image Height"
+                    : "Image Width"}
+                </div>
+
+                <div className="text-xs font-medium text-neutral-500">
+                  {cardVariant ===
+                  "stacked"
+                    ? selectedBlock
+                        .data
+                        .imageHeightPercent ??
+                      50
+                    : selectedBlock
+                        .data
+                        .imageWidthPercent ??
+                      35}
+                  %
+                </div>
+              </div>
+
+              <input
+                type="range"
+                min={
+                  cardVariant ===
+                  "stacked"
+                    ? 20
+                    : 15
+                }
+                max={
+                  cardVariant ===
+                  "stacked"
+                    ? 80
+                    : 80
+                }
+                step={1}
+                value={
+                  cardVariant ===
+                  "stacked"
+                    ? selectedBlock
+                        .data
+                        .imageHeightPercent ??
+                      50
+                    : selectedBlock
+                        .data
+                        .imageWidthPercent ??
+                      35
+                }
+                onChange={(e) => {
+                  const value =
+                    Number(
+                      e.target.value,
+                    );
+
+                  if (
+                    cardVariant ===
+                    "stacked"
+                  ) {
+                    updateListingData({
+                      imageHeightPercent:
+                        value,
+                    });
+
+                    return;
+                  }
+
+                  updateListingData({
+                    imageWidthPercent:
+                      value,
+                  });
+                }}
+                className="mt-2 w-full"
+              />
+
+              <div className="mt-1 text-[11px] leading-4 text-neutral-500">
+                {cardVariant ===
                 "stacked"
-              }
-              onChange={(e) =>
-                updateListingData({
-                  cardVariant:
-                    e.target.value,
-                })
-              }
-              className={
-                inspectorInputClass()
+                  ? "Increase or decrease the height of the image section. The detail section automatically uses the remaining space."
+                  : "Increase or decrease the width of the image section. The detail section automatically uses the remaining space."}
+              </div>
+            </div>
+
+            <button
+              type="button"
+              className="mt-4 inline-flex h-11 items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-sm text-neutral-700 hover:bg-neutral-50"
+              onClick={() =>
+                void uploadImageToSelectedBlock(
+                  selectedBlock.id,
+                )
               }
             >
-              <option value="stacked">
-                Stacked
-              </option>
+              Browse Listing Image
+            </button>
 
-              <option value="compact">
-                Compact
-              </option>
+            {/* VISIBILITY */}
 
-              <option value="feature">
-                Feature
-              </option>
-            </select>
+            <div className="mt-5">
+              <div
+                className={
+                  inspectorLabelClass()
+                }
+              >
+                Show / Hide Details
+              </div>
+
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                {[
+                  [
+                    "showDescription",
+                    "Description",
+                  ],
+
+                  [
+                    "showPrice",
+                    "Price",
+                  ],
+
+                  [
+                    "showCity",
+                    "City",
+                  ],
+
+                  [
+                    "showState",
+                    "State",
+                  ],
+                ].map(
+                  ([
+                    key,
+                    label,
+                  ]) => (
+                    <label
+                      key={
+                        key
+                      }
+                      className="flex items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={
+                          selectedBlock
+                            .data[
+                            key
+                          ] !==
+                          false
+                        }
+                        onChange={(
+                          e,
+                        ) =>
+                          updateListingData(
+                            {
+                              [key]:
+                                e
+                                  .target
+                                  .checked,
+                            },
+                          )
+                        }
+                        className="h-4 w-4"
+                      />
+
+                      <span className="text-sm text-neutral-700">
+                        {
+                          label
+                        }
+                      </span>
+                    </label>
+                  ),
+                )}
+              </div>
+            </div>
+
+            <div className="mt-4">
+              <div
+                className={
+                  inspectorLabelClass()
+                }
+              >
+                Title
+              </div>
+
+              <input
+                type="text"
+                value={
+                  selectedBlock.data
+                    .title
+                }
+                onChange={(e) =>
+                  updateListingData({
+                    title:
+                      e.target.value,
+                  })
+                }
+                className={
+                  inspectorInputClass()
+                }
+              />
+            </div>
+
+            <div className="mt-4">
+              <div
+                className={
+                  inspectorLabelClass()
+                }
+              >
+                Description
+              </div>
+
+              <textarea
+                value={
+                  selectedBlock.data
+                    .description
+                }
+                onChange={(e) =>
+                  updateListingData({
+                    description:
+                      e.target.value,
+                  })
+                }
+                className={
+                  inspectorTextareaClass()
+                }
+              />
+            </div>
+
+            <div className="mt-4">
+              <div
+                className={
+                  inspectorLabelClass()
+                }
+              >
+                Price
+              </div>
+
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                value={
+                  selectedBlock.data
+                    .price ??
+                  ""
+                }
+                onChange={(e) =>
+                  updateListingData({
+                    price:
+                      e.target.value ===
+                      ""
+                        ? 0
+                        : Math.max(
+                            0,
+                            Number(
+                              e.target
+                                .value,
+                            ),
+                          ),
+                  })
+                }
+                className={
+                  inspectorInputClass()
+                }
+              />
+            </div>
+
+            <div className="mt-4">
+              <div
+                className={
+                  inspectorLabelClass()
+                }
+              >
+                SKU
+              </div>
+
+              <input
+                type="text"
+                value={
+                  selectedBlock.data
+                    .sku ??
+                  ""
+                }
+                onChange={(e) =>
+                  updateListingData({
+                    sku:
+                      e.target.value,
+                  })
+                }
+                className={
+                  inspectorInputClass()
+                }
+                placeholder="Optional item code"
+              />
+            </div>
+
+            <label className="mt-4 flex items-center gap-3 rounded-md border border-neutral-200 px-3 py-2">
+              <input
+                type="checkbox"
+                checked={
+                  !!selectedBlock.data
+                    .addToCart
+                }
+                onChange={(e) =>
+                  updateListingData({
+                    addToCart:
+                      e.target.checked,
+                  })
+                }
+                className="h-4 w-4"
+              />
+
+              <span className="text-sm text-neutral-700">
+                Include in Cart
+              </span>
+            </label>
           </div>
 
-          <button
-            type="button"
-            className="mt-3 inline-flex h-11 items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-sm text-neutral-700 hover:bg-neutral-50"
-            onClick={() =>
-              void uploadImageToSelectedBlock(
-                selectedBlock.id,
-              )
+          {/* ================================================================ */}
+          {/* BADGE */}
+          {/* ================================================================ */}
+
+          <div
+            className={
+              inspectorCardClass()
             }
           >
-            Browse Listing Image
-          </button>
-
-          <div className="mt-4">
             <div
               className={
                 inspectorLabelClass()
               }
             >
-              Title
+              Listing Badge
             </div>
 
-            <input
-              type="text"
-              value={
-                selectedBlock.data
-                  .title
-              }
-              onChange={(e) =>
-                updateListingData({
-                  title:
-                    e.target.value,
-                })
-              }
-              className={
-                inspectorInputClass()
-              }
-            />
-          </div>
+            <label className="mt-4 flex items-center justify-between gap-4 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3">
+              <div>
+                <div className="text-sm font-medium text-neutral-800">
+                  Show Badge
+                </div>
 
-          <div className="mt-4">
-            <div
-              className={
-                inspectorLabelClass()
-              }
-            >
-              Description
-            </div>
+                <div className="mt-1 text-xs leading-4 text-neutral-500">
+                  Display an optional image badge at the top of the listing.
+                </div>
+              </div>
 
-            <textarea
-              value={
-                selectedBlock.data
-                  .description
-              }
-              onChange={(e) =>
-                updateListingData({
-                  description:
-                    e.target.value,
-                })
-              }
-              className={
-                inspectorTextareaClass()
-              }
-            />
-          </div>
+              <input
+                type="checkbox"
+                checked={
+                  selectedBlock.data
+                    .showBadge ===
+                  true
+                }
+                onChange={(e) =>
+                  updateListingData({
+                    showBadge:
+                      e.target.checked,
+                  })
+                }
+                className="h-4 w-4"
+              />
+            </label>
 
-          <div className="mt-4">
-            <div
-              className={
-                inspectorLabelClass()
-              }
-            >
-              Price
-            </div>
+            {selectedBlock.data
+              .showBadge ? (
+              <>
+<div className="mt-4">
+  <div
+    className={
+      inspectorLabelClass()
+    }
+  >
+    Badge Image
+  </div>
 
-            <input
-              type="number"
-              step="0.01"
-              min="0"
-              value={
-                selectedBlock.data
-                  .price ??
-                ""
-              }
-              onChange={(e) =>
-                updateListingData({
-                  price:
-                    e.target.value ===
-                    ""
-                      ? 0
-                      : Math.max(
-                          0,
-                          Number(
-                            e.target
-                              .value,
+  {selectedBlock.data.badgeImageUrl ? (
+    <div className="mt-2 overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+      <div className="flex min-h-[80px] items-center justify-center">
+        <img
+          src={
+            selectedBlock.data.badgeImageUrl
+          }
+          alt="Listing badge preview"
+          className="max-h-24 max-w-full object-contain"
+        />
+      </div>
+    </div>
+  ) : null}
+
+  <div className="mt-3 flex flex-wrap gap-2">
+    <button
+      type="button"
+      className="inline-flex h-10 items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-700 hover:bg-neutral-50"
+      onClick={() =>
+        void uploadListingBadgeImage(
+          selectedBlock.id,
+        )
+      }
+    >
+      {selectedBlock.data.badgeImageUrl
+        ? "Replace Badge Image"
+        : "Browse Badge Image"}
+    </button>
+
+    {selectedBlock.data.badgeImageUrl ? (
+      <button
+        type="button"
+        className="inline-flex h-10 items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-600 hover:bg-neutral-50"
+        onClick={() =>
+          updateListingData({
+            badgeImageUrl: "",
+            badgeImageStoragePath: "",
+            badgeImageSizeBytes: 0,
+            badgeImageOriginalSizeBytes: 0,
+            badgeImageMimeType: "",
+          })
+        }
+      >
+        Remove
+      </button>
+    ) : null}
+  </div>
+
+  <div className="mt-2 text-[11px] leading-4 text-neutral-500">
+    Transparent PNG, WebP, or SVG images remain transparent inside the badge frame.
+  </div>
+</div>
+
+                <div className="mt-4">
+                  <div
+                    className={
+                      inspectorLabelClass()
+                    }
+                  >
+                    Badge Position
+                  </div>
+
+                  <select
+                    value={
+                      selectedBlock
+                        .data
+                        .badgePosition ??
+                      "left"
+                    }
+                    onChange={(e) =>
+                      updateListingData({
+                        badgePosition:
+                          e.target
+                            .value,
+                      })
+                    }
+                    className={
+                      inspectorInputClass()
+                    }
+                  >
+                    <option value="left">
+                      Left
+                    </option>
+
+                    <option value="center">
+                      Center
+                    </option>
+
+                    <option value="right">
+                      Right
+                    </option>
+                  </select>
+                </div>
+
+                <div className="mt-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div
+                      className={
+                        inspectorLabelClass()
+                      }
+                    >
+                      Badge Size
+                    </div>
+
+                    <div className="text-xs font-medium text-neutral-500">
+                      {selectedBlock
+                        .data
+                        .badgeSize ??
+                        100}
+                      %
+                    </div>
+                  </div>
+
+                  <input
+                    type="range"
+                    min={25}
+                    max={200}
+                    step={1}
+                    value={
+                      selectedBlock
+                        .data
+                        .badgeSize ??
+                      100
+                    }
+                    onChange={(e) =>
+                      updateListingData({
+                        badgeSize:
+                          Math.max(
+                            25,
+                            Math.min(
+                              200,
+                              Number(
+                                e
+                                  .target
+                                  .value,
+                              ) ||
+                                100,
+                            ),
                           ),
-                        ),
-                })
-              }
-              className={
-                inspectorInputClass()
-              }
-            />
+                      })
+                    }
+                    className="mt-2 w-full"
+                  />
+                </div>
+              </>
+            ) : null}
           </div>
-
-          <div className="mt-4">
-            <div
-              className={
-                inspectorLabelClass()
-              }
-            >
-              SKU
-            </div>
-
-            <input
-              type="text"
-              value={
-                selectedBlock.data
-                  .sku ??
-                ""
-              }
-              onChange={(e) =>
-                updateListingData({
-                  sku:
-                    e.target.value,
-                })
-              }
-              className={
-                inspectorInputClass()
-              }
-              placeholder="Optional item code"
-            />
-          </div>
-
-          <label className="mt-4 flex items-center gap-3 rounded-md border border-neutral-200 px-3 py-2">
-            <input
-              type="checkbox"
-              checked={
-                !!selectedBlock.data
-                  .addToCart
-              }
-              onChange={(e) =>
-                updateListingData({
-                  addToCart:
-                    e.target.checked,
-                })
-              }
-              className="h-4 w-4"
-            />
-
-            <span className="text-sm text-neutral-700">
-              Include in Cart
-            </span>
-          </label>
-
-          {/* Existing Showcase-specific controls can remain directly below this section. */}
-        </div>
+        </>
       ) : null}
     </div>
   );

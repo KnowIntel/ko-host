@@ -1430,14 +1430,29 @@ export type ListingBlock = BaseBlock & {
 
     cardVariant?: ListingCardVariant;
 
+    /*
+     * Image/detail split controls.
+     *
+     * stacked:
+     *   imageHeightPercent controls image section height.
+     *
+     * compact / feature:
+     *   imageWidthPercent controls image section width.
+     */
     imageHeightPercent?: number;
     imageWidthPercent?: number;
 
     rotation?: number;
     scale?: number;
 
+    /*
+     * Showcase visibility controls.
+     */
     showTitle?: boolean;
+    showDescription?: boolean;
     showPrice?: boolean;
+    showCity?: boolean;
+    showState?: boolean;
 
     pricePosition?:
       | "left"
@@ -1472,6 +1487,31 @@ export type ListingBlock = BaseBlock & {
       | "center"
       | "right"
       | "hidden";
+
+    /*
+     * ================================================================
+     * SHOWCASE BADGE
+     * ================================================================
+     */
+
+showBadge?: boolean;
+
+badgeImageUrl?: string;
+
+badgeImageStoragePath?: string;
+
+badgeImageSizeBytes?: number;
+
+badgeImageOriginalSizeBytes?: number;
+
+badgeImageMimeType?: string;
+
+badgePosition?:
+  | "left"
+  | "center"
+  | "right";
+
+badgeSize?: number;
 
     /*
      * ================================================================
@@ -7557,9 +7597,25 @@ case "listing":
 
       cardVariant: "stacked",
 
+      /*
+       * Image/detail section sizing.
+       */
+      imageHeightPercent: 50,
+
+      imageWidthPercent: 35,
+
+      /*
+       * Visibility defaults.
+       */
       showTitle: true,
 
+      showDescription: true,
+
       showPrice: true,
+
+      showCity: true,
+
+      showState: true,
 
       pricePosition: "right",
 
@@ -7586,9 +7642,19 @@ case "listing":
 
       buttonAlignment: "right",
 
-      imageHeightPercent: 50,
+      /*
+       * ================================================================
+       * SHOWCASE BADGE
+       * ================================================================
+       */
 
-      imageWidthPercent: 35,
+      showBadge: false,
+
+      badgeImageUrl: "",
+
+      badgePosition: "left",
+
+      badgeSize: 100,
 
       rotation: 0,
 
@@ -7689,7 +7755,6 @@ case "listing":
       },
     },
   };
-
   case "content_panel":
       return {
         id: makeId("contentpanel"),
