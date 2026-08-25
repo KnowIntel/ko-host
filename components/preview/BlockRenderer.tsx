@@ -1,6 +1,7 @@
 // components\preview\BlockRenderer.tsx
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import SpeedDatingLive from "@/components/blocks/SpeedDatingLive";
@@ -3215,9 +3216,11 @@ function renderCta(
     display_order?: number | null;
   }>,
 ) {
-  function CtaButtonLive() {
-    const [submitted, setSubmitted] = useState(false);
-    const [submitting, setSubmitting] = useState(false);
+function CtaButtonLive() {
+  const router = useRouter();
+
+  const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
     const appearance = getAppearanceStyle(block);
 
@@ -3335,33 +3338,41 @@ function renderCta(
        */
 
 if (linkType === "bookmark") {
+  /*
+   * Prefer the complete saved URL.
+   *
+   * This is important when the bookmark exists on another
+   * page of the microsite:
+   *
+   *   /about#shipping
+   *
+   * rather than simply:
+   *
+   *   #shipping
+   */
+  const savedButtonUrl = String(
+    block.data.buttonUrl ?? "",
+  ).trim();
+
+  if (savedButtonUrl) {
+    return savedButtonUrl;
+  }
+
+  /*
+   * Legacy fallback for older drafts that only stored
+   * bookmarkName.
+   */
   const bookmarkName = String(
     block.data.bookmarkName ?? "",
   ).trim();
 
-  if (bookmarkName) {
-    return bookmarkName.startsWith("#")
-      ? bookmarkName
-      : `#${bookmarkName}`;
+  if (!bookmarkName) {
+    return "";
   }
 
-  /*
-   * Fall back to any hash already stored in buttonUrl.
-   */
-  const rawButtonUrl = String(
-    block.data.buttonUrl ?? "",
-  ).trim();
-
-  const hashIndex =
-    rawButtonUrl.indexOf("#");
-
-  if (hashIndex >= 0) {
-    return rawButtonUrl.slice(
-      hashIndex,
-    );
-  }
-
-  return "";
+  return bookmarkName.startsWith("#")
+    ? bookmarkName
+    : `#${bookmarkName}`;
 }
 
 /*
@@ -3440,101 +3451,235 @@ if (linkType === "page") {
       ).trim();
     }
 
-    function navigateCtaDestination() {
-      const destination =
-        resolveCtaDestination();
+function navigateCtaDestination() {
+  const destination =
+    resolveCtaDestination();
 
-      if (!destination) {
+  if (!destination) {
+    return;
+  }
+
+  const linkType:
+    | "url"
+    | "page"
+    | "bookmark" =
+    block.data.linkType === "page"
+      ? "page"
+      : block.data.linkType === "bookmark"
+        ? "bookmark"
+        : "url";
+
+  /*
+   * ================================================================
+   * BOOKMARK
+   * ================================================================
+   */
+
+  if (
+    linkType === "bookmark" ||
+    destination.startsWith("#")
+  ) {
+    /*
+     * Same-page hash.
+     */
+    if (destination.startsWith("#")) {
+      const target =
+        document.querySelector(
+          destination,
+        );
+
+      if (!target) {
         return;
       }
 
-      const linkType:
-        | "url"
-        | "page"
-        | "bookmark" =
-        block.data.linkType === "page"
-          ? "page"
-          : block.data.linkType === "bookmark"
-            ? "bookmark"
-            : "url";
+      target.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+
+      window.history.replaceState(
+        null,
+        "",
+        destination,
+      );
+
+      return;
+    }
+
+    /*
+     * Complete bookmark URL.
+     *
+     * Example:
+     *
+     * https://merchant_drop.ko-host.com/about#shipping
+     */
+    try {
+      const targetUrl =
+        new URL(
+          destination,
+          window.location.href,
+        );
+
+      const currentUrl =
+        new URL(
+          window.location.href,
+        );
+
+      const isSameOrigin =
+        targetUrl.origin ===
+        currentUrl.origin;
+
+      const isSamePage =
+        isSameOrigin &&
+        targetUrl.pathname ===
+          currentUrl.pathname &&
+        targetUrl.search ===
+          currentUrl.search;
 
       /*
-       * ================================================================
-       * BOOKMARK
-       * ================================================================
+       * Bookmark is on the page already displayed.
        */
-
       if (
-        linkType === "bookmark" ||
-        destination.startsWith("#")
+        isSamePage &&
+        targetUrl.hash
       ) {
-        const hash =
-          destination.startsWith("#")
-            ? destination
-            : destination.includes("#")
-              ? `#${destination.split("#").pop()}`
-              : "";
-
-        if (!hash) {
-          return;
-        }
-
         const target =
-          document.querySelector(hash);
+          document.querySelector(
+            targetUrl.hash,
+          );
 
-        if (!target) {
+        if (target) {
+          target.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
+
+          window.history.replaceState(
+            null,
+            "",
+            targetUrl.hash,
+          );
+
           return;
         }
+      }
 
-        target.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
-        });
+      /*
+       * Bookmark is on another page of this same microsite.
+       *
+       * Use Next navigation instead of reloading the whole browser page.
+       */
+      if (isSameOrigin) {
+        const internalDestination =
+          `${targetUrl.pathname}${targetUrl.search}${targetUrl.hash}`;
 
-        window.history.replaceState(
-          null,
-          "",
-          hash,
+        router.push(
+          internalDestination,
         );
 
         return;
       }
 
       /*
-       * ================================================================
-       * SITE PAGE
-       * ================================================================
+       * Bookmark belongs to another hostname/site.
        */
+      window.location.assign(
+        targetUrl.href,
+      );
 
+      return;
+    } catch {
+      return;
+    }
+  }
+
+  /*
+   * ================================================================
+   * SITE PAGE
+   * ================================================================
+   */
+
+  if (
+    linkType === "page" ||
+    destination.startsWith("/")
+  ) {
+    try {
+      const targetUrl =
+        new URL(
+          destination,
+          window.location.href,
+        );
+
+      const currentUrl =
+        new URL(
+          window.location.href,
+        );
+
+      /*
+       * Same Ko-Host microsite/origin:
+       *
+       * use Next.js client navigation to avoid the full-page blink.
+       */
       if (
-        linkType === "page" ||
+        targetUrl.origin ===
+        currentUrl.origin
+      ) {
+        const internalDestination =
+          `${targetUrl.pathname}${targetUrl.search}${targetUrl.hash}`;
+
+        router.push(
+          internalDestination,
+        );
+
+        return;
+      }
+
+      /*
+       * Different origin:
+       *
+       * normal browser navigation is required.
+       */
+      window.location.assign(
+        targetUrl.href,
+      );
+
+      return;
+    } catch {
+      /*
+       * Relative internal route fallback.
+       */
+      if (
         destination.startsWith("/")
       ) {
-        window.location.assign(
+        router.push(
           destination,
         );
 
         return;
       }
 
-      /*
-       * ================================================================
-       * WEB ADDRESS
-       * ================================================================
-       */
-
-      const href =
-        normalizePreviewHref(
-          destination,
-          micrositeSlug,
-        );
-
-      window.open(
-        href,
-        "_blank",
-        "noopener,noreferrer",
-      );
+      return;
     }
+  }
+
+  /*
+   * ================================================================
+   * WEB ADDRESS
+   * ================================================================
+   */
+
+  const href =
+    normalizePreviewHref(
+      destination,
+      micrositeSlug,
+    );
+
+  window.open(
+    href,
+    "_blank",
+    "noopener,noreferrer",
+  );
+}
 
     async function handleLinkedFieldSubmit() {
       if (submitting) {
@@ -11120,326 +11265,533 @@ function renderLinks(
     display_order?: number | null;
   }>,
 ) {
-  const typedBlock =
-    block as typeof block & {
-      data: typeof block.data & {
-        layout?:
-          | "vertical"
-          | "horizontal"
-          | "grid";
+  function LinksLive() {
+    const router = useRouter();
 
-        backgroundColor?: string;
+    const typedBlock =
+      block as typeof block & {
+        data: typeof block.data & {
+          layout?:
+            | "vertical"
+            | "horizontal"
+            | "grid";
 
-        transparentBackground?: boolean;
+          backgroundColor?: string;
+
+          transparentBackground?: boolean;
+        };
       };
-    };
 
-  const layout =
-    typedBlock.data.layout ||
-    "vertical";
+    const layout =
+      typedBlock.data.layout ||
+      "vertical";
 
-  const containerAppearance =
-    getAppearanceStyle(block);
+    const containerAppearance =
+      getAppearanceStyle(block);
 
-  const listClass =
-    layout === "horizontal"
-      ? "flex flex-wrap items-center gap-2"
-      : layout === "grid"
-        ? "grid grid-cols-2 gap-2"
-        : designKey === "business"
-          ? "grid h-full grid-cols-2 gap-2"
-          : designKey === "showcase"
-            ? "space-y-2"
-            : "grid gap-2";
+    const listClass =
+      layout === "horizontal"
+        ? "flex flex-wrap items-center gap-2"
+        : layout === "grid"
+          ? "grid grid-cols-2 gap-2"
+          : designKey === "business"
+            ? "grid h-full grid-cols-2 gap-2"
+            : designKey === "showcase"
+              ? "space-y-2"
+              : "grid gap-2";
 
-  return (
-    <div
-      className="h-full w-full space-y-3 p-2"
-      style={{
-        ...containerAppearance,
+    function resolveLinkDestination(
+      item: LinkItem,
+    ) {
+      const linkType:
+        | "url"
+        | "page"
+        | "bookmark" =
+        item.linkType === "page"
+          ? "page"
+          : item.linkType === "bookmark"
+            ? "bookmark"
+            : "url";
 
-        backgroundColor:
-          typedBlock.data
-            .transparentBackground
-            ? "transparent"
-            : typedBlock.data
-                  .backgroundColor ??
-              containerAppearance.backgroundColor,
-      }}
-    >
-      {block.data.heading ? (
-        <div
-          style={getContainerTextStyle(
-            block.data.style,
-            designKey,
-          )}
-        >
-          {block.data.heading}
-        </div>
-      ) : null}
+      /*
+       * ================================================================
+       * SITE PAGE
+       * ================================================================
+       */
 
-      <div className={listClass}>
-        {block.data.items.map(
-          (item: LinkItem) => {
-            const linkType:
-              | "url"
-              | "page"
-              | "bookmark" =
-              item.linkType === "page"
-                ? "page"
-                : item.linkType ===
-                    "bookmark"
-                  ? "bookmark"
-                  : "url";
+      if (linkType === "page") {
+        /*
+         * Prefer the complete stored URL.
+         */
+        const storedUrl =
+          typeof item.url === "string"
+            ? item.url.trim()
+            : "";
 
-            let normalizedHref = "";
+        if (storedUrl) {
+          return storedUrl;
+        }
 
-            /*
-             * ============================================================
-             * SITE PAGE
-             * ============================================================
-             */
+        /*
+         * Legacy fallback through pageId.
+         */
+        const pageId =
+          String(
+            item.pageId ?? "",
+          ).trim();
 
-            if (
-              linkType === "page"
-            ) {
-              const pageId =
-                String(
-                  item.pageId ??
-                    "",
-                ).trim();
+        if (!pageId) {
+          return "";
+        }
 
-              const linkedPage =
-                pages?.find(
-                  (page) =>
-                    page.id ===
-                    pageId,
+        const linkedPage =
+          pages?.find(
+            (page) =>
+              page.id === pageId,
+          );
+
+        if (!linkedPage) {
+          return "";
+        }
+
+        const pageSlug =
+          String(
+            linkedPage.slug ?? "",
+          )
+            .trim()
+            .replace(
+              /^\/+|\/+$/g,
+              "",
+            );
+
+        if (
+          !pageSlug ||
+          pageSlug === "home"
+        ) {
+          return "/";
+        }
+
+        return `/${pageSlug}`;
+      }
+
+      /*
+       * ================================================================
+       * BOOKMARK
+       * ================================================================
+       */
+
+      if (linkType === "bookmark") {
+        /*
+         * Prefer the complete stored URL.
+         *
+         * Supports:
+         *
+         *   #shipping
+         *
+         *   /about#shipping
+         *
+         *   https://site.ko-host.com/about#shipping
+         */
+        const storedUrl =
+          typeof item.url === "string"
+            ? item.url.trim()
+            : "";
+
+        if (storedUrl) {
+          return storedUrl;
+        }
+
+        /*
+         * Legacy fallback using bookmarkBlockId.
+         */
+        const bookmarkBlockId =
+          String(
+            item.bookmarkBlockId ?? "",
+          ).trim();
+
+        if (bookmarkBlockId) {
+          return `#block-${bookmarkBlockId}`;
+        }
+
+        return "";
+      }
+
+      /*
+       * ================================================================
+       * WEB ADDRESS
+       * ================================================================
+       */
+
+      const rawUrl =
+        typeof item.url === "string"
+          ? item.url.trim()
+          : "";
+
+      return rawUrl
+        ? normalizePreviewHref(
+            rawUrl,
+            micrositeSlug,
+          )
+        : "";
+    }
+
+    function navigateLink(
+      item: LinkItem,
+      destination: string,
+    ) {
+      if (!destination) {
+        return;
+      }
+
+      const linkType:
+        | "url"
+        | "page"
+        | "bookmark" =
+        item.linkType === "page"
+          ? "page"
+          : item.linkType === "bookmark"
+            ? "bookmark"
+            : "url";
+
+      /*
+       * ================================================================
+       * BOOKMARK
+       * ================================================================
+       */
+
+      if (
+        linkType === "bookmark" ||
+        destination.startsWith("#")
+      ) {
+        /*
+         * Current-page bookmark.
+         */
+        if (destination.startsWith("#")) {
+          const target =
+            document.querySelector(
+              destination,
+            );
+
+          if (!target) {
+            return;
+          }
+
+          target.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
+
+          window.history.replaceState(
+            null,
+            "",
+            destination,
+          );
+
+          return;
+        }
+
+        /*
+         * Full/relative bookmark URL.
+         */
+        try {
+          const targetUrl =
+            new URL(
+              destination,
+              window.location.href,
+            );
+
+          const currentUrl =
+            new URL(
+              window.location.href,
+            );
+
+          const isSameOrigin =
+            targetUrl.origin ===
+            currentUrl.origin;
+
+          const isSamePage =
+            isSameOrigin &&
+            targetUrl.pathname ===
+              currentUrl.pathname &&
+            targetUrl.search ===
+              currentUrl.search;
+
+          /*
+           * Same page: smooth-scroll.
+           */
+          if (
+            isSamePage &&
+            targetUrl.hash
+          ) {
+            const target =
+              document.querySelector(
+                targetUrl.hash,
+              );
+
+            if (target) {
+              target.scrollIntoView({
+                behavior: "smooth",
+                block: "start",
+              });
+
+              window.history.replaceState(
+                null,
+                "",
+                targetUrl.hash,
+              );
+
+              return;
+            }
+          }
+
+          /*
+           * Another page on the same microsite.
+           */
+          if (isSameOrigin) {
+            const internalDestination =
+              `${targetUrl.pathname}${targetUrl.search}${targetUrl.hash}`;
+
+            router.push(
+              internalDestination,
+            );
+
+            return;
+          }
+
+          /*
+           * Different hostname.
+           */
+          window.location.assign(
+            targetUrl.href,
+          );
+
+          return;
+        } catch {
+          return;
+        }
+      }
+
+      /*
+       * ================================================================
+       * SITE PAGE
+       * ================================================================
+       */
+
+      if (
+        linkType === "page" ||
+        destination.startsWith("/")
+      ) {
+        try {
+          const targetUrl =
+            new URL(
+              destination,
+              window.location.href,
+            );
+
+          const currentUrl =
+            new URL(
+              window.location.href,
+            );
+
+          /*
+           * Internal page:
+           * use Next.js client-side navigation.
+           */
+          if (
+            targetUrl.origin ===
+            currentUrl.origin
+          ) {
+            const internalDestination =
+              `${targetUrl.pathname}${targetUrl.search}${targetUrl.hash}`;
+
+            router.push(
+              internalDestination,
+            );
+
+            return;
+          }
+
+          /*
+           * Different origin.
+           */
+          window.location.assign(
+            targetUrl.href,
+          );
+
+          return;
+        } catch {
+          if (
+            destination.startsWith("/")
+          ) {
+            router.push(
+              destination,
+            );
+
+            return;
+          }
+
+          return;
+        }
+      }
+
+      /*
+       * ================================================================
+       * WEB ADDRESS
+       * ================================================================
+       */
+
+      const href =
+        normalizePreviewHref(
+          destination,
+          micrositeSlug,
+        );
+
+      window.open(
+        href,
+        "_blank",
+        "noopener,noreferrer",
+      );
+    }
+
+    return (
+      <div
+        className="h-full w-full space-y-3 p-2"
+        style={{
+          ...containerAppearance,
+
+          backgroundColor:
+            typedBlock.data
+              .transparentBackground
+              ? "transparent"
+              : typedBlock.data
+                    .backgroundColor ??
+                containerAppearance.backgroundColor,
+        }}
+      >
+        {block.data.heading ? (
+          <div
+            style={getContainerTextStyle(
+              block.data.style,
+              designKey,
+            )}
+          >
+            {block.data.heading}
+          </div>
+        ) : null}
+
+        <div className={listClass}>
+          {block.data.items.map(
+            (item: LinkItem) => {
+              const destination =
+                resolveLinkDestination(
+                  item,
                 );
 
-              if (linkedPage) {
-                const pageSlug =
-                  String(
-                    linkedPage.slug ??
-                      "",
-                  )
-                    .trim()
-                    .replace(
-                      /^\/+|\/+$/g,
-                      "",
-                    );
+              const content =
+                item.label || "Link";
 
-                normalizedHref =
-                  !pageSlug ||
-                  pageSlug ===
-                    "home"
-                    ? "/"
-                    : `/${pageSlug}`;
-              }
-            }
+              const itemIsTransparent =
+                typedBlock.data
+                  .transparentBackground ===
+                true;
 
-            /*
-             * ============================================================
-             * BOOKMARK
-             * ============================================================
-             */
+              const className =
+                layout ===
+                "horizontal"
+                  ? [
+                      "inline-flex items-center justify-center rounded-full px-3 py-2",
 
-            else if (
-              linkType ===
-              "bookmark"
-            ) {
-              const bookmarkBlockId =
-                String(
-                  item.bookmarkBlockId ??
-                    "",
-                ).trim();
-
-              if (
-                bookmarkBlockId
-              ) {
-                normalizedHref =
-                  `#block-${bookmarkBlockId}`;
-              } else {
-                const rawUrl =
-                  typeof item.url ===
-                  "string"
-                    ? item.url.trim()
-                    : "";
-
-                const hashIndex =
-                  rawUrl.indexOf(
-                    "#",
-                  );
-
-                normalizedHref =
-                  hashIndex >= 0
-                    ? rawUrl.slice(
-                        hashIndex,
-                      )
-                    : "";
-              }
-            }
-
-            /*
-             * ============================================================
-             * WEB ADDRESS
-             * ============================================================
-             */
-
-            else {
-              const rawUrl =
-                typeof item.url ===
-                "string"
-                  ? item.url.trim()
-                  : "";
-
-              normalizedHref =
-                rawUrl
-                  ? normalizePreviewHref(
-                      rawUrl,
-                      micrositeSlug,
-                    )
-                  : "";
-            }
-
-            const content =
-              item.label || "Link";
-
-            const itemIsTransparent =
-              typedBlock.data
-                .transparentBackground ===
-              true;
-
-            const className =
-              layout ===
-              "horizontal"
-                ? [
-                    "inline-flex items-center justify-center rounded-full px-3 py-2",
-
-                    itemIsTransparent
-                      ? "border border-transparent bg-transparent"
-                      : isLightDesign(
-                            designKey,
-                          )
-                        ? "border border-neutral-200 bg-white"
-                        : "border border-white/10 bg-white/5",
-                  ].join(" ")
-                : layout ===
-                    "grid"
-                  ? itemIsTransparent
-                    ? "block rounded-xl border border-transparent bg-transparent px-3 py-2"
-                    : getLinkItemClass(
-                        designKey,
-                      )
-                  : designKey ===
-                      "showcase"
-                    ? "block"
-                    : itemIsTransparent
+                      itemIsTransparent
+                        ? "border border-transparent bg-transparent"
+                        : isLightDesign(
+                              designKey,
+                            )
+                          ? "border border-neutral-200 bg-white"
+                          : "border border-white/10 bg-white/5",
+                    ].join(" ")
+                  : layout ===
+                      "grid"
+                    ? itemIsTransparent
                       ? "block rounded-xl border border-transparent bg-transparent px-3 py-2"
                       : getLinkItemClass(
                           designKey,
-                        );
+                        )
+                    : designKey ===
+                        "showcase"
+                      ? "block"
+                      : itemIsTransparent
+                        ? "block rounded-xl border border-transparent bg-transparent px-3 py-2"
+                        : getLinkItemClass(
+                            designKey,
+                          );
 
-            const style =
-              getContainerTextStyle(
-                block.data.style,
-                designKey,
-              );
+              const style =
+                getContainerTextStyle(
+                  block.data.style,
+                  designKey,
+                );
 
-            if (!normalizedHref) {
+              if (!destination) {
+                return (
+                  <div
+                    key={item.id}
+                    className={`${className} cursor-default opacity-60`}
+                    style={style}
+                  >
+                    {content}
+                  </div>
+                );
+              }
+
+              /*
+               * Builder preview remains non-navigational.
+               */
+              if (previewMode) {
+                return (
+                  <span
+                    key={item.id}
+                    className={
+                      className
+                    }
+                    style={style}
+                  >
+                    {content}
+                  </span>
+                );
+              }
+
               return (
-                <div
+                <a
                   key={item.id}
-                  className={`${className} cursor-default opacity-60`}
+                  href={
+                    destination
+                  }
+                  onClick={(
+                    event,
+                  ) => {
+                    event.preventDefault();
+
+                    navigateLink(
+                      item,
+                      destination,
+                    );
+                  }}
+                  className={
+                    className
+                  }
                   style={style}
                 >
                   {content}
-                </div>
+                </a>
               );
-            }
-
-            const Tag =
-              previewMode
-                ? "span"
-                : "a";
-
-            const isExternalLink =
-              linkType === "url" &&
-              (
-                normalizedHref.startsWith(
-                  "http://",
-                ) ||
-                normalizedHref.startsWith(
-                  "https://",
-                )
-              );
-
-            return (
-              <Tag
-                key={item.id}
-                {...(!previewMode
-                  ? {
-                      href:
-                        normalizedHref,
-
-                      target:
-                        isExternalLink
-                          ? "_blank"
-                          : undefined,
-
-                      rel:
-                        isExternalLink
-                          ? "noreferrer noopener"
-                          : undefined,
-
-                      onClick:
-                        linkType ===
-                        "bookmark"
-                          ? (
-                              event: React.MouseEvent<HTMLAnchorElement>,
-                            ) => {
-                              event.preventDefault();
-
-                              const target =
-                                document.querySelector(
-                                  normalizedHref,
-                                );
-
-                              if (!target) {
-                                return;
-                              }
-
-                              target.scrollIntoView(
-                                {
-                                  behavior:
-                                    "smooth",
-
-                                  block:
-                                    "start",
-                                },
-                              );
-
-                              window.history.replaceState(
-                                null,
-                                "",
-                                normalizedHref,
-                              );
-                            }
-                          : undefined,
-                    }
-                  : {})}
-                className={
-                  className
-                }
-                style={style}
-              >
-                {content}
-              </Tag>
-            );
-          },
-        )}
+            },
+          )}
+        </div>
       </div>
-    </div>
-  );
+    );
+  }
+
+  return <LinksLive />;
 }
 
 function renderGalleryTile(
