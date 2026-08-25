@@ -576,16 +576,17 @@ const visibleRecentSites = useMemo(() => {
 
     <div className="min-w-0">
       <div className="rounded-2xl border border-neutral-200 bg-white/90 px-2 pb-1 pt-3 shadow-sm min-h-[201px] sm:px-3">
-                <div className="mb-2 flex items-center justify-between gap-3">
-          <div>
-            <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
-              Recent Sites
-            </div>
-            <div className="text-sm font-medium text-neutral-900">
-              New and popular pages people can view or join...
-            </div>
-          </div>
-        </div>
+<div className="mb-2 flex items-start justify-between gap-3">
+  <div>
+    <div className="text-[15px] font-bold tracking-tight text-neutral-950">
+      Made with Ko-Host
+    </div>
+
+    <div className="mt-0.5 text-[12px] text-neutral-500">
+      See what people are creating.
+    </div>
+  </div>
+</div>
 
         {recentSitesLoading ? (
           <div className="mt-6 grid w-full grid-cols-4 gap-2 sm:grid-cols-6 md:grid-cols-8 md:gap-3">
@@ -645,9 +646,9 @@ const visibleRecentSites = useMemo(() => {
               ))}
             </div>
 
-            <div className="mt-1 text-left text-[11px] text-neutral-400">
-              Broadcasted sites are shared with permission from their owners.
-            </div>
+<div className="mt-2 text-left text-[10px] text-neutral-400">
+  Featured sites are shared with permission from their owners.
+</div>
 
 {showWhyKoHost && typeof document !== "undefined"
   ? createPortal(
@@ -875,43 +876,39 @@ const visibleRecentSites = useMemo(() => {
         )}
       </div>
 
-      <div className="mt-4 w-full rounded-2xl border border-blue-100 bg-gradient-to-r from-blue-50 via-white to-amber-50 px-4 py-3 shadow-sm">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div className="min-w-0">
-            <div className="inline-flex w-fit rounded-full border border-blue-200 bg-white px-3 py-1 text-[11px] font-black uppercase tracking-[0.16em] text-blue-700 animate-kht-offer-glow">
-              Limited-Time Offer
-            </div>
+<div className="mt-4 rounded-2xl border border-purple-100 bg-gradient-to-r from-purple-50 via-white to-blue-50 px-5 py-4 shadow-sm">
+  <div className="flex items-center justify-between gap-5">
+    <div className="flex min-w-0 items-start gap-3">
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-purple-100 text-lg">
+        🎁
+      </div>
 
-            <div className="mt-1 text-sm font-semibold leading-5 text-neutral-900">
-              Free custom development with your microsite purchase.
-            </div>
+      <div className="min-w-0">
+        <div className="text-sm font-bold text-neutral-950">
+          Need help creating your site?
+        </div>
 
-            <div className="mt-1 text-xs leading-5 text-neutral-600">
-              Tell us what you need — we’ll help build it with a 48–72 hour turnaround.
-            </div>
-          </div>
-
-<div className="flex shrink-0 flex-wrap items-center gap-2">
-  <a
-    href="/claim-offer"
-    className="rounded-full bg-neutral-950 px-4 py-2 text-xs font-bold text-white transition hover:bg-neutral-800"
-  >
-    Claim Offer
-  </a>
-
-  <a
-    href="/help"
-    className="rounded-full border border-neutral-300 bg-white px-4 py-2 text-xs font-bold text-neutral-800 transition hover:bg-neutral-50"
-  >
-    Help & Feedback
-  </a>
-
-  <div className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-amber-700">
-    Ends Soon
-  </div>
-</div>
+        <div className="mt-1 text-xs leading-5 text-neutral-600">
+          We’ll help build it for you with free custom development included
+          with your microsite purchase.
         </div>
       </div>
+    </div>
+
+    <div className="flex shrink-0 flex-col items-end gap-2">
+      <a
+        href="/claim-offer"
+        className="rounded-xl border border-neutral-300 bg-white px-4 py-2 text-xs font-bold text-neutral-900 shadow-sm transition hover:bg-neutral-50"
+      >
+        Learn More
+      </a>
+
+      <div className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.12em] text-amber-700">
+        Limited Time
+      </div>
+    </div>
+  </div>
+</div>
     </div>
   </div>
 
