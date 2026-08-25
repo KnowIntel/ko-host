@@ -140,13 +140,62 @@ const visibleRecentSites = useMemo(() => {
   }
 
 function scrollToTemplates() {
-  const target = document.getElementById("template-results-anchor");
+  const target = document.getElementById("template-results");
 
   if (!target) return;
 
-  target.scrollIntoView({
+  let scrollParent: HTMLElement | null = target.parentElement;
+
+  while (scrollParent) {
+    const styles = window.getComputedStyle(scrollParent);
+
+    const overflowY = styles.overflowY;
+
+    const canScroll =
+      (overflowY === "auto" ||
+        overflowY === "scroll" ||
+        overflowY === "overlay") &&
+      scrollParent.scrollHeight > scrollParent.clientHeight;
+
+    if (canScroll) {
+      break;
+    }
+
+    scrollParent = scrollParent.parentElement;
+  }
+
+  const isDesktop = window.innerWidth >= 1536;
+
+  // How much of the section above the templates we want visible.
+  const offset = isDesktop ? 50 : 20;
+
+  if (scrollParent) {
+    const parentRect = scrollParent.getBoundingClientRect();
+    const targetRect = target.getBoundingClientRect();
+
+    const top =
+      scrollParent.scrollTop +
+      targetRect.top -
+      parentRect.top -
+      offset;
+
+    scrollParent.scrollTo({
+      top,
+      behavior: "smooth",
+    });
+
+    return;
+  }
+
+  // Fallback for pages using the browser window itself.
+  const top =
+    target.getBoundingClientRect().top +
+    window.scrollY -
+    offset;
+
+  window.scrollTo({
+    top,
     behavior: "smooth",
-    block: "start",
   });
 }
 
@@ -1363,13 +1412,10 @@ function scrollToTemplates() {
   </div>
 </div>
 
-<div className="mt-8">
 <div
-  id="template-results-anchor"
-  className="-mt-[10px] h-[10px] xl:-mt-[5px] xl:h-[5px]"
-  aria-hidden="true"
-/>
-
+  id="template-results"
+  className="mt-8"
+>
   <TemplateGrid
     searchQuery={searchQuery}
     category={category}
