@@ -3363,51 +3363,71 @@ if (linkType === "bookmark") {
 
   return "";
 }
-      /*
-       * ================================================================
-       * SITE PAGE
-       * ================================================================
-       */
 
-      if (linkType === "page") {
-        const pageId =
-          String(
-            block.data.pageId ?? "",
-          ).trim();
+/*
+ * ================================================================
+ * SITE PAGE
+ * ================================================================
+ */
 
-        if (!pageId) {
-          return "";
-        }
+if (linkType === "page") {
+  /*
+   * The editor saves the complete resolved site-page URL.
+   *
+   * Prefer that value because the public renderer may not have the
+   * full pages collection available.
+   */
+  const savedButtonUrl =
+    String(
+      block.data.buttonUrl ?? "",
+    ).trim();
 
-        const linkedPage =
-          pages?.find(
-            (page) =>
-              page.id === pageId,
-          );
+  if (savedButtonUrl) {
+    return savedButtonUrl;
+  }
 
-        if (!linkedPage) {
-          return "";
-        }
+  /*
+   * Legacy/fallback behavior for older drafts that may only have
+   * pageId and no stored buttonUrl.
+   */
+  const pageId =
+    String(
+      block.data.pageId ?? "",
+    ).trim();
 
-        const slug =
-          String(
-            linkedPage.slug ?? "",
-          )
-            .trim()
-            .replace(
-              /^\/+|\/+$/g,
-              "",
-            );
+  if (!pageId) {
+    return "";
+  }
 
-        if (
-          !slug ||
-          slug === "home"
-        ) {
-          return "/";
-        }
+  const linkedPage =
+    pages?.find(
+      (page) =>
+        page.id === pageId,
+    );
 
-        return `/${slug}`;
-      }
+  if (!linkedPage) {
+    return "";
+  }
+
+  const slug =
+    String(
+      linkedPage.slug ?? "",
+    )
+      .trim()
+      .replace(
+        /^\/+|\/+$/g,
+        "",
+      );
+
+  if (
+    !slug ||
+    slug === "home"
+  ) {
+    return "/";
+  }
+
+  return `/${slug}`;
+}
 
       /*
        * ================================================================
