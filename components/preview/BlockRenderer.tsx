@@ -1,7 +1,6 @@
 // components\preview\BlockRenderer.tsx
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import SpeedDatingLive from "@/components/blocks/SpeedDatingLive";
@@ -3217,8 +3216,6 @@ function renderCta(
   }>,
 ) {
 function CtaButtonLive() {
-  const router = useRouter();
-
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -3569,16 +3566,13 @@ function navigateCtaDestination() {
        *
        * Use Next navigation instead of reloading the whole browser page.
        */
-      if (isSameOrigin) {
-        const internalDestination =
-          `${targetUrl.pathname}${targetUrl.search}${targetUrl.hash}`;
+if (isSameOrigin) {
+  window.location.assign(
+    targetUrl.href,
+  );
 
-        router.push(
-          internalDestination,
-        );
-
-        return;
-      }
+  return;
+}
 
       /*
        * Bookmark belongs to another hostname/site.
@@ -3620,19 +3614,16 @@ function navigateCtaDestination() {
        *
        * use Next.js client navigation to avoid the full-page blink.
        */
-      if (
-        targetUrl.origin ===
-        currentUrl.origin
-      ) {
-        const internalDestination =
-          `${targetUrl.pathname}${targetUrl.search}${targetUrl.hash}`;
+if (
+  targetUrl.origin ===
+  currentUrl.origin
+) {
+  window.location.assign(
+    targetUrl.href,
+  );
 
-        router.push(
-          internalDestination,
-        );
-
-        return;
-      }
+  return;
+}
 
       /*
        * Different origin:
@@ -3648,15 +3639,15 @@ function navigateCtaDestination() {
       /*
        * Relative internal route fallback.
        */
-      if (
-        destination.startsWith("/")
-      ) {
-        router.push(
-          destination,
-        );
+if (
+  destination.startsWith("/")
+) {
+  window.location.assign(
+    destination,
+  );
 
-        return;
-      }
+  return;
+}
 
       return;
     }
@@ -11265,22 +11256,20 @@ function renderLinks(
     display_order?: number | null;
   }>,
 ) {
-  function LinksLive() {
-    const router = useRouter();
+function LinksLive() {
+  const typedBlock =
+    block as typeof block & {
+      data: typeof block.data & {
+        layout?:
+          | "vertical"
+          | "horizontal"
+          | "grid";
 
-    const typedBlock =
-      block as typeof block & {
-        data: typeof block.data & {
-          layout?:
-            | "vertical"
-            | "horizontal"
-            | "grid";
+        backgroundColor?: string;
 
-          backgroundColor?: string;
-
-          transparentBackground?: boolean;
-        };
+        transparentBackground?: boolean;
       };
+    };
 
     const layout =
       typedBlock.data.layout ||
@@ -11547,16 +11536,13 @@ function renderLinks(
           /*
            * Another page on the same microsite.
            */
-          if (isSameOrigin) {
-            const internalDestination =
-              `${targetUrl.pathname}${targetUrl.search}${targetUrl.hash}`;
+if (isSameOrigin) {
+  window.location.assign(
+    targetUrl.href,
+  );
 
-            router.push(
-              internalDestination,
-            );
-
-            return;
-          }
+  return;
+}
 
           /*
            * Different hostname.
@@ -11597,19 +11583,16 @@ function renderLinks(
            * Internal page:
            * use Next.js client-side navigation.
            */
-          if (
-            targetUrl.origin ===
-            currentUrl.origin
-          ) {
-            const internalDestination =
-              `${targetUrl.pathname}${targetUrl.search}${targetUrl.hash}`;
+if (
+  targetUrl.origin ===
+  currentUrl.origin
+) {
+  window.location.assign(
+    targetUrl.href,
+  );
 
-            router.push(
-              internalDestination,
-            );
-
-            return;
-          }
+  return;
+}
 
           /*
            * Different origin.
@@ -11620,15 +11603,15 @@ function renderLinks(
 
           return;
         } catch {
-          if (
-            destination.startsWith("/")
-          ) {
-            router.push(
-              destination,
-            );
+if (
+  destination.startsWith("/")
+) {
+  window.location.assign(
+    destination,
+  );
 
-            return;
-          }
+  return;
+}
 
           return;
         }
