@@ -486,104 +486,6 @@ const visibleRecentSites = useMemo(() => {
   </div>
 </div>
 
-  <h1 className="text-3xl font-semibold tracking-tight text-neutral-950 sm:text-4xl">
-    Templates
-  </h1>
-
-      <div className="mt-3 text-sm leading-7 text-neutral-600 sm:text-[15px]">
-        <span className="inline">
-          Choose a template below, make it yours, and then go live — all for just $12 for 90 days.
-        </span>
-
-        <button
-          type="button"
-          onClick={() => setShowWhyKoHost(true)}
-          className="ml-2 inline whitespace-nowrap font-semibold text-blue-600 hover:text-blue-700"
-        >
-          Why Ko-Host?
-        </button>
-
-        <a
-          href="/get-started"
-          className="ml-3 inline-flex whitespace-nowrap rounded-full bg-neutral-950 px-3 py-1.5 text-xs font-bold text-white shadow-sm transition hover:bg-neutral-800"
-        >
-          Get Started
-        </a>
-      </div>
-
-      <div className="mt-1 text-[12px] font-medium text-neutral-500">
-        {count} template{count === 1 ? "" : "s"}
-        {category !== "All" ? ` • ${category}` : ""}
-        {searchQuery.trim() ? ` • “${searchQuery.trim()}”` : ""}
-        {sort !== "Recommended" ? ` • ${sort}` : ""}
-      </div>
-
-      <div className="mt-4 w-full">
-        <div className="relative w-full">
-          <input
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search templates… (e.g., wedding, rental, launch)"
-            className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 pr-10 text-sm text-neutral-900 shadow-sm outline-none focus:ring-2 focus:ring-blue-500/40"
-          />
-          {searchQuery.trim() ? (
-            <button
-              type="button"
-              onClick={() => setSearchQuery("")}
-              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full px-2 py-1 text-sm text-neutral-500 hover:bg-neutral-100"
-              aria-label="Clear search"
-              title="Clear"
-            >
-              ×
-            </button>
-          ) : null}
-        </div>
-
-        <div className="mt-3 flex items-start justify-between gap-3">
-          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
-            {categories.map((c) => {
-              const active = c === category;
-              const label =
-                c === "Favorites"
-                  ? "★ Favorites"
-                  : c === "Recently viewed"
-                    ? "⏱ Recently viewed"
-                    : c;
-
-              return (
-                <button
-                  key={c}
-                  type="button"
-                  onClick={() => setCategory(c)}
-                  className={[
-                    "rounded-full px-3 py-1.5 text-[12px] font-semibold transition",
-                    active
-                      ? "bg-neutral-900 text-white"
-                      : "border border-neutral-200 bg-white text-neutral-800 hover:bg-neutral-50",
-                  ].join(" ")}
-                >
-                  {label}
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="ml-3 flex shrink-0 items-center gap-2">
-            <div className="text-[12px] font-semibold text-neutral-600">Sort</div>
-            <select
-              value={sort}
-              onChange={(e) => setSort(e.target.value as Sort)}
-              className="rounded-xl border border-neutral-200 bg-white px-3 py-1.5 text-sm text-neutral-900 shadow-sm outline-none focus:ring-2 focus:ring-blue-500/40"
-            >
-              {sorts.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-      </div>
     </div>
 
     <div className="min-w-0 pt-4">
@@ -1016,14 +918,106 @@ const visibleRecentSites = useMemo(() => {
 
         </div>
 
-<div id="templates" className="mt-16 scroll-mt-48">
+<div
+  id="templates"
+  className="mt-7 hidden rounded-[28px] border border-neutral-200 bg-white/95 px-6 pb-5 pt-6 shadow-sm xl:block"
+>
+  <div className="text-center">
+    <h2 className="text-3xl font-bold tracking-tight text-neutral-950">
+      What will you create?
+    </h2>
+
+    <p className="mt-1 text-sm text-neutral-500">
+      Choose a template to get started. Every template is fully customizable.
+    </p>
+
+    <div className="mt-2 text-[12px] font-medium text-neutral-400">
+      {count} template{count === 1 ? "" : "s"}
+      {category !== "All" ? ` • ${category}` : ""}
+      {searchQuery.trim() ? ` • “${searchQuery.trim()}”` : ""}
+      {sort !== "Recommended" ? ` • ${sort}` : ""}
+    </div>
+  </div>
+
+  <div className="mt-5 flex items-center gap-4">
+    <div className="relative min-w-0 flex-1">
+      <input
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        placeholder="Search templates… (e.g., wedding, rental, launch)"
+        className="w-full rounded-xl border border-neutral-200 bg-white px-4 py-2.5 pr-10 text-sm text-neutral-900 shadow-sm outline-none focus:ring-2 focus:ring-blue-500/40"
+      />
+
+      {searchQuery.trim() ? (
+        <button
+          type="button"
+          onClick={() => setSearchQuery("")}
+          className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full px-2 py-1 text-sm text-neutral-500 hover:bg-neutral-100"
+          aria-label="Clear search"
+          title="Clear"
+        >
+          ×
+        </button>
+      ) : null}
+    </div>
+
+    <div className="flex shrink-0 items-center gap-2">
+      <div className="text-[12px] font-semibold text-neutral-600">
+        Sort by:
+      </div>
+
+      <select
+        value={sort}
+        onChange={(e) => setSort(e.target.value as Sort)}
+        className="rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm outline-none focus:ring-2 focus:ring-blue-500/40"
+      >
+        {sorts.map((s) => (
+          <option key={s} value={s}>
+            {s}
+          </option>
+        ))}
+      </select>
+    </div>
+  </div>
+
+  <div className="mt-4 flex flex-wrap items-center gap-2">
+    {categories.map((c) => {
+      const active = c === category;
+
+      const label =
+        c === "Favorites"
+          ? "★ Favorites"
+          : c === "Recently viewed"
+            ? "⏱ Recently viewed"
+            : c;
+
+      return (
+        <button
+          key={c}
+          type="button"
+          onClick={() => setCategory(c)}
+          className={[
+            "rounded-full px-3 py-1.5 text-[12px] font-semibold transition",
+            active
+              ? "bg-neutral-900 text-white"
+              : "border border-neutral-200 bg-white text-neutral-800 hover:bg-neutral-50",
+          ].join(" ")}
+        >
+          {label}
+        </button>
+      );
+    })}
+  </div>
+</div>
+
+<div className="mt-7">
   <TemplateGrid
-            searchQuery={searchQuery}
-            category={category}
-            sort={sort}
-            onCountChange={setCount}
-          />
-        </div>
+    searchQuery={searchQuery}
+    category={category}
+    sort={sort}
+    onCountChange={setCount}
+  />
+</div>
 
         {hasFilters ? (
           <div className="mt-3 flex flex-wrap items-center gap-2">
