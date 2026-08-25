@@ -500,9 +500,20 @@ const visibleRecentSites = useMemo(() => {
 
     <div className="mt-7 grid grid-cols-3 gap-3">
       <div className="relative text-center">
-        <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border-[5px] border-blue-100 bg-blue-600 text-3xl text-white shadow-sm">
-          ▣
-        </div>
+<div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border-[5px] border-blue-100 bg-blue-600 text-white shadow-sm">
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.8"
+    className="h-9 w-9"
+    aria-hidden="true"
+  >
+    <rect x="4" y="4" width="16" height="16" rx="2.5" />
+    <path d="M8 8h8M8 12h5M8 16h3" />
+    <path d="M15.5 13.5 19 17l-2 2-3.5-3.5v-2z" />
+  </svg>
+</div>
 
         <div className="mx-auto -mt-2 flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-[10px] font-black text-white ring-2 ring-white">
           1
@@ -523,9 +534,19 @@ const visibleRecentSites = useMemo(() => {
       </div>
 
       <div className="relative text-center">
-        <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border-[5px] border-emerald-100 bg-emerald-500 text-3xl text-white shadow-sm">
-          ✎
-        </div>
+<div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border-[5px] border-emerald-100 bg-emerald-500 text-white shadow-sm">
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.8"
+    className="h-9 w-9"
+    aria-hidden="true"
+  >
+    <path d="M4 20h4l11-11a2.1 2.1 0 0 0-3-3L5 17v3z" />
+    <path d="m14.5 7.5 2 2" />
+  </svg>
+</div>
 
         <div className="mx-auto -mt-2 flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500 text-[10px] font-black text-white ring-2 ring-white">
           2
@@ -546,9 +567,19 @@ const visibleRecentSites = useMemo(() => {
       </div>
 
       <div className="text-center">
-        <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border-[5px] border-purple-100 bg-purple-600 text-3xl text-white shadow-sm">
-          ➤
-        </div>
+<div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border-[5px] border-purple-100 bg-purple-600 text-white shadow-sm">
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.8"
+    className="h-9 w-9"
+    aria-hidden="true"
+  >
+    <path d="M21 3 10 14" />
+    <path d="m21 3-7 18-4-7-7-4 18-7z" />
+  </svg>
+</div>
 
         <div className="mx-auto -mt-2 flex h-6 w-6 items-center justify-center rounded-full bg-purple-600 text-[10px] font-black text-white ring-2 ring-white">
           3
@@ -565,7 +596,20 @@ const visibleRecentSites = useMemo(() => {
     </div>
 
     <div className="mx-auto mt-7 flex w-fit flex-wrap items-center justify-center gap-x-3 gap-y-1 rounded-full border border-purple-100 bg-purple-50/60 px-4 py-2 text-[10px] font-semibold text-neutral-600">
-      <span>▣ Mobile friendly</span>
+      <span className="inline-flex items-center gap-1.5">
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.8"
+    className="h-3.5 w-3.5"
+    aria-hidden="true"
+  >
+    <rect x="7" y="2.5" width="10" height="19" rx="2" />
+    <path d="M10 18.5h4" />
+  </svg>
+  Mobile friendly
+</span>
       <span className="text-purple-300">•</span>
       <span>Edit anytime</span>
       <span className="text-purple-300">•</span>
