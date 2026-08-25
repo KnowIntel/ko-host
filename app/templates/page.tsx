@@ -961,28 +961,26 @@ const visibleRecentSites = useMemo(() => {
 
 <div
   id="templates"
-  className="mt-7 hidden rounded-[24px] border border-neutral-200 bg-white/95 px-6 pb-4 pt-5 shadow-sm xl:block"
+  className="mt-7 hidden rounded-[28px] border border-neutral-200 bg-white/95 px-6 pb-5 pt-6 shadow-sm xl:block"
 >
-<div className="flex items-end justify-between gap-6">
-  <div>
-    <h2 className="text-[26px] font-bold tracking-tight text-neutral-950">
+  <div className="text-center">
+    <h2 className="text-3xl font-bold tracking-tight text-neutral-950">
       What will you create?
     </h2>
 
-    <p className="mt-1 text-[13px] text-neutral-500">
-      Choose a template and make it yours.
+    <p className="mt-1 text-sm text-neutral-500">
+      Choose a template to get started. Every template is fully customizable.
     </p>
+
+    <div className="mt-2 text-[12px] font-medium text-neutral-400">
+      {count} template{count === 1 ? "" : "s"}
+      {category !== "All" ? ` • ${category}` : ""}
+      {searchQuery.trim() ? ` • “${searchQuery.trim()}”` : ""}
+      {sort !== "Recommended" ? ` • ${sort}` : ""}
+    </div>
   </div>
 
-  <div className="shrink-0 pb-0.5 text-[11px] font-semibold text-neutral-400">
-    {count} template{count === 1 ? "" : "s"}
-    {category !== "All" ? ` • ${category}` : ""}
-    {searchQuery.trim() ? ` • “${searchQuery.trim()}”` : ""}
-    {sort !== "Recommended" ? ` • ${sort}` : ""}
-  </div>
-</div>
-
-<div className="mt-4 flex items-center gap-4">
+  <div className="mt-5 flex items-center gap-4">
     <div className="relative min-w-0 flex-1">
       <input
         value={searchQuery}
@@ -1053,7 +1051,7 @@ const visibleRecentSites = useMemo(() => {
   </div>
 </div>
 
-<div className="mt-6">
+<div className="mt-7">
   <TemplateGrid
     searchQuery={searchQuery}
     category={category}
