@@ -140,36 +140,13 @@ const visibleRecentSites = useMemo(() => {
   }
 
 function scrollToTemplates() {
-  const targets = Array.from(
-    document.querySelectorAll<HTMLElement>(
-      '[data-kht-template-browser="true"]',
-    ),
-  );
-
-  const target = targets.find((element) => {
-    const styles = window.getComputedStyle(element);
-
-    return (
-      styles.display !== "none" &&
-      styles.visibility !== "hidden" &&
-      element.getClientRects().length > 0
-    );
-  });
+  const target = document.getElementById("template-results");
 
   if (!target) return;
 
-  const isMobile = window.innerWidth < 1536;
-
-  const offset = isMobile ? 72 : 36;
-
-  const top =
-    target.getBoundingClientRect().top +
-    window.scrollY -
-    offset;
-
-  window.scrollTo({
-    top,
+  target.scrollIntoView({
     behavior: "smooth",
+    block: "start",
   });
 }
 
@@ -553,7 +530,6 @@ function scrollToTemplates() {
   {/* TEMPLATE MARKETPLACE */}
 <div
   id="templates-mobile"
-  data-kht-template-browser="true"
   className="mt-6 rounded-[25px] border border-neutral-200 bg-white/95 px-4 pb-4 pt-5 shadow-sm sm:px-5"
 >
     <div className="text-center">
@@ -1269,7 +1245,6 @@ function scrollToTemplates() {
 
 <div
   id="templates"
-  data-kht-template-browser="true"
   className="mt-9 hidden rounded-[25px] border border-neutral-200 bg-white/95 px-6 pb-5 pt-6 shadow-sm xl:block"
 >
   <div className="text-center">
@@ -1388,7 +1363,10 @@ function scrollToTemplates() {
   </div>
 </div>
 
-<div className="mt-7">
+<div
+  id="template-results"
+  className="mt-8 scroll-mt-6"
+>
   <TemplateGrid
     searchQuery={searchQuery}
     category={category}
