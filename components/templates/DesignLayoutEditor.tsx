@@ -2688,14 +2688,65 @@ const fallbackSiteSlug = `${templateKey || "site"}-${designKey || "draft"}`
   .replace(/[^a-z0-9]+/g, "-")
   .replace(/^-+|-+$/g, "");
 
+const liveMicrositeSlug =
+  micrositeSlug?.trim() ?? "";
+
+const draftSlugSuggestion =
+  (draft as DraftWithPageExtras).slugSuggestion?.trim() ?? "";
+
+const normalizedTemplateKey =
+  String(
+    (draft as any).templateName ??
+      templateKey ??
+      "",
+  )
+    .trim()
+    .toLowerCase();
+
+const normalizedDesignKey =
+  String(
+    designKey ?? "",
+  )
+    .trim()
+    .toLowerCase();
+
+/*
+ * Preset microsites follow the standard Ko-Host demo convention:
+ *
+ *   templateKey-designKey-preset
+ *
+ * Example:
+ *   merchant_drop-trash-preset
+ */
+const presetMicrositeSlug =
+  normalizedTemplateKey &&
+  normalizedDesignKey &&
+  normalizedDesignKey !== "blank"
+    ? `${normalizedTemplateKey}-${normalizedDesignKey}-preset`
+    : "";
+
+const isLiveMicrosite =
+  Boolean(liveMicrositeSlug);
+
+/*
+ * Live microsites always use their real saved slug.
+ *
+ * When editing a design preset, use the preset demo slug instead
+ * of the generic template slugSuggestion.
+ */
 const currentSiteSlug =
-  micrositeSlug?.trim() ||
-  (draft as DraftWithPageExtras).slugSuggestion?.trim() ||
+  liveMicrositeSlug ||
+  presetMicrositeSlug ||
+  draftSlugSuggestion ||
   fallbackSiteSlug;
 
-  const currentPageSlug = (activePageSlug || "home").trim().toLowerCase();
-  const [draftCopied, setDraftCopied] = useState(false);
-const isLiveMicrosite = Boolean(micrositeSlug?.trim());
+const currentPageSlug =
+  (activePageSlug || "home")
+    .trim()
+    .toLowerCase();
+
+const [draftCopied, setDraftCopied] =
+  useState(false);
 
 const currentSiteDisplay = isLiveMicrosite
   ? currentPageSlug && currentPageSlug !== "home"
