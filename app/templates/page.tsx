@@ -222,7 +222,7 @@ function scrollToTemplates() {
       </div>
 
       <div className="relative w-full px-4 pb-10">
-<div className="relative mt-16 2xl:mt-0 2xl:sticky 2xl:top-[56px] 2xl:z-40 -mx-4 border-b border-neutral-200 bg-white/95 px-4 pb-4 pt-6 shadow-sm backdrop-blur">
+<div className="relative mt-6 2xl:mt-0 2xl:sticky 2xl:top-[56px] 2xl:z-40 -mx-4 border-b border-neutral-200 bg-white/95 px-4 pb-4 pt-6 shadow-sm backdrop-blur">
 {/* Mobile / tablet */}
 <div className="2xl:hidden">
   {/* HERO */}
@@ -788,7 +788,7 @@ function scrollToTemplates() {
 
     <div className="min-w-0">
       <div className="text-[12px] font-bold leading-4 text-neutral-950">
-        Your domain. Your brand.
+        Your site. Your brand.
       </div>
       <div className="mt-0.5 text-[10px] leading-4 text-neutral-500">
         Make it feel like yours
