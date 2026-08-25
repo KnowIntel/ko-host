@@ -167,7 +167,7 @@ function scrollToTemplates() {
   const isDesktop = window.innerWidth >= 1536;
 
   // How much of the section above the templates we want visible.
-  const offset = isDesktop ? 90 : 30;
+  const offset = isDesktop ? 190 : 40;
 
   if (scrollParent) {
     const parentRect = scrollParent.getBoundingClientRect();
