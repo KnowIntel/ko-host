@@ -163,75 +163,373 @@ const visibleRecentSites = useMemo(() => {
 
       <div className="relative w-full px-4 pb-10">
 <div className="relative mt-16 2xl:mt-0 2xl:sticky 2xl:top-[56px] 2xl:z-40 -mx-4 border-b border-neutral-200 bg-white/95 px-4 pb-4 pt-6 shadow-sm backdrop-blur">
-  {/* Mobile / tablet */}
-  <div className="2xl:hidden">
-    <div className="min-w-0">
-      <h1 className="text-3xl font-semibold tracking-tight text-neutral-950 sm:text-4xl">
-        Templates
+{/* Mobile / tablet */}
+<div className="2xl:hidden">
+  {/* HERO */}
+  <div className="min-w-0">
+    <div className="rounded-[26px] bg-white">
+      <h1 className="text-[34px] font-extrabold leading-[1] tracking-[-0.04em] text-slate-950 sm:text-[42px] md:text-[48px]">
+        Create a site for anything.
+        <span className="mt-1 block bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 bg-clip-text text-transparent">
+          Go live in minutes.
+        </span>
       </h1>
 
-<div className="mt-3 text-sm leading-7 text-neutral-600 sm:text-[15px]">
-  <div>
-    Choose a template, make it yours, then go live — all for $12 for 90 days.
-  </div>
+      <p className="mt-4 max-w-[720px] text-[14px] leading-6 text-neutral-600 sm:text-[15px]">
+        Build a beautiful, shareable microsite for your event, business,
+        announcement, profile, product, or anything else.
+      </p>
 
-  <div className="mt-3 flex flex-wrap items-center gap-3">
-    <button
-      type="button"
-      onClick={() => setShowWhyKoHost(true)}
-      className="font-semibold text-blue-600 hover:text-blue-700"
-    >
-      Why Ko-Host?
-    </button>
+      <div className="mt-5 flex flex-wrap items-center gap-3">
+        <a
+          href="/get-started"
+          className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+        >
+          Create Your Site
+          <span aria-hidden="true">→</span>
+        </a>
 
-    <a
-      href="/get-started"
-      className="inline-flex whitespace-nowrap rounded-full bg-neutral-950 px-3 py-1.5 text-xs font-bold text-white shadow-sm transition hover:bg-neutral-800"
-    >
-      Get Started
-    </a>
-  </div>
+        <a
+          href="#templates"
+          className="inline-flex items-center justify-center rounded-xl border border-neutral-300 bg-white px-5 py-3 text-sm font-bold text-neutral-900 shadow-sm transition hover:bg-neutral-50"
+        >
+          Browse Templates
+        </a>
+      </div>
 
-  <div className="mt-3 max-w-[680px] rounded-2xl border border-blue-100 bg-gradient-to-r from-blue-50 via-white to-amber-50 px-4 py-3 shadow-sm">
-    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-      <div className="min-w-0">
-        <div className="inline-flex w-fit rounded-full border border-blue-200 bg-white px-3 py-1 text-[11px] font-black uppercase tracking-[0.16em] text-blue-700 animate-kht-offer-glow">
-          Limited-Time Offer
+      {/* BENEFITS */}
+      <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="rounded-xl border border-blue-100 bg-blue-50/60 px-3 py-3">
+          <div className="flex items-center gap-2">
+            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-blue-100 bg-white text-[11px] font-black text-blue-600">
+              $
+            </div>
+
+            <div className="min-w-0">
+              <div className="text-[11px] font-bold leading-4 text-neutral-950">
+                $12 for 90 days
+              </div>
+              <div className="mt-0.5 text-[9px] leading-4 text-neutral-500">
+                One simple price
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div className="mt-1 text-sm font-semibold leading-5 text-neutral-900">
-          Free custom development with your microsite purchase.
+        <div className="rounded-xl border border-indigo-100 bg-indigo-50/60 px-3 py-3">
+          <div className="flex items-center gap-2">
+            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-indigo-100 bg-white text-[11px] font-black text-indigo-600">
+              ↻
+            </div>
+
+            <div className="min-w-0">
+              <div className="text-[11px] font-bold leading-4 text-neutral-950">
+                No subscription
+              </div>
+              <div className="mt-0.5 text-[9px] leading-4 text-neutral-500">
+                No monthly bill
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div className="mt-1 text-xs leading-5 text-neutral-600">
-          Tell us what you need — we’ll help build it with a 48–72 hour turnaround.
+        <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 px-3 py-3">
+          <div className="flex items-center gap-2">
+            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-emerald-100 bg-white text-[11px] font-black text-emerald-600">
+              ✓
+            </div>
+
+            <div className="min-w-0">
+              <div className="text-[11px] font-bold leading-4 text-neutral-950">
+                No coding
+              </div>
+              <div className="mt-0.5 text-[9px] leading-4 text-neutral-500">
+                Easy to create
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-purple-100 bg-purple-50/60 px-3 py-3">
+          <div className="flex items-center gap-2">
+            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-purple-100 bg-white text-[11px] font-black text-purple-600">
+              ◇
+            </div>
+
+            <div className="min-w-0">
+              <div className="text-[11px] font-bold leading-4 text-neutral-950">
+                Your brand
+              </div>
+              <div className="mt-0.5 text-[9px] leading-4 text-neutral-500">
+                Make it yours
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {/* HOW IT WORKS */}
+  <div className="mt-6 rounded-[22px] border border-neutral-200 bg-white px-4 py-5 shadow-sm sm:px-5">
+    <div className="text-center">
+      <div className="text-sm font-bold text-neutral-950">
+        Three simple steps to get your site live
+      </div>
+
+      <div className="mx-auto mt-2 h-0.5 w-20 rounded-full bg-gradient-to-r from-blue-500 to-purple-500" />
+    </div>
+
+    <div className="mt-5 grid grid-cols-3 gap-2 sm:gap-4">
+      <div className="relative text-center">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border-4 border-blue-100 bg-blue-600 text-white shadow-sm sm:h-16 sm:w-16">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            className="h-6 w-6 sm:h-7 sm:w-7"
+            aria-hidden="true"
+          >
+            <rect x="4" y="4" width="16" height="16" rx="2.5" />
+            <path d="M8 8h8M8 12h5M8 16h3" />
+            <path d="M15.5 13.5 19 17l-2 2-3.5-3.5v-2z" />
+          </svg>
+        </div>
+
+        <div className="mx-auto -mt-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-[9px] font-black text-white ring-2 ring-white">
+          1
+        </div>
+
+        <div className="mt-2 text-[11px] font-bold leading-4 text-neutral-950 sm:text-xs">
+          Pick a design
+        </div>
+
+        <div className="mx-auto mt-1 hidden max-w-[150px] text-[10px] leading-4 text-neutral-500 sm:block">
+          Choose a professionally designed template.
         </div>
       </div>
 
-<div className="flex shrink-0 flex-wrap items-center gap-2">
-  <a
-    href="/claim-offer"
-    className="rounded-full bg-neutral-950 px-4 py-2 text-xs font-bold text-white transition hover:bg-neutral-800"
-  >
-    Claim Offer
-  </a>
+      <div className="relative text-center">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border-4 border-emerald-100 bg-emerald-500 text-white shadow-sm sm:h-16 sm:w-16">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            className="h-6 w-6 sm:h-7 sm:w-7"
+            aria-hidden="true"
+          >
+            <path d="M4 20h4l11-11a2.1 2.1 0 0 0-3-3L5 17v3z" />
+            <path d="m14.5 7.5 2 2" />
+          </svg>
+        </div>
 
-  <a
-    href="/help"
-    className="rounded-full border border-neutral-300 bg-white px-4 py-2 text-xs font-bold text-neutral-800 transition hover:bg-neutral-50"
-  >
-    Help & Feedback
-  </a>
+        <div className="mx-auto -mt-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-[9px] font-black text-white ring-2 ring-white">
+          2
+        </div>
 
-  <div className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-amber-700">
-    Ends Soon
-  </div>
-</div>
+        <div className="mt-2 text-[11px] font-bold leading-4 text-neutral-950 sm:text-xs">
+          Add your content
+        </div>
+
+        <div className="mx-auto mt-1 hidden max-w-[150px] text-[10px] leading-4 text-neutral-500 sm:block">
+          Add your text, photos, and details.
+        </div>
+      </div>
+
+      <div className="text-center">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border-4 border-purple-100 bg-purple-600 text-white shadow-sm sm:h-16 sm:w-16">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            className="h-6 w-6 sm:h-7 sm:w-7"
+            aria-hidden="true"
+          >
+            <path d="M21 3 10 14" />
+            <path d="m21 3-7 18-4-7-7-4 18-7z" />
+          </svg>
+        </div>
+
+        <div className="mx-auto -mt-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-purple-600 text-[9px] font-black text-white ring-2 ring-white">
+          3
+        </div>
+
+        <div className="mt-2 text-[11px] font-bold leading-4 text-neutral-950 sm:text-xs">
+          Publish & share
+        </div>
+
+        <div className="mx-auto mt-1 hidden max-w-[150px] text-[10px] leading-4 text-neutral-500 sm:block">
+          Go live and share your link anywhere.
+        </div>
+      </div>
+    </div>
+
+    <div className="mx-auto mt-4 flex w-fit flex-wrap items-center justify-center gap-x-2 gap-y-1 rounded-full border border-purple-100 bg-purple-50/60 px-3 py-2 text-[9px] font-semibold text-neutral-600 sm:text-[10px]">
+      <span className="inline-flex items-center gap-1">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          className="h-3 w-3"
+          aria-hidden="true"
+        >
+          <rect x="7" y="2.5" width="10" height="19" rx="2" />
+          <path d="M10 18.5h4" />
+        </svg>
+        Mobile friendly
+      </span>
+
+      <span className="text-purple-300">•</span>
+      <span>Edit anytime</span>
+      <span className="text-purple-300">•</span>
+      <span>Share anywhere</span>
     </div>
   </div>
-</div>
 
-      <div className="mt-1 text-[12px] font-medium text-neutral-500">
+  {/* MADE WITH KO-HOST */}
+  <div className="mt-5 min-w-0">
+    <div className="rounded-[22px] border border-neutral-200 bg-white/90 px-3 pb-3 pt-4 shadow-sm sm:px-4">
+      <div className="mb-2">
+        <div className="text-[15px] font-bold tracking-tight text-neutral-950">
+          Made with Ko-Host
+        </div>
+
+        <div className="mt-0.5 text-[12px] text-neutral-500">
+          See what people are creating.
+        </div>
+      </div>
+
+      {recentSitesLoading ? (
+        <div className="mt-4 grid w-full grid-cols-2 gap-2 min-[480px]:grid-cols-3 sm:grid-cols-4 md:grid-cols-6 md:gap-3">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <div
+              key={index}
+              className="overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50"
+            >
+              <div className="aspect-[4/3] animate-pulse bg-neutral-200" />
+              <div className="space-y-2 p-2">
+                <div className="h-3 rounded bg-neutral-200" />
+                <div className="h-3 w-2/3 rounded bg-neutral-100" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : recentSites.length ? (
+        <>
+          <div className="mt-4 grid w-full grid-cols-2 gap-2 min-[480px]:grid-cols-3 sm:grid-cols-4 md:grid-cols-6 md:gap-3">
+            {visibleRecentSites.slice(0, 6).map((site, index) => (
+              <a
+                key={`${site.id}-${index}`}
+                href={`https://${site.slug}.ko-host.com`}
+                target="_blank"
+                rel="noreferrer"
+                className="min-w-0 overflow-hidden rounded-xl border border-neutral-200 bg-white transition hover:-translate-y-0.5 hover:shadow-md"
+                title={site.title || site.slug}
+              >
+                <div className="relative aspect-[4/3] overflow-hidden bg-neutral-100">
+                  <img
+                    src={
+                      typeof site.previewImageUrl === "string" &&
+                      site.previewImageUrl.trim().length > 0
+                        ? site.previewImageUrl
+                        : "/icons/icon_recent_site_placeholder.webp"
+                    }
+                    alt={site.title || site.slug}
+                    className="h-full w-full object-cover transition duration-300 hover:scale-[1.03]"
+                    onError={(e) => {
+                      const target = e.currentTarget;
+
+                      if (
+                        !target.src.includes(
+                          "icon_recent_site_placeholder.webp",
+                        )
+                      ) {
+                        target.src =
+                          "/icons/icon_recent_site_placeholder.webp";
+                      }
+                    }}
+                  />
+                </div>
+
+                <div className="p-2">
+                  <div className="truncate text-[11px] font-semibold text-neutral-900 sm:text-xs">
+                    {site.title || "Untitled Site"}
+                  </div>
+
+                  <div className="truncate text-[9px] text-neutral-500 sm:text-[10px]">
+                    {site.slug}.ko-host.com
+                  </div>
+                </div>
+              </a>
+            ))}
+          </div>
+
+          <div className="mt-2 text-left text-[10px] text-neutral-400">
+            Featured sites are shared with permission from their owners.
+          </div>
+        </>
+      ) : (
+        <div className="mt-4 rounded-xl border border-dashed border-neutral-200 bg-neutral-50 px-3 py-6 text-sm text-neutral-500">
+          Featured Ko-Host sites will appear here.
+        </div>
+      )}
+    </div>
+  </div>
+
+  {/* LIMITED-TIME HELP OFFER */}
+  <div className="mt-4 rounded-[22px] border border-purple-100 bg-gradient-to-r from-purple-50 via-white to-blue-50 px-4 py-4 shadow-sm">
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex min-w-0 items-start gap-3">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-purple-100 text-lg">
+          🎁
+        </div>
+
+        <div className="min-w-0">
+          <div className="text-sm font-bold text-neutral-950">
+            Need help creating your site?
+          </div>
+
+          <div className="mt-1 text-xs leading-5 text-neutral-600">
+            We’ll help build it for you with free custom development included
+            with your microsite purchase.
+          </div>
+        </div>
+      </div>
+
+      <div className="flex shrink-0 items-center gap-2">
+        <a
+          href="/claim-offer"
+          className="rounded-xl border border-neutral-300 bg-white px-4 py-2 text-[11px] font-bold text-neutral-900 shadow-sm transition hover:bg-neutral-50"
+        >
+          Learn More
+        </a>
+
+        <div className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.12em] text-amber-700">
+          Limited Time
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {/* TEMPLATE MARKETPLACE */}
+  <div
+    id="templates-mobile"
+    className="mt-6 rounded-[25px] border border-neutral-200 bg-white/95 px-4 pb-4 pt-5 shadow-sm sm:px-5"
+  >
+    <div className="text-center">
+      <h2 className="text-2xl font-bold tracking-tight text-neutral-950 sm:text-[28px]">
+        What will you create?
+      </h2>
+
+      <p className="mt-1 text-[12px] text-neutral-500 sm:text-[13px]">
+        Choose a template to get started. Every design is customizable.
+      </p>
+
+      <div className="mt-2 text-[10px] font-medium text-neutral-400 sm:text-[11px]">
         {count} template{count === 1 ? "" : "s"}
         {category !== "All" ? ` • ${category}` : ""}
         {searchQuery.trim() ? ` • “${searchQuery.trim()}”` : ""}
@@ -239,97 +537,15 @@ const visibleRecentSites = useMemo(() => {
       </div>
     </div>
 
-    <div className="mt-5 min-w-0">
-      <div className="rounded-2xl border border-neutral-200 bg-white/90 px-2 pb-1 pt-3 shadow-sm min-h-[201px] sm:px-3">
-        <div className="mb-2 flex items-center justify-between gap-3">
-          <div>
-            <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
-              Recent Sites
-            </div>
-            <div className="text-sm font-medium text-neutral-900">
-              New and popular pages people can view or join...
-            </div>
-          </div>
-        </div>
-
-        {recentSitesLoading ? (
-          <div className="mt-6 grid w-full grid-cols-4 gap-2 sm:grid-cols-6 md:grid-cols-8 md:gap-3">
-            {Array.from({ length: 8 }).map((_, index) => (
-              <div
-                key={index}
-                className="overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50"
-              >
-                <div className="aspect-[4/3] animate-pulse bg-neutral-200" />
-                <div className="space-y-2 p-2">
-                  <div className="h-3 rounded bg-neutral-200" />
-                  <div className="h-3 w-2/3 rounded bg-neutral-100" />
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : recentSites.length ? (
-          <>
-            <div className="mt-4 grid w-full grid-cols-4 gap-2 sm:grid-cols-6 md:grid-cols-8 md:gap-3">
-              {visibleRecentSites.map((site, index) => (
-                <a
-                  key={`${site.id}-${index}`}
-                  href={`https://${site.slug}.ko-host.com`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="min-w-0 overflow-hidden rounded-xl border border-neutral-200 bg-white transition hover:-translate-y-0.5 hover:shadow-md"
-                  title={site.title || site.slug}
-                >
-                  <div className="relative aspect-[4/3] overflow-hidden bg-neutral-100">
-                    <img
-                      src={
-                        typeof site.previewImageUrl === "string" &&
-                        site.previewImageUrl.trim().length > 0
-                          ? site.previewImageUrl
-                          : "/icons/icon_recent_site_placeholder.webp"
-                      }
-                      alt={site.title || site.slug}
-                      className="h-full w-full object-cover transition duration-300 hover:scale-[1.03]"
-                      onError={(e) => {
-                        const target = e.currentTarget;
-                        if (!target.src.includes("icon_recent_site_placeholder.webp")) {
-                          target.src = "/icons/icon_recent_site_placeholder.webp";
-                        }
-                      }}
-                    />
-                  </div>
-
-                  <div className="p-2">
-                    <div className="truncate text-xs font-semibold text-neutral-900">
-                      {site.title || "Untitled Site"}
-                    </div>
-                    <div className="truncate text-[11px] text-neutral-500">
-                      {site.slug}.ko-host.com
-                    </div>
-                  </div>
-                </a>
-              ))}
-            </div>
-
-            <div className="mt-1 text-left text-[11px] text-neutral-400">
-              Broadcasted sites are shared with permission from their owners.
-            </div>
-          </>
-        ) : (
-          <div className="rounded-xl border border-dashed border-neutral-200 bg-neutral-50 px-3 py-6 text-sm text-neutral-500">
-            No recent broadcasted microsites yet.
-          </div>
-        )}
-      </div>
-    </div>
-
-    <div className="mt-5 w-full">
+    <div className="mt-4">
       <div className="relative w-full">
         <input
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search templates… (e.g., wedding, rental, launch)"
-          className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 pr-10 text-sm text-neutral-900 shadow-sm outline-none focus:ring-2 focus:ring-blue-500/40"
+          placeholder="Search templates…"
+          className="w-full rounded-xl border border-neutral-200 bg-white px-4 py-2.5 pr-10 text-sm text-neutral-900 shadow-sm outline-none focus:ring-2 focus:ring-blue-500/40"
         />
+
         {searchQuery.trim() ? (
           <button
             type="button"
@@ -343,9 +559,10 @@ const visibleRecentSites = useMemo(() => {
         ) : null}
       </div>
 
-      <div className="mt-3 flex flex-wrap items-center gap-2 min-w-0">
+      <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
         {categories.map((c) => {
           const active = c === category;
+
           const label =
             c === "Favorites"
               ? "★ Favorites"
@@ -359,7 +576,7 @@ const visibleRecentSites = useMemo(() => {
               type="button"
               onClick={() => setCategory(c)}
               className={[
-                "rounded-full px-3 py-1.5 text-[12px] font-semibold transition",
+                "rounded-full px-3 py-1.5 text-[11px] font-semibold transition sm:text-[12px]",
                 active
                   ? "bg-neutral-900 text-white"
                   : "border border-neutral-200 bg-white text-neutral-800 hover:bg-neutral-50",
@@ -371,12 +588,15 @@ const visibleRecentSites = useMemo(() => {
         })}
       </div>
 
-      <div className="mt-3 flex items-center gap-2">
-        <div className="text-[12px] font-semibold text-neutral-600">Sort</div>
+      <div className="mt-4 flex items-center justify-center gap-2">
+        <div className="text-[11px] font-semibold text-neutral-600">
+          Sort by:
+        </div>
+
         <select
           value={sort}
           onChange={(e) => setSort(e.target.value as Sort)}
-          className="rounded-xl border border-neutral-200 bg-white px-3 py-1.5 text-sm text-neutral-900 shadow-sm outline-none focus:ring-2 focus:ring-blue-500/40"
+          className="rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs text-neutral-900 shadow-sm outline-none focus:ring-2 focus:ring-blue-500/40"
         >
           {sorts.map((s) => (
             <option key={s} value={s}>
@@ -386,7 +606,38 @@ const visibleRecentSites = useMemo(() => {
         </select>
       </div>
     </div>
+
+    {/* TRUST STRIP */}
+    <div className="mt-4 border-t border-neutral-100 pt-4">
+      <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[9px] font-semibold text-neutral-500 sm:text-[10px]">
+        <span className="inline-flex items-center gap-1">
+          <span className="text-emerald-500">✓</span>
+          Secure checkout
+        </span>
+
+        <span className="inline-flex items-center gap-1">
+          <span className="text-blue-500">✓</span>
+          Mobile friendly
+        </span>
+
+        <span className="inline-flex items-center gap-1">
+          <span className="text-purple-500">✓</span>
+          Edit anytime
+        </span>
+
+        <span className="inline-flex items-center gap-1">
+          <span className="text-indigo-500">✓</span>
+          Share anywhere
+        </span>
+
+        <span className="inline-flex items-center gap-1">
+          <span className="text-amber-500">✓</span>
+          No subscription
+        </span>
+      </div>
+    </div>
   </div>
+</div>
 
 {/* Desktop */}
 <div className="hidden gap-5 xl:grid xl:grid-cols-[minmax(0,1.05fr)_minmax(420px,0.9fr)_760px] xl:items-start">
