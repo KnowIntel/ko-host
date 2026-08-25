@@ -422,67 +422,67 @@ const visibleRecentSites = useMemo(() => {
       </a>
     </div>
 
-    <div className="mt-5 grid max-w-[720px] grid-cols-2 gap-x-6 gap-y-3 xl:grid-cols-4">
-      <div className="flex items-start gap-2">
-        <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-50 text-xs font-bold text-blue-600">
-          $
-        </div>
+<div className="mt-5 grid max-w-[760px] grid-cols-2 gap-x-5 gap-y-4 xl:grid-cols-4">
+  <div className="flex items-start gap-2.5">
+    <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-blue-100 bg-blue-50 text-[13px] font-black text-blue-600">
+      $
+    </div>
 
-        <div>
-          <div className="text-xs font-bold text-neutral-900">
-            $12 for 90 days
-          </div>
-          <div className="mt-0.5 text-[10px] leading-4 text-neutral-500">
-            One simple price
-          </div>
-        </div>
+    <div className="min-w-0">
+      <div className="text-[12px] font-bold leading-4 text-neutral-950">
+        $12 for 90 days
       </div>
-
-      <div className="flex items-start gap-2">
-        <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-xs font-bold text-indigo-600">
-          ✓
-        </div>
-
-        <div>
-          <div className="text-xs font-bold text-neutral-900">
-            No subscription
-          </div>
-          <div className="mt-0.5 text-[10px] leading-4 text-neutral-500">
-            Pay once, use for 90 days
-          </div>
-        </div>
-      </div>
-
-      <div className="flex items-start gap-2">
-        <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-xs font-bold text-emerald-600">
-          ✓
-        </div>
-
-        <div>
-          <div className="text-xs font-bold text-neutral-900">
-            No coding required
-          </div>
-          <div className="mt-0.5 text-[10px] leading-4 text-neutral-500">
-            Easy for everyone
-          </div>
-        </div>
-      </div>
-
-      <div className="flex items-start gap-2">
-        <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-green-50 text-xs font-bold text-green-600">
-          ✓
-        </div>
-
-        <div>
-          <div className="text-xs font-bold text-neutral-900">
-            Your domain. Your brand.
-          </div>
-          <div className="mt-0.5 text-[10px] leading-4 text-neutral-500">
-            Professional and personal
-          </div>
-        </div>
+      <div className="mt-0.5 text-[10px] leading-4 text-neutral-500">
+        One simple price
       </div>
     </div>
+  </div>
+
+  <div className="flex items-start gap-2.5">
+    <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-indigo-100 bg-indigo-50 text-[13px] font-black text-indigo-600">
+      ↻
+    </div>
+
+    <div className="min-w-0">
+      <div className="text-[12px] font-bold leading-4 text-neutral-950">
+        No subscription
+      </div>
+      <div className="mt-0.5 text-[10px] leading-4 text-neutral-500">
+        Pay once. No monthly bill.
+      </div>
+    </div>
+  </div>
+
+  <div className="flex items-start gap-2.5">
+    <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-emerald-100 bg-emerald-50 text-[13px] font-black text-emerald-600">
+      ✓
+    </div>
+
+    <div className="min-w-0">
+      <div className="text-[12px] font-bold leading-4 text-neutral-950">
+        No coding required
+      </div>
+      <div className="mt-0.5 text-[10px] leading-4 text-neutral-500">
+        Easy to create and edit
+      </div>
+    </div>
+  </div>
+
+  <div className="flex items-start gap-2.5">
+    <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-green-100 bg-green-50 text-[13px] font-black text-green-600">
+      ◇
+    </div>
+
+    <div className="min-w-0">
+      <div className="text-[12px] font-bold leading-4 text-neutral-950">
+        Your domain. Your brand.
+      </div>
+      <div className="mt-0.5 text-[10px] leading-4 text-neutral-500">
+        Make it feel like yours
+      </div>
+    </div>
+  </div>
+</div>
   </div>
 </div>
 
