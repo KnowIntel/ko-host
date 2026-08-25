@@ -391,14 +391,100 @@ const visibleRecentSites = useMemo(() => {
   {/* Desktop */}
   <div className="hidden gap-5 xl:grid xl:grid-cols-[minmax(0,1fr)_760px] xl:items-start">
 <div className="min-w-0">
-  {/* <div className="mb-3 h-[104px] overflow-hidden rounded-2xl border border-neutral-200 bg-white/90 shadow-sm"> */}
-  <div className="mb-3 h-[104px] overflow-hidden rounded-2xl bg-white/90">
-    <img
-      src="/HomePageHero.png"
-      alt="Ko-Host microsite builder"
-      className="h-full w-full object-cover object-center"
-    />
+<div className="mb-5 rounded-[28px] bg-white px-1 py-1">
+  <div className="max-w-[760px]">
+    <h1 className="text-[42px] font-extrabold leading-[0.98] tracking-[-0.04em] text-slate-950 2xl:text-[46px]">
+      Create a site for anything.
+      <span className="mt-1 block bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 bg-clip-text text-transparent">
+        Go live in minutes.
+      </span>
+    </h1>
+
+    <p className="mt-4 max-w-[650px] text-[15px] leading-6 text-neutral-600">
+      Build a beautiful, shareable microsite for your event, business,
+      announcement, profile, product, or anything else.
+    </p>
+
+    <div className="mt-5 flex flex-wrap items-center gap-3">
+      <a
+        href="/get-started"
+        className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+      >
+        Create Your Site
+        <span aria-hidden="true">→</span>
+      </a>
+
+      <a
+        href="#templates"
+        className="inline-flex items-center justify-center rounded-xl border border-neutral-300 bg-white px-5 py-3 text-sm font-bold text-neutral-900 shadow-sm transition hover:bg-neutral-50"
+      >
+        Browse Templates
+      </a>
+    </div>
+
+    <div className="mt-5 grid max-w-[720px] grid-cols-2 gap-x-6 gap-y-3 xl:grid-cols-4">
+      <div className="flex items-start gap-2">
+        <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-50 text-xs font-bold text-blue-600">
+          $
+        </div>
+
+        <div>
+          <div className="text-xs font-bold text-neutral-900">
+            $12 for 90 days
+          </div>
+          <div className="mt-0.5 text-[10px] leading-4 text-neutral-500">
+            One simple price
+          </div>
+        </div>
+      </div>
+
+      <div className="flex items-start gap-2">
+        <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-xs font-bold text-indigo-600">
+          ✓
+        </div>
+
+        <div>
+          <div className="text-xs font-bold text-neutral-900">
+            No subscription
+          </div>
+          <div className="mt-0.5 text-[10px] leading-4 text-neutral-500">
+            Pay once, use for 90 days
+          </div>
+        </div>
+      </div>
+
+      <div className="flex items-start gap-2">
+        <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-xs font-bold text-emerald-600">
+          ✓
+        </div>
+
+        <div>
+          <div className="text-xs font-bold text-neutral-900">
+            No coding required
+          </div>
+          <div className="mt-0.5 text-[10px] leading-4 text-neutral-500">
+            Easy for everyone
+          </div>
+        </div>
+      </div>
+
+      <div className="flex items-start gap-2">
+        <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-green-50 text-xs font-bold text-green-600">
+          ✓
+        </div>
+
+        <div>
+          <div className="text-xs font-bold text-neutral-900">
+            Your domain. Your brand.
+          </div>
+          <div className="mt-0.5 text-[10px] leading-4 text-neutral-500">
+            Professional and personal
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
+</div>
 
   <h1 className="text-3xl font-semibold tracking-tight text-neutral-950 sm:text-4xl">
     Templates
@@ -844,8 +930,8 @@ const visibleRecentSites = useMemo(() => {
 
         </div>
 
-        <div className="mt-16">
-          <TemplateGrid
+<div id="templates" className="mt-16 scroll-mt-48">
+  <TemplateGrid
             searchQuery={searchQuery}
             category={category}
             sort={sort}
