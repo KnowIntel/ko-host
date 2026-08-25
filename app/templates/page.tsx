@@ -1365,7 +1365,7 @@ function scrollToTemplates() {
 
 <div
   id="template-results"
-  className="mt-8 scroll-mt-6"
+  className="mt-8 scroll-mt-[29px] xl:scroll-mt-[44px]"
 >
   <TemplateGrid
     searchQuery={searchQuery}
