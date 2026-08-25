@@ -486,6 +486,90 @@ const visibleRecentSites = useMemo(() => {
   </div>
 </div>
 
+<div className="mb-6 rounded-[26px] border border-neutral-200 bg-white px-5 py-5 shadow-sm">
+  <div className="text-center">
+    <div className="text-sm font-bold text-neutral-950">
+      Three simple steps to get your site live
+    </div>
+
+    <div className="mx-auto mt-2 h-0.5 w-24 rounded-full bg-gradient-to-r from-blue-500 to-purple-500" />
+  </div>
+
+  <div className="mt-5 grid grid-cols-3 gap-4">
+    <div className="relative text-center">
+      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border-4 border-blue-100 bg-blue-600 text-2xl text-white shadow-sm">
+        ▣
+      </div>
+
+      <div className="mx-auto -mt-1 flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-[10px] font-black text-white ring-2 ring-white">
+        1
+      </div>
+
+      <div className="mt-2 text-sm font-bold text-neutral-950">
+        Pick a design
+      </div>
+
+      <div className="mx-auto mt-1 max-w-[180px] text-[11px] leading-4 text-neutral-500">
+        Choose from professionally designed templates.
+      </div>
+
+      <div
+        aria-hidden="true"
+        className="absolute left-[72%] top-8 hidden w-[55%] border-t-2 border-dashed border-blue-200 xl:block"
+      />
+    </div>
+
+    <div className="relative text-center">
+      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border-4 border-emerald-100 bg-emerald-500 text-2xl text-white shadow-sm">
+        ✎
+      </div>
+
+      <div className="mx-auto -mt-1 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-[10px] font-black text-white ring-2 ring-white">
+        2
+      </div>
+
+      <div className="mt-2 text-sm font-bold text-neutral-950">
+        Add your content
+      </div>
+
+      <div className="mx-auto mt-1 max-w-[180px] text-[11px] leading-4 text-neutral-500">
+        Customize it with your text, photos, and details.
+      </div>
+
+      <div
+        aria-hidden="true"
+        className="absolute left-[72%] top-8 hidden w-[55%] border-t-2 border-dashed border-purple-200 xl:block"
+      />
+    </div>
+
+    <div className="text-center">
+      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border-4 border-purple-100 bg-purple-600 text-2xl text-white shadow-sm">
+        ➤
+      </div>
+
+      <div className="mx-auto -mt-1 flex h-5 w-5 items-center justify-center rounded-full bg-purple-600 text-[10px] font-black text-white ring-2 ring-white">
+        3
+      </div>
+
+      <div className="mt-2 text-sm font-bold text-neutral-950">
+        Publish & share
+      </div>
+
+      <div className="mx-auto mt-1 max-w-[180px] text-[11px] leading-4 text-neutral-500">
+        Go live and share your link anywhere, instantly.
+      </div>
+    </div>
+  </div>
+
+  <div className="mx-auto mt-5 flex w-fit flex-wrap items-center justify-center gap-x-3 gap-y-1 rounded-full border border-purple-100 bg-purple-50/60 px-4 py-2 text-[10px] font-semibold text-neutral-600">
+    <span>▣ Mobile friendly</span>
+    <span className="text-purple-300">•</span>
+    <span>Edit anytime</span>
+    <span className="text-purple-300">•</span>
+    <span>Share anywhere</span>
+  </div>
+</div>
+
   <h1 className="text-3xl font-semibold tracking-tight text-neutral-950 sm:text-4xl">
     Templates
   </h1>
