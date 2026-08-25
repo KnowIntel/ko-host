@@ -139,12 +139,28 @@ const visibleRecentSites = useMemo(() => {
     setSort("Recommended");
   }
 
-  function scrollToTemplates(targetId: "templates" | "templates-mobile") {
-  const target = document.getElementById(targetId);
+function scrollToTemplates() {
+  const targets = Array.from(
+    document.querySelectorAll<HTMLElement>(
+      '[data-kht-template-browser="true"]',
+    ),
+  );
+
+  const target = targets.find((element) => {
+    const styles = window.getComputedStyle(element);
+
+    return (
+      styles.display !== "none" &&
+      styles.visibility !== "hidden" &&
+      element.getClientRects().length > 0
+    );
+  });
 
   if (!target) return;
 
-  const offset = targetId === "templates" ? 90 : 110;
+  const isMobile = window.innerWidth < 1536;
+
+  const offset = isMobile ? 72 : 36;
 
   const top =
     target.getBoundingClientRect().top +
@@ -209,7 +225,7 @@ const visibleRecentSites = useMemo(() => {
 
 <button
   type="button"
-  onClick={() => scrollToTemplates("templates-mobile")}
+  onClick={scrollToTemplates}
   className="inline-flex items-center justify-center rounded-xl border border-neutral-300 bg-white px-5 py-3 text-sm font-bold text-neutral-900 shadow-sm"
 >
   Browse Templates
@@ -535,10 +551,11 @@ const visibleRecentSites = useMemo(() => {
   </div>
 
   {/* TEMPLATE MARKETPLACE */}
-  <div
-    id="templates-mobile"
-    className="mt-6 rounded-[25px] border border-neutral-200 bg-white/95 px-4 pb-4 pt-5 shadow-sm sm:px-5"
-  >
+<div
+  id="templates-mobile"
+  data-kht-template-browser="true"
+  className="mt-6 rounded-[25px] border border-neutral-200 bg-white/95 px-4 pb-4 pt-5 shadow-sm sm:px-5"
+>
     <div className="text-center">
       <h2 className="text-2xl font-bold tracking-tight text-neutral-950 sm:text-[28px]">
         What will you create?
@@ -686,7 +703,7 @@ const visibleRecentSites = useMemo(() => {
 
 <button
   type="button"
-  onClick={() => scrollToTemplates("templates")}
+  onClick={scrollToTemplates}
   className="inline-flex items-center justify-center rounded-xl border border-neutral-300 bg-white px-5 py-3 text-sm font-bold text-neutral-900 shadow-sm transition hover:bg-neutral-50"
 >
   Browse Templates
@@ -1252,6 +1269,7 @@ const visibleRecentSites = useMemo(() => {
 
 <div
   id="templates"
+  data-kht-template-browser="true"
   className="mt-9 hidden rounded-[25px] border border-neutral-200 bg-white/95 px-6 pb-5 pt-6 shadow-sm xl:block"
 >
   <div className="text-center">
@@ -1513,35 +1531,54 @@ const visibleRecentSites = useMemo(() => {
   </div>
 </div>
 
-<div className="mt-12 flex items-center justify-between gap-4">
-  <div className="flex flex-wrap items-center gap-3">
-    <Link
-      href="/faq"
-      className="inline-flex items-center rounded-2xl border border-neutral-200 bg-white/85 px-4 py-3 text-sm font-semibold text-neutral-700 shadow-sm backdrop-blur transition hover:bg-white"
-    >
-      FAQ
-    </Link>
+<div className="mt-12 overflow-hidden rounded-[26px] border border-neutral-200 bg-white/90 shadow-sm backdrop-blur">
+  <div className="flex flex-col gap-5 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+    <div className="flex items-center gap-3">
+      <Image
+        src="/icon.png"
+        alt="Ko-Host"
+        width={34}
+        height={34}
+        className="h-[34px] w-[34px] rounded-lg"
+      />
 
-    <Link
-      href="/help"
-      className="inline-flex items-center rounded-2xl border border-neutral-200 bg-white/85 px-4 py-3 text-sm font-semibold text-neutral-700 shadow-sm backdrop-blur transition hover:bg-white"
-    >
-      Help & Feedback
-    </Link>
+      <div>
+        <div className="text-sm font-bold text-neutral-950">
+          Ko-Host
+        </div>
+
+        <div className="mt-0.5 text-[11px] text-neutral-500">
+          A KnowIntel Company
+        </div>
+      </div>
+    </div>
+
+    <div className="flex flex-wrap items-center gap-2">
+      <Link
+        href="/faq"
+        className="rounded-xl border border-neutral-200 bg-white px-4 py-2 text-[11px] font-bold text-neutral-700 transition hover:bg-neutral-50"
+      >
+        FAQ
+      </Link>
+
+      <Link
+        href="/help"
+        className="rounded-xl border border-neutral-200 bg-white px-4 py-2 text-[11px] font-bold text-neutral-700 transition hover:bg-neutral-50"
+      >
+        Help & Feedback
+      </Link>
+
+      <a
+        href="/get-started"
+        className="rounded-xl bg-neutral-950 px-4 py-2 text-[11px] font-bold text-white transition hover:bg-neutral-800"
+      >
+        Create Your Site
+      </a>
+    </div>
   </div>
 
-  <div className="inline-flex items-center gap-3 rounded-2xl border border-neutral-200 bg-white/85 px-4 py-3 shadow-sm backdrop-blur">
-    <Image
-      src="/icon.png"
-      alt="Ko-Host"
-      width={28}
-      height={28}
-      className="h-7 w-7 rounded-md"
-    />
-
-    <span className="text-sm font-medium text-neutral-700">
-      Ko-Host: A KnowIntel Company
-    </span>
+  <div className="border-t border-neutral-100 px-5 py-3 text-center text-[10px] text-neutral-400 sm:px-6">
+    Create it. Share it. Ko-Host it.
   </div>
 </div>
       </div>
