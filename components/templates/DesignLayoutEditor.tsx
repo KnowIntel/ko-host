@@ -14949,16 +14949,15 @@ pageId:
                 ? bookmarkName
                 : `#${bookmarkName}`;
 
-          const targetPageBaseUrl =
-            !selectedPageSlug ||
-            selectedPageSlug === "home"
-              ? siteBaseUrl
-              : `${siteBaseUrl}/${selectedPageSlug}`;
+const targetPageBaseUrl =
+  selectedPageSlug
+    ? `${siteBaseUrl}/${selectedPageSlug}`
+    : siteBaseUrl;
 
-          const nextButtonUrl =
-            normalizedBookmark
-              ? `${targetPageBaseUrl}${normalizedBookmark}`
-              : targetPageBaseUrl;
+const nextButtonUrl =
+  normalizedBookmark
+    ? `${targetPageBaseUrl}${normalizedBookmark}`
+    : targetPageBaseUrl;
 
           updateSelectedBlock(
             (block) =>
@@ -15091,16 +15090,15 @@ pageId:
                 "",
               );
 
-          const targetPageBaseUrl =
-            !selectedPageSlug ||
-            selectedPageSlug === "home"
-              ? siteBaseUrl
-              : `${siteBaseUrl}/${selectedPageSlug}`;
+const targetPageBaseUrl =
+  selectedPageSlug
+    ? `${siteBaseUrl}/${selectedPageSlug}`
+    : siteBaseUrl;
 
-          const nextButtonUrl =
-            normalizedBookmark
-              ? `${targetPageBaseUrl}${normalizedBookmark}`
-              : targetPageBaseUrl;
+const nextButtonUrl =
+  normalizedBookmark
+    ? `${targetPageBaseUrl}${normalizedBookmark}`
+    : targetPageBaseUrl;
 
           updateSelectedBlock(
             (block) =>
