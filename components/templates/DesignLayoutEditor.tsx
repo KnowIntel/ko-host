@@ -14740,10 +14740,11 @@ selectedBlock?.type === "comparison_table" ? (
                         ? currentPageBaseUrl
                         : normalizedUrl,
 
-                    pageId:
-                      nextLinkType === "page"
-                        ? block.data.pageId ?? ""
-                        : "",
+pageId:
+  nextLinkType === "page" ||
+  nextLinkType === "bookmark"
+    ? block.data.pageId ?? ""
+    : "",
 
                     bookmarkBlockId:
                       nextLinkType === "bookmark"
@@ -14904,63 +14905,237 @@ selectedBlock?.type === "comparison_table" ? (
 {/* BOOKMARK */}
 
 {linkType === "bookmark" ? (
-  <label className="block">
-    <span className="text-xs font-medium text-neutral-600">
-      Bookmark
-    </span>
+  <div className="space-y-3">
+    <label className="block">
+      <span className="text-xs font-medium text-neutral-600">
+        Bookmark Page
+      </span>
 
-    <input
-      type="text"
-      value={
-        (selectedBlock.data as any).bookmarkName ?? ""
-      }
-      onChange={(e) => {
-        const rawValue = e.target.value.trim();
+      <select
+        value={
+          selectedBlock.data.pageId ?? ""
+        }
+        onChange={(e) => {
+          const nextPageId =
+            e.target.value;
 
-        const normalizedBookmark =
-          !rawValue
-            ? ""
-            : rawValue.startsWith("#")
-              ? rawValue
-              : `#${rawValue}`;
+          const selectedPage =
+            (pages ?? []).find(
+              (page) =>
+                page.id === nextPageId,
+            );
 
-        const nextButtonUrl =
-          normalizedBookmark
-            ? `${currentPageBaseUrl}${normalizedBookmark}`
-            : currentPageBaseUrl;
+          const selectedPageSlug =
+            String(
+              selectedPage?.slug ?? "",
+            )
+              .trim()
+              .toLowerCase()
+              .replace(
+                /^\/+|\/+$/g,
+                "",
+              );
 
-        updateSelectedBlock((block) =>
-          block.type !== "cta"
-            ? block
-            : {
-                ...block,
+          const bookmarkName =
+            String(
+              (selectedBlock.data as any)
+                .bookmarkName ?? "",
+            ).trim();
 
-                data: {
-                  ...block.data,
+          const normalizedBookmark =
+            !bookmarkName
+              ? ""
+              : bookmarkName.startsWith("#")
+                ? bookmarkName
+                : `#${bookmarkName}`;
 
-                  linkType: "bookmark",
+          const targetPageBaseUrl =
+            !selectedPageSlug ||
+            selectedPageSlug === "home"
+              ? siteBaseUrl
+              : `${siteBaseUrl}/${selectedPageSlug}`;
 
-                  pageId: "",
+          const nextButtonUrl =
+            normalizedBookmark
+              ? `${targetPageBaseUrl}${normalizedBookmark}`
+              : targetPageBaseUrl;
 
-                  bookmarkName:
-                    normalizedBookmark,
+          updateSelectedBlock(
+            (block) =>
+              block.type !== "cta"
+                ? block
+                : {
+                    ...block,
 
-                  bookmarkBlockId: "",
+                    data: {
+                      ...block.data,
 
-                  buttonUrl:
-                    nextButtonUrl,
-                },
-              },
-        );
-      }}
-      placeholder="#mybookmark"
-      className="mt-1 h-10 w-full rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-900 outline-none"
-    />
+                      linkType:
+                        "bookmark",
 
-    <div className="mt-1 text-xs text-neutral-500">
-      Enter the bookmark name, for example #mybookmark.
-    </div>
-  </label>
+                      pageId:
+                        nextPageId,
+
+                      bookmarkBlockId:
+                        "",
+
+                      buttonUrl:
+                        nextButtonUrl,
+                    },
+                  },
+          );
+        }}
+        className="mt-1 h-10 w-full rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-900 outline-none"
+      >
+        <option value="">
+          Select a page...
+        </option>
+
+        {(pages ?? []).map(
+          (page) => {
+            const slug =
+              String(
+                page.slug ?? "",
+              )
+                .trim()
+                .replace(
+                  /^\/+|\/+$/g,
+                  "",
+                );
+
+            const rawTitle =
+              String(
+                page.title ?? "",
+              ).trim();
+
+            const slugLabel =
+              slug === "home"
+                ? "Home"
+                : slug
+                    .replace(
+                      /[-_]+/g,
+                      " ",
+                    )
+                    .replace(
+                      /\s+/g,
+                      " ",
+                    )
+                    .trim()
+                    .replace(
+                      /\b\w/g,
+                      (char) =>
+                        char.toUpperCase(),
+                    );
+
+            const pageLabel =
+              rawTitle &&
+              !(
+                rawTitle.toLowerCase() ===
+                  "home" &&
+                slug !== "home"
+              )
+                ? rawTitle
+                : slugLabel ||
+                  "Untitled Page";
+
+            return (
+              <option
+                key={page.id}
+                value={page.id}
+              >
+                {pageLabel}
+              </option>
+            );
+          },
+        )}
+      </select>
+    </label>
+
+    <label className="block">
+      <span className="text-xs font-medium text-neutral-600">
+        Bookmark
+      </span>
+
+      <input
+        type="text"
+        value={
+          (selectedBlock.data as any)
+            .bookmarkName ?? ""
+        }
+        onChange={(e) => {
+          const rawValue =
+            e.target.value.trim();
+
+          const normalizedBookmark =
+            !rawValue
+              ? ""
+              : rawValue.startsWith("#")
+                ? rawValue
+                : `#${rawValue}`;
+
+          const selectedPage =
+            (pages ?? []).find(
+              (page) =>
+                page.id ===
+                selectedBlock.data.pageId,
+            );
+
+          const selectedPageSlug =
+            String(
+              selectedPage?.slug ?? "",
+            )
+              .trim()
+              .toLowerCase()
+              .replace(
+                /^\/+|\/+$/g,
+                "",
+              );
+
+          const targetPageBaseUrl =
+            !selectedPageSlug ||
+            selectedPageSlug === "home"
+              ? siteBaseUrl
+              : `${siteBaseUrl}/${selectedPageSlug}`;
+
+          const nextButtonUrl =
+            normalizedBookmark
+              ? `${targetPageBaseUrl}${normalizedBookmark}`
+              : targetPageBaseUrl;
+
+          updateSelectedBlock(
+            (block) =>
+              block.type !== "cta"
+                ? block
+                : {
+                    ...block,
+
+                    data: {
+                      ...block.data,
+
+                      linkType:
+                        "bookmark",
+
+                      bookmarkName:
+                        normalizedBookmark,
+
+                      bookmarkBlockId:
+                        "",
+
+                      buttonUrl:
+                        nextButtonUrl,
+                    },
+                  },
+          );
+        }}
+        placeholder="#shipping"
+        className="mt-1 h-10 w-full rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-900 outline-none"
+      />
+
+      <div className="mt-1 text-xs text-neutral-500">
+        Choose the page containing the bookmark, then enter its bookmark name.
+      </div>
+    </label>
+  </div>
 ) : null}
 
         {/* BUTTON LINK — ALWAYS VISIBLE */}
