@@ -1366,7 +1366,7 @@ function scrollToTemplates() {
 <div className="mt-8">
 <div
   id="template-results-anchor"
-  className="-mt-[10px] h-[10px] xl:-mt-[10px] xl:h-[10px]"
+  className="-mt-[10px] h-[10px] xl:-mt-[5px] xl:h-[5px]"
   aria-hidden="true"
 />
 
