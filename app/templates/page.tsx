@@ -139,6 +139,24 @@ const visibleRecentSites = useMemo(() => {
     setSort("Recommended");
   }
 
+  function scrollToTemplates(targetId: "templates" | "templates-mobile") {
+  const target = document.getElementById(targetId);
+
+  if (!target) return;
+
+  const offset = targetId === "templates" ? 90 : 110;
+
+  const top =
+    target.getBoundingClientRect().top +
+    window.scrollY -
+    offset;
+
+  window.scrollTo({
+    top,
+    behavior: "smooth",
+  });
+}
+
   function Chip(props: { label: string; onRemove: () => void }) {
     return (
       <button
@@ -189,12 +207,13 @@ const visibleRecentSites = useMemo(() => {
           <span aria-hidden="true">→</span>
         </a>
 
-        <a
-          href="#templates"
-          className="inline-flex items-center justify-center rounded-xl border border-neutral-300 bg-white px-5 py-3 text-sm font-bold text-neutral-900 shadow-sm transition hover:bg-neutral-50"
-        >
-          Browse Templates
-        </a>
+<button
+  type="button"
+  onClick={() => scrollToTemplates("templates-mobile")}
+  className="inline-flex items-center justify-center rounded-xl border border-neutral-300 bg-white px-5 py-3 text-sm font-bold text-neutral-900 shadow-sm"
+>
+  Browse Templates
+</button>
       </div>
 
       {/* BENEFITS */}
@@ -665,12 +684,13 @@ const visibleRecentSites = useMemo(() => {
         <span aria-hidden="true">→</span>
       </a>
 
-      <a
-        href="#templates"
-        className="inline-flex items-center justify-center rounded-xl border border-neutral-300 bg-white px-5 py-3 text-sm font-bold text-neutral-900 shadow-sm transition hover:bg-neutral-50"
-      >
-        Browse Templates
-      </a>
+<button
+  type="button"
+  onClick={() => scrollToTemplates("templates")}
+  className="inline-flex items-center justify-center rounded-xl border border-neutral-300 bg-white px-5 py-3 text-sm font-bold text-neutral-900 shadow-sm transition hover:bg-neutral-50"
+>
+  Browse Templates
+</button>
     </div>
 
 <div className="mt-5 grid max-w-[760px] grid-cols-2 gap-x-5 gap-y-4 xl:grid-cols-4">
@@ -947,226 +967,246 @@ const visibleRecentSites = useMemo(() => {
 
 {showWhyKoHost && typeof document !== "undefined"
   ? createPortal(
-      <div className="fixed inset-0 z-[2147483647] isolate overflow-y-auto bg-black/70 backdrop-blur-sm">
-    <div className="min-h-full px-4 py-8 md:px-8">
-      <div className="mx-auto w-full max-w-6xl overflow-hidden rounded-[32px] border border-neutral-200 bg-white shadow-2xl">
-        {/* HERO */}
-        <div className="relative overflow-hidden border-b border-neutral-200 bg-gradient-to-br from-neutral-950 via-neutral-900 to-neutral-800 px-6 py-10 text-white md:px-10 md:py-14">
-          <button
-            type="button"
-            onClick={() => setShowWhyKoHost(false)}
-            className="absolute right-5 top-5 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-sm font-semibold text-white transition hover:bg-white/20"
-          >
-            Close
-          </button>
+      <div className="fixed inset-0 z-[2147483647] isolate overflow-y-auto bg-black/65 backdrop-blur-sm">
+        <div className="flex min-h-full items-center justify-center px-4 py-8 md:px-8">
+          <div className="relative w-full max-w-5xl overflow-hidden rounded-[30px] border border-neutral-200 bg-white shadow-2xl">
+            {/* CLOSE */}
+            <button
+              type="button"
+              onClick={() => setShowWhyKoHost(false)}
+              className="absolute right-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-full border border-neutral-200 bg-white text-lg font-medium text-neutral-500 shadow-sm transition hover:bg-neutral-50 hover:text-neutral-900"
+              aria-label="Close"
+              title="Close"
+            >
+              ×
+            </button>
 
-          <div className="max-w-4xl">
-            <div className="inline-flex items-center rounded-full border border-yellow-400/30 bg-yellow-400/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-yellow-300">
-              🔥 Ko-Host Advantage
-            </div>
+            {/* HERO */}
+            <div className="relative overflow-hidden border-b border-neutral-200 bg-gradient-to-br from-slate-950 via-neutral-900 to-indigo-950 px-6 py-9 text-white sm:px-8 md:px-10 md:py-11">
+              <div className="pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full bg-blue-500/20 blur-3xl" />
+              <div className="pointer-events-none absolute -bottom-24 left-1/3 h-64 w-64 rounded-full bg-purple-500/20 blur-3xl" />
 
-            <h2 className="mt-5 text-4xl font-bold tracking-tight md:text-6xl">
-              Squarespace and Wix were built for websites.
-              <br />
-              <span className="text-yellow-300">
-                Ko-Host was built for moments.
-              </span>
-            </h2>
-
-            <p className="mt-6 max-w-3xl text-base leading-8 text-neutral-300 md:text-lg">
-              Create focused, purpose-built microsites for events, launches,
-              announcements, experiences, and communities... without the
-              complexity or long-term commitment of traditional website
-              platforms.
-            </p>
-
-            <div className="mt-8 flex flex-wrap gap-3">
-              {[
-                "⚡ Fast microsite creation",
-                "🌐 Hosting included",
-                "🚀 Publishing included",
-                "🎮 Interactive experiences",
-                "🧩 No coding required",
-                "⏳ Temporary-use friendly",
-              ].map((item) => (
-                <div
-                  key={item}
-                  className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white"
-                >
-                  {item}
+              <div className="relative max-w-3xl">
+                <div className="inline-flex rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-blue-200">
+                  Why Ko-Host?
                 </div>
-              ))}
-            </div>
-          </div>
-        </div>
 
-        {/* CONTENT */}
-        <div className="grid gap-8 px-6 py-8 md:grid-cols-[0.95fr_1.05fr] md:px-10 md:py-10">
-          {/* LEFT */}
-          <div>
-            <div className="rounded-3xl border border-neutral-200 bg-neutral-50 p-6">
-              <div className="text-xl font-bold text-neutral-950">
-                Why people use Ko-Host
+                <h2 className="mt-4 text-3xl font-bold leading-tight tracking-tight sm:text-4xl md:text-5xl">
+                  More than a post.
+                  <span className="block bg-gradient-to-r from-blue-300 via-indigo-300 to-purple-300 bg-clip-text text-transparent">
+                    Less than a whole website.
+                  </span>
+                </h2>
+
+                <p className="mt-4 max-w-2xl text-sm leading-7 text-neutral-300 sm:text-[15px]">
+                  Ko-Host gives you one focused, beautiful place to share the
+                  things that need more room than social media — without the
+                  setup, expense, or long-term commitment of a traditional
+                  website.
+                </p>
+
+                <div className="mt-6 flex flex-wrap gap-2">
+                  {[
+                    "No coding",
+                    "$12 for 90 days",
+                    "Hosting included",
+                    "Mobile friendly",
+                    "Edit anytime",
+                    "Share anywhere",
+                  ].map((item) => (
+                    <div
+                      key={item}
+                      className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-[11px] font-semibold text-white"
+                    >
+                      {item}
+                    </div>
+                  ))}
+                </div>
               </div>
+            </div>
 
-              <div className="mt-5 grid gap-3">
-                {[
-                  "✅ Create purpose-built microsites in minutes",
-                  "✅ Hosting included",
-                  "✅ Publishing included",
-                  "✅ Interactive tools & experiences included",
-                  "✅ No coding required",
-                  "✅ No long-term website commitment",
-                  "✅ Designed specifically for temporary or event-based experiences",
-                ].map((item) => (
-                  <div
-                    key={item}
-                    className="rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm font-medium text-neutral-700"
-                  >
-                    {item}
+            {/* MAIN CONTENT */}
+            <div className="grid gap-6 px-5 py-6 sm:px-7 sm:py-7 lg:grid-cols-[0.9fr_1.1fr] lg:px-8">
+              {/* LEFT */}
+              <div className="rounded-[24px] border border-neutral-200 bg-neutral-50 p-5 sm:p-6">
+                <div className="text-lg font-bold text-neutral-950">
+                  When Ko-Host makes sense
+                </div>
+
+                <p className="mt-2 text-sm leading-6 text-neutral-600">
+                  Use Ko-Host when you need a polished, shareable destination
+                  for one specific moment, idea, event, announcement, or
+                  experience.
+                </p>
+
+                <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                  {[
+                    "Events",
+                    "Announcements",
+                    "Businesses",
+                    "Products",
+                    "Campaigns",
+                    "Fundraisers",
+                    "Profiles",
+                    "Communities",
+                    "Personal moments",
+                  ].map((item) => (
+                    <div
+                      key={item}
+                      className="rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-center text-[11px] font-semibold text-neutral-700"
+                    >
+                      {item}
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-5 rounded-2xl border border-blue-100 bg-blue-50/60 p-4">
+                  <div className="text-sm font-bold text-neutral-950">
+                    One site. One purpose.
                   </div>
-                ))}
-              </div>
-            </div>
 
-            <div className="mt-6 rounded-3xl border border-neutral-200 bg-white p-6">
-              <div className="text-xl font-bold text-neutral-950">
-                Built for real-world moments
-              </div>
-
-              <p className="mt-3 text-sm leading-7 text-neutral-600">
-                Instead of paying for an oversized website platform built for
-                permanent business websites, Ko-Host focuses on experiences
-                people actually need quickly.
-              </p>
-
-              <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-3">
-                {[
-                  "💡 parties",
-                  "💡 events",
-                  "💡 announcements",
-                  "💡 communities",
-                  "💡 interactive experiences",
-                  "💡 showcases",
-                  "💡 temporary campaigns",
-                  "💡 creative one-off pages",
-                ].map((item) => (
-                  <div
-                    key={item}
-                    className="rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm font-semibold text-neutral-700"
-                  >
-                    {item}
+                  <div className="mt-1 text-xs leading-5 text-neutral-600">
+                    You don’t need to build a multi-page website just to give
+                    people one organized place to learn, respond, register,
+                    shop, view, or share.
                   </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="mt-6 rounded-3xl border border-neutral-900 bg-neutral-950 p-6 text-white">
-              <div className="text-2xl font-bold">
-                Made for the moment. Temporary by design.
-              </div>
-
-              <p className="mt-4 text-sm leading-7 text-neutral-300">
-                From quick announcements to dynamic, interactive experiences,
-                Ko-Host offers a seamless way to build, personalize, and launch
-                microsites tailored to any occasion.
-              </p>
-            </div>
-          </div>
-
-          {/* RIGHT */}
-          <div>
-            <div className="overflow-hidden rounded-3xl border border-neutral-200">
-              <div className="border-b border-neutral-200 bg-neutral-950 px-5 py-4 text-white">
-                <div className="text-lg font-bold">⚡ Feature Comparison</div>
-                <div className="mt-1 text-sm text-neutral-300">
-                  Ko-Host vs traditional website builders
                 </div>
               </div>
 
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse text-sm">
-                  <thead>
-                    <tr className="bg-neutral-100 text-left">
-                      <th className="border-b border-neutral-200 px-4 py-3 font-semibold text-neutral-700">
-                        Feature
-                      </th>
-                    <th className="whitespace-nowrap border-b border-neutral-200 px-5 py-3 font-semibold text-neutral-950">
+              {/* RIGHT */}
+              <div>
+                <div className="text-lg font-bold text-neutral-950">
+                  Where Ko-Host fits
+                </div>
+
+                <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                  {/* SOCIAL */}
+                  <div className="rounded-[22px] border border-neutral-200 bg-white p-4">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-neutral-100 text-lg text-neutral-700">
+                      #
+                    </div>
+
+                    <div className="mt-3 text-sm font-bold text-neutral-950">
+                      Social Post
+                    </div>
+
+                    <div className="mt-2 text-xs leading-5 text-neutral-500">
+                      Fast and familiar, but limited when you have more to
+                      explain, organize, or show.
+                    </div>
+
+                    <div className="mt-4 text-[9px] font-bold uppercase tracking-[0.12em] text-neutral-400">
+                      Best for quick updates
+                    </div>
+                  </div>
+
+                  {/* KO-HOST */}
+                  <div className="rounded-[22px] border-2 border-blue-200 bg-gradient-to-b from-blue-50/60 to-white p-4 shadow-sm">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-500 text-sm font-black text-white">
+                      K
+                    </div>
+
+                    <div className="mt-3 text-sm font-bold text-neutral-950">
                       Ko-Host
-                    </th>
-                      <th className="border-b border-neutral-200 px-4 py-3 font-semibold text-neutral-700">
-                        Wix / Squarespace
-                      </th>
-                    </tr>
-                  </thead>
+                    </div>
 
-                  <tbody>
-                    {[
-                      ["Fast microsite creation", "✅", "⚠️ Built for full websites"],
-                      ["Hosting included", "✅", "✅"],
-                      ["Publishing included", "✅", "✅"],
-                      ["Interactive experiences", "✅", "Limited/custom"],
-                      ["Temporary-use friendly", "✅", "❌"],
-                      ["Event/community focused", "✅", "⚠️ General-purpose"],
-                      ["Lightweight setup", "✅", "⚠️ More complex"],
-                      ["No coding required", "✅", "✅"],
-                      ["Long-term commitment needed", "❌", "Often yes"],
-                    ].map(([feature, koHost, competitors]) => (
-                      <tr key={feature} className="border-b border-neutral-100">
-                        <td className="px-4 py-3 font-medium text-neutral-700">
-                          {feature}
-                        </td>
+                    <div className="mt-2 text-xs leading-5 text-neutral-600">
+                      One focused site with your content, design, tools, and
+                      information all in one shareable place.
+                    </div>
 
-                        <td className="whitespace-nowrap bg-green-50 px-5 py-3 font-semibold text-green-700">
-                          {koHost}
-                        </td>
+                    <div className="mt-4 text-[9px] font-bold uppercase tracking-[0.12em] text-blue-600">
+                      Built for the moment
+                    </div>
+                  </div>
 
-                        <td className="px-4 py-3 text-neutral-600">
-                          {competitors}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                  {/* WEBSITE */}
+                  <div className="rounded-[22px] border border-neutral-200 bg-white p-4">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-neutral-100 text-lg text-neutral-700">
+                      ◫
+                    </div>
+
+                    <div className="mt-3 text-sm font-bold text-neutral-950">
+                      Full Website
+                    </div>
+
+                    <div className="mt-2 text-xs leading-5 text-neutral-500">
+                      Powerful for permanent needs, but often more setup,
+                      expense, and commitment than you need.
+                    </div>
+
+                    <div className="mt-4 text-[9px] font-bold uppercase tracking-[0.12em] text-neutral-400">
+                      Best for long-term presence
+                    </div>
+                  </div>
+                </div>
+
+                {/* SIMPLE ADVANTAGES */}
+                <div className="mt-5 grid grid-cols-2 gap-2">
+                  {[
+                    ["✓", "Quick to launch"],
+                    ["✓", "No coding required"],
+                    ["✓", "No monthly subscription"],
+                    ["✓", "Hosting included"],
+                    ["✓", "Interactive tools"],
+                    ["✓", "Easy to share"],
+                  ].map(([icon, text]) => (
+                    <div
+                      key={text}
+                      className="flex items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2.5"
+                    >
+                      <span className="text-emerald-500">{icon}</span>
+                      <span className="text-[11px] font-semibold text-neutral-700">
+                        {text}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 
-            <div className="mt-6 rounded-3xl border border-yellow-300 bg-yellow-50 p-6">
-              <div className="text-lg font-bold text-neutral-950">
-                Why pay $20–$40/month for a full website builder when all you need is one powerful microsite?
-              </div>
+            {/* CTA */}
+            <div className="border-t border-neutral-200 bg-white px-5 py-5 sm:px-7 lg:px-8">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <div className="text-sm font-bold text-neutral-950">
+                    Ready to make something?
+                  </div>
 
-              <p className="mt-3 text-sm leading-7 text-neutral-700">
-                Ko-Host gives you hosting, publishing, interactive features,
-                and custom microsites... without the complexity or long-term
-                commitment of traditional website platforms.
-              </p>
+                  <div className="mt-1 text-xs text-neutral-500">
+                    Choose a template and make it yours.
+                  </div>
+                </div>
 
-              <button
-                type="button"
-                onClick={() => setShowWhyKoHost(false)}
-                className="mt-5 rounded-2xl bg-neutral-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-neutral-800"
-              >
-                Close & Explore Templates
-              </button>
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowWhyKoHost(false)}
+                    className="rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-xs font-bold text-neutral-800 transition hover:bg-neutral-50"
+                  >
+                    Keep Browsing
+                  </button>
 
-              <div className="mt-4 text-xs leading-6 text-neutral-500">
-                Pricing and feature references based on current published Wix
-                and Squarespace pricing/materials.
+                  <a
+                    href="/get-started"
+                    className="rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-2.5 text-xs font-bold text-white shadow-sm transition hover:shadow-md"
+                  >
+                    Create Your Site →
+                  </a>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-    </div>
       </div>,
       document.body,
     )
   : null}
+  
           </>
         ) : (
           <div className="rounded-xl border border-dashed border-neutral-200 bg-neutral-50 px-3 py-6 text-sm text-neutral-500">
-            No recent broadcasted microsites yet.
+            Featured Ko-Host sites will appear here.
           </div>
         )}
       </div>
@@ -1371,6 +1411,107 @@ const visibleRecentSites = useMemo(() => {
             </button>
           </div>
         ) : null}
+
+{/* WHY KO-HOST POSITIONING */}
+<div className="mt-12 overflow-hidden rounded-[30px] border border-neutral-200 bg-white shadow-sm">
+  <div className="grid lg:grid-cols-[0.9fr_1.1fr]">
+    {/* LEFT */}
+    <div className="bg-gradient-to-br from-neutral-950 via-neutral-900 to-slate-900 px-6 py-8 text-white sm:px-8 sm:py-10">
+      <div className="inline-flex rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-blue-200">
+        Why Ko-Host?
+      </div>
+
+      <h2 className="mt-4 max-w-[560px] text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
+        Too much for a post.
+        <span className="block bg-gradient-to-r from-blue-300 via-indigo-300 to-purple-300 bg-clip-text text-transparent">
+          Not enough for a whole website.
+        </span>
+      </h2>
+
+      <p className="mt-4 max-w-[560px] text-sm leading-7 text-neutral-300 sm:text-[15px]">
+        Sometimes you need more room than social media gives you, without the
+        cost, setup, or commitment of building a traditional website.
+      </p>
+
+      <div className="mt-6 flex flex-wrap gap-3">
+        <button
+          type="button"
+          onClick={() => setShowWhyKoHost(true)}
+          className="rounded-xl bg-white px-4 py-2.5 text-xs font-bold text-neutral-950 transition hover:bg-neutral-100"
+        >
+          Why Ko-Host?
+        </button>
+
+        <a
+          href="/get-started"
+          className="rounded-xl border border-white/20 bg-white/5 px-4 py-2.5 text-xs font-bold text-white transition hover:bg-white/10"
+        >
+          Create Your Site →
+        </a>
+      </div>
+    </div>
+
+    {/* RIGHT */}
+    <div className="grid gap-3 bg-neutral-50 p-5 sm:grid-cols-3 sm:p-6">
+      <div className="rounded-2xl border border-neutral-200 bg-white p-5">
+        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-neutral-100 text-lg">
+          #
+        </div>
+
+        <div className="mt-4 text-sm font-bold text-neutral-950">
+          Social Post
+        </div>
+
+        <div className="mt-2 text-xs leading-5 text-neutral-500">
+          Fast and familiar, but limited when you have more to say, show, or
+          organize.
+        </div>
+
+        <div className="mt-4 text-[10px] font-bold uppercase tracking-[0.12em] text-neutral-400">
+          Great for quick updates
+        </div>
+      </div>
+
+      <div className="rounded-2xl border-2 border-blue-200 bg-white p-5 shadow-sm">
+        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-500 text-sm font-black text-white">
+          K
+        </div>
+
+        <div className="mt-4 text-sm font-bold text-neutral-950">
+          Ko-Host
+        </div>
+
+        <div className="mt-2 text-xs leading-5 text-neutral-600">
+          One focused, shareable site with your content, design, tools, and
+          information all in one place.
+        </div>
+
+        <div className="mt-4 text-[10px] font-bold uppercase tracking-[0.12em] text-blue-600">
+          Built for the moment
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-neutral-200 bg-white p-5">
+        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-neutral-100 text-lg">
+          ◫
+        </div>
+
+        <div className="mt-4 text-sm font-bold text-neutral-950">
+          Full Website
+        </div>
+
+        <div className="mt-2 text-xs leading-5 text-neutral-500">
+          Powerful for long-term needs, but often more setup, expense, and
+          commitment than the moment requires.
+        </div>
+
+        <div className="mt-4 text-[10px] font-bold uppercase tracking-[0.12em] text-neutral-400">
+          Great for permanent presence
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div className="mt-12 flex items-center justify-between gap-4">
   <div className="flex flex-wrap items-center gap-3">
