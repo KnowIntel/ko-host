@@ -1364,11 +1364,11 @@ function scrollToTemplates() {
 </div>
 
 <div className="mt-8">
-  <div
-    id="template-results-anchor"
-    className="-mt-[5px] h-[5px] xl:-mt-[20px] xl:h-[20px]"
-    aria-hidden="true"
-  />
+<div
+  id="template-results-anchor"
+  className="-mt-[10px] h-[10px] xl:-mt-[30px] xl:h-[30px]"
+  aria-hidden="true"
+/>
 
   <TemplateGrid
     searchQuery={searchQuery}
