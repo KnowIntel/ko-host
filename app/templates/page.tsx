@@ -144,9 +144,18 @@ function scrollToTemplates() {
 
   if (!target) return;
 
-  target.scrollIntoView({
+  const isDesktop = window.innerWidth >= 1536;
+
+  const offset = isDesktop ? 20 : 5;
+
+  const targetTop =
+    target.getBoundingClientRect().top +
+    window.scrollY -
+    offset;
+
+  window.scrollTo({
+    top: targetTop,
     behavior: "smooth",
-    block: "start",
   });
 }
 
@@ -1365,7 +1374,7 @@ function scrollToTemplates() {
 
 <div
   id="template-results"
-  className="mt-8 scroll-mt-[29px] xl:scroll-mt-[44px]"
+  className="mt-8"
 >
   <TemplateGrid
     searchQuery={searchQuery}
