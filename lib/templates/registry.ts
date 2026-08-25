@@ -32,7 +32,7 @@ export type TemplateKey =
   | "gender_reveal"
   | "graduation"
   | "group_trip"
-  | "hoa_announcement"
+  | "surveys"
   | "investor_pitch"
   | "job_fair"
   | "merchant_drop"
@@ -690,15 +690,15 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "travel",
     defaultDraft: { title: "Group Travel", slugSuggestion: "grouptravel" },
   },
-/*   {
-    key: "hoa_announcement",
-    title: "HOA Announcement",
-    description: "Notices, rules, updates.",
-    thumb: "hoaannouncement",
-    setupMins: 2,
-    demoSlug: "hoa",
-    defaultDraft: { title: "HOA Update", slugSuggestion: "hoaupdate" },
-  }, */
+{
+  key: "surveys",
+  title: "Surveys",
+  description: "Questions, feedback, insights.",
+  thumb: "surveys",
+  setupMins: 2,
+  demoSlug: "survey",
+  defaultDraft: { title: "Public Survey", slugSuggestion: "publicsurvey" },
+},
 /*   {
     key: "investor_pitch",
     title: "Investor Pitch",
