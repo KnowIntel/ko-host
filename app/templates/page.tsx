@@ -961,7 +961,7 @@ const visibleRecentSites = useMemo(() => {
 
 <div
   id="templates"
-  className="relative -top-[0.25vh] mb-[-0.05vh] hidden rounded-[28px] border border-neutral-200 bg-white/95 px-6 pb-5 pt-6 shadow-sm xl:block"
+  className="relative -top-[0.05vh] mb-[-0.008vh] hidden rounded-[28px] border border-neutral-200 bg-white/95 px-6 pb-5 pt-6 shadow-sm xl:block"
 >
   <div className="text-center">
     <h2 className="text-3xl font-bold tracking-tight text-neutral-950">
