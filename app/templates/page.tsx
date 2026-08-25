@@ -978,6 +978,34 @@ const visibleRecentSites = useMemo(() => {
       {searchQuery.trim() ? ` • “${searchQuery.trim()}”` : ""}
       {sort !== "Recommended" ? ` • ${sort}` : ""}
     </div>
+    <div className="mt-4 border-t border-neutral-100 pt-4">
+  <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[11px] font-semibold text-neutral-500">
+    <span className="inline-flex items-center gap-1.5">
+      <span className="text-emerald-500">✓</span>
+      Secure checkout
+    </span>
+
+    <span className="inline-flex items-center gap-1.5">
+      <span className="text-blue-500">✓</span>
+      Mobile friendly
+    </span>
+
+    <span className="inline-flex items-center gap-1.5">
+      <span className="text-purple-500">✓</span>
+      Edit anytime
+    </span>
+
+    <span className="inline-flex items-center gap-1.5">
+      <span className="text-indigo-500">✓</span>
+      Share anywhere
+    </span>
+
+    <span className="inline-flex items-center gap-1.5">
+      <span className="text-amber-500">✓</span>
+      No subscription
+    </span>
+  </div>
+</div>
   </div>
 
   <div className="mt-5 flex items-center gap-4">
