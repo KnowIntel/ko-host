@@ -140,22 +140,13 @@ const visibleRecentSites = useMemo(() => {
   }
 
 function scrollToTemplates() {
-  const target = document.getElementById("template-results");
+  const target = document.getElementById("template-results-anchor");
 
   if (!target) return;
 
-  const isDesktop = window.innerWidth >= 1536;
-
-  const offset = isDesktop ? 20 : 5;
-
-  const targetTop =
-    target.getBoundingClientRect().top +
-    window.scrollY -
-    offset;
-
-  window.scrollTo({
-    top: targetTop,
+  target.scrollIntoView({
     behavior: "smooth",
+    block: "start",
   });
 }
 
@@ -1372,10 +1363,13 @@ function scrollToTemplates() {
   </div>
 </div>
 
-<div
-  id="template-results"
-  className="mt-8"
->
+<div className="mt-8">
+  <div
+    id="template-results-anchor"
+    className="-mt-[5px] h-[5px] xl:-mt-[20px] xl:h-[20px]"
+    aria-hidden="true"
+  />
+
   <TemplateGrid
     searchQuery={searchQuery}
     category={category}
