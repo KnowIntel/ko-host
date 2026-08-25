@@ -150,6 +150,7 @@ const draftPageCountByTemplateDesignKey: Record<string, number> = {
 
   "group_trip:dolce": 1,
 
+  "merchant_drop:trash": 3,
 
 
 
