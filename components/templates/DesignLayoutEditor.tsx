@@ -4713,28 +4713,51 @@ function applyFillColor(value: string) {
         return block;
       }
 
-      if (
-        highlightUnifiedStyleTarget ===
-        "block"
-      ) {
-        return {
-          ...block,
+if (
+  highlightUnifiedStyleTarget ===
+  "block"
+) {
+  const isDataCard =
+    (block.data as any).styleVariant ===
+    "data_card";
 
-          appearance: {
-            ...(block.appearance ?? {}),
+  return {
+    ...block,
 
-            backgroundColor:
-              value,
+    appearance: {
+      ...(block.appearance ?? {}),
 
-            /*
-             * If the block was previously transparent,
-             * choosing a fill makes it visible again.
-             */
-            backgroundOpacity:
-              1,
-          },
-        };
-      }
+      backgroundColor:
+        value,
+
+      backgroundOpacity:
+        1,
+    },
+
+    data: {
+      ...block.data,
+
+      /*
+       * Data Card occupies the entire visible Highlight area,
+       * so keep its visible frame synchronized with Block fill.
+       */
+      ...(isDataCard
+        ? {
+            dataCardFrameStyle: {
+              ...((block.data as any)
+                .dataCardFrameStyle ?? {}),
+
+              backgroundColor:
+                value,
+
+              backgroundOpacity:
+                1,
+            },
+          }
+        : {}),
+    },
+  };
+}
 
       return applyHighlightStylePatch(
         block,
@@ -12480,17 +12503,47 @@ selectedBlock?.type === "highlight" ? (
             return block;
           }
 
-          if (highlightUnifiedStyleTarget === "block") {
-            return {
-              ...block,
+if (
+  highlightUnifiedStyleTarget ===
+  "block"
+) {
+  const isDataCard =
+    (block.data as any).styleVariant ===
+    "data_card";
 
-              appearance: {
-                ...(block.appearance ?? {}),
-                backgroundColor: "transparent",
-                backgroundOpacity: 0,
-              },
-            };
+  return {
+    ...block,
+
+    appearance: {
+      ...(block.appearance ?? {}),
+
+      backgroundColor:
+        "transparent",
+
+      backgroundOpacity:
+        0,
+    },
+
+    data: {
+      ...block.data,
+
+      ...(isDataCard
+        ? {
+            dataCardFrameStyle: {
+              ...((block.data as any)
+                .dataCardFrameStyle ?? {}),
+
+              backgroundColor:
+                "transparent",
+
+              backgroundOpacity:
+                0,
+            },
           }
+        : {}),
+    },
+  };
+}
 
           return applyHighlightStylePatch(
             block,
@@ -12636,19 +12689,39 @@ selectedBlock?.type === "highlight" ? (
               return block;
             }
 
-            if (
-              highlightUnifiedStyleTarget ===
-              "block"
-            ) {
-              return {
-                ...block,
+if (
+  highlightUnifiedStyleTarget ===
+  "block"
+) {
+  const isDataCard =
+    (block.data as any).styleVariant ===
+    "data_card";
 
-                appearance: {
-                  ...(block.appearance ?? {}),
-                  backgroundOpacity,
-                },
-              };
-            }
+  return {
+    ...block,
+
+    appearance: {
+      ...(block.appearance ?? {}),
+
+      backgroundOpacity,
+    },
+
+    data: {
+      ...block.data,
+
+      ...(isDataCard
+        ? {
+            dataCardFrameStyle: {
+              ...((block.data as any)
+                .dataCardFrameStyle ?? {}),
+
+              backgroundOpacity,
+            },
+          }
+        : {}),
+    },
+  };
+}
 
             return applyHighlightStylePatch(
               block,
