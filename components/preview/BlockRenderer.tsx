@@ -12206,11 +12206,16 @@ function renderPoll(
       data.imageFrameStyle ?? {};
 
     const selectionIndicatorStyle =
-      data.selectionIndicatorStyle ??
-      {};
+      data.selectionIndicatorStyle ?? {};
 
     const submitButtonStyle =
       data.submitButtonStyle ?? {};
+
+    /*
+     * ================================================================
+     * SELECTION INDICATOR
+     * ================================================================
+     */
 
     const indicatorSize =
       Math.max(
@@ -12254,6 +12259,50 @@ function renderPoll(
           "#C9922E",
       );
 
+    /*
+     * 50 / 50 is the indicator's original position.
+     *
+     * The values are converted into translation percentages so
+     * owners can move the indicator left/right and up/down without
+     * removing it from the normal card layout.
+     */
+
+    const indicatorPositionX =
+      Math.max(
+        0,
+        Math.min(
+          100,
+          Number(
+            selectionIndicatorStyle.positionX ??
+              50,
+          ),
+        ),
+      );
+
+    const indicatorPositionY =
+      Math.max(
+        0,
+        Math.min(
+          100,
+          Number(
+            selectionIndicatorStyle.positionY ??
+              50,
+          ),
+        ),
+      );
+
+    const indicatorTranslateX =
+      indicatorPositionX - 50;
+
+    const indicatorTranslateY =
+      indicatorPositionY - 50;
+
+    /*
+     * ================================================================
+     * IMAGE SETTINGS
+     * ================================================================
+     */
+
     const optionImageAspect =
       data.optionImageAspect === "square"
         ? "square"
@@ -12262,11 +12311,18 @@ function renderPoll(
           ? "landscape"
           : "portrait";
 
+    /*
+     * Inspector now exposes 40–100%.
+     *
+     * Clamp old saved values above 100 so existing blueprints
+     * remain safe.
+     */
+
     const optionImageSizePercent =
       Math.max(
         40,
         Math.min(
-          140,
+          100,
           Number(
             data.optionImageSizePercent ??
               100,
@@ -12298,6 +12354,24 @@ function renderPoll(
             "landscape"
           ? "aspect-[4/3]"
           : "aspect-[3/4]";
+
+    /*
+     * ================================================================
+     * SUBMIT BUTTON SETTINGS
+     * ================================================================
+     */
+
+    const submitButtonPadding =
+      Math.max(
+        4,
+        Math.min(
+          40,
+          Number(
+            submitButtonStyle.padding ??
+              14,
+          ),
+        ),
+      );
 
     /*
      * ================================================================
@@ -12438,6 +12512,7 @@ function renderPoll(
          * Dispatch one event per selected option so the existing
          * single-option listener remains compatible with multi-select.
          */
+
         optionIds.forEach(
           (optionId) => {
             window.dispatchEvent(
@@ -12469,6 +12544,7 @@ function renderPoll(
     /*
      * Simple polls retain their existing immediate-vote behavior.
      */
+
     async function handleSimpleVote(
       optionId: string,
     ) {
@@ -12490,6 +12566,7 @@ function renderPoll(
     /*
      * Showcase waits for the Submit button.
      */
+
     async function handleShowcaseSubmit() {
       if (
         !selectedOptionIds.length
@@ -12644,6 +12721,7 @@ function renderPoll(
         }
       >
         <div className="flex h-full w-full flex-col overflow-y-auto p-4 sm:p-5">
+
           {/* ========================================================== */}
           {/* TITLE FRAME */}
           {/* ========================================================== */}
@@ -12800,6 +12878,23 @@ function renderPoll(
                     ),
                   );
 
+                /*
+                 * Convert 0–100 inspector position into movement around
+                 * the center point.
+                 *
+                 * 0   = negative movement
+                 * 50  = centered
+                 * 100 = positive movement
+                 */
+
+                const imageTranslateX =
+                  (imagePositionX - 50) *
+                  0.5;
+
+                const imageTranslateY =
+                  (imagePositionY - 50) *
+                  0.5;
+
                 return (
                   <button
                     key={
@@ -12862,17 +12957,14 @@ function renderPoll(
 
                     <div
                       className={[
-                        "relative w-full overflow-hidden",
+                        "relative overflow-hidden",
                         imageAspectClass,
                       ].join(
                         " ",
                       )}
                       style={{
                         width:
-                          `${Math.min(
-                            100,
-                            optionImageSizePercent,
-                          )}%`,
+                          `${optionImageSizePercent}%`,
 
                         backgroundColor:
                           imageFrameStyle.backgroundColor ??
@@ -12906,6 +12998,9 @@ function renderPoll(
                                 8,
                             ) || 0
                           }px`,
+
+                        flexShrink:
+                          0,
                       }}
                     >
                       {option.imageUrl ? (
@@ -12918,16 +13013,16 @@ function renderPoll(
                             option.text ||
                             ""
                           }
-                          className="h-full w-full"
+                          className="absolute inset-0 h-full w-full"
                           style={{
                             objectFit:
                               imageObjectFit,
 
                             objectPosition:
-                              `${imagePositionX}% ${imagePositionY}%`,
+                              "center center",
 
                             transform:
-                              `scale(${imageZoom}) rotate(${imageRotation}deg)`,
+                              `translate(${imageTranslateX}%, ${imageTranslateY}%) scale(${imageZoom}) rotate(${imageRotation}deg)`,
 
                             transformOrigin:
                               "center center",
@@ -12937,7 +13032,7 @@ function renderPoll(
                           }}
                         />
                       ) : (
-                        <div className="flex h-full w-full items-center justify-center px-2 text-xs opacity-40">
+                        <div className="absolute inset-0 flex items-center justify-center px-2 text-xs opacity-40">
                           Add image
                         </div>
                       )}
@@ -13011,6 +13106,9 @@ function renderPoll(
                           isSelected
                             ? `0 0 0 3px ${indicatorSelectedColor}33`
                             : undefined,
+
+                        transform:
+                          `translate(${indicatorTranslateX}%, ${indicatorTranslateY}%)`,
 
                         transition:
                           "all 160ms ease",
@@ -13098,7 +13196,7 @@ function renderPoll(
                 selectedOptionIds.length ===
                   0
               }
-              className="inline-flex min-h-11 items-center justify-center px-8 py-2.5 transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex items-center justify-center transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
               style={{
                 backgroundColor:
                   submitSuccess
@@ -13136,6 +13234,31 @@ function renderPoll(
                         10,
                     ) || 0
                   }px`,
+
+                /*
+                 * Inspector Padding Size controls both axes.
+                 *
+                 * Horizontal padding is slightly wider so the
+                 * button retains a natural button proportion.
+                 */
+
+                paddingTop:
+                  `${submitButtonPadding}px`,
+
+                paddingBottom:
+                  `${submitButtonPadding}px`,
+
+                paddingLeft:
+                  `${Math.round(
+                    submitButtonPadding *
+                      2,
+                  )}px`,
+
+                paddingRight:
+                  `${Math.round(
+                    submitButtonPadding *
+                      2,
+                  )}px`,
 
                 ...submitButtonTextStyle,
               }}

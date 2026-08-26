@@ -742,55 +742,67 @@ export function PollInspector({
               </select>
             </div>
 
-            {/* GLOBAL IMAGE SIZE */}
+{/* GLOBAL IMAGE SIZE */}
 
-            <div className="mt-5">
-              <div className="flex items-center justify-between gap-3">
-                <div
-                  className={
-                    inspectorLabelClass()
-                  }
-                >
-                  Choice Image Size
-                </div>
+<div className="mt-5">
+  <div className="flex items-center justify-between gap-3">
+    <div
+      className={
+        inspectorLabelClass()
+      }
+    >
+      Choice Image Size
+    </div>
 
-                <div className="text-xs font-medium text-neutral-500">
-                  {selectedBlock.data
-                    .optionImageSizePercent ??
-                    100}
-                  %
-                </div>
-              </div>
+    <div className="text-xs font-medium text-neutral-500">
+      {Math.min(
+        100,
+        Math.max(
+          40,
+          Number(
+            selectedBlock.data
+              .optionImageSizePercent ??
+              100,
+          ),
+        ),
+      )}
+      %
+    </div>
+  </div>
 
-              <input
-                type="range"
-                min={40}
-                max={140}
-                step={1}
-                value={
-                  selectedBlock.data
-                    .optionImageSizePercent ??
-                  100
-                }
-                onChange={(e) =>
-                  updatePollData({
-                    optionImageSizePercent:
-                      Math.max(
-                        40,
-                        Math.min(
-                          140,
-                          Number(
-                            e.target
-                              .value,
-                          ) ||
-                            100,
-                        ),
-                      ),
-                  })
-                }
-                className="mt-2 w-full"
-              />
-            </div>
+  <input
+    type="range"
+    min={40}
+    max={100}
+    step={1}
+    value={Math.min(
+      100,
+      Math.max(
+        40,
+        Number(
+          selectedBlock.data
+            .optionImageSizePercent ??
+            100,
+        ),
+      ),
+    )}
+    onChange={(e) =>
+      updatePollData({
+        optionImageSizePercent:
+          Math.max(
+            40,
+            Math.min(
+              100,
+              Number(
+                e.target.value,
+              ) || 100,
+            ),
+          ),
+      })
+    }
+    className="mt-2 w-full"
+  />
+</div>
 
             {/* SUBMIT BUTTON */}
 
@@ -1466,6 +1478,102 @@ export function PollInspector({
                 className="mt-2 w-full"
               />
             </div>
+
+            {/* INDICATOR POSITION */}
+
+<div className="mt-5 border-t border-neutral-200 pt-4">
+  <div className="text-sm font-semibold text-neutral-800">
+    Position
+  </div>
+
+  {/* HORIZONTAL POSITION */}
+
+  <div className="mt-4">
+    <div className="flex items-center justify-between gap-3">
+      <div
+        className={
+          inspectorLabelClass()
+        }
+      >
+        Horizontal Position
+      </div>
+
+      <div className="text-xs text-neutral-500">
+        {selectedBlock.data
+          .selectionIndicatorStyle
+          ?.positionX ??
+          50}
+        %
+      </div>
+    </div>
+
+    <input
+      type="range"
+      min={0}
+      max={100}
+      step={1}
+      value={
+        selectedBlock.data
+          .selectionIndicatorStyle
+          ?.positionX ??
+        50
+      }
+      onChange={(e) =>
+        updateSelectionIndicatorStyle({
+          positionX:
+            Number(
+              e.target.value,
+            ),
+        })
+      }
+      className="mt-2 w-full"
+    />
+  </div>
+
+  {/* VERTICAL POSITION */}
+
+  <div className="mt-4">
+    <div className="flex items-center justify-between gap-3">
+      <div
+        className={
+          inspectorLabelClass()
+        }
+      >
+        Vertical Position
+      </div>
+
+      <div className="text-xs text-neutral-500">
+        {selectedBlock.data
+          .selectionIndicatorStyle
+          ?.positionY ??
+          50}
+        %
+      </div>
+    </div>
+
+    <input
+      type="range"
+      min={0}
+      max={100}
+      step={1}
+      value={
+        selectedBlock.data
+          .selectionIndicatorStyle
+          ?.positionY ??
+        50
+      }
+      onChange={(e) =>
+        updateSelectionIndicatorStyle({
+          positionY:
+            Number(
+              e.target.value,
+            ),
+        })
+      }
+      className="mt-2 w-full"
+    />
+  </div>
+</div>
           </div>
 
           {/* ============================================================ */}
@@ -1545,46 +1653,93 @@ export function PollInspector({
               </div>
             </div>
 
-            <div className="mt-4">
-              <div className="flex items-center justify-between gap-3">
-                <div
-                  className={
-                    inspectorLabelClass()
-                  }
-                >
-                  Corner Radius
-                </div>
+{/* CORNER RADIUS */}
 
-                <div className="text-xs text-neutral-500">
-                  {selectedBlock.data
-                    .submitButtonStyle
-                    ?.borderRadius ??
-                    10}
-                  px
-                </div>
-              </div>
+<div className="mt-4">
+  <div className="flex items-center justify-between gap-3">
+    <div
+      className={
+        inspectorLabelClass()
+      }
+    >
+      Corner Radius
+    </div>
 
-              <input
-                type="range"
-                min={0}
-                max={60}
-                value={
-                  selectedBlock.data
-                    .submitButtonStyle
-                    ?.borderRadius ??
-                  10
-                }
-                onChange={(e) =>
-                  updateSubmitButtonStyle({
-                    borderRadius:
-                      Number(
-                        e.target.value,
-                      ),
-                  })
-                }
-                className="mt-2 w-full"
-              />
-            </div>
+    <div className="text-xs text-neutral-500">
+      {selectedBlock.data
+        .submitButtonStyle
+        ?.borderRadius ??
+        10}
+      px
+    </div>
+  </div>
+
+  <input
+    type="range"
+    min={0}
+    max={60}
+    step={1}
+    value={
+      selectedBlock.data
+        .submitButtonStyle
+        ?.borderRadius ??
+      10
+    }
+    onChange={(e) =>
+      updateSubmitButtonStyle({
+        borderRadius:
+          Number(
+            e.target.value,
+          ),
+      })
+    }
+    className="mt-2 w-full"
+  />
+</div>
+
+{/* BUTTON PADDING */}
+
+<div className="mt-4">
+  <div className="flex items-center justify-between gap-3">
+    <div
+      className={
+        inspectorLabelClass()
+      }
+    >
+      Padding Size
+    </div>
+
+    <div className="text-xs text-neutral-500">
+      {selectedBlock.data
+        .submitButtonStyle
+        ?.padding ??
+        14}
+      px
+    </div>
+  </div>
+
+  <input
+    type="range"
+    min={4}
+    max={40}
+    step={1}
+    value={
+      selectedBlock.data
+        .submitButtonStyle
+        ?.padding ??
+      14
+    }
+    onChange={(e) =>
+      updateSubmitButtonStyle({
+        padding:
+          Number(
+            e.target.value,
+          ),
+      })
+    }
+    className="mt-2 w-full"
+  />
+</div>
           </div>
         </>
       ) : null}
