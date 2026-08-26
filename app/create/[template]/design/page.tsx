@@ -151,6 +151,10 @@ const draftPageCountByTemplateDesignKey: Record<string, number> = {
 
   "merchant_drop:trash": 3,
 
+  "surveys:movie": 1,
+
+
+
 
 
 };

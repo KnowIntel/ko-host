@@ -40,6 +40,7 @@ import partyLayouts from "./templates/party_time";
 import mediationLayouts from "./templates/mediation";
 import groupLayouts from "./templates/group_trip";
 import merchantLayouts from "./templates/merchant_drop";
+import surveysLayouts from "./templates/surveys";
 
 
 
@@ -85,6 +86,7 @@ const registry: Record<string, TemplateLayoutRegistry> = {
   group_trip: groupLayouts,
   local_classified_ad: localClassifiedLayouts,
   merchant_drop: merchantLayouts,
+  surveys: surveysLayouts,
 
   
 };
