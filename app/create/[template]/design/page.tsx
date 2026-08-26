@@ -119,7 +119,6 @@ const draftPageCountByTemplateDesignKey: Record<string, number> = {
   "creator_link_hub:studio": 1,
   "creator_link_hub:digital": 1,
 
-
   "guided_tutorial:fabulous": 3,
 
   "election_campaign:city": 3,

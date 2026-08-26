@@ -276,7 +276,36 @@ export type ShowcaseImage = {
 
 export type PollOption = {
   id: string;
+
   text: string;
+
+  /*
+   * ================================================================
+   * SHOWCASE IMAGE
+   * ================================================================
+   */
+
+  imageUrl?: string;
+
+  imageAlt?: string;
+
+  imageStoragePath?: string;
+
+  imageSizeBytes?: number;
+
+  imageOriginalSizeBytes?: number;
+
+  imageMimeType?: string;
+
+  imagePositionX?: number;
+
+  imagePositionY?: number;
+
+  imageZoom?: number;
+
+  imageRotation?: number;
+
+  imageOpacity?: number;
 };
 
 export type FaqItem = {
@@ -743,11 +772,124 @@ export type PaddingBlock = BaseBlock & {
 
 export type PollBlock = BaseBlock & {
   type: "poll";
+
   data: {
+    /*
+     * ================================================================
+     * STYLE VARIANT
+     * ================================================================
+     */
+
+    styleVariant?:
+      | "simple"
+      | "showcase";
+
+    /*
+     * ================================================================
+     * POLL CONTENT
+     * ================================================================
+     */
+
     question: string;
+
     options: PollOption[];
+
+    /*
+     * ================================================================
+     * SELECTION BEHAVIOR
+     * ================================================================
+     */
+
+    selectionMode?:
+      | "single"
+      | "multiple";
+
+    submitButtonText?: string;
+
+    /*
+     * ================================================================
+     * SHOWCASE LAYOUT
+     * ================================================================
+     */
+
+    showTitleFrame?: boolean;
+
+    optionImageAspect?:
+      | "square"
+      | "portrait"
+      | "landscape";
+
+    optionImageSizePercent?: number;
+
+    optionImageFit?:
+      | "clip"
+      | "zoom"
+      | "stretch";
+
+    /*
+     * ================================================================
+     * SHOWCASE APPEARANCE
+     * ================================================================
+     */
+
+    titleFrameStyle?: {
+      backgroundColor?: string;
+      borderColor?: string;
+      borderWidth?: number;
+      borderRadius?: number;
+    };
+
+    optionFrameStyle?: {
+      backgroundColor?: string;
+      borderColor?: string;
+      borderWidth?: number;
+      borderRadius?: number;
+    };
+
+    imageFrameStyle?: {
+      backgroundColor?: string;
+      borderColor?: string;
+      borderWidth?: number;
+      borderRadius?: number;
+    };
+
+    selectionIndicatorStyle?: {
+      size?: number;
+      borderColor?: string;
+      borderWidth?: number;
+      backgroundColor?: string;
+      selectedColor?: string;
+    };
+
+    submitButtonStyle?: {
+      backgroundColor?: string;
+      borderColor?: string;
+      borderWidth?: number;
+      borderRadius?: number;
+    };
+
+    /*
+     * ================================================================
+     * TEXT FORMATTING TARGETS
+     * ================================================================
+     */
+
     style?: TextStyle;
+
+    optionLabelStyle?: TextStyle;
+
+    selectedOptionLabelStyle?: TextStyle;
+
+    submitButtonTextStyle?: TextStyle;
+
+    /*
+     * ================================================================
+     * EXISTING LINKED-BLOCK SUPPORT
+     * ================================================================
+     */
+
     sourceBlockId?: string;
+
     sourceType?: "highlight";
   };
 };
@@ -4885,24 +5027,288 @@ case "cta":
         },
       };
 
-    case "poll":
-      return {
-        id: makeId("poll"),
-        type: "poll",
-        label: "Poll",
-        grid,
-        appearance: createDefaultBlockAppearance(),
-        data: {
-          question: "Your question here",
-          options: [
-            { id: makeId("opt"), text: "Option 1" },
-            { id: makeId("opt"), text: "Option 2" },
-          ],
-          style: createDefaultTextStyle(),
-          sourceBlockId: "",
-          sourceType: "highlight",
-        },
-      };
+case "poll":
+  return {
+    id: makeId("poll"),
+    type: "poll",
+    label: "Poll",
+
+    grid,
+
+    appearance: {
+      ...createDefaultBlockAppearance(),
+
+      backgroundColor: "#FFFFFF",
+
+      borderColor: "#D1D5DB",
+
+      borderWidth: 1,
+
+      borderRadius: 20,
+    },
+
+    data: {
+      /*
+       * ================================================================
+       * STYLE VARIANT
+       * ================================================================
+       */
+
+      styleVariant: "simple",
+
+      /*
+       * ================================================================
+       * POLL CONTENT
+       * ================================================================
+       */
+
+      question:
+        "Your question here",
+
+options: [
+  {
+    id: makeId("opt"),
+
+    text: "Option 1",
+
+    imageUrl: "",
+
+    imageAlt: "",
+
+    imageStoragePath: "",
+
+    imageSizeBytes: 0,
+
+    imageOriginalSizeBytes: 0,
+
+    imageMimeType: "",
+
+    imagePositionX: 50,
+
+    imagePositionY: 50,
+
+    imageZoom: 1,
+
+    imageRotation: 0,
+
+    imageOpacity: 1,
+  },
+
+  {
+    id: makeId("opt"),
+
+    text: "Option 2",
+
+    imageUrl: "",
+
+    imageAlt: "",
+
+    imageStoragePath: "",
+
+    imageSizeBytes: 0,
+
+    imageOriginalSizeBytes: 0,
+
+    imageMimeType: "",
+
+    imagePositionX: 50,
+
+    imagePositionY: 50,
+
+    imageZoom: 1,
+
+    imageRotation: 0,
+
+    imageOpacity: 1,
+  },
+],
+
+      /*
+       * ================================================================
+       * SELECTION BEHAVIOR
+       * ================================================================
+       */
+
+      selectionMode:
+        "single",
+
+      submitButtonText:
+        "Submit Vote",
+
+      /*
+       * ================================================================
+       * SHOWCASE LAYOUT
+       * ================================================================
+       */
+
+      showTitleFrame:
+        true,
+
+      optionImageAspect:
+        "portrait",
+
+      optionImageSizePercent:
+        100,
+
+      optionImageFit:
+        "zoom",
+
+      /*
+       * ================================================================
+       * SHOWCASE APPEARANCE
+       * ================================================================
+       */
+
+      titleFrameStyle: {
+        backgroundColor:
+          "#111111",
+
+        borderColor:
+          "#C9922E",
+
+        borderWidth:
+          1,
+
+        borderRadius:
+          14,
+      },
+
+      optionFrameStyle: {
+        backgroundColor:
+          "transparent",
+
+        borderColor:
+          "#C9922E",
+
+        borderWidth:
+          1,
+
+        borderRadius:
+          12,
+      },
+
+      imageFrameStyle: {
+        backgroundColor:
+          "#111111",
+
+        borderColor:
+          "#C9922E",
+
+        borderWidth:
+          1,
+
+        borderRadius:
+          8,
+      },
+
+      selectionIndicatorStyle: {
+        size:
+          34,
+
+        borderColor:
+          "#FFFFFF",
+
+        borderWidth:
+          2,
+
+        backgroundColor:
+          "transparent",
+
+        selectedColor:
+          "#C9922E",
+      },
+
+      submitButtonStyle: {
+        backgroundColor:
+          "#B91C1C",
+
+        borderColor:
+          "#EF4444",
+
+        borderWidth:
+          1,
+
+        borderRadius:
+          10,
+      },
+
+      /*
+       * ================================================================
+       * TEXT STYLES
+       * ================================================================
+       */
+
+      style: {
+        ...createDefaultTextStyle(),
+
+        fontSize:
+          24,
+
+        bold:
+          true,
+
+        align:
+          "center",
+      },
+
+      optionLabelStyle: {
+        ...createDefaultTextStyle(),
+
+        fontSize:
+          16,
+
+        bold:
+          true,
+
+        align:
+          "center",
+      },
+
+      selectedOptionLabelStyle: {
+        ...createDefaultTextStyle(),
+
+        fontSize:
+          16,
+
+        bold:
+          true,
+
+        align:
+          "center",
+
+        color:
+          "#C9922E",
+      },
+
+      submitButtonTextStyle: {
+        ...createDefaultTextStyle(),
+
+        fontSize:
+          18,
+
+        bold:
+          true,
+
+        align:
+          "center",
+
+        color:
+          "#FFFFFF",
+      },
+
+      /*
+       * ================================================================
+       * EXISTING LINKED-BLOCK SUPPORT
+       * ================================================================
+       */
+
+      sourceBlockId:
+        "",
+
+      sourceType:
+        "highlight",
+    },
+  };
 
 case "rsvp":
   return {

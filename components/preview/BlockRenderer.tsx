@@ -12079,160 +12079,1091 @@ function renderPoll(
   designKey?: string,
   micrositeSlug?: string | null,
 ) {
-function PollPreview() {
-  const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState("");
+  function PollPreview() {
+    const [selectedOptionIds, setSelectedOptionIds] =
+      useState<string[]>([]);
 
-  const data = block.data as any;
+    const [submittedOptionIds, setSubmittedOptionIds] =
+      useState<string[]>([]);
 
-  const questionStyle = getContainerTextStyle(
-    data.questionStyle ?? data.style ?? {},
-    designKey,
-  );
+    const [isSubmitting, setIsSubmitting] =
+      useState(false);
 
-  const optionTextStyle = getContainerTextStyle(
-    data.optionTextStyle ?? {},
-    designKey,
-  );
+    const [submitError, setSubmitError] =
+      useState("");
 
-  const fieldStyle = data.fieldStyle ?? {};
+    const [submitSuccess, setSubmitSuccess] =
+      useState(false);
 
-  const fieldBackgroundColor =
-    fieldStyle.backgroundColor ??
-    data.fieldBackgroundColor ??
-    data.optionBackgroundColor;
+    const data =
+      block.data as any;
 
-  const fieldBorderColor =
-    fieldStyle.borderColor ??
-    data.fieldBorderColor ??
-    data.optionBorderColor ??
-    "#d4d4d4";
+    const styleVariant =
+      data.styleVariant === "showcase"
+        ? "showcase"
+        : "simple";
 
-  const fieldBorderWidth =
-    Number(
-      fieldStyle.borderWidth ??
-        data.fieldBorderWidth ??
-        data.optionBorderWidth ??
+    const isShowcase =
+      styleVariant === "showcase";
+
+    const selectionMode =
+      data.selectionMode === "multiple"
+        ? "multiple"
+        : "single";
+
+    const options: PollOption[] =
+      Array.isArray(data.options)
+        ? data.options
+        : [];
+
+    /*
+     * ================================================================
+     * TEXT STYLES
+     * ================================================================
+     */
+
+    const questionStyle =
+      getContainerTextStyle(
+        data.style ??
+          data.questionStyle ??
+          {},
+        designKey,
+      );
+
+    const optionTextStyle =
+      getContainerTextStyle(
+        data.optionLabelStyle ??
+          data.optionTextStyle ??
+          {},
+        designKey,
+      );
+
+    const selectedOptionTextStyle =
+      getContainerTextStyle(
+        data.selectedOptionLabelStyle ??
+          data.optionLabelStyle ??
+          data.optionTextStyle ??
+          {},
+        designKey,
+      );
+
+    const submitButtonTextStyle =
+      getContainerTextStyle(
+        data.submitButtonTextStyle ??
+          {},
+        designKey,
+      );
+
+    /*
+     * ================================================================
+     * SIMPLE POLL FIELD STYLE
+     * ================================================================
+     */
+
+    const fieldStyle =
+      data.fieldStyle ?? {};
+
+    const fieldBackgroundColor =
+      fieldStyle.backgroundColor ??
+      data.fieldBackgroundColor ??
+      data.optionBackgroundColor;
+
+    const fieldBorderColor =
+      fieldStyle.borderColor ??
+      data.fieldBorderColor ??
+      data.optionBorderColor ??
+      "#d4d4d4";
+
+    const fieldBorderWidth =
+      Number(
+        fieldStyle.borderWidth ??
+          data.fieldBorderWidth ??
+          data.optionBorderWidth ??
+          1,
+      ) || 0;
+
+    const fieldBorderRadius =
+      Number(
+        fieldStyle.borderRadius ??
+          data.fieldBorderRadius ??
+          data.optionBorderRadius ??
+          8,
+      ) || 0;
+
+    /*
+     * ================================================================
+     * SHOWCASE APPEARANCE
+     * ================================================================
+     */
+
+    const titleFrameStyle =
+      data.titleFrameStyle ?? {};
+
+    const optionFrameStyle =
+      data.optionFrameStyle ?? {};
+
+    const imageFrameStyle =
+      data.imageFrameStyle ?? {};
+
+    const selectionIndicatorStyle =
+      data.selectionIndicatorStyle ??
+      {};
+
+    const submitButtonStyle =
+      data.submitButtonStyle ?? {};
+
+    const indicatorSize =
+      Math.max(
+        18,
+        Math.min(
+          72,
+          Number(
+            selectionIndicatorStyle.size ??
+              34,
+          ),
+        ),
+      );
+
+    const indicatorBorderWidth =
+      Math.max(
         1,
-    ) || 0;
+        Math.min(
+          10,
+          Number(
+            selectionIndicatorStyle.borderWidth ??
+              2,
+          ),
+        ),
+      );
 
-  const fieldBorderRadius =
-    Number(
-      fieldStyle.borderRadius ??
-        data.fieldBorderRadius ??
-        data.optionBorderRadius ??
-        8,
-    ) || 0;
+    const indicatorBorderColor =
+      String(
+        selectionIndicatorStyle.borderColor ??
+          "#FFFFFF",
+      );
 
-  async function handleVote(optionId: string) {
-    if (isSubmitting || !micrositeSlug) return;
+    const indicatorBackgroundColor =
+      String(
+        selectionIndicatorStyle.backgroundColor ??
+          "transparent",
+      );
 
-    try {
-      setIsSubmitting(true);
-      setSubmitError("");
+    const indicatorSelectedColor =
+      String(
+        selectionIndicatorStyle.selectedColor ??
+          "#C9922E",
+      );
 
-      const res = await fetch("/api/public/poll/vote", {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-        },
-        body: JSON.stringify({
-          micrositeSlug,
-          pollId: block.id,
-          optionIds: [optionId],
-          company: "",
-        }),
-      });
+    const optionImageAspect =
+      data.optionImageAspect === "square"
+        ? "square"
+        : data.optionImageAspect ===
+            "landscape"
+          ? "landscape"
+          : "portrait";
 
-      const result = await res.json().catch(() => null);
+    const optionImageSizePercent =
+      Math.max(
+        40,
+        Math.min(
+          140,
+          Number(
+            data.optionImageSizePercent ??
+              100,
+          ),
+        ),
+      );
 
-      if (!res.ok) {
-        if (result?.error === "Already voted") {
-          setSubmitError("Already voted");
-          return;
-        }
+    const optionImageFit =
+      data.optionImageFit === "clip"
+        ? "clip"
+        : data.optionImageFit ===
+            "stretch"
+          ? "stretch"
+          : "zoom";
 
-        throw new Error(result?.error || "Vote failed");
+    const imageObjectFit:
+      React.CSSProperties["objectFit"] =
+      optionImageFit === "clip"
+        ? "contain"
+        : optionImageFit ===
+            "stretch"
+          ? "fill"
+          : "cover";
+
+    const imageAspectClass =
+      optionImageAspect === "square"
+        ? "aspect-square"
+        : optionImageAspect ===
+            "landscape"
+          ? "aspect-[4/3]"
+          : "aspect-[3/4]";
+
+    /*
+     * ================================================================
+     * SELECTION
+     * ================================================================
+     */
+
+    function isOptionSelected(
+      optionId: string,
+    ) {
+      return selectedOptionIds.includes(
+        optionId,
+      );
+    }
+
+    function toggleShowcaseOption(
+      optionId: string,
+    ) {
+      if (
+        isSubmitting ||
+        submitSuccess
+      ) {
+        return;
       }
 
-      setSelectedOptionId(optionId);
+      setSubmitError("");
 
-      window.dispatchEvent(
-        new CustomEvent("ko-host-poll-vote", {
-          detail: {
-            pollBlockId: block.id,
-            optionId,
-          },
-        }),
+      if (
+        selectionMode === "single"
+      ) {
+        setSelectedOptionIds(
+          [optionId],
+        );
+
+        return;
+      }
+
+      setSelectedOptionIds(
+        (current) =>
+          current.includes(optionId)
+            ? current.filter(
+                (id) =>
+                  id !== optionId,
+              )
+            : [
+                ...current,
+                optionId,
+              ],
       );
-    } catch (error) {
-      setSubmitError(
-        error instanceof Error ? error.message : "Vote failed",
-      );
-    } finally {
-      setIsSubmitting(false);
     }
-  }
 
-  return (
-    <Surface
-      block={block}
-      designKey={designKey}
-      className={getSoftSurfaceClass(designKey)}
-    >
-      <div style={questionStyle}>
-        {data.question || "Poll"}
-      </div>
+    /*
+     * ================================================================
+     * VOTE SUBMISSION
+     * ================================================================
+     */
 
-      <div className="mt-3 space-y-2">
-        {data.options.map((option: PollOption) => {
-          const isSelected = selectedOptionId === option.id;
+    async function submitVote(
+      optionIds: string[],
+    ) {
+      if (
+        isSubmitting ||
+        !micrositeSlug ||
+        !optionIds.length
+      ) {
+        return;
+      }
 
-          return (
+      try {
+        setIsSubmitting(true);
+        setSubmitError("");
+        setSubmitSuccess(false);
+
+        const res =
+          await fetch(
+            "/api/public/poll/vote",
+            {
+              method: "POST",
+
+              headers: {
+                "content-type":
+                  "application/json",
+              },
+
+              body:
+                JSON.stringify({
+                  micrositeSlug,
+
+                  pollId:
+                    block.id,
+
+                  optionIds,
+
+                  company:
+                    "",
+                }),
+            },
+          );
+
+        const result =
+          await res
+            .json()
+            .catch(
+              () => null,
+            );
+
+        if (!res.ok) {
+          if (
+            result?.error ===
+            "Already voted"
+          ) {
+            setSubmitError(
+              "Already voted",
+            );
+
+            return;
+          }
+
+          throw new Error(
+            result?.error ||
+              "Vote failed",
+          );
+        }
+
+        setSubmittedOptionIds(
+          optionIds,
+        );
+
+        setSelectedOptionIds(
+          optionIds,
+        );
+
+        setSubmitSuccess(true);
+
+        /*
+         * Existing Highlight blocks listen for this event.
+         *
+         * Dispatch one event per selected option so the existing
+         * single-option listener remains compatible with multi-select.
+         */
+        optionIds.forEach(
+          (optionId) => {
+            window.dispatchEvent(
+              new CustomEvent(
+                "ko-host-poll-vote",
+                {
+                  detail: {
+                    pollBlockId:
+                      block.id,
+
+                    optionId,
+                  },
+                },
+              ),
+            );
+          },
+        );
+      } catch (error) {
+        setSubmitError(
+          error instanceof Error
+            ? error.message
+            : "Vote failed",
+        );
+      } finally {
+        setIsSubmitting(false);
+      }
+    }
+
+    /*
+     * Simple polls retain their existing immediate-vote behavior.
+     */
+    async function handleSimpleVote(
+      optionId: string,
+    ) {
+      if (
+        submittedOptionIds.length
+      ) {
+        return;
+      }
+
+      setSelectedOptionIds(
+        [optionId],
+      );
+
+      await submitVote(
+        [optionId],
+      );
+    }
+
+    /*
+     * Showcase waits for the Submit button.
+     */
+    async function handleShowcaseSubmit() {
+      if (
+        !selectedOptionIds.length
+      ) {
+        setSubmitError(
+          selectionMode === "multiple"
+            ? "Select at least one choice."
+            : "Select a choice.",
+        );
+
+        return;
+      }
+
+      await submitVote(
+        selectedOptionIds,
+      );
+    }
+
+    /*
+     * ================================================================
+     * SIMPLE
+     * ================================================================
+     */
+
+    if (!isShowcase) {
+      return (
+        <Surface
+          block={block}
+          designKey={designKey}
+          className={
+            getSoftSurfaceClass(
+              designKey,
+            )
+          }
+        >
+          <div
+            style={
+              questionStyle
+            }
+          >
+            {data.question ||
+              "Poll"}
+          </div>
+
+          <div className="mt-3 space-y-2">
+            {options.map(
+              (
+                option:
+                  PollOption,
+              ) => {
+                const isSelected =
+                  selectedOptionIds.includes(
+                    option.id,
+                  );
+
+                return (
+                  <button
+                    key={
+                      option.id
+                    }
+                    type="button"
+                    onClick={() =>
+                      void handleSimpleVote(
+                        option.id,
+                      )
+                    }
+                    disabled={
+                      isSubmitting ||
+                      !micrositeSlug ||
+                      submittedOptionIds.length >
+                        0
+                    }
+                    className={[
+                      "w-full px-3 py-2 text-left transition",
+
+                      "disabled:cursor-not-allowed disabled:opacity-50",
+
+                      submittedOptionIds.length &&
+                      !isSelected
+                        ? "opacity-70"
+                        : "",
+                    ].join(
+                      " ",
+                    )}
+                    style={{
+                      backgroundColor:
+                        fieldBackgroundColor ??
+                        (isSelected
+                          ? "rgba(59,130,246,.10)"
+                          : "transparent"),
+
+                      borderStyle:
+                        fieldBorderWidth >
+                        0
+                          ? "solid"
+                          : "none",
+
+                      borderWidth:
+                        fieldBorderWidth,
+
+                      borderColor:
+                        fieldBorderColor,
+
+                      borderRadius:
+                        fieldBorderRadius,
+
+                      outline:
+                        "none",
+
+                      boxShadow:
+                        "none",
+
+                      appearance:
+                        "none",
+
+                      WebkitAppearance:
+                        "none",
+
+                      ...optionTextStyle,
+                    }}
+                  >
+                    {option.text ||
+                      "Option"}
+                  </button>
+                );
+              },
+            )}
+          </div>
+
+          {submitError ? (
+            <div className="mt-2 text-xs text-red-500">
+              {submitError}
+            </div>
+          ) : null}
+        </Surface>
+      );
+    }
+
+    /*
+     * ================================================================
+     * SHOWCASE
+     * ================================================================
+     */
+
+    return (
+      <div
+        className="h-full w-full overflow-hidden"
+        style={
+          getAppearanceStyle(
+            block,
+          )
+        }
+      >
+        <div className="flex h-full w-full flex-col overflow-y-auto p-4 sm:p-5">
+          {/* ========================================================== */}
+          {/* TITLE FRAME */}
+          {/* ========================================================== */}
+
+          <div
+            className="w-full"
+            style={{
+              backgroundColor:
+                data.showTitleFrame !==
+                false
+                  ? titleFrameStyle.backgroundColor ??
+                    "#111111"
+                  : "transparent",
+
+              borderColor:
+                data.showTitleFrame !==
+                false
+                  ? titleFrameStyle.borderColor ??
+                    "#C9922E"
+                  : "transparent",
+
+              borderWidth:
+                data.showTitleFrame !==
+                false
+                  ? `${
+                      Number(
+                        titleFrameStyle.borderWidth ??
+                          1,
+                      ) || 0
+                    }px`
+                  : "0px",
+
+              borderStyle:
+                data.showTitleFrame !==
+                  false &&
+                Number(
+                  titleFrameStyle.borderWidth ??
+                    1,
+                ) >
+                  0
+                  ? "solid"
+                  : "none",
+
+              borderRadius:
+                data.showTitleFrame !==
+                false
+                  ? `${
+                      Number(
+                        titleFrameStyle.borderRadius ??
+                          14,
+                      ) || 0
+                    }px`
+                  : 0,
+
+              padding:
+                "14px 18px",
+            }}
+          >
+            <div
+              style={
+                questionStyle
+              }
+            >
+              {data.question ||
+                "CAST YOUR VOTE"}
+            </div>
+          </div>
+
+          {/* ========================================================== */}
+          {/* CHOICES */}
+          {/* ========================================================== */}
+
+          <div
+            className={[
+              "mt-5 grid gap-4",
+
+              options.length <= 2
+                ? "grid-cols-2"
+                : options.length ===
+                    3
+                  ? "grid-cols-3"
+                  : "grid-cols-2 sm:grid-cols-4",
+            ].join(
+              " ",
+            )}
+          >
+            {options.map(
+              (
+                option:
+                  PollOption,
+              ) => {
+                const isSelected =
+                  isOptionSelected(
+                    option.id,
+                  );
+
+                const imagePositionX =
+                  Math.max(
+                    0,
+                    Math.min(
+                      100,
+                      Number(
+                        option.imagePositionX ??
+                          50,
+                      ),
+                    ),
+                  );
+
+                const imagePositionY =
+                  Math.max(
+                    0,
+                    Math.min(
+                      100,
+                      Number(
+                        option.imagePositionY ??
+                          50,
+                      ),
+                    ),
+                  );
+
+                const imageZoom =
+                  Math.max(
+                    0.5,
+                    Math.min(
+                      2,
+                      Number(
+                        option.imageZoom ??
+                          1,
+                      ),
+                    ),
+                  );
+
+                const imageRotation =
+                  Math.max(
+                    -180,
+                    Math.min(
+                      180,
+                      Number(
+                        option.imageRotation ??
+                          0,
+                      ),
+                    ),
+                  );
+
+                const imageOpacity =
+                  Math.max(
+                    0,
+                    Math.min(
+                      1,
+                      Number(
+                        option.imageOpacity ??
+                          1,
+                      ),
+                    ),
+                  );
+
+                return (
+                  <button
+                    key={
+                      option.id
+                    }
+                    type="button"
+                    onClick={() =>
+                      toggleShowcaseOption(
+                        option.id,
+                      )
+                    }
+                    disabled={
+                      isSubmitting ||
+                      !micrositeSlug ||
+                      submitSuccess
+                    }
+                    aria-pressed={
+                      isSelected
+                    }
+                    className="flex min-w-0 flex-col items-center text-center outline-none transition disabled:cursor-not-allowed"
+                    style={{
+                      backgroundColor:
+                        optionFrameStyle.backgroundColor ??
+                        "transparent",
+
+                      borderColor:
+                        optionFrameStyle.borderColor ??
+                        "#C9922E",
+
+                      borderWidth:
+                        `${
+                          Number(
+                            optionFrameStyle.borderWidth ??
+                              1,
+                          ) || 0
+                        }px`,
+
+                      borderStyle:
+                        Number(
+                          optionFrameStyle.borderWidth ??
+                            1,
+                        ) >
+                        0
+                          ? "solid"
+                          : "none",
+
+                      borderRadius:
+                        `${
+                          Number(
+                            optionFrameStyle.borderRadius ??
+                              12,
+                          ) || 0
+                        }px`,
+
+                      padding:
+                        "10px",
+                    }}
+                  >
+                    {/* IMAGE FRAME */}
+
+                    <div
+                      className={[
+                        "relative w-full overflow-hidden",
+                        imageAspectClass,
+                      ].join(
+                        " ",
+                      )}
+                      style={{
+                        width:
+                          `${Math.min(
+                            100,
+                            optionImageSizePercent,
+                          )}%`,
+
+                        backgroundColor:
+                          imageFrameStyle.backgroundColor ??
+                          "#111111",
+
+                        borderColor:
+                          imageFrameStyle.borderColor ??
+                          "#C9922E",
+
+                        borderWidth:
+                          `${
+                            Number(
+                              imageFrameStyle.borderWidth ??
+                                1,
+                            ) || 0
+                          }px`,
+
+                        borderStyle:
+                          Number(
+                            imageFrameStyle.borderWidth ??
+                              1,
+                          ) >
+                          0
+                            ? "solid"
+                            : "none",
+
+                        borderRadius:
+                          `${
+                            Number(
+                              imageFrameStyle.borderRadius ??
+                                8,
+                            ) || 0
+                          }px`,
+                      }}
+                    >
+                      {option.imageUrl ? (
+                        <img
+                          src={
+                            option.imageUrl
+                          }
+                          alt={
+                            option.imageAlt ||
+                            option.text ||
+                            ""
+                          }
+                          className="h-full w-full"
+                          style={{
+                            objectFit:
+                              imageObjectFit,
+
+                            objectPosition:
+                              `${imagePositionX}% ${imagePositionY}%`,
+
+                            transform:
+                              `scale(${imageZoom}) rotate(${imageRotation}deg)`,
+
+                            transformOrigin:
+                              "center center",
+
+                            opacity:
+                              imageOpacity,
+                          }}
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center px-2 text-xs opacity-40">
+                          Add image
+                        </div>
+                      )}
+
+                      {/* SELECTED IMAGE TREATMENT */}
+
+                      {isSelected ? (
+                        <div
+                          className="pointer-events-none absolute inset-0"
+                          style={{
+                            boxShadow:
+                              `inset 0 0 0 3px ${indicatorSelectedColor}`,
+                          }}
+                        />
+                      ) : null}
+                    </div>
+
+                    {/* LABEL */}
+
+                    <div
+                      className="mt-3 min-h-[2.5em] w-full"
+                      style={
+                        isSelected
+                          ? selectedOptionTextStyle
+                          : optionTextStyle
+                      }
+                    >
+                      {option.text ||
+                        "Option"}
+                    </div>
+
+                    {/* LARGE SELECTION INDICATOR */}
+
+                    <div
+                      className="mt-3 flex items-center justify-center"
+                      style={{
+                        width:
+                          `${indicatorSize}px`,
+
+                        height:
+                          `${indicatorSize}px`,
+
+                        flexShrink:
+                          0,
+
+                        borderRadius:
+                          selectionMode ===
+                          "single"
+                            ? "9999px"
+                            : Math.max(
+                                4,
+                                Math.round(
+                                  indicatorSize *
+                                    0.18,
+                                ),
+                              ),
+
+                        border:
+                          `${indicatorBorderWidth}px solid ${
+                            isSelected
+                              ? indicatorSelectedColor
+                              : indicatorBorderColor
+                          }`,
+
+                        backgroundColor:
+                          isSelected
+                            ? indicatorSelectedColor
+                            : indicatorBackgroundColor,
+
+                        boxShadow:
+                          isSelected
+                            ? `0 0 0 3px ${indicatorSelectedColor}33`
+                            : undefined,
+
+                        transition:
+                          "all 160ms ease",
+                      }}
+                    >
+                      {isSelected ? (
+                        selectionMode ===
+                        "multiple" ? (
+                          <span
+                            aria-hidden="true"
+                            style={{
+                              color:
+                                "#ffffff",
+
+                              fontSize:
+                                `${Math.max(
+                                  12,
+                                  Math.round(
+                                    indicatorSize *
+                                      0.55,
+                                  ),
+                                )}px`,
+
+                              lineHeight:
+                                1,
+
+                              fontWeight:
+                                800,
+                            }}
+                          >
+                            ✓
+                          </span>
+                        ) : (
+                          <span
+                            aria-hidden="true"
+                            style={{
+                              width:
+                                `${Math.max(
+                                  6,
+                                  Math.round(
+                                    indicatorSize *
+                                      0.34,
+                                  ),
+                                )}px`,
+
+                              height:
+                                `${Math.max(
+                                  6,
+                                  Math.round(
+                                    indicatorSize *
+                                      0.34,
+                                  ),
+                                )}px`,
+
+                              borderRadius:
+                                "9999px",
+
+                              backgroundColor:
+                                "#ffffff",
+                            }}
+                          />
+                        )
+                      ) : null}
+                    </div>
+                  </button>
+                );
+              },
+            )}
+          </div>
+
+          {/* ========================================================== */}
+          {/* SUBMIT */}
+          {/* ========================================================== */}
+
+          <div className="mt-6 flex flex-col items-center">
             <button
-              key={option.id}
               type="button"
-              onClick={() => void handleVote(option.id)}
-              disabled={isSubmitting || !micrositeSlug}
-              className={[
-                "w-full px-3 py-2 text-left transition",
-                "disabled:cursor-not-allowed disabled:opacity-50",
-                selectedOptionId && !isSelected ? "opacity-70" : "",
-              ].join(" ")}
+              onClick={() =>
+                void handleShowcaseSubmit()
+              }
+              disabled={
+                isSubmitting ||
+                !micrositeSlug ||
+                submitSuccess ||
+                selectedOptionIds.length ===
+                  0
+              }
+              className="inline-flex min-h-11 items-center justify-center px-8 py-2.5 transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
               style={{
                 backgroundColor:
-                  fieldBackgroundColor ??
-                  (isSelected ? "rgba(59,130,246,.10)" : "transparent"),
+                  submitSuccess
+                    ? "#16A34A"
+                    : submitButtonStyle.backgroundColor ??
+                      "#B91C1C",
 
-                borderStyle: fieldBorderWidth > 0 ? "solid" : "none",
-                borderWidth: fieldBorderWidth,
-                borderColor: fieldBorderColor,
-                borderRadius: fieldBorderRadius,
+                borderColor:
+                  submitSuccess
+                    ? "#15803D"
+                    : submitButtonStyle.borderColor ??
+                      "#EF4444",
 
-                outline: "none",
-                boxShadow: "none",
+                borderWidth:
+                  `${
+                    Number(
+                      submitButtonStyle.borderWidth ??
+                        1,
+                    ) || 0
+                  }px`,
 
-                appearance: "none",
-                WebkitAppearance: "none",
+                borderStyle:
+                  Number(
+                    submitButtonStyle.borderWidth ??
+                      1,
+                  ) >
+                  0
+                    ? "solid"
+                    : "none",
 
-                ...optionTextStyle,
+                borderRadius:
+                  `${
+                    Number(
+                      submitButtonStyle.borderRadius ??
+                        10,
+                    ) || 0
+                  }px`,
+
+                ...submitButtonTextStyle,
               }}
             >
-              {option.text || "Option"}
+              {isSubmitting
+                ? "Submitting..."
+                : submitSuccess
+                  ? "Vote Submitted"
+                  : data.submitButtonText ||
+                    "Submit Vote"}
             </button>
-          );
-        })}
-      </div>
 
-      {submitError ? (
-        <div className="mt-2 text-xs text-red-500">
-          {submitError}
+            {submitError ? (
+              <div className="mt-2 text-center text-xs text-red-500">
+                {submitError}
+              </div>
+            ) : null}
+
+            {submitSuccess ? (
+              <div className="mt-2 text-center text-xs opacity-70">
+                Thank you for voting.
+              </div>
+            ) : null}
+          </div>
         </div>
-      ) : null}
-    </Surface>
-  );
-}
+      </div>
+    );
+  }
 
   return <PollPreview />;
 }

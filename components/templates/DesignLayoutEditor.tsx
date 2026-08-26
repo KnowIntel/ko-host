@@ -7361,6 +7361,102 @@ return block;
   });
 }
 
+async function uploadPollOptionImage(
+  blockId: string,
+  optionId: string,
+) {
+  await openImagePicker({
+    onSelect: async (files) => {
+      const file = files[0];
+
+      if (!file) {
+        return;
+      }
+
+      const uploaded =
+        await uploadBuilderImageFile(
+          file,
+        );
+
+      setDraft((prev) => ({
+        ...prev,
+
+        blocks: prev.blocks.map(
+          (block) => {
+            if (
+              block.id !== blockId ||
+              block.type !== "poll"
+            ) {
+              return block;
+            }
+
+            return {
+              ...block,
+
+              data: {
+                ...block.data,
+
+                options:
+                  block.data.options.map(
+                    (option) =>
+                      option.id ===
+                      optionId
+                        ? {
+                            ...option,
+
+                            imageUrl:
+                              uploaded.url,
+
+                            imageAlt:
+                              file.name,
+
+                            imageStoragePath:
+                              uploaded.storagePath,
+
+                            imageSizeBytes:
+                              uploaded.imageSizeBytes,
+
+                            imageOriginalSizeBytes:
+                              uploaded.imageOriginalSizeBytes,
+
+                            imageMimeType:
+                              uploaded.imageMimeType,
+
+                            /*
+                             * Preserve existing positioning if replacing
+                             * an image. Otherwise initialize clean defaults.
+                             */
+                            imagePositionX:
+                              option.imagePositionX ??
+                              50,
+
+                            imagePositionY:
+                              option.imagePositionY ??
+                              50,
+
+                            imageZoom:
+                              option.imageZoom ??
+                              1,
+
+                            imageRotation:
+                              option.imageRotation ??
+                              0,
+
+                            imageOpacity:
+                              option.imageOpacity ??
+                              1,
+                          }
+                        : option,
+                  ),
+              },
+            };
+          },
+        ),
+      }));
+    },
+  });
+}
+
 async function uploadListingBadgeImage(
   blockId: string,
 ) {
@@ -13595,21 +13691,69 @@ pageSurfaceStyle={{
 
 {!isMultiSelection && selectedBlock?.type === "poll" ? (
   <PollInspector
-    selectedBlock={selectedBlock}
-    draft={draft}
-    updateSelectedBlock={updateSelectedBlock}
-    makeClientId={makeClientId}
-    pollQuestionInputRef={pollQuestionInputRef}
-    pollOptionInputRefs={pollOptionInputRefs}
-    inspectorCardClass={inspectorCardClass}
-    inspectorLabelClass={inspectorLabelClass}
-    inspectorInputClass={inspectorInputClass}
-    inspectorTextareaClass={inspectorTextareaClass}
-    toolSetButtonClass={toolSetButtonClass}
-    pollTextTarget={pollTextTarget}
-    setPollTextTarget={setPollTextTarget}
-    pollStyleTarget={pollStyleTarget}
-    setPollStyleTarget={setPollStyleTarget}
+    selectedBlock={
+      selectedBlock
+    }
+
+    draft={
+      draft
+    }
+
+    updateSelectedBlock={
+      updateSelectedBlock
+    }
+
+    makeClientId={
+      makeClientId
+    }
+
+    uploadPollOptionImage={
+      uploadPollOptionImage
+    }
+
+    pollTextTarget={
+      pollTextTarget
+    }
+
+    setPollTextTarget={
+      setPollTextTarget
+    }
+
+    pollStyleTarget={
+      pollStyleTarget
+    }
+
+    setPollStyleTarget={
+      setPollStyleTarget
+    }
+
+    pollQuestionInputRef={
+      pollQuestionInputRef
+    }
+
+    pollOptionInputRefs={
+      pollOptionInputRefs
+    }
+
+    inspectorCardClass={
+      inspectorCardClass
+    }
+
+    inspectorLabelClass={
+      inspectorLabelClass
+    }
+
+    inspectorInputClass={
+      inspectorInputClass
+    }
+
+    inspectorTextareaClass={
+      inspectorTextareaClass
+    }
+
+    toolSetButtonClass={
+      toolSetButtonClass
+    }
   />
 ) : null}
 
