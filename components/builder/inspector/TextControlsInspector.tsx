@@ -1,6 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 /**
  * Text controls inspector section
@@ -35,36 +40,133 @@ type TextControlsInspectorProps = {
   inspectorTextareaClass: () => string;
 };
 
-function getTextFxCharacters(text: string) {
-  return Array.from(text || "");
+type TextFxCharacterEntry = {
+  character: string;
+  colorIndex: number;
+  displayIndex: number;
+};
+
+function normalizeTextFxText(
+  text: string,
+) {
+  return String(text || "")
+    .replace(/\r\n/g, "\n")
+    .replace(/\r/g, "\n");
+}
+
+/*
+ * letterColors follows the exact same indexing model as renderTextFx:
+ *
+ * - regular characters consume a color slot
+ * - spaces consume a color slot
+ * - newline characters DO NOT consume a color slot
+ */
+function getTextFxColorCharacters(
+  text: string,
+) {
+  return Array.from(
+    normalizeTextFxText(text),
+  ).filter(
+    (character) =>
+      character !== "\n",
+  );
+}
+
+/*
+ * UI entries exclude spaces and line breaks entirely.
+ *
+ * colorIndex remains the actual index inside letterColors, so hiding
+ * spaces does not shift any saved color assignments.
+ */
+function getVisibleTextFxCharacterEntries(
+  text: string,
+): TextFxCharacterEntry[] {
+  const normalized =
+    normalizeTextFxText(text);
+
+  const entries:
+    TextFxCharacterEntry[] = [];
+
+  let colorIndex = 0;
+  let displayIndex = 0;
+
+  Array.from(normalized).forEach(
+    (character) => {
+      if (character === "\n") {
+        return;
+      }
+
+      if (character !== " ") {
+        entries.push({
+          character,
+          colorIndex,
+          displayIndex,
+        });
+
+        displayIndex += 1;
+      }
+
+      /*
+       * Spaces still advance the saved-color index because the
+       * renderer also counts them.
+       */
+      colorIndex += 1;
+    },
+  );
+
+  return entries;
 }
 
 function getLetterColor(
-  letterColors: string[] | undefined,
+  letterColors:
+    | unknown[]
+    | undefined,
+
   index: number,
+
   fallbackColor: string,
 ) {
-  const value = letterColors?.[index];
+  const value =
+    letterColors?.[index];
 
-  return typeof value === "string" && value.trim()
+  return typeof value === "string" &&
+    value.trim()
     ? value
     : fallbackColor;
 }
 
 function normalizeLetterColors(
   characters: string[],
-  currentColors: string[],
+
+  currentColors:
+    | unknown[],
+
   fallbackColor: string,
 ) {
-  return characters.map((_, index) =>
-    getLetterColor(currentColors, index, fallbackColor),
+  return characters.map(
+    (_, index) =>
+      getLetterColor(
+        currentColors,
+        index,
+        fallbackColor,
+      ),
   );
 }
 
-function arraysMatch(left: string[], right: string[]) {
-  if (left.length !== right.length) return false;
+function arraysMatch(
+  left: string[],
+  right: string[],
+) {
+  if (
+    left.length !== right.length
+  ) {
+    return false;
+  }
 
-  return left.every((value, index) => value === right[index]);
+  return left.every(
+    (value, index) =>
+      value === right[index],
+  );
 }
 
 export function TextControlsInspector({
@@ -85,119 +187,404 @@ export function TextControlsInspector({
       ? String(selectedTextFxBlock.data.text ?? "")
       : "";
 
-  const textFxCharacters = useMemo(
-    () => getTextFxCharacters(textFxText),
+const textFxColorCharacters =
+  useMemo(
+    () =>
+      getTextFxColorCharacters(
+        textFxText,
+      ),
     [textFxText],
   );
 
-  const defaultTextFxColor =
-    selectedTextFxBlock?.data.style?.color ?? "#000000";
+const visibleTextFxCharacters =
+  useMemo(
+    () =>
+      getVisibleTextFxCharacterEntries(
+        textFxText,
+      ),
+    [textFxText],
+  );
 
-  const textFxLetterColors = useMemo(() => {
-    const value = (selectedTextFxBlock?.data.fx as any)?.letterColors;
+const defaultTextFxColor =
+  selectedTextFxBlock?.data.style?.color ??
+  "#000000";
+
+/*
+ * IMPORTANT:
+ * Do not filter this array.
+ *
+ * letterColors is positional data. Removing an invalid/empty entry
+ * would shift every character after it onto the wrong color.
+ */
+const textFxLetterColors =
+  useMemo(() => {
+    const value =
+      (
+        selectedTextFxBlock?.data
+          .fx as any
+      )?.letterColors;
 
     return Array.isArray(value)
-      ? value.filter((color): color is string => typeof color === "string")
+      ? value
       : [];
   }, [selectedTextFxBlock]);
 
-  const normalizedLetterColors = useMemo(
+const normalizedLetterColors =
+  useMemo(
     () =>
       normalizeLetterColors(
-        textFxCharacters,
+        textFxColorCharacters,
         textFxLetterColors,
         defaultTextFxColor,
       ),
-    [textFxCharacters, textFxLetterColors, defaultTextFxColor],
+    [
+      textFxColorCharacters,
+      textFxLetterColors,
+      defaultTextFxColor,
+    ],
   );
 
-  const previousTextRef = useRef(textFxText);
+/*
+ * Selected entries are actual letterColors indexes rather than
+ * display positions. Therefore hidden spaces cannot break selection.
+ */
+const [
+  selectedLetterColorIndexes,
+  setSelectedLetterColorIndexes,
+] = useState<number[]>([]);
 
-  /*
-   * Keep the per-letter color list synchronized whenever characters
-   * are added or removed from the TextFX text.
-   */
-  useEffect(() => {
-    if (selectedTextFxBlock?.type !== "text_fx") {
-      previousTextRef.current = "";
-      return;
-    }
+const [
+  selectedLetterColor,
+  setSelectedLetterColor,
+] = useState(
+  defaultTextFxColor,
+);
 
-    const textChanged = previousTextRef.current !== textFxText;
-    previousTextRef.current = textFxText;
+const isLetterColorDraggingRef =
+  useRef(false);
 
-    if (!textChanged) return;
+const letterColorDragModeRef =
+  useRef<"add" | "remove">(
+    "add",
+  );
 
-    if (!textFxCharacters.length) {
-      if (textFxLetterColors.length) {
-        updateTextFx({
-          letterColors: [],
-        });
-      }
+const previousTextRef =
+  useRef(textFxText);
 
-      return;
-    }
+/*
+ * Keep letterColors synchronized to the renderer's character model.
+ *
+ * Newlines do not consume slots.
+ * Spaces do consume slots, but they remain hidden in the editor UI.
+ */
+useEffect(() => {
+  if (
+    selectedTextFxBlock?.type !==
+    "text_fx"
+  ) {
+    previousTextRef.current =
+      "";
 
-    if (!arraysMatch(textFxLetterColors, normalizedLetterColors)) {
+    setSelectedLetterColorIndexes(
+      [],
+    );
+
+    return;
+  }
+
+  const textChanged =
+    previousTextRef.current !==
+    textFxText;
+
+  previousTextRef.current =
+    textFxText;
+
+  if (!textChanged) {
+    return;
+  }
+
+  if (
+    !textFxColorCharacters.length
+  ) {
+    if (
+      textFxLetterColors.length
+    ) {
       updateTextFx({
-        letterColors: normalizedLetterColors,
+        letterColors: [],
       });
     }
-  }, [
-    selectedTextFxBlock,
-    textFxText,
-    textFxCharacters.length,
-    textFxLetterColors,
-    normalizedLetterColors,
-    updateTextFx,
-  ]);
 
-  function handleTextChange(value: string) {
-    updateTextByCanvasId(selectedContext.blockId, value);
+    setSelectedLetterColorIndexes(
+      [],
+    );
 
-    if (selectedBlock?.type !== "text_fx") return;
+    return;
+  }
 
-    const nextCharacters = getTextFxCharacters(value);
+  if (
+    !arraysMatch(
+      textFxLetterColors.map(
+        (value, index) =>
+          getLetterColor(
+            textFxLetterColors,
+            index,
+            defaultTextFxColor,
+          ),
+      ),
 
-    const nextColors = normalizeLetterColors(
+      normalizedLetterColors,
+    )
+  ) {
+    updateTextFx({
+      letterColors:
+        normalizedLetterColors,
+    });
+  }
+
+  /*
+   * Remove selections that no longer exist after editing the text.
+   */
+  setSelectedLetterColorIndexes(
+    (current) =>
+      current.filter(
+        (index) =>
+          index >= 0 &&
+          index <
+            textFxColorCharacters.length &&
+          textFxColorCharacters[index] !==
+            " ",
+      ),
+  );
+}, [
+  selectedTextFxBlock,
+  textFxText,
+  textFxColorCharacters,
+  textFxLetterColors,
+  normalizedLetterColors,
+  defaultTextFxColor,
+  updateTextFx,
+]);
+
+useEffect(() => {
+  function stopLetterColorDrag() {
+    isLetterColorDraggingRef.current =
+      false;
+  }
+
+  window.addEventListener(
+    "mouseup",
+    stopLetterColorDrag,
+  );
+
+  window.addEventListener(
+    "pointerup",
+    stopLetterColorDrag,
+  );
+
+  return () => {
+    window.removeEventListener(
+      "mouseup",
+      stopLetterColorDrag,
+    );
+
+    window.removeEventListener(
+      "pointerup",
+      stopLetterColorDrag,
+    );
+  };
+}, []);
+
+function handleTextChange(
+  value: string,
+) {
+  updateTextByCanvasId(
+    selectedContext.blockId,
+    value,
+  );
+
+  if (
+    selectedBlock?.type !==
+    "text_fx"
+  ) {
+    return;
+  }
+
+  const nextCharacters =
+    getTextFxColorCharacters(
+      value,
+    );
+
+  const nextColors =
+    normalizeLetterColors(
       nextCharacters,
       textFxLetterColors,
       defaultTextFxColor,
     );
 
-    updateTextFx({
-      letterColors: nextColors,
-    });
+  updateTextFx({
+    letterColors:
+      nextColors,
+  });
+}
+
+function setLetterSelectionState(
+  colorIndex: number,
+  shouldSelect: boolean,
+) {
+  setSelectedLetterColorIndexes(
+    (current) => {
+      const next =
+        new Set(current);
+
+      if (shouldSelect) {
+        next.add(
+          colorIndex,
+        );
+      } else {
+        next.delete(
+          colorIndex,
+        );
+      }
+
+      return Array.from(
+        next,
+      ).sort(
+        (a, b) => a - b,
+      );
+    },
+  );
+}
+
+function handleLetterPointerDown(
+  colorIndex: number,
+) {
+  const alreadySelected =
+    selectedLetterColorIndexes.includes(
+      colorIndex,
+    );
+
+  const nextMode:
+    | "add"
+    | "remove" =
+    alreadySelected
+      ? "remove"
+      : "add";
+
+  letterColorDragModeRef.current =
+    nextMode;
+
+  isLetterColorDraggingRef.current =
+    true;
+
+  setLetterSelectionState(
+    colorIndex,
+    nextMode === "add",
+  );
+}
+
+function handleLetterPointerEnter(
+  colorIndex: number,
+) {
+  if (
+    !isLetterColorDraggingRef.current
+  ) {
+    return;
   }
 
-  function updateTextFxLetterColor(index: number, color: string) {
-    if (
-      index < 0 ||
-      index >= textFxCharacters.length ||
-      textFxCharacters[index] === " "
-    ) {
-      return;
-    }
+  setLetterSelectionState(
+    colorIndex,
+    letterColorDragModeRef.current ===
+      "add",
+  );
+}
 
-    const nextColors = [...normalizedLetterColors];
-    nextColors[index] = color;
+function applyColorToSelectedLetters(
+  color: string,
+) {
+  setSelectedLetterColor(
+    color,
+  );
 
-    updateTextFx({
-      letterColors: nextColors,
-    });
+  if (
+    !selectedLetterColorIndexes.length
+  ) {
+    return;
   }
 
-  function applyOneColorToAllLetters(color: string) {
-    updateTextFx({
-      letterColors: textFxCharacters.map(() => color),
-    });
-  }
+  const nextColors = [
+    ...normalizedLetterColors,
+  ];
 
-  function clearTextFxLetterColors() {
-    updateTextFx({
-      letterColors: [],
-    });
-  }
+  selectedLetterColorIndexes.forEach(
+    (colorIndex) => {
+      if (
+        colorIndex >= 0 &&
+        colorIndex <
+          nextColors.length &&
+        textFxColorCharacters[
+          colorIndex
+        ] !== " "
+      ) {
+        nextColors[
+          colorIndex
+        ] = color;
+      }
+    },
+  );
+
+  updateTextFx({
+    letterColors:
+      nextColors,
+  });
+}
+
+function selectAllVisibleLetters() {
+  setSelectedLetterColorIndexes(
+    visibleTextFxCharacters.map(
+      (entry) =>
+        entry.colorIndex,
+    ),
+  );
+}
+
+function clearLetterSelection() {
+  setSelectedLetterColorIndexes(
+    [],
+  );
+}
+
+function applyOneColorToAllLetters(
+  color: string,
+) {
+  setSelectedLetterColor(
+    color,
+  );
+
+  /*
+   * Preserve spaces in their correct slots even though they are
+   * hidden from the character editor.
+   */
+  updateTextFx({
+    letterColors:
+      textFxColorCharacters.map(
+        () => color,
+      ),
+  });
+}
+
+function clearTextFxLetterColors() {
+  updateTextFx({
+    letterColors: [],
+  });
+
+  setSelectedLetterColorIndexes(
+    [],
+  );
+
+  setSelectedLetterColor(
+    defaultTextFxColor,
+  );
+}
 
   const isEditableTextSelection =
     selectedContext.kind === "pageText" ||
@@ -207,82 +594,271 @@ export function TextControlsInspector({
   return (
     <>
       {isEditableTextSelection ? (
-        <div className={inspectorCardClass()}>
-          <div className={inspectorLabelClass()}>Text</div>
+<div
+  className={
+    inspectorCardClass()
+  }
+>
+  <div
+    className={
+      inspectorLabelClass()
+    }
+  >
+    Character Colors
+  </div>
 
-          <textarea
-            value={selectedTextValue}
-            onChange={(event) => handleTextChange(event.target.value)}
-            className={inspectorTextareaClass()}
-            placeholder="Enter text..."
-          />
+  <div className="mt-2 text-sm text-neutral-600">
+    Click or drag across letters to select them, then choose one color for the entire selection.
+  </div>
 
-          {selectedBlock?.type === "text_fx" ? (
-            <div className="mt-4 grid grid-cols-1 gap-3">
-              <div>
-                <div className={inspectorLabelClass()}>
-                  Horizontal Position
-                </div>
+  {visibleTextFxCharacters.length ? (
+    <>
+      {/* ============================================================ */}
+      {/* CHARACTER PICKER */}
+      {/* ============================================================ */}
 
-                <input
-                  type="range"
-                  min={0}
-                  max={100}
-                  value={selectedBlock.data.positionX ?? 50}
-                  onChange={(event) =>
-                    updateSelectedBlock((block: any) =>
-                      block.type !== "text_fx"
-                        ? block
-                        : {
-                            ...block,
-                            data: {
-                              ...block.data,
-                              positionX: Number(event.target.value),
-                            },
-                          },
-                    )
-                  }
-                  className="mt-2 w-full"
-                />
-
-                <div className="mt-1 text-xs text-neutral-500">
-                  {selectedBlock.data.positionX ?? 50}%
-                </div>
-              </div>
-
-              <div>
-                <div className={inspectorLabelClass()}>
-                  Vertical Position
-                </div>
-
-                <input
-                  type="range"
-                  min={0}
-                  max={100}
-                  value={selectedBlock.data.positionY ?? 50}
-                  onChange={(event) =>
-                    updateSelectedBlock((block: any) =>
-                      block.type !== "text_fx"
-                        ? block
-                        : {
-                            ...block,
-                            data: {
-                              ...block.data,
-                              positionY: Number(event.target.value),
-                            },
-                          },
-                    )
-                  }
-                  className="mt-2 w-full"
-                />
-
-                <div className="mt-1 text-xs text-neutral-500">
-                  {selectedBlock.data.positionY ?? 50}%
-                </div>
-              </div>
+      <div className="mt-4 rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <div
+              className={
+                inspectorLabelClass()
+              }
+            >
+              Select Letters
             </div>
-          ) : null}
+
+            <div className="mt-1 text-xs text-neutral-500">
+              Spaces are hidden automatically.
+            </div>
+          </div>
+
+          <div className="text-xs font-medium text-neutral-500">
+            {
+              selectedLetterColorIndexes.length
+            }{" "}
+            selected
+          </div>
         </div>
+
+        <div
+          className="mt-3 flex flex-wrap gap-1.5"
+          onPointerLeave={() => {
+            if (
+              isLetterColorDraggingRef.current
+            ) {
+              return;
+            }
+          }}
+        >
+          {visibleTextFxCharacters.map(
+            (entry) => {
+              const isSelected =
+                selectedLetterColorIndexes.includes(
+                  entry.colorIndex,
+                );
+
+              const characterColor =
+                getLetterColor(
+                  normalizedLetterColors,
+                  entry.colorIndex,
+                  defaultTextFxColor,
+                );
+
+              return (
+                <button
+                  key={`${entry.colorIndex}-${entry.displayIndex}`}
+                  type="button"
+                  onPointerDown={(
+                    event,
+                  ) => {
+                    event.preventDefault();
+
+                    handleLetterPointerDown(
+                      entry.colorIndex,
+                    );
+                  }}
+                  onPointerEnter={() =>
+                    handleLetterPointerEnter(
+                      entry.colorIndex,
+                    )
+                  }
+                  className={[
+                    "relative flex h-10 min-w-9 select-none items-center justify-center rounded-lg border px-2 text-base font-semibold transition",
+
+                    isSelected
+                      ? "border-neutral-900 bg-neutral-900 text-white shadow-sm"
+                      : "border-neutral-200 bg-white hover:border-neutral-400",
+                  ].join(
+                    " ",
+                  )}
+                  title={`Character ${
+                    entry.displayIndex +
+                    1
+                  }: ${entry.character}`}
+                >
+                  <span
+                    style={{
+                      color:
+                        isSelected
+                          ? undefined
+                          : characterColor,
+                    }}
+                  >
+                    {
+                      entry.character
+                    }
+                  </span>
+
+                  <span
+                    className="absolute bottom-1 left-1 right-1 h-1 rounded-full"
+                    style={{
+                      backgroundColor:
+                        characterColor,
+                    }}
+                  />
+                </button>
+              );
+            },
+          )}
+        </div>
+
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={
+              selectAllVisibleLetters
+            }
+            className="inline-flex h-9 items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 text-xs font-medium text-neutral-700 hover:bg-neutral-100"
+          >
+            Select All
+          </button>
+
+          <button
+            type="button"
+            onClick={
+              clearLetterSelection
+            }
+            disabled={
+              !selectedLetterColorIndexes.length
+            }
+            className="inline-flex h-9 items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 text-xs font-medium text-neutral-700 hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            Clear Selection
+          </button>
+        </div>
+      </div>
+
+      {/* ============================================================ */}
+      {/* APPLY COLOR */}
+      {/* ============================================================ */}
+
+      <div className="mt-3 rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
+        <div className="flex items-center justify-between gap-4">
+          <div className="min-w-0">
+            <div
+              className={
+                inspectorLabelClass()
+              }
+            >
+              Selection Color
+            </div>
+
+            <div className="mt-1 text-xs text-neutral-500">
+              {selectedLetterColorIndexes.length
+                ? `Apply to ${selectedLetterColorIndexes.length} selected ${
+                    selectedLetterColorIndexes.length ===
+                    1
+                      ? "letter"
+                      : "letters"
+                  }.`
+                : "Select one or more letters first."}
+            </div>
+          </div>
+
+          <input
+            type="color"
+            value={
+              selectedLetterColor
+            }
+            disabled={
+              !selectedLetterColorIndexes.length
+            }
+            onChange={(event) =>
+              applyColorToSelectedLetters(
+                event.target.value,
+              )
+            }
+            className={[
+              "h-11 w-16 rounded-xl border border-neutral-300 bg-white p-1",
+
+              selectedLetterColorIndexes.length
+                ? "cursor-pointer"
+                : "cursor-not-allowed opacity-40",
+            ].join(
+              " ",
+            )}
+            title="Apply color to selected letters"
+          />
+        </div>
+      </div>
+
+      {/* ============================================================ */}
+      {/* QUICK ACTIONS */}
+      {/* ============================================================ */}
+
+      <div className="mt-3 rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
+        <div
+          className={
+            inspectorLabelClass()
+          }
+        >
+          Quick Actions
+        </div>
+
+        <div className="mt-3 flex items-center justify-between gap-3">
+          <div>
+            <div className="text-sm font-medium text-neutral-800">
+              One Color for All
+            </div>
+
+            <div className="mt-1 text-xs text-neutral-500">
+              Replace all individual character colors.
+            </div>
+          </div>
+
+          <input
+            type="color"
+            value={
+              defaultTextFxColor
+            }
+            onChange={(event) =>
+              applyOneColorToAllLetters(
+                event.target.value,
+              )
+            }
+            className="h-10 w-14 cursor-pointer rounded-lg border border-neutral-300 bg-white p-1"
+            title="Apply one color to all letters"
+          />
+        </div>
+
+        <button
+          type="button"
+          onClick={
+            clearTextFxLetterColors
+          }
+          className="mt-3 inline-flex h-9 items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 text-xs font-medium text-neutral-700 hover:bg-neutral-100"
+        >
+          Reset to Main Text Color
+        </button>
+      </div>
+    </>
+  ) : (
+    <div className="mt-4 rounded-xl border border-dashed border-neutral-300 bg-neutral-50 px-3 py-4 text-sm text-neutral-500">
+      Enter TextFX text to configure individual character colors.
+    </div>
+  )}
+</div>
       ) : null}
 
       {selectedTextFxBlock ? (
@@ -724,122 +1300,243 @@ onChange={(e) => {
             </div>
           </div>
 
-          <div className={inspectorCardClass()}>
-            <div className={inspectorLabelClass()}>Per-Letter Colors</div>
+<div
+  className={
+    inspectorCardClass()
+  }
+>
+  <div
+    className={
+      inspectorLabelClass()
+    }
+  >
+    Character Colors
+  </div>
 
-            <div className="mt-2 text-sm text-neutral-600">
-              Assign a separate color to each visible character.
+  <div className="mt-2 text-sm text-neutral-600">
+    Click or drag across letters to select them, then choose one color for the entire selection.
+  </div>
+
+  {visibleTextFxCharacters.length ? (
+    <>
+      {/* CHARACTER PICKER */}
+
+      <div className="mt-4 rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <div
+              className={
+                inspectorLabelClass()
+              }
+            >
+              Select Letters
             </div>
 
-            {textFxCharacters.length ? (
-              <>
-                <div className="mt-4 rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <div className={inspectorLabelClass()}>
-                        Apply Color to All
-                      </div>
-
-                      <div className="mt-1 text-xs text-neutral-500">
-                        This replaces all individual character colors.
-                      </div>
-                    </div>
-
-                    <input
-                      type="color"
-                      value={defaultTextFxColor}
-                      onChange={(event) =>
-                        applyOneColorToAllLetters(event.target.value)
-                      }
-                      className="h-10 w-14 cursor-pointer rounded-lg border border-neutral-300 bg-white p-1"
-                      title="Apply one color to all characters"
-                    />
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={clearTextFxLetterColors}
-                    className="mt-3 inline-flex h-9 items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 text-xs font-medium text-neutral-700 hover:bg-neutral-100"
-                  >
-                    Reset to Main Text Color
-                  </button>
-                </div>
-
-                <div className="mt-4 grid grid-cols-2 gap-3">
-                  {textFxCharacters.map((character, index) => {
-                    const isSpace = character === " ";
-                    const isLineBreak =
-                      character === "\n" || character === "\r";
-
-                    const characterColor = getLetterColor(
-                      normalizedLetterColors,
-                      index,
-                      defaultTextFxColor,
-                    );
-
-                    const characterLabel = isSpace
-                      ? "Space"
-                      : isLineBreak
-                        ? "Line break"
-                        : character;
-
-                    const canChooseColor = !isSpace && !isLineBreak;
-
-                    return (
-                      <div
-                        key={`${character}-${index}`}
-                        className="rounded-xl border border-neutral-200 bg-neutral-50 p-3"
-                      >
-                        <div className="flex items-center justify-between gap-3">
-                          <div className="min-w-0">
-                            <div className={inspectorLabelClass()}>
-                              Character {index + 1}
-                            </div>
-
-                            <div
-                              className="mt-2 flex h-10 min-w-10 items-center justify-center rounded-lg border border-neutral-200 bg-white px-2 text-lg font-semibold"
-                              style={{
-                                color: characterColor,
-                              }}
-                            >
-                              {characterLabel}
-                            </div>
-                          </div>
-
-                          <input
-                            type="color"
-                            value={characterColor}
-                            onChange={(event) =>
-                              updateTextFxLetterColor(
-                                index,
-                                event.target.value,
-                              )
-                            }
-                            disabled={!canChooseColor}
-                            className={[
-                              "h-10 w-12 rounded-lg border border-neutral-300 bg-white p-1",
-                              canChooseColor
-                                ? "cursor-pointer"
-                                : "cursor-not-allowed opacity-40",
-                            ].join(" ")}
-                            title={
-                              canChooseColor
-                                ? `Color for character ${index + 1}`
-                                : `${characterLabel} does not display a color`
-                            }
-                          />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </>
-            ) : (
-              <div className="mt-4 rounded-xl border border-dashed border-neutral-300 bg-neutral-50 px-3 py-4 text-sm text-neutral-500">
-                Enter TextFX text to configure individual letter colors.
-              </div>
-            )}
+            <div className="mt-1 text-xs text-neutral-500">
+              Spaces are hidden automatically.
+            </div>
           </div>
+
+          <div className="text-xs font-medium text-neutral-500">
+            {selectedLetterColorIndexes.length} selected
+          </div>
+        </div>
+
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {visibleTextFxCharacters.map(
+            (entry) => {
+              const isSelected =
+                selectedLetterColorIndexes.includes(
+                  entry.colorIndex,
+                );
+
+              const characterColor =
+                getLetterColor(
+                  normalizedLetterColors,
+                  entry.colorIndex,
+                  defaultTextFxColor,
+                );
+
+              return (
+                <button
+                  key={`${entry.colorIndex}-${entry.displayIndex}`}
+                  type="button"
+                  onPointerDown={(event) => {
+                    event.preventDefault();
+
+                    handleLetterPointerDown(
+                      entry.colorIndex,
+                    );
+                  }}
+                  onPointerEnter={() =>
+                    handleLetterPointerEnter(
+                      entry.colorIndex,
+                    )
+                  }
+                  className={[
+                    "relative flex h-10 min-w-9 select-none items-center justify-center rounded-lg border px-2 text-base font-semibold transition",
+
+                    isSelected
+                      ? "border-neutral-900 bg-neutral-900 text-white shadow-sm"
+                      : "border-neutral-200 bg-white hover:border-neutral-400",
+                  ].join(" ")}
+                  title={`Character ${
+                    entry.displayIndex + 1
+                  }: ${entry.character}`}
+                >
+                  <span
+                    style={{
+                      color:
+                        isSelected
+                          ? undefined
+                          : characterColor,
+                    }}
+                  >
+                    {entry.character}
+                  </span>
+
+                  <span
+                    className="absolute bottom-1 left-1 right-1 h-1 rounded-full"
+                    style={{
+                      backgroundColor:
+                        characterColor,
+                    }}
+                  />
+                </button>
+              );
+            },
+          )}
+        </div>
+
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={
+              selectAllVisibleLetters
+            }
+            className="inline-flex h-9 items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 text-xs font-medium text-neutral-700 hover:bg-neutral-100"
+          >
+            Select All
+          </button>
+
+          <button
+            type="button"
+            onClick={
+              clearLetterSelection
+            }
+            disabled={
+              !selectedLetterColorIndexes.length
+            }
+            className="inline-flex h-9 items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 text-xs font-medium text-neutral-700 hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            Clear Selection
+          </button>
+        </div>
+      </div>
+
+      {/* APPLY COLOR */}
+
+      <div className="mt-3 rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
+        <div className="flex items-center justify-between gap-4">
+          <div className="min-w-0">
+            <div
+              className={
+                inspectorLabelClass()
+              }
+            >
+              Selection Color
+            </div>
+
+            <div className="mt-1 text-xs text-neutral-500">
+              {selectedLetterColorIndexes.length
+                ? `Apply to ${selectedLetterColorIndexes.length} selected ${
+                    selectedLetterColorIndexes.length === 1
+                      ? "letter"
+                      : "letters"
+                  }.`
+                : "Select one or more letters first."}
+            </div>
+          </div>
+
+          <input
+            type="color"
+            value={
+              selectedLetterColor
+            }
+            disabled={
+              !selectedLetterColorIndexes.length
+            }
+            onChange={(event) =>
+              applyColorToSelectedLetters(
+                event.target.value,
+              )
+            }
+            className={[
+              "h-11 w-16 rounded-xl border border-neutral-300 bg-white p-1",
+
+              selectedLetterColorIndexes.length
+                ? "cursor-pointer"
+                : "cursor-not-allowed opacity-40",
+            ].join(" ")}
+            title="Apply color to selected letters"
+          />
+        </div>
+      </div>
+
+      {/* QUICK ACTIONS */}
+
+      <div className="mt-3 rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
+        <div
+          className={
+            inspectorLabelClass()
+          }
+        >
+          Quick Actions
+        </div>
+
+        <div className="mt-3 flex items-center justify-between gap-3">
+          <div>
+            <div className="text-sm font-medium text-neutral-800">
+              One Color for All
+            </div>
+
+            <div className="mt-1 text-xs text-neutral-500">
+              Replace all individual character colors.
+            </div>
+          </div>
+
+          <input
+            type="color"
+            value={
+              defaultTextFxColor
+            }
+            onChange={(event) =>
+              applyOneColorToAllLetters(
+                event.target.value,
+              )
+            }
+            className="h-10 w-14 cursor-pointer rounded-lg border border-neutral-300 bg-white p-1"
+            title="Apply one color to all letters"
+          />
+        </div>
+
+        <button
+          type="button"
+          onClick={
+            clearTextFxLetterColors
+          }
+          className="mt-3 inline-flex h-9 items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 text-xs font-medium text-neutral-700 hover:bg-neutral-100"
+        >
+          Reset to Main Text Color
+        </button>
+      </div>
+    </>
+  ) : (
+    <div className="mt-4 rounded-xl border border-dashed border-neutral-300 bg-neutral-50 px-3 py-4 text-sm text-neutral-500">
+      Enter TextFX text to configure individual character colors.
+    </div>
+  )}
+</div>
         </>
       ) : null}
     </>
