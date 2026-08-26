@@ -1245,37 +1245,261 @@ export type HighlightCard = {
 
 export type HighlightBlock = BaseBlock & {
   type: "highlight";
+
   data: {
-    mode?: "top_messages" | "rsvp_count" | "total_funds" | "poll_results";
+    /*
+     * ================================================================
+     * STYLE VARIANT
+     * ================================================================
+     */
+
+    styleVariant?:
+      | "simple"
+      | "data_card";
+
+    /*
+     * ================================================================
+     * EXISTING HIGHLIGHT MODE
+     * ================================================================
+     */
+
+    mode?:
+      | "top_messages"
+      | "rsvp_count"
+      | "total_funds"
+      | "poll_results";
 
     heading?: string;
     subtitle?: string;
+
     showHeading?: boolean;
     showSubtitle?: boolean;
 
     displayStyle?: HighlightDisplayStyle;
+
     rotation?: number;
-    linearDividerStyle?: "none" | "closed_solid" | "open_solid" | "closed_dotted" | "open_dotted";
+
+    linearDividerStyle?:
+      | "none"
+      | "closed_solid"
+      | "open_solid"
+      | "closed_dotted"
+      | "open_dotted";
+
     linearDividerColor?: string;
+
     cardBackgroundColor?: string;
+
     cards?: HighlightCard[];
 
     limit?: number;
+
+    /*
+     * ================================================================
+     * DATA SOURCE
+     * ================================================================
+     *
+     * sourceBlockId
+     *   Linked source block, such as a Poll.
+     *
+     * sourceDataPointId
+     *   Specific result/data point within the linked block.
+     *
+     * For Poll:
+     *   sourceDataPointId = PollOption.id
+     *
+     * This allows multiple Highlight blocks to reference the same Poll
+     * while each card displays a different Poll option.
+     * ================================================================
+     */
+
     sourceBlockId?: string;
+
     sourceFormBlockId?: string;
 
+    sourceType?:
+      | "poll"
+      | "rsvp"
+      | "donation"
+      | "form"
+      | "manual";
+
+    sourceDataPointId?: string;
+
+    /*
+     * Optional saved label for editor/display fallback only.
+     *
+     * The ID remains authoritative so renaming a Poll option does not
+     * break the Highlight relationship.
+     */
+    sourceDataPointLabel?: string;
+
+    /*
+     * ================================================================
+     * LEGACY / MANUAL CONTENT
+     * ================================================================
+     */
+
     label?: string;
+
     value?: string | number;
+
     description?: string;
+
     icon?: string;
 
+    /*
+     * ================================================================
+     * DATA CARD CONTENT
+     * ================================================================
+     */
+
+    unitLabel?: string;
+
+    showPercentage?: boolean;
+
+    /*
+     * Optional owner-defined text shown before/after the calculated
+     * percentage if needed later.
+     */
+    percentagePrefix?: string;
+
+    percentageSuffix?: string;
+
+    /*
+     * ================================================================
+     * DATA CARD IMAGE
+     * ================================================================
+     */
+
+    dataCardImageUrl?: string;
+
+    dataCardImageAlt?: string;
+
+    dataCardImageStoragePath?: string;
+
+    dataCardImageSizeBytes?: number;
+
+    dataCardImageOriginalSizeBytes?: number;
+
+    dataCardImageMimeType?: string;
+
+    dataCardImageFit?:
+      | "clip"
+      | "zoom"
+      | "stretch";
+
+    dataCardImageAspect?:
+      | "square"
+      | "portrait"
+      | "landscape";
+
+    dataCardImageSizePercent?: number;
+
+    dataCardImagePositionX?: number;
+
+    dataCardImagePositionY?: number;
+
+    dataCardImageZoom?: number;
+
+    dataCardImageRotation?: number;
+
+    dataCardImageOpacity?: number;
+
+    /*
+     * ================================================================
+     * DATA CARD PROGRESS BAR
+     * ================================================================
+     */
+
+    showProgressBar?: boolean;
+
+    progressBarHeight?: number;
+
+    progressBarTrackColor?: string;
+
+    progressBarFillColor?: string;
+
+    progressBarBorderColor?: string;
+
+    progressBarBorderWidth?: number;
+
+    progressBarBorderRadius?: number;
+
+    progressBarBackgroundOpacity?: number;
+
+    progressBarFillOpacity?: number;
+
+    /*
+     * ================================================================
+     * DATA CARD FRAME
+     * ================================================================
+     */
+
+    dataCardFrameStyle?: {
+      backgroundColor?: string;
+
+      backgroundOpacity?: number;
+
+      borderColor?: string;
+
+      borderWidth?: number;
+
+      borderRadius?: number;
+
+      padding?: number;
+    };
+
+    dataCardImageFrameStyle?: {
+      backgroundColor?: string;
+
+      backgroundOpacity?: number;
+
+      borderColor?: string;
+
+      borderWidth?: number;
+
+      borderRadius?: number;
+    };
+
+    /*
+     * ================================================================
+     * TEXT FORMATTING
+     * ================================================================
+     */
+
     style?: TextStyle;
+
     headingStyle?: TextStyle;
+
     bodyStyle?: TextStyle;
+
     cardStyle?: TextStyle;
+
     valueStyle?: TextStyle;
+
     labelStyle?: TextStyle;
+
     descriptionStyle?: TextStyle;
+
+    /*
+     * Data Card-specific formatting.
+     */
+
+    dataCardValueStyle?: TextStyle;
+
+    dataCardUnitStyle?: TextStyle;
+
+    dataCardPercentageStyle?: TextStyle;
+
+    dataCardDataPointLabelStyle?: TextStyle;
+
+    /*
+     * ================================================================
+     * LEGACY APPEARANCE
+     * ================================================================
+     */
+
     cardBackgroundOpacity?: number;
   };
 };
@@ -5760,50 +5984,367 @@ actionButtonStyle: {
 case "highlight":
   return {
     id: makeId("highlight"),
+
     type: "highlight",
+
     label: "Highlight",
+
     grid,
+
     appearance: createDefaultBlockAppearance(),
+
     data: {
-      mode: "top_messages",
-      heading: "Highlights",
-      subtitle: "Key details at a glance.",
-      showHeading: true,
-      showSubtitle: false,
-      displayStyle: "grid",
-      rotation: 0,
-      limit: 4,
-      sourceBlockId: "",
-      sourceFormBlockId: "",
-      linearDividerStyle: "closed_solid",
-      linearDividerColor: "rgba(0,0,0,0.14)",
+      /*
+       * ================================================================
+       * STYLE VARIANT
+       * ================================================================
+       */
+
+      styleVariant:
+        "simple",
+
+      /*
+       * ================================================================
+       * EXISTING SIMPLE HIGHLIGHT
+       * ================================================================
+       */
+
+      mode:
+        "top_messages",
+
+      heading:
+        "Highlights",
+
+      subtitle:
+        "Key details at a glance.",
+
+      showHeading:
+        true,
+
+      showSubtitle:
+        false,
+
+      displayStyle:
+        "grid",
+
+      rotation:
+        0,
+
+      limit:
+        4,
+
+      sourceBlockId:
+        "",
+
+      sourceFormBlockId:
+        "",
+
+      sourceType:
+        "manual",
+
+      sourceDataPointId:
+        "",
+
+      sourceDataPointLabel:
+        "",
+
+      linearDividerStyle:
+        "closed_solid",
+
+      linearDividerColor:
+        "rgba(0,0,0,0.14)",
+
       cards: [
         {
-          id: makeId("highlight_card"),
-          type: "manual_stat",
-          label: "Guests",
-          value: "120",
-          suffix: "+",
-          unitLabel: "Guests",
-          linearLabel: "Guests",
-          description: "Expected attendees",
-          showIcon: false,
-          imageUrl: "",
-          linearImageUrl: "",
-          imageSize: 40,
+          id:
+            makeId(
+              "highlight_card",
+            ),
+
+          type:
+            "manual_stat",
+
+          label:
+            "Guests",
+
+          value:
+            "120",
+
+          suffix:
+            "+",
+
+          unitLabel:
+            "Guests",
+
+          linearLabel:
+            "Guests",
+
+          description:
+            "Expected attendees",
+
+          showIcon:
+            false,
+
+          imageUrl:
+            "",
+
+          linearImageUrl:
+            "",
+
+          imageSize:
+            40,
         },
       ],
-      style: createDefaultTextStyle(),
-      headingStyle: createDefaultTextStyle(),
-      bodyStyle: createDefaultTextStyle(),
-      valueStyle: createDefaultTextStyle(),
-      labelStyle: createDefaultTextStyle(),
-      descriptionStyle: createDefaultTextStyle(),
-      cardStyle: createDefaultTextStyle(),
-      cardBackgroundColor: "",
+
+      /*
+       * ================================================================
+       * DATA CARD CONTENT
+       * ================================================================
+       */
+
+      unitLabel:
+        "VOTES",
+
+      showPercentage:
+        true,
+
+      percentagePrefix:
+        "",
+
+      percentageSuffix:
+        "%",
+
+      /*
+       * ================================================================
+       * DATA CARD IMAGE
+       * ================================================================
+       */
+
+      dataCardImageUrl:
+        "",
+
+      dataCardImageAlt:
+        "",
+
+      dataCardImageStoragePath:
+        "",
+
+      dataCardImageSizeBytes:
+        0,
+
+      dataCardImageOriginalSizeBytes:
+        0,
+
+      dataCardImageMimeType:
+        "",
+
+      dataCardImageFit:
+        "zoom",
+
+      dataCardImageAspect:
+        "landscape",
+
+      dataCardImageSizePercent:
+        100,
+
+      dataCardImagePositionX:
+        50,
+
+      dataCardImagePositionY:
+        50,
+
+      dataCardImageZoom:
+        1,
+
+      dataCardImageRotation:
+        0,
+
+      dataCardImageOpacity:
+        1,
+
+      /*
+       * ================================================================
+       * DATA CARD PROGRESS BAR
+       * ================================================================
+       */
+
+      showProgressBar:
+        true,
+
+      progressBarHeight:
+        10,
+
+      progressBarTrackColor:
+        "#2E2E2E",
+
+      progressBarFillColor:
+        "#F3B632",
+
+      progressBarBorderColor:
+        "transparent",
+
+      progressBarBorderWidth:
+        0,
+
+      progressBarBorderRadius:
+        999,
+
+      progressBarBackgroundOpacity:
+        1,
+
+      progressBarFillOpacity:
+        1,
+
+      /*
+       * ================================================================
+       * DATA CARD FRAME
+       * ================================================================
+       */
+
+      dataCardFrameStyle: {
+        backgroundColor:
+          "#111111",
+
+        backgroundOpacity:
+          1,
+
+        borderColor:
+          "#C9922E",
+
+        borderWidth:
+          1,
+
+        borderRadius:
+          14,
+
+        padding:
+          14,
+      },
+
+      dataCardImageFrameStyle: {
+        backgroundColor:
+          "transparent",
+
+        backgroundOpacity:
+          1,
+
+        borderColor:
+          "transparent",
+
+        borderWidth:
+          0,
+
+        borderRadius:
+          8,
+      },
+
+      /*
+       * ================================================================
+       * EXISTING TEXT STYLES
+       * ================================================================
+       */
+
+      style:
+        createDefaultTextStyle(),
+
+      headingStyle:
+        createDefaultTextStyle(),
+
+      bodyStyle:
+        createDefaultTextStyle(),
+
+      valueStyle:
+        createDefaultTextStyle(),
+
+      labelStyle:
+        createDefaultTextStyle(),
+
+      descriptionStyle:
+        createDefaultTextStyle(),
+
+      cardStyle:
+        createDefaultTextStyle(),
+
+      /*
+       * ================================================================
+       * DATA CARD TEXT STYLES
+       * ================================================================
+       */
+
+      dataCardDataPointLabelStyle: {
+        ...createDefaultTextStyle(),
+
+        fontSize:
+          16,
+
+        bold:
+          true,
+
+        align:
+          "center",
+      },
+
+      dataCardValueStyle: {
+        ...createDefaultTextStyle(),
+
+        fontSize:
+          34,
+
+        bold:
+          true,
+
+        align:
+          "center",
+
+        color:
+          "#FFFFFF",
+      },
+
+      dataCardUnitStyle: {
+        ...createDefaultTextStyle(),
+
+        fontSize:
+          14,
+
+        bold:
+          true,
+
+        align:
+          "center",
+
+        color:
+          "#FFFFFF",
+      },
+
+      dataCardPercentageStyle: {
+        ...createDefaultTextStyle(),
+
+        fontSize:
+          28,
+
+        bold:
+          true,
+
+        align:
+          "center",
+
+        color:
+          "#F3B632",
+      },
+
+      /*
+       * ================================================================
+       * LEGACY APPEARANCE
+       * ================================================================
+       */
+
+      cardBackgroundColor:
+        "",
+
+      cardBackgroundOpacity:
+        1,
     },
   };
-
           case "summary":
       return {
         id: makeId("summary"),

@@ -19634,6 +19634,35 @@ function renderHighlight(
     );
     const [refreshKey, setRefreshKey] = useState(0);
 
+/*
+ * ================================================================
+ * DATA CARD RESULT STATE
+ * ================================================================
+ */
+
+const [dataCardCount, setDataCardCount] =
+  useState(0);
+
+const [dataCardTotal, setDataCardTotal] =
+  useState(0);
+
+const [dataCardLoading, setDataCardLoading] =
+  useState(false);
+
+const [dataCardError, setDataCardError] =
+  useState("");
+
+  const data =
+  block.data as any;
+
+const styleVariant =
+  data.styleVariant === "data_card"
+    ? "data_card"
+    : "simple";
+
+const isDataCard =
+  styleVariant === "data_card";
+
     const mode = block.data?.mode || "top_messages";
     const limit = Math.max(1, Math.min(12, Number(block.data?.limit) || 4));
     const rawSourceBlockId = block.data?.sourceBlockId?.trim() || "";
@@ -19757,6 +19786,48 @@ const bodyTextStyle = getContainerTextStyle(
   data.bodyStyle ?? data.style,
   designKey,
 );
+
+/*
+ * ================================================================
+ * DATA CARD TEXT STYLES
+ * ================================================================
+ */
+
+const dataCardDataPointLabelTextStyle =
+  getContainerTextStyle(
+    data.dataCardDataPointLabelStyle ??
+      data.labelStyle ??
+      data.style ??
+      {},
+    designKey,
+  );
+
+const dataCardValueTextStyle =
+  getContainerTextStyle(
+    data.dataCardValueStyle ??
+      data.valueStyle ??
+      data.style ??
+      {},
+    designKey,
+  );
+
+const dataCardUnitTextStyle =
+  getContainerTextStyle(
+    data.dataCardUnitStyle ??
+      data.labelStyle ??
+      data.style ??
+      {},
+    designKey,
+  );
+
+const dataCardPercentageTextStyle =
+  getContainerTextStyle(
+    data.dataCardPercentageStyle ??
+      data.valueStyle ??
+      data.style ??
+      {},
+    designKey,
+  );
 
 const sectionStyle = (data.cardStyle ?? {}) as any;
 const blockStyle = (data.style ?? {}) as any;
@@ -19899,6 +19970,221 @@ card.type === "post_board_discussions"
 
       return Math.max(0, Math.min(100, Math.round((current / goal) * 100)));
     }
+
+    /*
+ * ================================================================
+ * DATA CARD LIVE RESULTS
+ * ================================================================
+ */
+
+useEffect(() => {
+  if (!isDataCard) {
+    return;
+  }
+
+  const sourceBlockId =
+    String(
+      data.sourceBlockId ?? "",
+    ).trim();
+
+  const sourceDataPointId =
+    String(
+      data.sourceDataPointId ?? "",
+    ).trim();
+
+  if (
+    !micrositeSlug ||
+    !sourceBlockId ||
+    !sourceDataPointId
+  ) {
+    setDataCardCount(0);
+    setDataCardTotal(0);
+    setDataCardLoading(false);
+    setDataCardError("");
+
+    return;
+  }
+
+  let cancelled = false;
+
+  async function loadDataCardResult() {
+    try {
+      setDataCardLoading(true);
+      setDataCardError("");
+
+      const params =
+        new URLSearchParams({
+          micrositeSlug:
+            String(
+              micrositeSlug,
+            ),
+
+          pollId:
+            sourceBlockId,
+        });
+
+      const res =
+        await fetch(
+          `/api/public/poll/results?${params.toString()}`,
+          {
+            cache:
+              "no-store",
+          },
+        );
+
+      const result =
+        await res
+          .json()
+          .catch(
+            () => null,
+          );
+
+      if (!res.ok) {
+        throw new Error(
+          result?.error ||
+            "Unable to load results",
+        );
+      }
+
+      const results =
+        Array.isArray(
+          result?.results,
+        )
+          ? result.results
+          : [];
+
+      const selectedResult =
+        results.find(
+          (entry: any) =>
+            String(
+              entry?.optionId ??
+                "",
+            ) ===
+            sourceDataPointId,
+        );
+
+      /*
+       * Prefer the API's total when supplied.
+       *
+       * Fall back to summing option counts so the percentage remains
+       * correct even if an older endpoint response omits total.
+       */
+      const calculatedTotal =
+        results.reduce(
+          (
+            total: number,
+            entry: any,
+          ) =>
+            total +
+            Math.max(
+              0,
+              Number(
+                entry?.count ??
+                  0,
+              ) || 0,
+            ),
+          0,
+        );
+
+      const nextTotal =
+        typeof result?.total ===
+          "number" &&
+        Number.isFinite(
+          result.total,
+        )
+          ? Math.max(
+              0,
+              result.total,
+            )
+          : calculatedTotal;
+
+      const nextCount =
+        Math.max(
+          0,
+          Number(
+            selectedResult?.count ??
+              0,
+          ) || 0,
+        );
+
+      if (cancelled) {
+        return;
+      }
+
+      setDataCardCount(
+        nextCount,
+      );
+
+      setDataCardTotal(
+        nextTotal,
+      );
+    } catch (error) {
+      if (cancelled) {
+        return;
+      }
+
+      setDataCardCount(0);
+      setDataCardTotal(0);
+
+      setDataCardError(
+        error instanceof Error
+          ? error.message
+          : "Unable to load results",
+      );
+    } finally {
+      if (!cancelled) {
+        setDataCardLoading(
+          false,
+        );
+      }
+    }
+  }
+
+  /*
+   * Refresh immediately after a vote is submitted on this page.
+   */
+  function handlePollVote(
+    event: Event,
+  ) {
+    const customEvent =
+      event as CustomEvent<{
+        pollBlockId?: string;
+        optionId?: string;
+      }>;
+
+    if (
+      customEvent.detail
+        ?.pollBlockId !==
+      sourceBlockId
+    ) {
+      return;
+    }
+
+    void loadDataCardResult();
+  }
+
+  void loadDataCardResult();
+
+  window.addEventListener(
+    "ko-host-poll-vote",
+    handlePollVote as EventListener,
+  );
+
+  return () => {
+    cancelled = true;
+
+    window.removeEventListener(
+      "ko-host-poll-vote",
+      handlePollVote as EventListener,
+    );
+  };
+}, [
+  isDataCard,
+  micrositeSlug,
+  data.sourceBlockId,
+  data.sourceDataPointId,
+  refreshKey,
+]);
 
 useEffect(() => {
   if (!useCardRenderer) return;
@@ -20245,6 +20531,650 @@ useEffect(() => {
       refreshKey,
       useCardRenderer,
     ]);
+
+    /*
+ * ================================================================
+ * DATA CARD RENDERER
+ * ================================================================
+ */
+
+if (isDataCard) {
+  const dataPointLabel =
+    String(
+      data.sourceDataPointLabel ??
+        "",
+    ).trim();
+
+  const unitLabel =
+    String(
+      data.unitLabel ??
+        "VOTES",
+    );
+
+  /*
+   * Percentage of all recorded results represented by this
+   * selected data point.
+   */
+  const percentage =
+    dataCardTotal > 0
+      ? Math.max(
+          0,
+          Math.min(
+            100,
+            (dataCardCount /
+              dataCardTotal) *
+              100,
+          ),
+        )
+      : 0;
+
+  const roundedPercentage =
+    Math.round(
+      percentage,
+    );
+
+  const showPercentage =
+    data.showPercentage !==
+    false;
+
+  const showProgressBar =
+    data.showProgressBar !==
+    false;
+
+  /*
+   * ================================================================
+   * CARD FRAME
+   * ================================================================
+   */
+
+  const frameStyle =
+    data.dataCardFrameStyle ??
+    {};
+
+  const frameBackgroundOpacity =
+    Math.max(
+      0,
+      Math.min(
+        1,
+        Number(
+          frameStyle.backgroundOpacity ??
+            1,
+        ),
+      ),
+    );
+
+  const framePadding =
+    Math.max(
+      0,
+      Math.min(
+        40,
+        Number(
+          frameStyle.padding ??
+            14,
+        ),
+      ),
+    );
+
+  /*
+   * ================================================================
+   * IMAGE
+   * ================================================================
+   */
+
+  const imageUrl =
+    String(
+      data.dataCardImageUrl ??
+        "",
+    ).trim();
+
+  const imageAspect =
+    data.dataCardImageAspect ===
+    "square"
+      ? "square"
+      : data.dataCardImageAspect ===
+          "portrait"
+        ? "portrait"
+        : "landscape";
+
+  const imageAspectClass =
+    imageAspect === "square"
+      ? "aspect-square"
+      : imageAspect ===
+          "portrait"
+        ? "aspect-[3/4]"
+        : "aspect-[4/3]";
+
+  const imageSizePercent =
+    Math.max(
+      30,
+      Math.min(
+        100,
+        Number(
+          data.dataCardImageSizePercent ??
+            100,
+        ),
+      ),
+    );
+
+  const imagePositionX =
+    Math.max(
+      0,
+      Math.min(
+        100,
+        Number(
+          data.dataCardImagePositionX ??
+            50,
+        ),
+      ),
+    );
+
+  const imagePositionY =
+    Math.max(
+      0,
+      Math.min(
+        100,
+        Number(
+          data.dataCardImagePositionY ??
+            50,
+        ),
+      ),
+    );
+
+  const imageTranslateX =
+    (imagePositionX - 50) *
+    0.5;
+
+  const imageTranslateY =
+    (imagePositionY - 50) *
+    0.5;
+
+  const imageZoom =
+    Math.max(
+      0.5,
+      Math.min(
+        2,
+        Number(
+          data.dataCardImageZoom ??
+            1,
+        ),
+      ),
+    );
+
+  const imageRotation =
+    Math.max(
+      -180,
+      Math.min(
+        180,
+        Number(
+          data.dataCardImageRotation ??
+            0,
+        ),
+      ),
+    );
+
+  const imageOpacity =
+    Math.max(
+      0,
+      Math.min(
+        1,
+        Number(
+          data.dataCardImageOpacity ??
+            1,
+        ),
+      ),
+    );
+
+  const imageFit:
+    React.CSSProperties["objectFit"] =
+    data.dataCardImageFit ===
+    "clip"
+      ? "contain"
+      : data.dataCardImageFit ===
+          "stretch"
+        ? "fill"
+        : "cover";
+
+  const imageFrameStyle =
+    data.dataCardImageFrameStyle ??
+    {};
+
+  /*
+   * ================================================================
+   * PROGRESS BAR
+   * ================================================================
+   */
+
+  const progressHeight =
+    Math.max(
+      4,
+      Math.min(
+        32,
+        Number(
+          data.progressBarHeight ??
+            10,
+        ),
+      ),
+    );
+
+  const progressRadius =
+    Math.max(
+      0,
+      Number(
+        data.progressBarBorderRadius ??
+          999,
+      ),
+    );
+
+  const progressBorderWidth =
+    Math.max(
+      0,
+      Number(
+        data.progressBarBorderWidth ??
+          0,
+      ),
+    );
+
+  const progressTrackOpacity =
+    Math.max(
+      0,
+      Math.min(
+        1,
+        Number(
+          data.progressBarBackgroundOpacity ??
+            1,
+        ),
+      ),
+    );
+
+  const progressFillOpacity =
+    Math.max(
+      0,
+      Math.min(
+        1,
+        Number(
+          data.progressBarFillOpacity ??
+            1,
+        ),
+      ),
+    );
+
+  const progressTrackColor =
+    hexToRgba(
+      String(
+        data.progressBarTrackColor ??
+          "#2E2E2E",
+      ),
+      progressTrackOpacity,
+    );
+
+  const progressFillColor =
+    hexToRgba(
+      String(
+        data.progressBarFillColor ??
+          "#F3B632",
+      ),
+      progressFillOpacity,
+    );
+
+  const percentagePrefix =
+    String(
+      data.percentagePrefix ??
+        "",
+    );
+
+  const percentageSuffix =
+    String(
+      data.percentageSuffix ??
+        "%",
+    );
+
+  return (
+    <div
+      className="h-full w-full overflow-visible"
+      style={{
+        transform:
+          `rotate(${Number(
+            data.rotation ??
+              0,
+          )}deg)`,
+
+        transformOrigin:
+          "center center",
+      }}
+    >
+      <div
+        className="flex h-full w-full flex-col overflow-hidden"
+        style={{
+          ...getAppearanceStyle(
+            block,
+          ),
+
+          backgroundColor:
+            frameStyle.backgroundColor ===
+            "transparent"
+              ? "transparent"
+              : hexToRgba(
+                  String(
+                    frameStyle.backgroundColor ??
+                      "#111111",
+                  ),
+
+                  frameBackgroundOpacity,
+                ),
+
+          borderColor:
+            frameStyle.borderColor ??
+            "#C9922E",
+
+          borderWidth:
+            `${
+              Math.max(
+                0,
+                Number(
+                  frameStyle.borderWidth ??
+                    1,
+                ),
+              )
+            }px`,
+
+          borderStyle:
+            Number(
+              frameStyle.borderWidth ??
+                1,
+            ) >
+            0
+              ? "solid"
+              : "none",
+
+          borderRadius:
+            `${
+              Math.max(
+                0,
+                Number(
+                  frameStyle.borderRadius ??
+                    14,
+                ),
+              )
+            }px`,
+
+          padding:
+            `${framePadding}px`,
+        }}
+      >
+        {/* ========================================================== */}
+        {/* IMAGE */}
+        {/* ========================================================== */}
+
+        <div className="flex w-full justify-center">
+          <div
+            className={[
+              "relative overflow-hidden",
+              imageAspectClass,
+            ].join(" ")}
+            style={{
+              width:
+                `${imageSizePercent}%`,
+
+              backgroundColor:
+                imageFrameStyle.backgroundColor ??
+                "transparent",
+
+              borderColor:
+                imageFrameStyle.borderColor ??
+                "transparent",
+
+              borderWidth:
+                `${
+                  Math.max(
+                    0,
+                    Number(
+                      imageFrameStyle.borderWidth ??
+                        0,
+                    ),
+                  )
+                }px`,
+
+              borderStyle:
+                Number(
+                  imageFrameStyle.borderWidth ??
+                    0,
+                ) >
+                0
+                  ? "solid"
+                  : "none",
+
+              borderRadius:
+                `${
+                  Math.max(
+                    0,
+                    Number(
+                      imageFrameStyle.borderRadius ??
+                        8,
+                    ),
+                  )
+                }px`,
+            }}
+          >
+            {imageUrl ? (
+              <img
+                src={
+                  imageUrl
+                }
+                alt={
+                  data.dataCardImageAlt ||
+                  dataPointLabel ||
+                  ""
+                }
+                className="absolute inset-0 h-full w-full"
+                style={{
+                  objectFit:
+                    imageFit,
+
+                  objectPosition:
+                    "center center",
+
+                  transform:
+                    `translate(${imageTranslateX}%, ${imageTranslateY}%) scale(${imageZoom}) rotate(${imageRotation}deg)`,
+
+                  transformOrigin:
+                    "center center",
+
+                  opacity:
+                    imageOpacity,
+                }}
+              />
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center border border-dashed border-white/15 text-xs opacity-40">
+                Add image
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ========================================================== */}
+        {/* DATA POINT LABEL */}
+        {/* ========================================================== */}
+
+        {dataPointLabel ? (
+          <div
+            className="mt-3 w-full"
+            style={
+              dataCardDataPointLabelTextStyle
+            }
+          >
+            {dataPointLabel}
+          </div>
+        ) : null}
+
+        {/* ========================================================== */}
+        {/* TOTAL */}
+        {/* ========================================================== */}
+
+        <div
+          className="mt-3 w-full leading-none"
+          style={
+            dataCardValueTextStyle
+          }
+        >
+          {dataCardLoading
+            ? "—"
+            : formatNumber(
+                dataCardCount,
+              )}
+        </div>
+
+        {/* ========================================================== */}
+        {/* UNITS */}
+        {/* ========================================================== */}
+
+        {unitLabel ? (
+          <div
+            className="mt-1 w-full"
+            style={
+              dataCardUnitTextStyle
+            }
+          >
+            {unitLabel}
+          </div>
+        ) : null}
+
+        {/* ========================================================== */}
+        {/* PERCENTAGE */}
+        {/* ========================================================== */}
+
+        {showPercentage ? (
+          <div
+            className="mt-3 w-full leading-none"
+            style={
+              dataCardPercentageTextStyle
+            }
+          >
+            {percentagePrefix}
+            {roundedPercentage}
+            {percentageSuffix}
+          </div>
+        ) : null}
+
+        {/* ========================================================== */}
+        {/* PROGRESS BAR */}
+        {/* ========================================================== */}
+
+        {showProgressBar ? (
+          <div className="mt-4 w-full">
+            <div
+              className="relative w-full overflow-hidden"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={
+                roundedPercentage
+              }
+              aria-label={
+                dataPointLabel
+                  ? `${dataPointLabel}: ${roundedPercentage}%`
+                  : `${roundedPercentage}%`
+              }
+              style={{
+                height:
+                  `${progressHeight}px`,
+
+                backgroundColor:
+                  progressTrackColor,
+
+                border:
+                  progressBorderWidth >
+                  0
+                    ? `${progressBorderWidth}px solid ${
+                        data.progressBarBorderColor ??
+                        "transparent"
+                      }`
+                    : "none",
+
+                borderRadius:
+                  `${progressRadius}px`,
+
+                /*
+                 * Gives the bar the recessed/data-dashboard
+                 * appearance from the reference design.
+                 */
+                boxShadow:
+                  "inset 0 1px 3px rgba(0,0,0,0.28)",
+              }}
+            >
+              <div
+                className="absolute bottom-0 left-0 top-0"
+                style={{
+                  width:
+                    `${percentage}%`,
+
+                  minWidth:
+                    percentage > 0
+                      ? "3px"
+                      : 0,
+
+                  backgroundColor:
+                    progressFillColor,
+
+                  borderRadius:
+                    `${progressRadius}px`,
+
+                  transition:
+                    "width 350ms ease",
+
+                  boxShadow:
+                    percentage >
+                    0
+                      ? "0 0 10px rgba(255,255,255,0.10)"
+                      : undefined,
+                }}
+              />
+
+              {/* subtle highlight on the filled portion */}
+
+              {percentage > 0 ? (
+                <div
+                  className="pointer-events-none absolute left-0 top-0"
+                  style={{
+                    width:
+                      `${percentage}%`,
+
+                    height:
+                      "42%",
+
+                    borderRadius:
+                      `${progressRadius}px`,
+
+                    background:
+                      "linear-gradient(to bottom, rgba(255,255,255,0.28), rgba(255,255,255,0))",
+                  }}
+                />
+              ) : null}
+            </div>
+          </div>
+        ) : null}
+
+        {/* ========================================================== */}
+        {/* STATUS */}
+        {/* ========================================================== */}
+
+        {!data.sourceBlockId ? (
+          <div className="mt-3 text-center text-[11px] opacity-50">
+            Select a linked data block.
+          </div>
+        ) : !data.sourceDataPointId ? (
+          <div className="mt-3 text-center text-[11px] opacity-50">
+            Select a data point.
+          </div>
+        ) : dataCardError ? (
+          <div className="mt-3 text-center text-[11px] text-red-400">
+            {dataCardError}
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 
     return (
 <Surface

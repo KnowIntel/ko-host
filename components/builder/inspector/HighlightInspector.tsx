@@ -60,10 +60,1499 @@ export function HighlightInspector({
   inspectorInputClass,
   toolSetButtonClass,
 }: HighlightInspectorSectionProps) {
+  const styleVariant =
+    selectedBlock?.data?.styleVariant === "data_card"
+      ? "data_card"
+      : "simple";
+
+  const isDataCard =
+    styleVariant === "data_card";
+
+  function updateHighlightData(
+    patch: Record<string, any>,
+  ) {
+    updateSelectedBlock(
+      (block: any) =>
+        block.type !== "highlight"
+          ? block
+          : {
+              ...block,
+
+              data: {
+                ...block.data,
+                ...patch,
+              },
+            },
+    );
+  }
+
+  function updateDataCardFrameStyle(
+    patch: Record<string, any>,
+  ) {
+    updateSelectedBlock(
+      (block: any) =>
+        block.type !== "highlight"
+          ? block
+          : {
+              ...block,
+
+              data: {
+                ...block.data,
+
+                dataCardFrameStyle: {
+                  ...(block.data.dataCardFrameStyle ?? {}),
+                  ...patch,
+                },
+              },
+            },
+    );
+  }
+
+  function updateDataCardImageFrameStyle(
+    patch: Record<string, any>,
+  ) {
+    updateSelectedBlock(
+      (block: any) =>
+        block.type !== "highlight"
+          ? block
+          : {
+              ...block,
+
+              data: {
+                ...block.data,
+
+                dataCardImageFrameStyle: {
+                  ...(block.data.dataCardImageFrameStyle ?? {}),
+                  ...patch,
+                },
+              },
+            },
+    );
+  }
+
+  /*
+   * ================================================================
+   * DATA CARD SOURCE
+   * ================================================================
+   */
+
+  const linkedSourceBlock =
+    (draft.blocks ?? []).find(
+      (block: any) =>
+        block.id ===
+        selectedBlock.data.sourceBlockId,
+    );
+
+  const linkedPoll =
+    linkedSourceBlock?.type === "poll"
+      ? linkedSourceBlock
+      : null;
+
+  const availableDataPoints =
+    linkedPoll &&
+    Array.isArray(linkedPoll.data.options)
+      ? linkedPoll.data.options
+      : [];
+
+  /*
+   * ================================================================
+   * DATA CARD
+   * ================================================================
+   */
+
+  if (isDataCard) {
+    return (
+      <div className="space-y-4">
+        {/* ============================================================ */}
+        {/* HIGHLIGHT */}
+        {/* ============================================================ */}
+
+        <div
+          className={
+            inspectorCardClass()
+          }
+        >
+          <div
+            className={
+              inspectorLabelClass()
+            }
+          >
+            Highlight
+          </div>
+
+          {/* STYLE VARIANT */}
+
+          <div className="mt-4">
+            <div
+              className={
+                inspectorLabelClass()
+              }
+            >
+              Style Variant
+            </div>
+
+            <select
+              value="data_card"
+              onChange={(e) =>
+                updateHighlightData({
+                  styleVariant:
+                    e.target.value ===
+                    "data_card"
+                      ? "data_card"
+                      : "simple",
+                })
+              }
+              className={
+                inspectorInputClass()
+              }
+            >
+              <option value="simple">
+                Simple
+              </option>
+
+              <option value="data_card">
+                Data Card
+              </option>
+            </select>
+          </div>
+
+          {/* FORMATTING */}
+
+          <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+            <div
+              className={
+                inspectorLabelClass()
+              }
+            >
+              Formatting
+            </div>
+
+            <div className="mt-3">
+              <div
+                className={
+                  inspectorLabelClass()
+                }
+              >
+                Text Target
+              </div>
+
+              <select
+                value={
+                  highlightTextTarget
+                }
+                onChange={(e) =>
+                  setHighlightTextTarget(
+                    e.target
+                      .value as HighlightTextTarget,
+                  )
+                }
+                className={
+                  inspectorInputClass()
+                }
+              >
+                <option value="dataCardDataPointLabel">
+                  Data Point Label
+                </option>
+
+                <option value="dataCardValue">
+                  Total
+                </option>
+
+                <option value="dataCardUnit">
+                  Units
+                </option>
+
+                <option value="dataCardPercentage">
+                  Percentage
+                </option>
+              </select>
+            </div>
+
+            <div className="mt-3">
+              <div
+                className={
+                  inspectorLabelClass()
+                }
+              >
+                Style Target
+              </div>
+
+              <select
+                value={
+                  highlightUnifiedStyleTarget
+                }
+                onChange={(e) =>
+                  setHighlightUnifiedStyleTarget(
+                    e.target
+                      .value as HighlightStyleTarget,
+                  )
+                }
+                className={
+                  inspectorInputClass()
+                }
+              >
+                <option value="block">
+                  Block
+                </option>
+
+                <option value="dataCardFrame">
+                  Data Card Frame
+                </option>
+
+                <option value="dataCardImageFrame">
+                  Image Frame
+                </option>
+
+                <option value="dataCardProgressTrack">
+                  Progress Track
+                </option>
+
+                <option value="dataCardProgressFill">
+                  Progress Fill
+                </option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* ============================================================ */}
+        {/* DATA SOURCE */}
+        {/* ============================================================ */}
+
+        <div
+          className={
+            inspectorCardClass()
+          }
+        >
+          <div
+            className={
+              inspectorLabelClass()
+            }
+          >
+            Data Source
+          </div>
+
+          <div className="mt-4">
+            <div
+              className={
+                inspectorLabelClass()
+              }
+            >
+              Linked Block
+            </div>
+
+            <select
+              value={
+                selectedBlock.data
+                  .sourceBlockId ??
+                ""
+              }
+              onChange={(e) => {
+                const nextBlockId =
+                  e.target.value;
+
+                updateHighlightData({
+                  sourceType:
+                    nextBlockId
+                      ? "poll"
+                      : "manual",
+
+                  sourceBlockId:
+                    nextBlockId,
+
+                  /*
+                   * A new source must clear the old data point because
+                   * option IDs belong to their original source block.
+                   */
+                  sourceDataPointId:
+                    "",
+
+                  sourceDataPointLabel:
+                    "",
+                });
+              }}
+              className={
+                inspectorInputClass()
+              }
+            >
+              <option value="">
+                Select a data block...
+              </option>
+
+              {(draft.blocks ?? [])
+                .filter(
+                  (block: any) =>
+                    block.type ===
+                    "poll",
+                )
+                .map(
+                  (pollBlock: any) => (
+                    <option
+                      key={
+                        pollBlock.id
+                      }
+                      value={
+                        pollBlock.id
+                      }
+                    >
+                      {pollBlock.data
+                        ?.question ||
+                        pollBlock.label ||
+                        "Poll"}
+                    </option>
+                  ),
+                )}
+            </select>
+
+            <div className="mt-1 text-xs text-neutral-500">
+              Select the block whose results this card should display.
+            </div>
+          </div>
+
+          {/* DATA POINT */}
+
+          <div className="mt-4">
+            <div
+              className={
+                inspectorLabelClass()
+              }
+            >
+              Data Point
+            </div>
+
+            <select
+              value={
+                selectedBlock.data
+                  .sourceDataPointId ??
+                ""
+              }
+              disabled={
+                !linkedPoll
+              }
+              onChange={(e) => {
+                const nextId =
+                  e.target.value;
+
+                const selectedOption =
+                  availableDataPoints.find(
+                    (option: any) =>
+                      option.id ===
+                      nextId,
+                  );
+
+                updateHighlightData({
+                  sourceDataPointId:
+                    nextId,
+
+                  sourceDataPointLabel:
+                    selectedOption?.text ??
+                    "",
+                });
+              }}
+              className={
+                inspectorInputClass()
+              }
+            >
+              <option value="">
+                {linkedPoll
+                  ? "Select a data point..."
+                  : "Select a linked block first"}
+              </option>
+
+              {availableDataPoints.map(
+                (option: any) => (
+                  <option
+                    key={
+                      option.id
+                    }
+                    value={
+                      option.id
+                    }
+                  >
+                    {option.text ||
+                      "Untitled option"}
+                  </option>
+                ),
+              )}
+            </select>
+
+            <div className="mt-1 text-xs text-neutral-500">
+              Each Highlight can select a different result from the same linked block.
+            </div>
+          </div>
+
+          {/* CURRENT LINK SUMMARY */}
+
+          {selectedBlock.data
+            .sourceDataPointId ? (
+            <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3">
+              <div className="text-xs font-medium text-neutral-500">
+                Displaying
+              </div>
+
+              <div className="mt-1 text-sm font-semibold text-neutral-900">
+                {selectedBlock.data
+                  .sourceDataPointLabel ||
+                  "Selected data point"}
+              </div>
+            </div>
+          ) : null}
+        </div>
+
+        {/* ============================================================ */}
+        {/* DATA CARD CONTENT */}
+        {/* ============================================================ */}
+
+        <div
+          className={
+            inspectorCardClass()
+          }
+        >
+          <div
+            className={
+              inspectorLabelClass()
+            }
+          >
+            Data Card Content
+          </div>
+
+          {/* UNITS */}
+
+          <div className="mt-4">
+            <div
+              className={
+                inspectorLabelClass()
+              }
+            >
+              Units
+            </div>
+
+            <input
+              type="text"
+              value={
+                selectedBlock.data
+                  .unitLabel ??
+                "VOTES"
+              }
+              onChange={(e) =>
+                updateHighlightData({
+                  unitLabel:
+                    e.target.value,
+                })
+              }
+              placeholder="VOTES"
+              className={
+                inspectorInputClass()
+              }
+            />
+
+            <div className="mt-1 text-xs text-neutral-500">
+              Examples: Votes, Responses, Guests, Entries.
+            </div>
+          </div>
+
+          {/* SHOW PERCENTAGE */}
+
+          <label className="mt-4 flex items-center justify-between gap-4 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3">
+            <div>
+              <div className="text-sm font-medium text-neutral-800">
+                Show Percentage
+              </div>
+
+              <div className="mt-1 text-xs text-neutral-500">
+                Display this data point as a percentage of all results.
+              </div>
+            </div>
+
+            <input
+              type="checkbox"
+              checked={
+                selectedBlock.data
+                  .showPercentage !==
+                false
+              }
+              onChange={(e) =>
+                updateHighlightData({
+                  showPercentage:
+                    e.target.checked,
+                })
+              }
+              className="h-4 w-4"
+            />
+          </label>
+
+          {/* SHOW PROGRESS BAR */}
+
+          <label className="mt-3 flex items-center justify-between gap-4 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3">
+            <div>
+              <div className="text-sm font-medium text-neutral-800">
+                Show Progress Bar
+              </div>
+
+              <div className="mt-1 text-xs text-neutral-500">
+                Visualize the selected data point's percentage.
+              </div>
+            </div>
+
+            <input
+              type="checkbox"
+              checked={
+                selectedBlock.data
+                  .showProgressBar !==
+                false
+              }
+              onChange={(e) =>
+                updateHighlightData({
+                  showProgressBar:
+                    e.target.checked,
+                })
+              }
+              className="h-4 w-4"
+            />
+          </label>
+        </div>
+
+        {/* ============================================================ */}
+        {/* DATA CARD IMAGE */}
+        {/* ============================================================ */}
+
+        <div
+          className={
+            inspectorCardClass()
+          }
+        >
+          <div
+            className={
+              inspectorLabelClass()
+            }
+          >
+            Data Card Image
+          </div>
+
+          {/* PREVIEW */}
+
+          {selectedBlock.data
+            .dataCardImageUrl ? (
+            <div className="mt-4 overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50 p-2">
+              <div className="flex min-h-[120px] items-center justify-center">
+                <img
+                  src={
+                    selectedBlock.data
+                      .dataCardImageUrl
+                  }
+                  alt={
+                    selectedBlock.data
+                      .dataCardImageAlt ||
+                    ""
+                  }
+                  className="max-h-40 max-w-full object-contain"
+                />
+              </div>
+            </div>
+          ) : null}
+
+          {/* UPLOAD */}
+
+          <div className="mt-4">
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              onChange={async (e) => {
+                const file =
+                  e.target.files?.[0];
+
+                if (!file) {
+                  return;
+                }
+
+                try {
+                  setEditorUploadError(
+                    "",
+                  );
+
+                  const uploaded =
+                    await uploadBuilderImageFile(
+                      file,
+                    );
+
+                  updateHighlightData({
+                    dataCardImageUrl:
+                      uploaded.url,
+
+                    dataCardImageAlt:
+                      file.name,
+
+                    dataCardImageStoragePath:
+                      uploaded.storagePath,
+
+                    dataCardImageSizeBytes:
+                      uploaded.imageSizeBytes,
+
+                    dataCardImageOriginalSizeBytes:
+                      uploaded.imageOriginalSizeBytes,
+
+                    dataCardImageMimeType:
+                      uploaded.imageMimeType,
+                  });
+                } catch {
+                  setEditorUploadError(
+                    "Highlight image upload failed.",
+                  );
+                } finally {
+                  e.currentTarget.value =
+                    "";
+                }
+              }}
+              className={
+                inspectorInputClass()
+              }
+            />
+
+            {selectedBlock.data
+              .dataCardImageUrl ? (
+              <button
+                type="button"
+                className={`${toolSetButtonClass(
+                  "front",
+                )} mt-2`}
+                onClick={() =>
+                  updateHighlightData({
+                    dataCardImageUrl:
+                      "",
+
+                    dataCardImageAlt:
+                      "",
+
+                    dataCardImageStoragePath:
+                      "",
+
+                    dataCardImageSizeBytes:
+                      0,
+
+                    dataCardImageOriginalSizeBytes:
+                      0,
+
+                    dataCardImageMimeType:
+                      "",
+                  })
+                }
+              >
+                Remove Image
+              </button>
+            ) : null}
+          </div>
+
+          {/* IMAGE ORIENTATION */}
+
+          <div className="mt-4">
+            <div
+              className={
+                inspectorLabelClass()
+              }
+            >
+              Image Orientation
+            </div>
+
+            <select
+              value={
+                selectedBlock.data
+                  .dataCardImageAspect ??
+                "landscape"
+              }
+              onChange={(e) =>
+                updateHighlightData({
+                  dataCardImageAspect:
+                    e.target.value,
+                })
+              }
+              className={
+                inspectorInputClass()
+              }
+            >
+              <option value="landscape">
+                Landscape
+              </option>
+
+              <option value="square">
+                Square
+              </option>
+
+              <option value="portrait">
+                Portrait
+              </option>
+            </select>
+          </div>
+
+          {/* FIT */}
+
+          <div className="mt-4">
+            <div
+              className={
+                inspectorLabelClass()
+              }
+            >
+              Image Fit
+            </div>
+
+            <select
+              value={
+                selectedBlock.data
+                  .dataCardImageFit ??
+                "zoom"
+              }
+              onChange={(e) =>
+                updateHighlightData({
+                  dataCardImageFit:
+                    e.target.value,
+                })
+              }
+              className={
+                inspectorInputClass()
+              }
+            >
+              <option value="zoom">
+                Zoom / Cover
+              </option>
+
+              <option value="clip">
+                Clip / Contain
+              </option>
+
+              <option value="stretch">
+                Stretch
+              </option>
+            </select>
+          </div>
+
+          {/* IMAGE FRAME SIZE */}
+
+          <div className="mt-4">
+            <div className="flex items-center justify-between gap-3">
+              <div
+                className={
+                  inspectorLabelClass()
+                }
+              >
+                Image Size
+              </div>
+
+              <div className="text-xs text-neutral-500">
+                {selectedBlock.data
+                  .dataCardImageSizePercent ??
+                  100}
+                %
+              </div>
+            </div>
+
+            <input
+              type="range"
+              min={30}
+              max={100}
+              step={1}
+              value={
+                selectedBlock.data
+                  .dataCardImageSizePercent ??
+                100
+              }
+              onChange={(e) =>
+                updateHighlightData({
+                  dataCardImageSizePercent:
+                    Number(
+                      e.target.value,
+                    ),
+                })
+              }
+              className="mt-2 w-full"
+            />
+          </div>
+
+          {/* ZOOM */}
+
+          <div className="mt-4">
+            <div className="flex items-center justify-between gap-3">
+              <div
+                className={
+                  inspectorLabelClass()
+                }
+              >
+                Image Zoom
+              </div>
+
+              <div className="text-xs text-neutral-500">
+                {Math.round(
+                  Number(
+                    selectedBlock.data
+                      .dataCardImageZoom ??
+                      1,
+                  ) * 100,
+                )}
+                %
+              </div>
+            </div>
+
+            <input
+              type="range"
+              min={50}
+              max={200}
+              step={1}
+              value={Math.round(
+                Number(
+                  selectedBlock.data
+                    .dataCardImageZoom ??
+                    1,
+                ) * 100,
+              )}
+              onChange={(e) =>
+                updateHighlightData({
+                  dataCardImageZoom:
+                    Number(
+                      e.target.value,
+                    ) / 100,
+                })
+              }
+              className="mt-2 w-full"
+            />
+          </div>
+
+          {/* X */}
+
+          <div className="mt-4">
+            <div className="flex items-center justify-between gap-3">
+              <div
+                className={
+                  inspectorLabelClass()
+                }
+              >
+                Horizontal Position
+              </div>
+
+              <div className="text-xs text-neutral-500">
+                {selectedBlock.data
+                  .dataCardImagePositionX ??
+                  50}
+                %
+              </div>
+            </div>
+
+            <input
+              type="range"
+              min={0}
+              max={100}
+              value={
+                selectedBlock.data
+                  .dataCardImagePositionX ??
+                50
+              }
+              onChange={(e) =>
+                updateHighlightData({
+                  dataCardImagePositionX:
+                    Number(
+                      e.target.value,
+                    ),
+                })
+              }
+              className="mt-2 w-full"
+            />
+          </div>
+
+          {/* Y */}
+
+          <div className="mt-4">
+            <div className="flex items-center justify-between gap-3">
+              <div
+                className={
+                  inspectorLabelClass()
+                }
+              >
+                Vertical Position
+              </div>
+
+              <div className="text-xs text-neutral-500">
+                {selectedBlock.data
+                  .dataCardImagePositionY ??
+                  50}
+                %
+              </div>
+            </div>
+
+            <input
+              type="range"
+              min={0}
+              max={100}
+              value={
+                selectedBlock.data
+                  .dataCardImagePositionY ??
+                50
+              }
+              onChange={(e) =>
+                updateHighlightData({
+                  dataCardImagePositionY:
+                    Number(
+                      e.target.value,
+                    ),
+                })
+              }
+              className="mt-2 w-full"
+            />
+          </div>
+        </div>
+
+        {/* ============================================================ */}
+        {/* DATA CARD FRAME */}
+        {/* ============================================================ */}
+
+        <div
+          className={
+            inspectorCardClass()
+          }
+        >
+          <div
+            className={
+              inspectorLabelClass()
+            }
+          >
+            Data Card Frame
+          </div>
+
+          <div className="mt-4 grid grid-cols-2 gap-3">
+            <div>
+              <div
+                className={
+                  inspectorLabelClass()
+                }
+              >
+                Background
+              </div>
+
+              <input
+                type="color"
+                value={
+                  selectedBlock.data
+                    .dataCardFrameStyle
+                    ?.backgroundColor ??
+                  "#111111"
+                }
+                onChange={(e) =>
+                  updateDataCardFrameStyle({
+                    backgroundColor:
+                      e.target.value,
+                  })
+                }
+                className="h-10 w-full cursor-pointer rounded-xl border border-neutral-200 bg-white p-1"
+              />
+            </div>
+
+            <div>
+              <div
+                className={
+                  inspectorLabelClass()
+                }
+              >
+                Border
+              </div>
+
+              <input
+                type="color"
+                value={
+                  selectedBlock.data
+                    .dataCardFrameStyle
+                    ?.borderColor ??
+                  "#C9922E"
+                }
+                onChange={(e) =>
+                  updateDataCardFrameStyle({
+                    borderColor:
+                      e.target.value,
+                  })
+                }
+                className="h-10 w-full cursor-pointer rounded-xl border border-neutral-200 bg-white p-1"
+              />
+            </div>
+          </div>
+
+          <div className="mt-4">
+            <div className="flex items-center justify-between">
+              <div
+                className={
+                  inspectorLabelClass()
+                }
+              >
+                Border Width
+              </div>
+
+              <div className="text-xs text-neutral-500">
+                {selectedBlock.data
+                  .dataCardFrameStyle
+                  ?.borderWidth ??
+                  1}
+                px
+              </div>
+            </div>
+
+            <input
+              type="range"
+              min={0}
+              max={12}
+              value={
+                selectedBlock.data
+                  .dataCardFrameStyle
+                  ?.borderWidth ??
+                1
+              }
+              onChange={(e) =>
+                updateDataCardFrameStyle({
+                  borderWidth:
+                    Number(
+                      e.target.value,
+                    ),
+                })
+              }
+              className="mt-2 w-full"
+            />
+          </div>
+
+          <div className="mt-4">
+            <div className="flex items-center justify-between">
+              <div
+                className={
+                  inspectorLabelClass()
+                }
+              >
+                Corner Radius
+              </div>
+
+              <div className="text-xs text-neutral-500">
+                {selectedBlock.data
+                  .dataCardFrameStyle
+                  ?.borderRadius ??
+                  14}
+                px
+              </div>
+            </div>
+
+            <input
+              type="range"
+              min={0}
+              max={60}
+              value={
+                selectedBlock.data
+                  .dataCardFrameStyle
+                  ?.borderRadius ??
+                14
+              }
+              onChange={(e) =>
+                updateDataCardFrameStyle({
+                  borderRadius:
+                    Number(
+                      e.target.value,
+                    ),
+                })
+              }
+              className="mt-2 w-full"
+            />
+          </div>
+
+          <div className="mt-4">
+            <div className="flex items-center justify-between">
+              <div
+                className={
+                  inspectorLabelClass()
+                }
+              >
+                Padding
+              </div>
+
+              <div className="text-xs text-neutral-500">
+                {selectedBlock.data
+                  .dataCardFrameStyle
+                  ?.padding ??
+                  14}
+                px
+              </div>
+            </div>
+
+            <input
+              type="range"
+              min={0}
+              max={40}
+              value={
+                selectedBlock.data
+                  .dataCardFrameStyle
+                  ?.padding ??
+                14
+              }
+              onChange={(e) =>
+                updateDataCardFrameStyle({
+                  padding:
+                    Number(
+                      e.target.value,
+                    ),
+                })
+              }
+              className="mt-2 w-full"
+            />
+          </div>
+        </div>
+
+        {/* ============================================================ */}
+        {/* IMAGE FRAME */}
+        {/* ============================================================ */}
+
+        <div
+          className={
+            inspectorCardClass()
+          }
+        >
+          <div
+            className={
+              inspectorLabelClass()
+            }
+          >
+            Image Frame
+          </div>
+
+          <div className="mt-4 grid grid-cols-2 gap-3">
+            <div>
+              <div
+                className={
+                  inspectorLabelClass()
+                }
+              >
+                Background
+              </div>
+
+              <input
+                type="color"
+                value={
+                  selectedBlock.data
+                    .dataCardImageFrameStyle
+                    ?.backgroundColor ===
+                  "transparent"
+                    ? "#ffffff"
+                    : selectedBlock.data
+                          .dataCardImageFrameStyle
+                          ?.backgroundColor ??
+                      "#ffffff"
+                }
+                onChange={(e) =>
+                  updateDataCardImageFrameStyle({
+                    backgroundColor:
+                      e.target.value,
+                  })
+                }
+                className="h-10 w-full cursor-pointer rounded-xl border border-neutral-200 bg-white p-1"
+              />
+            </div>
+
+            <div>
+              <div
+                className={
+                  inspectorLabelClass()
+                }
+              >
+                Border
+              </div>
+
+              <input
+                type="color"
+                value={
+                  selectedBlock.data
+                    .dataCardImageFrameStyle
+                    ?.borderColor ===
+                  "transparent"
+                    ? "#ffffff"
+                    : selectedBlock.data
+                          .dataCardImageFrameStyle
+                          ?.borderColor ??
+                      "#ffffff"
+                }
+                onChange={(e) =>
+                  updateDataCardImageFrameStyle({
+                    borderColor:
+                      e.target.value,
+                  })
+                }
+                className="h-10 w-full cursor-pointer rounded-xl border border-neutral-200 bg-white p-1"
+              />
+            </div>
+          </div>
+
+          <div className="mt-4">
+            <div className="flex items-center justify-between">
+              <div
+                className={
+                  inspectorLabelClass()
+                }
+              >
+                Border Width
+              </div>
+
+              <div className="text-xs text-neutral-500">
+                {selectedBlock.data
+                  .dataCardImageFrameStyle
+                  ?.borderWidth ??
+                  0}
+                px
+              </div>
+            </div>
+
+            <input
+              type="range"
+              min={0}
+              max={12}
+              value={
+                selectedBlock.data
+                  .dataCardImageFrameStyle
+                  ?.borderWidth ??
+                0
+              }
+              onChange={(e) =>
+                updateDataCardImageFrameStyle({
+                  borderWidth:
+                    Number(
+                      e.target.value,
+                    ),
+                })
+              }
+              className="mt-2 w-full"
+            />
+          </div>
+
+          <div className="mt-4">
+            <div className="flex items-center justify-between">
+              <div
+                className={
+                  inspectorLabelClass()
+                }
+              >
+                Corner Radius
+              </div>
+
+              <div className="text-xs text-neutral-500">
+                {selectedBlock.data
+                  .dataCardImageFrameStyle
+                  ?.borderRadius ??
+                  8}
+                px
+              </div>
+            </div>
+
+            <input
+              type="range"
+              min={0}
+              max={60}
+              value={
+                selectedBlock.data
+                  .dataCardImageFrameStyle
+                  ?.borderRadius ??
+                8
+              }
+              onChange={(e) =>
+                updateDataCardImageFrameStyle({
+                  borderRadius:
+                    Number(
+                      e.target.value,
+                    ),
+                })
+              }
+              className="mt-2 w-full"
+            />
+          </div>
+        </div>
+
+        {/* ============================================================ */}
+        {/* PROGRESS BAR */}
+        {/* ============================================================ */}
+
+        <div
+          className={
+            inspectorCardClass()
+          }
+        >
+          <div
+            className={
+              inspectorLabelClass()
+            }
+          >
+            Progress Bar
+          </div>
+
+          <div className="mt-4">
+            <div className="flex items-center justify-between">
+              <div
+                className={
+                  inspectorLabelClass()
+                }
+              >
+                Bar Height
+              </div>
+
+              <div className="text-xs text-neutral-500">
+                {selectedBlock.data
+                  .progressBarHeight ??
+                  10}
+                px
+              </div>
+            </div>
+
+            <input
+              type="range"
+              min={4}
+              max={32}
+              value={
+                selectedBlock.data
+                  .progressBarHeight ??
+                10
+              }
+              onChange={(e) =>
+                updateHighlightData({
+                  progressBarHeight:
+                    Number(
+                      e.target.value,
+                    ),
+                })
+              }
+              className="mt-2 w-full"
+            />
+          </div>
+
+          <div className="mt-4 grid grid-cols-2 gap-3">
+            <div>
+              <div
+                className={
+                  inspectorLabelClass()
+                }
+              >
+                Track Color
+              </div>
+
+              <input
+                type="color"
+                value={
+                  selectedBlock.data
+                    .progressBarTrackColor ??
+                  "#2E2E2E"
+                }
+                onChange={(e) =>
+                  updateHighlightData({
+                    progressBarTrackColor:
+                      e.target.value,
+                  })
+                }
+                className="h-10 w-full cursor-pointer rounded-xl border border-neutral-200 bg-white p-1"
+              />
+            </div>
+
+            <div>
+              <div
+                className={
+                  inspectorLabelClass()
+                }
+              >
+                Fill Color
+              </div>
+
+              <input
+                type="color"
+                value={
+                  selectedBlock.data
+                    .progressBarFillColor ??
+                  "#F3B632"
+                }
+                onChange={(e) =>
+                  updateHighlightData({
+                    progressBarFillColor:
+                      e.target.value,
+                  })
+                }
+                className="h-10 w-full cursor-pointer rounded-xl border border-neutral-200 bg-white p-1"
+              />
+            </div>
+          </div>
+
+          <div className="mt-4">
+            <div className="flex items-center justify-between">
+              <div
+                className={
+                  inspectorLabelClass()
+                }
+              >
+                Corner Radius
+              </div>
+
+              <div className="text-xs text-neutral-500">
+                {selectedBlock.data
+                  .progressBarBorderRadius ??
+                  999}
+                px
+              </div>
+            </div>
+
+            <input
+              type="range"
+              min={0}
+              max={999}
+              value={
+                selectedBlock.data
+                  .progressBarBorderRadius ??
+                999
+              }
+              onChange={(e) =>
+                updateHighlightData({
+                  progressBarBorderRadius:
+                    Number(
+                      e.target.value,
+                    ),
+                })
+              }
+              className="mt-2 w-full"
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={inspectorCardClass()}>
       {/* Highlight */}
     <div className={inspectorLabelClass()}>Highlight</div>
+{/* STYLE VARIANT */}
+
+<div className="mt-4">
+  <div
+    className={
+      inspectorLabelClass()
+    }
+  >
+    Style Variant
+  </div>
+
+  <select
+    value="simple"
+    onChange={(e) =>
+      updateHighlightData({
+        styleVariant:
+          e.target.value ===
+          "data_card"
+            ? "data_card"
+            : "simple",
+      })
+    }
+    className={
+      inspectorInputClass()
+    }
+  >
+    <option value="simple">
+      Simple
+    </option>
+
+    <option value="data_card">
+      Data Card
+    </option>
+  </select>
+</div>
+
 <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
   <div className={inspectorLabelClass()}>Formatting</div>
 
