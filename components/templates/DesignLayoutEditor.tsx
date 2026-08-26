@@ -5528,130 +5528,15 @@ if (selectedBlock?.type === "file_share") {
 }
 
 if (selectedBlockFromDraft?.type === "poll") {
-  updateSelectedBlock((block) => {
-    if (block.type !== "poll") {
-      return block;
-    }
-
-    /*
-     * ================================================================
-     * POLL BLOCK APPEARANCE
-     * ================================================================
-     *
-     * The top-toolbar Fill / Transparency / Border controls must write
-     * directly to block.appearance when Style Target = Block.
-     */
-
-    if (pollStyleTarget === "block") {
-      const nextAppearance = {
-        ...block.appearance,
-
-        ...(patch.backgroundColor !== undefined
-          ? {
-              backgroundColor:
-                patch.backgroundColor,
-            }
-          : {}),
-
-        ...(patch.backgroundOpacity !== undefined
-          ? {
-              backgroundOpacity:
-                patch.backgroundOpacity,
-            }
-          : {}),
-
-        ...(patch.borderColor !== undefined
-          ? {
-              borderColor:
-                patch.borderColor,
-            }
-          : {}),
-
-        ...(patch.borderWidth !== undefined
-          ? {
-              borderWidth:
-                Number(
-                  patch.borderWidth,
-                ) || 0,
-            }
-          : {}),
-
-        ...(patch.borderRadius !== undefined
-          ? {
-              borderRadius:
-                Number(
-                  patch.borderRadius,
-                ) || 0,
-            }
-          : {}),
-
-        ...(patch.textureEnabled !== undefined
-          ? {
-              textureEnabled:
-                patch.textureEnabled,
-            }
-          : {}),
-
-        ...(patch.textureImageUrl !== undefined
-          ? {
-              textureImageUrl:
-                patch.textureImageUrl,
-            }
-          : {}),
-
-        ...(patch.textureScale !== undefined
-          ? {
-              textureScale:
-                patch.textureScale,
-            }
-          : {}),
-
-        ...(patch.texturePositionX !== undefined
-          ? {
-              texturePositionX:
-                patch.texturePositionX,
-            }
-          : {}),
-
-        ...(patch.texturePositionY !== undefined
-          ? {
-              texturePositionY:
-                patch.texturePositionY,
-            }
-          : {}),
-      };
-
-      return {
-        ...block,
-
-        appearance:
-          nextAppearance,
-
-        data: {
-          ...block.data,
-
-          /*
-           * Keep legacy blockStyle synchronized.
-           */
-          blockStyle: {
-            ...((block.data as any).blockStyle ?? {}),
-
-            ...nextAppearance,
-          },
-        },
-      };
-    }
-
-    /*
-     * Other Poll style targets continue through the Poll-specific
-     * formatting helper.
-     */
-    return applyPollStylePatch(
-      block,
-      pollStyleTarget,
-      patch,
-    );
-  });
+  updateSelectedBlock((block) =>
+    block.type !== "poll"
+      ? block
+      : applyPollTextStylePatch(
+          block,
+          pollTextTarget,
+          patch,
+        ),
+  );
 
   return;
 }
@@ -6486,12 +6371,107 @@ if (selectedBlock?.type === "file_share") {
   return;
 }
 
-  if (selectedBlockFromDraft?.type === "poll") {
-  updateSelectedBlock((block) =>
-    block.type !== "poll"
-      ? block
-      : applyPollStylePatch(block, pollStyleTarget, patch),
-  );
+if (selectedBlockFromDraft?.type === "poll") {
+  updateSelectedBlock((block) => {
+    if (block.type !== "poll") {
+      return block;
+    }
+
+    /*
+     * Style Target > Block uses the actual block appearance so
+     * Fill, Transparency, Border, Radius, and Texture controls
+     * operate on the Poll's outer frame.
+     */
+    if (pollStyleTarget === "block") {
+      return {
+        ...block,
+
+        appearance: {
+          ...block.appearance,
+
+          ...(patch.backgroundColor !== undefined
+            ? {
+                backgroundColor:
+                  patch.backgroundColor,
+              }
+            : {}),
+
+          ...(patch.backgroundOpacity !== undefined
+            ? {
+                backgroundOpacity:
+                  patch.backgroundOpacity,
+              }
+            : {}),
+
+          ...(patch.borderColor !== undefined
+            ? {
+                borderColor:
+                  patch.borderColor,
+              }
+            : {}),
+
+          ...(patch.borderWidth !== undefined
+            ? {
+                borderWidth:
+                  Number(
+                    patch.borderWidth,
+                  ) || 0,
+              }
+            : {}),
+
+          ...(patch.borderRadius !== undefined
+            ? {
+                borderRadius:
+                  Number(
+                    patch.borderRadius,
+                  ) || 0,
+              }
+            : {}),
+
+          ...(patch.textureEnabled !== undefined
+            ? {
+                textureEnabled:
+                  patch.textureEnabled,
+              }
+            : {}),
+
+          ...(patch.textureImageUrl !== undefined
+            ? {
+                textureImageUrl:
+                  patch.textureImageUrl,
+              }
+            : {}),
+
+          ...(patch.textureScale !== undefined
+            ? {
+                textureScale:
+                  patch.textureScale,
+              }
+            : {}),
+
+          ...(patch.texturePositionX !== undefined
+            ? {
+                texturePositionX:
+                  patch.texturePositionX,
+              }
+            : {}),
+
+          ...(patch.texturePositionY !== undefined
+            ? {
+                texturePositionY:
+                  patch.texturePositionY,
+              }
+            : {}),
+        },
+      };
+    }
+
+    return applyPollStylePatch(
+      block,
+      pollStyleTarget,
+      patch,
+    );
+  });
 
   return;
 }
