@@ -4698,11 +4698,25 @@ function applyFillColor(value: string) {
     return;
   }
 
-  if (selectedBlockFromDraft?.type === "poll") {
-    applyAppearancePatch({ backgroundColor: value });
-    pushRecentColor(value);
-    return;
-  }
+if (selectedBlock?.type === "poll") {
+  applyAppearancePatch({
+    backgroundColor: value,
+
+    /*
+     * Selecting a visible fill restores full opacity if the
+     * block was previously made transparent.
+     */
+    ...(pollStyleTarget === "block"
+      ? {
+          backgroundOpacity: 1,
+        }
+      : {}),
+  });
+
+  pushRecentColor(value);
+
+  return;
+}
 
   if (selectedBlock?.type === "countdown") {
     updateSelectedBlock((block) =>
@@ -6371,107 +6385,147 @@ if (selectedBlock?.type === "file_share") {
   return;
 }
 
-if (selectedBlockFromDraft?.type === "poll") {
-  updateSelectedBlock((block) => {
-    if (block.type !== "poll") {
-      return block;
-    }
+if (selectedBlock?.type === "poll") {
+  const selectedPollId =
+    selectedBlock.id;
 
-    /*
-     * Style Target > Block uses the actual block appearance so
-     * Fill, Transparency, Border, Radius, and Texture controls
-     * operate on the Poll's outer frame.
-     */
-    if (pollStyleTarget === "block") {
-      return {
-        ...block,
+  setDraft((prev) => ({
+    ...prev,
 
-        appearance: {
-          ...block.appearance,
+    blocks: prev.blocks.map(
+      (block) => {
+        if (
+          block.id !== selectedPollId ||
+          block.type !== "poll"
+        ) {
+          return block;
+        }
 
-          ...(patch.backgroundColor !== undefined
-            ? {
-                backgroundColor:
-                  patch.backgroundColor,
-              }
-            : {}),
+        /*
+         * ================================================================
+         * BLOCK
+         * ================================================================
+         *
+         * Block-level appearance is written directly to the Poll's
+         * appearance object. This is the same object consumed by
+         * getAppearanceStyle(block) in the renderer.
+         */
 
-          ...(patch.backgroundOpacity !== undefined
-            ? {
-                backgroundOpacity:
-                  patch.backgroundOpacity,
-              }
-            : {}),
+        if (
+          pollStyleTarget ===
+          "block"
+        ) {
+          return {
+            ...block,
 
-          ...(patch.borderColor !== undefined
-            ? {
-                borderColor:
-                  patch.borderColor,
-              }
-            : {}),
+            appearance: {
+              ...(block.appearance ?? {}),
 
-          ...(patch.borderWidth !== undefined
-            ? {
-                borderWidth:
-                  Number(
-                    patch.borderWidth,
-                  ) || 0,
-              }
-            : {}),
+              ...(patch.backgroundColor !==
+              undefined
+                ? {
+                    backgroundColor:
+                      patch.backgroundColor,
+                  }
+                : {}),
 
-          ...(patch.borderRadius !== undefined
-            ? {
-                borderRadius:
-                  Number(
-                    patch.borderRadius,
-                  ) || 0,
-              }
-            : {}),
+              ...(patch.backgroundOpacity !==
+              undefined
+                ? {
+                    backgroundOpacity:
+                      patch.backgroundOpacity,
+                  }
+                : {}),
 
-          ...(patch.textureEnabled !== undefined
-            ? {
-                textureEnabled:
-                  patch.textureEnabled,
-              }
-            : {}),
+              ...(patch.borderColor !==
+              undefined
+                ? {
+                    borderColor:
+                      patch.borderColor,
+                  }
+                : {}),
 
-          ...(patch.textureImageUrl !== undefined
-            ? {
-                textureImageUrl:
-                  patch.textureImageUrl,
-              }
-            : {}),
+              ...(patch.borderWidth !==
+              undefined
+                ? {
+                    borderWidth:
+                      Number(
+                        patch.borderWidth,
+                      ) || 0,
+                  }
+                : {}),
 
-          ...(patch.textureScale !== undefined
-            ? {
-                textureScale:
-                  patch.textureScale,
-              }
-            : {}),
+              ...(patch.borderRadius !==
+              undefined
+                ? {
+                    borderRadius:
+                      Number(
+                        patch.borderRadius,
+                      ) || 0,
+                  }
+                : {}),
 
-          ...(patch.texturePositionX !== undefined
-            ? {
-                texturePositionX:
-                  patch.texturePositionX,
-              }
-            : {}),
+              ...(patch.textureEnabled !==
+              undefined
+                ? {
+                    textureEnabled:
+                      patch.textureEnabled,
+                  }
+                : {}),
 
-          ...(patch.texturePositionY !== undefined
-            ? {
-                texturePositionY:
-                  patch.texturePositionY,
-              }
-            : {}),
-        },
-      };
-    }
+              ...(patch.textureImageUrl !==
+              undefined
+                ? {
+                    textureImageUrl:
+                      patch.textureImageUrl,
+                  }
+                : {}),
 
-    return applyPollStylePatch(
-      block,
-      pollStyleTarget,
-      patch,
-    );
-  });
+              ...(patch.textureScale !==
+              undefined
+                ? {
+                    textureScale:
+                      Number(
+                        patch.textureScale,
+                      ),
+                  }
+                : {}),
+
+              ...(patch.texturePositionX !==
+              undefined
+                ? {
+                    texturePositionX:
+                      Number(
+                        patch.texturePositionX,
+                      ),
+                  }
+                : {}),
+
+              ...(patch.texturePositionY !==
+              undefined
+                ? {
+                    texturePositionY:
+                      Number(
+                        patch.texturePositionY,
+                      ),
+                  }
+                : {}),
+            },
+          };
+        }
+
+        /*
+         * All non-block Poll style targets continue through
+         * pollFormatting.ts.
+         */
+        return applyPollStylePatch(
+          block,
+          pollStyleTarget,
+          patch,
+        );
+      },
+    ),
+  }));
 
   return;
 }
