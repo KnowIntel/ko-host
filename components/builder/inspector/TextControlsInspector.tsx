@@ -861,10 +861,28 @@ function clearTextFxLetterColors() {
 </div>
       ) : null}
 
-      {selectedTextFxBlock ? (
-        <>
-          <div className={inspectorCardClass()}>
-            <div className={inspectorLabelClass()}>TextFX Controls</div>
+{selectedTextFxBlock ? (
+  <>
+    <div className={inspectorCardClass()}>
+      <div className={inspectorLabelClass()}>TextFX Text</div>
+
+      <div className="mt-4">
+        <div className={inspectorLabelClass()}>Text</div>
+
+        <textarea
+          value={selectedTextFxBlock.data.text ?? ""}
+          onChange={(event) =>
+            handleTextChange(event.target.value)
+          }
+          rows={3}
+          className={inspectorTextareaClass()}
+          placeholder="Enter TextFX text..."
+        />
+      </div>
+    </div>
+
+    <div className={inspectorCardClass()}>
+      <div className={inspectorLabelClass()}>TextFX Controls</div>
 
             <div className="mt-4 grid grid-cols-1 gap-4">
               <div>
