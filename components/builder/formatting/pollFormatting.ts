@@ -404,35 +404,36 @@ export function applyPollStylePatch(
    * ================================================================
    */
 
-  if (
-    target === "block"
-  ) {
-    return {
-      ...block,
+if (
+  target === "block"
+) {
+  const normalizedPatch =
+    normalizeAppearancePatch(
+      patch,
+    );
 
-      appearance: {
-        ...block.appearance,
+  return {
+    ...block,
 
-        ...patch,
+    appearance: {
+      ...block.appearance,
+      ...normalizedPatch,
+    },
+
+    data: {
+      ...data,
+
+      blockStyle: {
+        ...(
+          data.blockStyle ??
+          {}
+        ),
+
+        ...normalizedPatch,
       },
-
-      data: {
-        ...data,
-
-        /*
-         * Retain legacy blockStyle compatibility.
-         */
-        blockStyle: {
-          ...(
-            data.blockStyle ??
-            {}
-          ),
-
-          ...patch,
-        },
-      },
-    };
-  }
+    },
+  };
+}
 
   /*
    * ================================================================

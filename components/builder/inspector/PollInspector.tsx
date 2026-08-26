@@ -2048,14 +2048,10 @@ export function PollInspector({
 
                 {/* REMOVE */}
 
-                <button
-                  type="button"
-                  className={
-                    toolSetButtonClass(
-                      "remove",
-                    )
-                  }
-                  onClick={() =>
+<button
+  type="button"
+  className="mt-4 inline-flex min-h-8 items-center justify-center whitespace-nowrap rounded-lg border border-red-200 bg-white px-2.5 py-1.5 text-[11px] font-medium leading-none text-red-600 transition hover:bg-red-50"
+  onClick={() =>
                     updateSelectedBlock(
                       (
                         block: any,

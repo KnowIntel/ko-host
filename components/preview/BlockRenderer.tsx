@@ -12138,14 +12138,34 @@ function renderPoll(
         designKey,
       );
 
-    const selectedOptionTextStyle =
-      getContainerTextStyle(
-        data.selectedOptionLabelStyle ??
-          data.optionLabelStyle ??
-          data.optionTextStyle ??
-          {},
-        designKey,
-      );
+const rawSelectedOptionTextStyle =
+  getContainerTextStyle(
+    data.selectedOptionLabelStyle ??
+      {},
+    designKey,
+  );
+
+const selectedOptionTextStyle:
+  React.CSSProperties = {
+  ...optionTextStyle,
+  ...rawSelectedOptionTextStyle,
+
+  /*
+   * Selection may change decorative formatting,
+   * but it must never resize/reflow the choice.
+   */
+  fontSize:
+    optionTextStyle.fontSize,
+
+  lineHeight:
+    optionTextStyle.lineHeight,
+
+  fontFamily:
+    optionTextStyle.fontFamily,
+
+  letterSpacing:
+    optionTextStyle.letterSpacing,
+};
 
     const submitButtonTextStyle =
       getContainerTextStyle(
@@ -13052,17 +13072,17 @@ function renderPoll(
 
                     {/* LABEL */}
 
-                    <div
-                      className="mt-3 min-h-[2.5em] w-full"
-                      style={
-                        isSelected
-                          ? selectedOptionTextStyle
-                          : optionTextStyle
-                      }
-                    >
-                      {option.text ||
-                        "Option"}
-                    </div>
+<div
+  className="mt-3 flex min-h-[44px] w-full items-center justify-center"
+  style={
+    isSelected
+      ? selectedOptionTextStyle
+      : optionTextStyle
+  }
+>
+  {option.text ||
+    "Option"}
+</div>
 
                     {/* LARGE SELECTION INDICATOR */}
 
