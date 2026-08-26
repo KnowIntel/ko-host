@@ -551,6 +551,36 @@ export function HighlightInspector({
             </div>
           </div>
 
+{/* SHOW TITLE */}
+
+<label className="mt-4 flex items-center justify-between gap-4 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3">
+  <div>
+    <div className="text-sm font-medium text-neutral-800">
+      Show Title
+    </div>
+
+    <div className="mt-1 text-xs text-neutral-500">
+      Display the title of the selected linked data point.
+    </div>
+  </div>
+
+  <input
+    type="checkbox"
+    checked={
+      selectedBlock.data
+        .showDataCardTitle !==
+      false
+    }
+    onChange={(e) =>
+      updateHighlightData({
+        showDataCardTitle:
+          e.target.checked,
+      })
+    }
+    className="h-4 w-4"
+  />
+</label>
+
           {/* SHOW PERCENTAGE */}
 
           <label className="mt-4 flex items-center justify-between gap-4 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3">

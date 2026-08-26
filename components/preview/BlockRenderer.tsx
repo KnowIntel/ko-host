@@ -21104,21 +21104,21 @@ if (isDataCard) {
             )}
           </div>
         </div>
+{/* ========================================================== */}
+{/* DATA POINT TITLE */}
+{/* ========================================================== */}
 
-        {/* ========================================================== */}
-        {/* DATA POINT LABEL */}
-        {/* ========================================================== */}
-
-        {dataPointLabel ? (
-          <div
-            className="mt-3 w-full"
-            style={
-              dataCardDataPointLabelTextStyle
-            }
-          >
-            {dataPointLabel}
-          </div>
-        ) : null}
+{data.showDataCardTitle !== false &&
+dataPointLabel ? (
+  <div
+    className="mt-3 w-full"
+    style={
+      dataCardDataPointLabelTextStyle
+    }
+  >
+    {dataPointLabel}
+  </div>
+) : null}
 
         {/* ========================================================== */}
         {/* TOTAL */}
@@ -21271,19 +21271,15 @@ if (isDataCard) {
         {/* STATUS */}
         {/* ========================================================== */}
 
-        {!data.sourceBlockId ? (
-          <div className="mt-3 text-center text-[11px] opacity-50">
-            Select a linked data block.
-          </div>
-        ) : !data.sourceDataPointId ? (
-          <div className="mt-3 text-center text-[11px] opacity-50">
-            Select a data point.
-          </div>
-        ) : dataCardError ? (
-          <div className="mt-3 text-center text-[11px] text-red-400">
-            {dataCardError}
-          </div>
-        ) : null}
+{!data.sourceBlockId ? (
+  <div className="mt-3 text-center text-[11px] opacity-50">
+    Select a linked data block.
+  </div>
+) : !data.sourceDataPointId ? (
+  <div className="mt-3 text-center text-[11px] opacity-50">
+    Select a data point.
+  </div>
+) : null}
       </div>
     </div>
   );

@@ -1354,9 +1354,11 @@ export type HighlightBlock = BaseBlock & {
      * ================================================================
      */
 
-    unitLabel?: string;
+unitLabel?: string;
 
-    showPercentage?: boolean;
+showDataCardTitle?: boolean;
+
+showPercentage?: boolean;
 
     /*
      * Optional owner-defined text shown before/after the calculated
@@ -6102,11 +6104,14 @@ case "highlight":
        * ================================================================
        */
 
-      unitLabel:
-        "VOTES",
+unitLabel:
+  "VOTES",
 
-      showPercentage:
-        true,
+showDataCardTitle:
+  true,
+
+showPercentage:
+  true,
 
       percentagePrefix:
         "",
