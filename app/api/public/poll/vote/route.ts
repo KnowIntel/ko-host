@@ -108,20 +108,42 @@ async function ensurePublishedPollExists(args: {
     ? originalPollId
     : deterministicUuid(`poll:${args.micrositeId}:${originalPollId}`);
 
-  const { error: insertPollError } = await sb.from("polls").upsert(
-    {
-      id: finalPollId,
-      microsite_id: args.micrositeId,
-      title:
-        (pollBlock as any)?.data?.question?.trim?.() ||
-        (pollBlock as any)?.label ||
-        "Poll",
-      is_multi_select: false,
-      is_open: true,
-      show_results_public: true,
-    },
-    { onConflict: "id" },
-  );
+const pollData =
+  (pollBlock as any)?.data ?? {};
+
+const isMultiSelect =
+  pollData.selectionMode ===
+  "multiple";
+
+const { error: insertPollError } =
+  await sb
+    .from("polls")
+    .upsert(
+      {
+        id: finalPollId,
+
+        microsite_id:
+          args.micrositeId,
+
+        title:
+          pollData.question?.trim?.() ||
+          (pollBlock as any)?.label ||
+          "Poll",
+
+        is_multi_select:
+          isMultiSelect,
+
+        is_open:
+          true,
+
+        show_results_public:
+          true,
+      },
+      {
+        onConflict:
+          "id",
+      },
+    );
 
   if (insertPollError) {
     throw insertPollError;
