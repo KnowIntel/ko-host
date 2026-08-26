@@ -481,15 +481,16 @@ function getAppearanceStyle(block: MicrositeBlock): React.CSSProperties {
 
   return {
 backgroundColor:
-  block.appearance?.backgroundColor &&
-  block.appearance.backgroundColor !== "transparent"
-    ? hexToRgba(
-        block.appearance.backgroundColor,
-        typeof (block.appearance as any).backgroundOpacity === "number"
-          ? (block.appearance as any).backgroundOpacity
-          : 1,
-      )
-    : undefined,
+  block.appearance?.backgroundColor === "transparent"
+    ? "transparent"
+    : block.appearance?.backgroundColor
+      ? hexToRgba(
+          block.appearance.backgroundColor,
+          typeof (block.appearance as any).backgroundOpacity === "number"
+            ? (block.appearance as any).backgroundOpacity
+            : 1,
+        )
+      : undefined,
 
     borderColor: block.appearance?.borderColor || undefined,
 
