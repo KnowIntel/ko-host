@@ -12741,7 +12741,7 @@ const selectedOptionTextStyle:
           )
         }
       >
-        <div className="flex h-full w-full flex-col overflow-y-auto p-4 sm:p-5">
+        <div className="flex h-full min-w-0 w-full flex-col overflow-y-auto p-4 sm:p-5">
 
           {/* ========================================================== */}
           {/* TITLE FRAME */}
@@ -12815,20 +12815,19 @@ const selectedOptionTextStyle:
           {/* CHOICES */}
           {/* ========================================================== */}
 
-          <div
-            className={[
-              "mt-5 grid gap-4",
-
-              options.length <= 2
-                ? "grid-cols-2"
-                : options.length ===
-                    3
-                  ? "grid-cols-3"
-                  : "grid-cols-2 sm:grid-cols-4",
-            ].join(
-              " ",
-            )}
-          >
+<div
+  className="mt-5 grid w-full min-w-0 gap-4"
+  style={{
+    gridTemplateColumns:
+      options.length <= 1
+        ? "minmax(0, 1fr)"
+        : options.length === 2
+          ? "repeat(2, minmax(0, 1fr))"
+          : options.length === 3
+            ? "repeat(3, minmax(0, 1fr))"
+            : "repeat(4, minmax(0, 1fr))",
+  }}
+>
             {options.map(
               (
                 option:
@@ -12935,7 +12934,7 @@ const selectedOptionTextStyle:
                     aria-pressed={
                       isSelected
                     }
-                    className="flex min-w-0 flex-col items-center text-center outline-none transition disabled:cursor-not-allowed"
+                    className="flex w-full min-w-0 max-w-full flex-col items-center overflow-hidden text-center outline-none transition disabled:cursor-not-allowed"
                     style={{
                       backgroundColor:
                         optionFrameStyle.backgroundColor ??
