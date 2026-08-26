@@ -19740,8 +19740,6 @@ const cardBackgroundColor =
 
     const subtitle = block.data?.subtitle?.trim() || "";
 
-const data = block.data as any;
-
 const headingTextStyle = getContainerTextStyle(
   data.headingStyle ?? data.style,
   designKey,
