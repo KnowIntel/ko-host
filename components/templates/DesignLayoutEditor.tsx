@@ -4699,19 +4699,53 @@ function applyFillColor(value: string) {
   }
 
 if (selectedBlock?.type === "poll") {
-  applyAppearancePatch({
-    backgroundColor: value,
+  const selectedPollId =
+    selectedBlock.id;
 
-    /*
-     * Selecting a visible fill restores full opacity if the
-     * block was previously made transparent.
-     */
-    ...(pollStyleTarget === "block"
-      ? {
-          backgroundOpacity: 1,
-        }
-      : {}),
-  });
+  setDraft((prev) => ({
+    ...prev,
+
+    blocks: prev.blocks.map((block) => {
+      if (
+        block.id !== selectedPollId ||
+        block.type !== "poll"
+      ) {
+        return block;
+      }
+
+      /*
+       * Style Target > Block:
+       * write directly to the actual Poll appearance object.
+       */
+      if (pollStyleTarget === "block") {
+        return {
+          ...block,
+
+          appearance: {
+            ...(block.appearance ?? {}),
+
+            backgroundColor:
+              value,
+
+            backgroundOpacity:
+              1,
+          },
+        };
+      }
+
+      /*
+       * Other Poll style targets still use the Poll formatter.
+       */
+      return applyPollStylePatch(
+        block,
+        pollStyleTarget,
+        {
+          backgroundColor:
+            value,
+        },
+      );
+    }),
+  }));
 
   pushRecentColor(value);
 
@@ -12208,14 +12242,53 @@ const idsToExpand =
   onClick={() => {
     if (!selectedBlock) return;
 
-    if (selectedBlock.type === "poll") {
-      applyAppearancePatch({
-        backgroundColor: "transparent",
-        backgroundOpacity: 0,
-      } as any);
+if (selectedBlock.type === "poll") {
+  const selectedPollId =
+    selectedBlock.id;
 
-      return;
-    }
+  setDraft((prev) => ({
+    ...prev,
+
+    blocks: prev.blocks.map((block) => {
+      if (
+        block.id !== selectedPollId ||
+        block.type !== "poll"
+      ) {
+        return block;
+      }
+
+      if (pollStyleTarget === "block") {
+        return {
+          ...block,
+
+          appearance: {
+            ...(block.appearance ?? {}),
+
+            backgroundColor:
+              "transparent",
+
+            backgroundOpacity:
+              0,
+          },
+        };
+      }
+
+      return applyPollStylePatch(
+        block,
+        pollStyleTarget,
+        {
+          backgroundColor:
+            "transparent",
+
+          backgroundOpacity:
+            0,
+        },
+      );
+    }),
+  }));
+
+  return;
+}
 
     updateSelectedBlock((block) =>
       block.type !== "calendar_event"
