@@ -53,55 +53,90 @@ async function ensurePublishedPollExists(args: {
 }) {
   const sb = getSupabaseAdmin();
 
-  const { data: pageRows, error: pageErr } = await sb
-    .from("microsite_pages")
-    .select("id, draft, display_order, created_at")
-    .eq("microsite_id", args.micrositeId)
-    .order("display_order", { ascending: true })
-    .order("created_at", { ascending: true })
-    .limit(1);
+const { data: pageRows, error: pageErr } = await sb
+  .from("microsite_pages")
+  .select("id, draft, display_order, created_at")
+  .eq("microsite_id", args.micrositeId)
+  .order("display_order", { ascending: true })
+  .order("created_at", { ascending: true });
 
-  if (pageErr) {
-    throw pageErr;
-  }
+if (pageErr) {
+  throw pageErr;
+}
 
-  const homeDraft =
-    ((pageRows?.[0] as { draft?: BuilderDraft | null } | undefined)?.draft ??
-      null) as BuilderDraft | null;
+/*
+ * Retain microsites.draft as a fallback for older microsites.
+ */
+const { data: micrositeRow, error: micrositeErr } = await sb
+  .from("microsites")
+  .select("draft")
+  .eq("id", args.micrositeId)
+  .maybeSingle();
 
-  const { data: micrositeRow, error: micrositeErr } = await sb
-    .from("microsites")
-    .select("draft")
-    .eq("id", args.micrositeId)
-    .maybeSingle();
+if (micrositeErr) {
+  throw micrositeErr;
+}
 
-  if (micrositeErr) {
-    throw micrositeErr;
-  }
+const fallbackDraft =
+  (micrositeRow?.draft ?? null) as BuilderDraft | null;
 
-  const fallbackDraft = (micrositeRow?.draft ?? null) as BuilderDraft | null;
+/*
+ * Search every page belonging to this microsite.
+ */
+const pageDrafts = (pageRows ?? [])
+  .map(
+    (page: any) =>
+      page?.draft as BuilderDraft | null | undefined,
+  )
+  .filter(
+    (draft): draft is BuilderDraft =>
+      Boolean(
+        draft &&
+          Array.isArray(draft.blocks),
+      ),
+  );
 
-  const draft =
-    (homeDraft && Array.isArray(homeDraft.blocks) ? homeDraft : null) ??
-    fallbackDraft ??
-    null;
+const candidateDrafts: BuilderDraft[] = [
+  ...pageDrafts,
 
-  const pollBlock = Array.isArray(draft?.blocks)
-    ? draft!.blocks.find((block: any) => {
-        if (block?.type !== "poll") return false;
+  ...(fallbackDraft &&
+  Array.isArray(fallbackDraft.blocks)
+    ? [fallbackDraft]
+    : []),
+];
 
-        const originalPollId = String(block?.id || "");
-        const derivedPollId = isUuid(originalPollId)
+let pollBlock: any = null;
+
+for (const draft of candidateDrafts) {
+  const match = draft.blocks.find(
+    (block: any) => {
+      if (block?.type !== "poll") {
+        return false;
+      }
+
+      const originalPollId =
+        String(block?.id || "");
+
+      const derivedPollId =
+        isUuid(originalPollId)
           ? originalPollId
-          : deterministicUuid(`poll:${args.micrositeId}:${originalPollId}`);
+          : deterministicUuid(
+              `poll:${args.micrositeId}:${originalPollId}`,
+            );
 
-        return derivedPollId === args.pollId;
-      })
-    : null;
+      return derivedPollId === args.pollId;
+    },
+  );
 
-  if (!pollBlock) {
-    return false;
+  if (match) {
+    pollBlock = match;
+    break;
   }
+}
+
+if (!pollBlock) {
+  return false;
+}
 
   const originalPollId = String((pollBlock as any).id || "");
   const finalPollId = isUuid(originalPollId)

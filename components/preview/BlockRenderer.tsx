@@ -20187,15 +20187,16 @@ useEffect(() => {
 useEffect(() => {
   if (!useCardRenderer) return;
 
-  const sourceCards = normalizedCards.filter(
-    (card: any) =>
-      [
-        "enrollment_records",
-        "calendar_events",
-        "post_board_discussions",
-      ].includes(card.type) &&
-      String(card.sourceBlockId ?? "").trim(),
-  );
+const sourceCards = normalizedCards.filter(
+  (card: any) =>
+    [
+      "poll_result",
+      "enrollment_records",
+      "calendar_events",
+      "post_board_discussions",
+    ].includes(card.type) &&
+    String(card.sourceBlockId ?? "").trim(),
+);
 
   if (!sourceCards.length) return;
 
@@ -20207,12 +20208,86 @@ useEffect(() => {
     const nextValues: Record<string, number> = {};
 
     await Promise.all(
-      sourceCards.map(async (card: any) => {
-        try {
-          //
-          // Enrollment Board
-          //
-          if (card.type === "enrollment_records") {
+sourceCards.map(async (card: any) => {
+  try {
+    //
+    // Poll Result
+    //
+    if (card.type === "poll_result") {
+      if (!micrositeSlug) {
+        nextValues[card.id] =
+          Number(card.fallbackValue ?? 0);
+
+        return;
+      }
+
+      const params = new URLSearchParams({
+        micrositeSlug: String(micrositeSlug),
+        pollId: String(card.sourceBlockId ?? "").trim(),
+      });
+
+      const res = await fetch(
+        `/api/public/poll/results?${params.toString()}`,
+        {
+          cache: "no-store",
+        },
+      );
+
+      const result = await res.json();
+
+      if (!res.ok) {
+        throw new Error();
+      }
+
+      const results =
+        Array.isArray(result?.results)
+          ? result.results
+          : [];
+
+      const selectedResult =
+        results.find(
+          (item: any) =>
+            String(item.optionId) ===
+            String(card.pollOptionId ?? ""),
+        );
+
+      const selectedCount =
+        Number(selectedResult?.count ?? 0);
+
+      const total =
+        Number(result?.total ?? 0);
+
+      const percentage =
+        total > 0
+          ? Math.round(
+              (selectedCount / total) * 100,
+            )
+          : 0;
+
+      /*
+       * Store the selected option's live tally.
+       */
+      nextValues[card.id] =
+        selectedCount;
+
+      /*
+       * Also retain total + percentage for Data Card rendering.
+       */
+      nextValues[
+        `${card.id}:total`
+      ] = total;
+
+      nextValues[
+        `${card.id}:percentage`
+      ] = percentage;
+
+      return;
+    }
+
+    //
+    // Enrollment Board
+    //
+    if (card.type === "enrollment_records") {
             const params = new URLSearchParams({
               micrositeId: String(micrositeId),
               blockId: String(card.sourceBlockId ?? "").trim(),
@@ -20290,25 +20365,66 @@ useEffect(() => {
     }
   }
 
-  function handleSourceUpdated() {
-    void loadSourceCounts();
+function handleSourceUpdated() {
+  void loadSourceCounts();
+}
+
+function handleHighlightPollVote(
+  event: Event,
+) {
+  const customEvent =
+    event as CustomEvent<{
+      pollBlockId?: string;
+      optionId?: string;
+    }>;
+
+  const votedPollId =
+    customEvent.detail?.pollBlockId;
+
+  if (!votedPollId) {
+    return;
+  }
+
+  const usesThisPoll =
+    sourceCards.some(
+      (card: any) =>
+        card.type === "poll_result" &&
+        String(card.sourceBlockId ?? "") ===
+          String(votedPollId),
+    );
+
+  if (!usesThisPoll) {
+    return;
   }
 
   void loadSourceCounts();
+}
 
-  window.addEventListener(
+void loadSourceCounts();
+
+window.addEventListener(
+  "kht:enrollment-board-profile-updated",
+  handleSourceUpdated,
+);
+
+window.addEventListener(
+  "ko-host-poll-vote",
+  handleHighlightPollVote as EventListener,
+);
+
+return () => {
+  cancelled = true;
+
+  window.removeEventListener(
     "kht:enrollment-board-profile-updated",
     handleSourceUpdated,
   );
 
-  return () => {
-    cancelled = true;
-
-    window.removeEventListener(
-      "kht:enrollment-board-profile-updated",
-      handleSourceUpdated,
-    );
-  };
+  window.removeEventListener(
+    "ko-host-poll-vote",
+    handleHighlightPollVote as EventListener,
+  );
+};
 }, [useCardRenderer, micrositeId, block.data.cards, refreshKey]);
 
     useEffect(() => {

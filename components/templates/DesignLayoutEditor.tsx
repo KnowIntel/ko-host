@@ -4698,6 +4698,60 @@ function applyFillColor(value: string) {
     return;
   }
 
+  if (selectedBlock?.type === "highlight") {
+  const selectedHighlightId =
+    selectedBlock.id;
+
+  setDraft((prev) => ({
+    ...prev,
+
+    blocks: prev.blocks.map((block) => {
+      if (
+        block.id !== selectedHighlightId ||
+        block.type !== "highlight"
+      ) {
+        return block;
+      }
+
+      if (
+        highlightUnifiedStyleTarget ===
+        "block"
+      ) {
+        return {
+          ...block,
+
+          appearance: {
+            ...(block.appearance ?? {}),
+
+            backgroundColor:
+              value,
+
+            /*
+             * If the block was previously transparent,
+             * choosing a fill makes it visible again.
+             */
+            backgroundOpacity:
+              1,
+          },
+        };
+      }
+
+      return applyHighlightStylePatch(
+        block,
+        highlightUnifiedStyleTarget,
+        {
+          backgroundColor:
+            value,
+        },
+      );
+    }),
+  }));
+
+  pushRecentColor(value);
+
+  return;
+}
+
 if (selectedBlock?.type === "poll") {
   const selectedPollId =
     selectedBlock.id;
@@ -6317,16 +6371,132 @@ if (
     return;
   }
 
-  if (selectedBlock?.type === "highlight") {
-  updateSelectedBlock((block) =>
-    block.type !== "highlight"
-      ? block
-      : applyHighlightStylePatch(
-          block,
-          highlightUnifiedStyleTarget,
-          patch,
-        ),
-  );
+if (selectedBlock?.type === "highlight") {
+  const selectedHighlightId =
+    selectedBlock.id;
+
+  setDraft((prev) => ({
+    ...prev,
+
+    blocks: prev.blocks.map((block) => {
+      if (
+        block.id !== selectedHighlightId ||
+        block.type !== "highlight"
+      ) {
+        return block;
+      }
+
+      /*
+       * ================================================================
+       * BLOCK
+       * ================================================================
+       *
+       * Top toolbar Fill / Transparency / Border / Radius controls
+       * write directly to block.appearance.
+       */
+      if (
+        highlightUnifiedStyleTarget ===
+        "block"
+      ) {
+        return {
+          ...block,
+
+          appearance: {
+            ...(block.appearance ?? {}),
+
+            ...(patch.backgroundColor !== undefined
+              ? {
+                  backgroundColor:
+                    patch.backgroundColor,
+                }
+              : {}),
+
+            ...(patch.backgroundOpacity !== undefined
+              ? {
+                  backgroundOpacity:
+                    patch.backgroundOpacity,
+                }
+              : {}),
+
+            ...(patch.borderColor !== undefined
+              ? {
+                  borderColor:
+                    patch.borderColor,
+                }
+              : {}),
+
+            ...(patch.borderWidth !== undefined
+              ? {
+                  borderWidth:
+                    Number(
+                      patch.borderWidth,
+                    ) || 0,
+                }
+              : {}),
+
+            ...(patch.borderRadius !== undefined
+              ? {
+                  borderRadius:
+                    Number(
+                      patch.borderRadius,
+                    ) || 0,
+                }
+              : {}),
+
+            ...(patch.textureEnabled !== undefined
+              ? {
+                  textureEnabled:
+                    patch.textureEnabled,
+                }
+              : {}),
+
+            ...(patch.textureImageUrl !== undefined
+              ? {
+                  textureImageUrl:
+                    patch.textureImageUrl,
+                }
+              : {}),
+
+            ...(patch.textureScale !== undefined
+              ? {
+                  textureScale:
+                    Number(
+                      patch.textureScale,
+                    ),
+                }
+              : {}),
+
+            ...(patch.texturePositionX !== undefined
+              ? {
+                  texturePositionX:
+                    Number(
+                      patch.texturePositionX,
+                    ),
+                }
+              : {}),
+
+            ...(patch.texturePositionY !== undefined
+              ? {
+                  texturePositionY:
+                    Number(
+                      patch.texturePositionY,
+                    ),
+                }
+              : {}),
+          },
+        };
+      }
+
+      /*
+       * Non-block Highlight targets still use the formatter.
+       */
+      return applyHighlightStylePatch(
+        block,
+        highlightUnifiedStyleTarget,
+        patch,
+      );
+    }),
+  }));
 
   return;
 }
@@ -12182,7 +12352,9 @@ const idsToExpand =
   </>
 ) : null}
 
-{selectedBlock?.type === "poll" || selectedBlock?.type === "calendar_event" ? (
+{selectedBlock?.type === "calendar_event" ||
+selectedBlock?.type === "poll" ||
+selectedBlock?.type === "highlight" ? (
   <>
     <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
 
@@ -12237,78 +12409,132 @@ const idsToExpand =
         ? ((selectedBlock.data as any).fieldBackgroundColor === "transparent" ||
             (selectedBlock.data as any).optionBackgroundColor === "transparent")
         : selectedBlock.appearance?.backgroundColor === "transparent"
-      : selectedAppearance.backgroundColor === "transparent",
+      : selectedBlock.type === "highlight"
+        ? selectedBlock.appearance?.backgroundColor === "transparent"
+        : selectedAppearance.backgroundColor === "transparent",
   )}
   onClick={() => {
-    if (!selectedBlock) return;
+    /*
+     * ================================================================
+     * POLL
+     * ================================================================
+     */
 
-if (selectedBlock.type === "poll") {
-  const selectedPollId =
-    selectedBlock.id;
+    if (selectedBlock.type === "poll") {
+      const selectedPollId = selectedBlock.id;
 
-  setDraft((prev) => ({
-    ...prev,
+      setDraft((prev) => ({
+        ...prev,
 
-    blocks: prev.blocks.map((block) => {
-      if (
-        block.id !== selectedPollId ||
-        block.type !== "poll"
-      ) {
-        return block;
-      }
+        blocks: prev.blocks.map((block) => {
+          if (
+            block.id !== selectedPollId ||
+            block.type !== "poll"
+          ) {
+            return block;
+          }
 
-      if (pollStyleTarget === "block") {
-        return {
-          ...block,
+          if (pollStyleTarget === "block") {
+            return {
+              ...block,
 
-          appearance: {
-            ...(block.appearance ?? {}),
+              appearance: {
+                ...(block.appearance ?? {}),
+                backgroundColor: "transparent",
+                backgroundOpacity: 0,
+              },
+            };
+          }
 
-            backgroundColor:
-              "transparent",
-
-            backgroundOpacity:
-              0,
-          },
-        };
-      }
-
-      return applyPollStylePatch(
-        block,
-        pollStyleTarget,
-        {
-          backgroundColor:
-            "transparent",
-
-          backgroundOpacity:
-            0,
-        },
-      );
-    }),
-  }));
-
-  return;
-}
-
-    updateSelectedBlock((block) =>
-      block.type !== "calendar_event"
-        ? block
-        : applyCalendarEventStylePatch(
+          return applyPollStylePatch(
             block,
-            calendarEventStyleTarget,
+            pollStyleTarget,
             {
               backgroundColor: "transparent",
               backgroundOpacity: 0,
             },
-          ),
-    );
+          );
+        }),
+      }));
+
+      return;
+    }
+
+    /*
+     * ================================================================
+     * HIGHLIGHT
+     * ================================================================
+     */
+
+    if (selectedBlock.type === "highlight") {
+      const selectedHighlightId = selectedBlock.id;
+
+      setDraft((prev) => ({
+        ...prev,
+
+        blocks: prev.blocks.map((block) => {
+          if (
+            block.id !== selectedHighlightId ||
+            block.type !== "highlight"
+          ) {
+            return block;
+          }
+
+          if (highlightUnifiedStyleTarget === "block") {
+            return {
+              ...block,
+
+              appearance: {
+                ...(block.appearance ?? {}),
+                backgroundColor: "transparent",
+                backgroundOpacity: 0,
+              },
+            };
+          }
+
+          return applyHighlightStylePatch(
+            block,
+            highlightUnifiedStyleTarget,
+            {
+              backgroundColor: "transparent",
+              backgroundOpacity: 0,
+            },
+          );
+        }),
+      }));
+
+      return;
+    }
+
+    /*
+     * ================================================================
+     * CALENDAR EVENT
+     * ================================================================
+     */
+
+    if (selectedBlock.type === "calendar_event") {
+      updateSelectedBlock((block) =>
+        block.type !== "calendar_event"
+          ? block
+          : applyCalendarEventStylePatch(
+              block,
+              calendarEventStyleTarget,
+              {
+                backgroundColor: "transparent",
+                backgroundOpacity: 0,
+              },
+            ),
+      );
+    }
   }}
   title={
     selectedBlock.type === "poll"
       ? pollStyleTarget === "field"
         ? "Transparent poll field background"
         : "Transparent poll block background"
-      : "Transparent selected calendar style target"
+      : selectedBlock.type === "highlight"
+        ? "Transparent highlight background"
+        : "Transparent selected calendar style target"
   }
 >
   ☐
@@ -12322,7 +12548,8 @@ if (selectedBlock.type === "poll") {
     min={0}
     max={100}
     value={
-      selectedBlock.type === "poll" && pollStyleTarget === "field"
+      selectedBlock.type === "poll" &&
+      pollStyleTarget === "field"
         ? Math.round(
             Number(
               ((selectedBlock.data as any).fieldStyle?.backgroundOpacity ??
@@ -12331,11 +12558,48 @@ if (selectedBlock.type === "poll") {
                 1),
             ) * 100,
           )
-        : Math.round(
-            Number(
-              (selectedAppearance as any).backgroundOpacity ?? 1,
-            ) * 100,
-          )
+        : selectedBlock.type === "highlight" &&
+            highlightUnifiedStyleTarget === "dataCardFrame"
+          ? Math.round(
+              Number(
+                (selectedBlock.data as any)
+                  .dataCardFrameStyle?.backgroundOpacity ??
+                  1,
+              ) * 100,
+            )
+          : selectedBlock.type === "highlight" &&
+              highlightUnifiedStyleTarget === "dataCardImageFrame"
+            ? Math.round(
+                Number(
+                  (selectedBlock.data as any)
+                    .dataCardImageFrameStyle?.backgroundOpacity ??
+                    1,
+                ) * 100,
+              )
+            : selectedBlock.type === "highlight" &&
+                highlightUnifiedStyleTarget === "dataCardProgressTrack"
+              ? Math.round(
+                  Number(
+                    (selectedBlock.data as any)
+                      .progressBarBackgroundOpacity ??
+                      1,
+                  ) * 100,
+                )
+              : selectedBlock.type === "highlight" &&
+                  highlightUnifiedStyleTarget === "dataCardProgressFill"
+                ? Math.round(
+                    Number(
+                      (selectedBlock.data as any)
+                        .progressBarFillOpacity ??
+                        1,
+                    ) * 100,
+                  )
+                : Math.round(
+                    Number(
+                      (selectedAppearance as any).backgroundOpacity ??
+                        1,
+                    ) * 100,
+                  )
     }
     onChange={(e) => {
       const backgroundOpacity =
@@ -12357,6 +12621,48 @@ if (selectedBlock.type === "poll") {
         return;
       }
 
+      if (selectedBlock.type === "highlight") {
+        const selectedHighlightId =
+          selectedBlock.id;
+
+        setDraft((prev) => ({
+          ...prev,
+
+          blocks: prev.blocks.map((block) => {
+            if (
+              block.id !== selectedHighlightId ||
+              block.type !== "highlight"
+            ) {
+              return block;
+            }
+
+            if (
+              highlightUnifiedStyleTarget ===
+              "block"
+            ) {
+              return {
+                ...block,
+
+                appearance: {
+                  ...(block.appearance ?? {}),
+                  backgroundOpacity,
+                },
+              };
+            }
+
+            return applyHighlightStylePatch(
+              block,
+              highlightUnifiedStyleTarget,
+              {
+                backgroundOpacity,
+              },
+            );
+          }),
+        }));
+
+        return;
+      }
+
       applyAppearancePatch({
         backgroundOpacity,
       } as any);
@@ -12367,12 +12673,15 @@ if (selectedBlock.type === "poll") {
         ? pollStyleTarget === "field"
           ? "Poll field background transparency"
           : "Poll block background transparency"
-        : "Selected calendar style target background opacity"
+        : selectedBlock.type === "highlight"
+          ? "Highlight background opacity"
+          : "Selected calendar style target background opacity"
     }
   />
 
   <span>
-    {selectedBlock.type === "poll" && pollStyleTarget === "field"
+    {selectedBlock.type === "poll" &&
+    pollStyleTarget === "field"
       ? Math.round(
           Number(
             ((selectedBlock.data as any).fieldStyle?.backgroundOpacity ??
@@ -12381,11 +12690,48 @@ if (selectedBlock.type === "poll") {
               1),
           ) * 100,
         )
-      : Math.round(
-          Number(
-            (selectedAppearance as any).backgroundOpacity ?? 1,
-          ) * 100,
-        )}
+      : selectedBlock.type === "highlight" &&
+          highlightUnifiedStyleTarget === "dataCardFrame"
+        ? Math.round(
+            Number(
+              (selectedBlock.data as any)
+                .dataCardFrameStyle?.backgroundOpacity ??
+                1,
+            ) * 100,
+          )
+        : selectedBlock.type === "highlight" &&
+            highlightUnifiedStyleTarget === "dataCardImageFrame"
+          ? Math.round(
+              Number(
+                (selectedBlock.data as any)
+                  .dataCardImageFrameStyle?.backgroundOpacity ??
+                  1,
+              ) * 100,
+            )
+          : selectedBlock.type === "highlight" &&
+              highlightUnifiedStyleTarget === "dataCardProgressTrack"
+            ? Math.round(
+                Number(
+                  (selectedBlock.data as any)
+                    .progressBarBackgroundOpacity ??
+                    1,
+                ) * 100,
+              )
+            : selectedBlock.type === "highlight" &&
+                highlightUnifiedStyleTarget === "dataCardProgressFill"
+              ? Math.round(
+                  Number(
+                    (selectedBlock.data as any)
+                      .progressBarFillOpacity ??
+                      1,
+                  ) * 100,
+                )
+              : Math.round(
+                  Number(
+                    (selectedAppearance as any).backgroundOpacity ??
+                      1,
+                  ) * 100,
+                )}
     %
   </span>
 </div>
