@@ -15218,12 +15218,13 @@ selectedBlock?.type === "comparison_table" ? (
 ) : null}
 
 {!isMultiSelection && selectedBlock?.type === "label" ? (
-  <LabelInspector
-    selectedBlock={selectedBlock}
-    updateSelectedBlock={updateSelectedBlock}
-    inspectorCardClass={inspectorCardClass}
-    inspectorLabelClass={inspectorLabelClass}
-  />
+<LabelInspector
+  selectedBlock={selectedBlock}
+  updateSelectedBlock={updateSelectedBlock}
+  inspectorCardClass={inspectorCardClass}
+  inspectorLabelClass={inspectorLabelClass}
+  inspectorInputClass={inspectorInputClass}
+/>
 ) : null}
 
 {!isMultiSelection && selectedBlock?.type === "links" ? (

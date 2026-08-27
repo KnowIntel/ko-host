@@ -13,6 +13,7 @@ type LabelInspectorProps = {
 
   inspectorCardClass: () => string;
   inspectorLabelClass: () => string;
+  inspectorInputClass: () => string;
 };
 
 export function LabelInspector({
@@ -20,13 +21,51 @@ export function LabelInspector({
   updateSelectedBlock,
   inspectorCardClass,
   inspectorLabelClass,
+  inspectorInputClass,
 }: LabelInspectorProps) {
   return (
     <div className={inspectorCardClass()}>
-      <div className={inspectorLabelClass()}>Label Position</div>
+      <div className={inspectorLabelClass()}>Label</div>
+
+      {/* ============================================================ */}
+      {/* LABEL TEXT */}
+      {/* ============================================================ */}
+
+      <div className="mt-4">
+        <div className={inspectorLabelClass()}>Text</div>
+
+        <input
+          type="text"
+          value={selectedBlock.data.text ?? ""}
+          onChange={(e) =>
+            updateSelectedBlock((block: any) =>
+              block.type !== "label"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      text: e.target.value,
+                    },
+                  },
+            )
+          }
+          className={inspectorInputClass()}
+          placeholder="Enter label text..."
+        />
+      </div>
+
+      {/* ============================================================ */}
+      {/* POSITION */}
+      {/* ============================================================ */}
+
+      <div className="mt-6">
+        <div className={inspectorLabelClass()}>Label Position</div>
+      </div>
 
       <div className="mt-4">
         <div className={inspectorLabelClass()}>Horizontal Position</div>
+
         <input
           type="range"
           min={0}
@@ -47,6 +86,7 @@ export function LabelInspector({
           }
           className="mt-2 w-full"
         />
+
         <div className="mt-1 text-xs text-neutral-500">
           {(selectedBlock.data as any).positionX ?? 50}%
         </div>
@@ -54,6 +94,7 @@ export function LabelInspector({
 
       <div className="mt-4">
         <div className={inspectorLabelClass()}>Vertical Position</div>
+
         <input
           type="range"
           min={0}
@@ -74,23 +115,28 @@ export function LabelInspector({
           }
           className="mt-2 w-full"
         />
+
         <div className="mt-1 text-xs text-neutral-500">
           {(selectedBlock.data as any).positionY ?? 50}%
         </div>
       </div>
 
+      {/* ============================================================ */}
+      {/* FADE EDGES */}
+      {/* ============================================================ */}
+
       <div className="mt-6">
         <div className={inspectorLabelClass()}>Fade Edges</div>
 
         <div className="mt-3 grid grid-cols-2 gap-3">
-{(
-  [
-    ["top", "Top"],
-    ["bottom", "Bottom"],
-    ["left", "Left"],
-    ["right", "Right"],
-  ] as [string, string][]
-).map(([edge, label]) => (
+          {(
+            [
+              ["top", "Top"],
+              ["bottom", "Bottom"],
+              ["left", "Left"],
+              ["right", "Right"],
+            ] as [string, string][]
+          ).map(([edge, label]) => (
             <label
               key={edge}
               className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800"
@@ -106,16 +152,21 @@ export function LabelInspector({
                           ...block,
                           data: {
                             ...(block.data as any),
+
                             fade: {
                               ...((block.data as any).fade ?? {}),
+
                               [edge]: e.target.checked,
-                              size: (block.data as any).fade?.size ?? 15,
+
+                              size:
+                                (block.data as any).fade?.size ?? 15,
                             },
                           },
                         },
                   )
                 }
               />
+
               {label}
             </label>
           ))}
@@ -124,6 +175,7 @@ export function LabelInspector({
 
       <div className="mt-4">
         <div className={inspectorLabelClass()}>Fade Size</div>
+
         <input
           type="range"
           min={0}
@@ -135,11 +187,15 @@ export function LabelInspector({
                 ? block
                 : {
                     ...block,
+
                     data: {
                       ...(block.data as any),
+
                       fade: {
                         ...((block.data as any).fade ?? {}),
-                        size: Number(e.target.value),
+
+                        size:
+                          Number(e.target.value),
                       },
                     },
                   },
@@ -147,6 +203,7 @@ export function LabelInspector({
           }
           className="mt-2 w-full"
         />
+
         <div className="mt-1 text-xs text-neutral-500">
           {(selectedBlock.data as any).fade?.size ?? 15}%
         </div>
