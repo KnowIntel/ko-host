@@ -31120,7 +31120,14 @@ case "statistic_cards":
   return renderStatisticCards(block, designKey);
 
 case "chart":
-  return renderChart(block, designKey);
+  return (
+    <div
+      className="flex h-full w-full items-center justify-center"
+      style={getAppearanceStyle(block)}
+    >
+      Chart
+    </div>
+  );
 
   case "comparison_table":
   return renderComparisonTable(block, designKey);
