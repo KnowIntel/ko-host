@@ -6609,6 +6609,73 @@ function renderChart(
     );
   };
 
+    const renderSvgTooltip = (
+    x: number,
+    y: number,
+    title: string,
+    value: number,
+    color: string,
+  ) => {
+    const tooltipWidth = 138;
+    const tooltipHeight = 48;
+
+    const resolvedX = Math.max(
+      6,
+      Math.min(
+        SVG_WIDTH - tooltipWidth - 6,
+        x - tooltipWidth / 2,
+      ),
+    );
+
+    const resolvedY = Math.max(
+      6,
+      y - tooltipHeight - 12,
+    );
+
+    return (
+      <g
+        className="pointer-events-none opacity-0 transition-opacity duration-150 group-hover:opacity-100"
+      >
+        <rect
+          x={resolvedX}
+          y={resolvedY}
+          width={tooltipWidth}
+          height={tooltipHeight}
+          rx={8}
+          fill="#111827"
+          opacity={0.96}
+        />
+
+        <circle
+          cx={resolvedX + 12}
+          cy={resolvedY + 15}
+          r={4}
+          fill={color}
+        />
+
+        <text
+          x={resolvedX + 22}
+          y={resolvedY + 18}
+          fill="#FFFFFF"
+          fontSize={10}
+          fontWeight={600}
+        >
+          {title}
+        </text>
+
+        <text
+          x={resolvedX + 12}
+          y={resolvedY + 36}
+          fill="#D1D5DB"
+          fontSize={11}
+          fontWeight={700}
+        >
+          {formatValue(value)}
+        </text>
+      </g>
+    );
+  };
+
   const axisTextColor =
     (axisStyle as any).color ??
     axisColor;
@@ -6802,6 +6869,38 @@ function renderChart(
     value: unknown,
   ) => String(value ?? "");
 
+    const truncateText = (
+    value: unknown,
+    maxLength: number,
+  ) => {
+    const text = String(value ?? "");
+
+    if (text.length <= maxLength) {
+      return text;
+    }
+
+    return `${text.slice(
+      0,
+      Math.max(1, maxLength - 1),
+    )}…`;
+  };
+
+  const getXAxisLabelLength = () => {
+    if (chartData.length <= 3) {
+      return 18;
+    }
+
+    if (chartData.length <= 5) {
+      return 12;
+    }
+
+    if (chartData.length <= 8) {
+      return 9;
+    }
+
+    return 7;
+  };
+
   const buildLinePath = (
     item: any,
   ) => {
@@ -6928,31 +7027,32 @@ function renderChart(
                     vectorEffect="non-scaling-stroke"
                   />
 
-                  <text
-                    x={x}
-                    y={
-                      SVG_HEIGHT -
-                      plotBottom +
-                      22
-                    }
-                    textAnchor="middle"
-                    fill={
-                      axisTextColor
-                    }
-                    fontSize={
-                      axisFontSize
-                    }
-                    fontFamily={
-                      axisFontFamily
-                    }
-                    fontWeight={
-                      axisFontWeight
-                    }
-                  >
-                    {escapeSvgText(
-                      row.label,
-                    )}
-                  </text>
+<text
+  x={x}
+  y={
+    SVG_HEIGHT -
+    plotBottom +
+    22
+  }
+  textAnchor="middle"
+  fill={
+    axisTextColor
+  }
+  fontSize={
+    axisFontSize
+  }
+  fontFamily={
+    axisFontFamily
+  }
+  fontWeight={
+    axisFontWeight
+  }
+>
+  {truncateText(
+    row.label,
+    getXAxisLabelLength(),
+  )}
+</text>
                 </g>
               );
             },
@@ -7172,52 +7272,44 @@ function renderChart(
                         );
 
                       return (
-                        <g
-                          key={`${
-                            item.id ??
-                            item.name
-                          }-point-${index}`}
-                        >
-                          <circle
-                            cx={x}
-                            cy={y}
-                            r={
-                              pointSize
-                            }
-                            fill={
-                              color
-                            }
-                          />
+<g
+  key={`${
+    item.id ??
+    item.name
+  }-point-${index}`}
+  className="group cursor-pointer"
+>
+  <circle
+    cx={x}
+    cy={y}
+    r={pointSize}
+    fill={color}
+  />
 
-                          {data.showDataLabels ===
-                          true ? (
-                            <text
-                              x={x}
-                              y={
-                                y -
-                                pointSize -
-                                6
-                              }
-                              textAnchor="middle"
-                              fill={
-                                dataLabelColor
-                              }
-                              fontSize={
-                                dataLabelFontSize
-                              }
-                              fontFamily={
-                                dataLabelFontFamily
-                              }
-                              fontWeight={
-                                dataLabelFontWeight
-                              }
-                            >
-                              {formatValue(
-                                value,
-                              )}
-                            </text>
-                          ) : null}
-                        </g>
+  {data.showTooltip !== false
+    ? renderSvgTooltip(
+        x,
+        y,
+        `${row.label} · ${item.name}`,
+        value,
+        color,
+      )
+    : null}
+
+  {data.showDataLabels === true ? (
+    <text
+      x={x}
+      y={y - pointSize - 6}
+      textAnchor="middle"
+      fill={dataLabelColor}
+      fontSize={dataLabelFontSize}
+      fontFamily={dataLabelFontFamily}
+      fontWeight={dataLabelFontWeight}
+    >
+      {formatValue(value)}
+    </text>
+  ) : null}
+</g>
                       );
                     },
                   )
@@ -7388,12 +7480,13 @@ function renderChart(
                       );
 
                     return (
-                      <g
-                        key={`${
-                          item.id ??
-                          item.name
-                        }-${rowIndex}`}
-                      >
+<g
+  key={`${
+    item.id ??
+    item.name
+  }-${rowIndex}`}
+  className="group cursor-pointer"
+>
                         <rect
                           x={x}
                           y={y}
@@ -7414,6 +7507,16 @@ function renderChart(
                             color
                           }
                         />
+
+                        {data.showTooltip !== false
+  ? renderSvgTooltip(
+      x + barWidth / 2,
+      y,
+      `${row.label} · ${item.name}`,
+      value,
+      color,
+    )
+  : null}
 
                         {data.showDataLabels ===
                         true ? (
@@ -7680,9 +7783,10 @@ function renderChart(
                       axisFontWeight
                     }
                   >
-                    {escapeSvgText(
-                      row.label,
-                    )}
+{truncateText(
+  row.label,
+  18,
+)}
                   </text>
                 ),
               )}
@@ -7754,78 +7858,93 @@ function renderChart(
                           seriesIndex,
                         );
 
-                      return (
-                        <g
-                          key={`${
-                            item.id ??
-                            item.name
-                          }-${rowIndex}`}
-                        >
-                          <rect
-                            x={x}
-                            y={y}
-                            width={
-                              width
-                            }
-                            height={
-                              barHeight
-                            }
-                            rx={Math.min(
-                              barRadius,
-                              barHeight /
-                                2,
-                              width /
-                                2,
-                            )}
-                            fill={
-                              color
-                            }
-                          />
+return (
+  <g
+    key={`${
+      item.id ??
+      item.name
+    }-${rowIndex}`}
+    className="group cursor-pointer"
+  >
+    <rect
+      x={x}
+      y={y}
+      width={
+        width
+      }
+      height={
+        barHeight
+      }
+      rx={Math.min(
+        barRadius,
+        barHeight /
+          2,
+        width /
+          2,
+      )}
+      fill={
+        color
+      }
+    />
 
-                          {data.showDataLabels ===
-                          true ? (
-                            <text
-                              x={
-                                value >=
-                                0
-                                  ? x +
-                                    width +
-                                    7
-                                  : x -
-                                    7
-                              }
-                              y={
-                                y +
-                                barHeight /
-                                  2 +
-                                4
-                              }
-                              textAnchor={
-                                value >=
-                                0
-                                  ? "start"
-                                  : "end"
-                              }
-                              fill={
-                                dataLabelColor
-                              }
-                              fontSize={
-                                dataLabelFontSize
-                              }
-                              fontFamily={
-                                dataLabelFontFamily
-                              }
-                              fontWeight={
-                                dataLabelFontWeight
-                              }
-                            >
-                              {formatValue(
-                                value,
-                              )}
-                            </text>
-                          ) : null}
-                        </g>
-                      );
+    {data.showTooltip !== false
+      ? renderSvgTooltip(
+          value >= 0
+            ? x + width
+            : x,
+          y +
+            barHeight /
+              2,
+          `${row.label} · ${item.name}`,
+          value,
+          color,
+        )
+      : null}
+
+    {data.showDataLabels ===
+    true ? (
+      <text
+        x={
+          value >=
+          0
+            ? x +
+              width +
+              7
+            : x -
+              7
+        }
+        y={
+          y +
+          barHeight /
+            2 +
+          4
+        }
+        textAnchor={
+          value >=
+          0
+            ? "start"
+            : "end"
+        }
+        fill={
+          dataLabelColor
+        }
+        fontSize={
+          dataLabelFontSize
+        }
+        fontFamily={
+          dataLabelFontFamily
+        }
+        fontWeight={
+          dataLabelFontWeight
+        }
+      >
+        {formatValue(
+          value,
+        )}
+      </text>
+    ) : null}
+  </g>
+);
                     },
                   )}
                 </g>
@@ -8105,12 +8224,14 @@ function renderChart(
 
             currentAngle += sweep;
 
-            const color =
-              getSeriesColor(
-                series[index] ??
-                  primarySeries,
-                index,
-              );
+const color =
+  typeof row.color === "string" &&
+  row.color
+    ? row.color
+    : fallbackColors[
+        index %
+          fallbackColors.length
+      ];
 
             const path =
               describeArc(
@@ -8140,16 +8261,28 @@ function renderChart(
               );
 
             return (
-              <g
-                key={
-                  row.id ??
-                  `pie-${index}`
-                }
-              >
-                <path
-                  d={path}
-                  fill={color}
-                />
+<g
+  key={
+    row.id ??
+    `pie-${index}`
+  }
+  className="group cursor-pointer"
+>
+  <path
+    d={path}
+    fill={color}
+  />
+
+  {data.showTooltip !== false
+    ? renderSvgTooltip(
+        labelPoint.x,
+        labelPoint.y,
+        row.label ||
+          `Slice ${index + 1}`,
+        value,
+        color,
+      )
+    : null}
 
                 {data.showDataLabels ===
                 true ? (
@@ -8522,12 +8655,13 @@ function renderChart(
               );
 
             return (
-              <g
-                key={
-                  row.id ??
-                  `scatter-point-${index}`
-                }
-              >
+<g
+  key={
+    row.id ??
+    `scatter-point-${index}`
+  }
+  className="group cursor-pointer"
+>
                 <circle
                   cx={x}
                   cy={y}
@@ -8536,6 +8670,18 @@ function renderChart(
                   }
                   fill={color}
                 />
+
+                {data.showTooltip !== false
+  ? renderSvgTooltip(
+      x,
+      y,
+      series.length > 1
+        ? `${xSeries.name}: ${formatValue(row.__x)}`
+        : row.label || `Point ${index + 1}`,
+      row.__y,
+      color,
+    )
+  : null}
 
                 {data.showDataLabels ===
                 true ? (
@@ -8713,6 +8859,50 @@ function renderChart(
       legendPosition ===
         "right";
 
+const isPieChart =
+  chartType === "pie" ||
+  chartType === "doughnut";
+
+const legendItems = isPieChart
+  ? chartData.map(
+      (
+        row: any,
+        index: number,
+      ) => ({
+        id:
+          row.id ??
+          `pie-legend-${index}`,
+        name:
+          row.label ||
+          `Slice ${index + 1}`,
+        color:
+          typeof row.color ===
+            "string" &&
+          row.color
+            ? row.color
+            : fallbackColors[
+                index %
+                  fallbackColors.length
+              ],
+      }),
+    )
+  : series.map(
+      (
+        item: any,
+        index: number,
+      ) => ({
+        id:
+          item.id ??
+          item.name,
+        name: item.name,
+        color:
+          getSeriesColor(
+            item,
+            index,
+          ),
+      }),
+    );
+
     return (
       <div
         className={[
@@ -8726,26 +8916,19 @@ function renderChart(
           ...legendStyle,
         }}
       >
-        {series.map(
-          (
-            item: any,
-            index: number,
-          ) => (
-            <div
-              key={
-                item.id ??
-                item.name
-              }
+{legendItems.map(
+  (
+    item: any,
+  ) => (
+    <div
+      key={item.id}
               className="flex min-w-0 items-center gap-2"
             >
               <span
                 className="block h-2.5 w-2.5 shrink-0 rounded-full"
                 style={{
-                  backgroundColor:
-                    getSeriesColor(
-                      item,
-                      index,
-                    ),
+backgroundColor:
+  item.color,
                 }}
               />
 

@@ -816,27 +816,50 @@ export function ChartInspector({
                 }
                 className="rounded-xl border border-neutral-200 bg-white p-3"
               >
-                <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={
-                      row.label ?? ""
-                    }
-                    onChange={(e) =>
-                      updateRow(
-                        row.id,
-                        {
-                          label:
-                            e.target
-                              .value,
-                        },
-                      )
-                    }
-                    className={`${inspectorInputClass()} min-w-0 flex-1`}
-                    placeholder="Category"
-                  />
+<div className="flex items-center gap-2">
+  <input
+    type="text"
+    value={
+      row.label ?? ""
+    }
+    onChange={(e) =>
+      updateRow(
+        row.id,
+        {
+          label:
+            e.target.value,
+        },
+      )
+    }
+    className={`${inspectorInputClass()} min-w-0 flex-1`}
+    placeholder="Category"
+  />
 
-                  <button
+  {usesPieControls ? (
+    <input
+      type="color"
+      value={
+        row.color ??
+        SERIES_COLORS[
+          rowIndex %
+            SERIES_COLORS.length
+        ]
+      }
+      onChange={(e) =>
+        updateRow(
+          row.id,
+          {
+            color:
+              e.target.value,
+          },
+        )
+      }
+      className="h-10 w-12 shrink-0 rounded-lg border border-neutral-300 bg-white p-1"
+      title="Slice color"
+    />
+  ) : null}
+
+  <button
                     type="button"
                     onClick={() =>
                       removeRow(
