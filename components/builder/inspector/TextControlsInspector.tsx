@@ -802,7 +802,7 @@ function clearTextFxLetterColors() {
     </>
   ) : (
     <div className="mt-4 rounded-xl border border-dashed border-neutral-300 bg-neutral-50 px-3 py-4 text-sm text-neutral-500">
-      Enter TextFX text to configure individual character colors.
+      Select TextFX blocks to configure individual character colors.
     </div>
   )}
 </div>
@@ -1498,7 +1498,7 @@ onChange={(e) => {
     </>
   ) : (
     <div className="mt-4 rounded-xl border border-dashed border-neutral-300 bg-neutral-50 px-3 py-4 text-sm text-neutral-500">
-      Enter TextFX text to configure individual character colors.
+      Select TextFX blocks to configure individual character colors.
     </div>
   )}
 </div>
