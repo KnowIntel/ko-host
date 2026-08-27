@@ -6785,9 +6785,63 @@ function renderChart(
 
 const renderChartBody = () => {
   return (
-    <div className="flex h-full min-h-[180px] items-center justify-center rounded-xl border border-dashed border-neutral-300 px-4 text-center text-sm text-neutral-500">
-      Chart renderer test
-    </div>
+    <LineChart
+      width={600}
+      height={260}
+      data={chartData}
+      margin={{
+        top: 20,
+        right: 24,
+        bottom: 20,
+        left: 20,
+      }}
+    >
+      <CartesianGrid
+        stroke="#E5E7EB"
+        strokeDasharray="3 3"
+      />
+
+      <XAxis
+        dataKey="label"
+      />
+
+      <YAxis />
+
+      {series.map(
+        (
+          item: any,
+          index: number,
+        ) => {
+          const color =
+            item.color ??
+            [
+              "#2563EB",
+              "#7C3AED",
+              "#059669",
+              "#EA580C",
+              "#DC2626",
+              "#0891B2",
+            ][index % 6];
+
+          return (
+            <Line
+              key={
+                item.id ?? item.name
+              }
+              type="monotone"
+              dataKey={item.name}
+              stroke={color}
+              strokeWidth={3}
+              dot={{
+                r: 5,
+                fill: color,
+              }}
+              isAnimationActive={false}
+            />
+          );
+        },
+      )}
+    </LineChart>
   );
 
   if (
