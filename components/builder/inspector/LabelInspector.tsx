@@ -31,29 +31,32 @@ export function LabelInspector({
       {/* LABEL TEXT */}
       {/* ============================================================ */}
 
-      <div className="mt-4">
-        <div className={inspectorLabelClass()}>Text</div>
+<div className="mt-4">
+  <div className={inspectorLabelClass()}>Text</div>
 
-        <input
-          type="text"
-          value={selectedBlock.data.text ?? ""}
-          onChange={(e) =>
-            updateSelectedBlock((block: any) =>
-              block.type !== "label"
-                ? block
-                : {
-                    ...block,
-                    data: {
-                      ...block.data,
-                      text: e.target.value,
-                    },
-                  },
-            )
-          }
-          className={inspectorInputClass()}
-          placeholder="Enter label text..."
-        />
-      </div>
+  <textarea
+    value={selectedBlock.data.text ?? ""}
+    onChange={(e) =>
+      updateSelectedBlock((block: any) =>
+        block.type !== "label"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                text: e.target.value,
+              },
+            },
+      )
+    }
+    rows={4}
+    className={[
+      inspectorInputClass(),
+      "min-h-[110px] resize-y py-3",
+    ].join(" ")}
+    placeholder="Enter label text..."
+  />
+</div>
 
       {/* ============================================================ */}
       {/* POSITION */}
