@@ -16,27 +16,6 @@ import {
 } from "@/components/blocks/enrollmentBoardEvents";
 import { getFontFamily } from "@/lib/fonts";
 
-import {
-  Area,
-  AreaChart,
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  LabelList,
-  Legend,
-  Line,
-  LineChart,
-  Pie,
-  PieChart,
-  Scatter,
-  ScatterChart,
-  Tooltip,
-  XAxis,
-  YAxis,
-  ZAxis,
-} from "recharts";
-
 type SpeedDatingParticipant = {
   id: string;
   name: string;
@@ -844,6 +823,7 @@ function Placeholder({
     </div>
   );
 }
+
 
 function renderShape(block: Extract<MicrositeBlock, { type: "shape" }>) {
 const textureFaceStyle =
@@ -6449,22 +6429,34 @@ function renderChart(
 
   const paddingTop = Math.max(
     0,
-    Math.min(100, Number(data.paddingTop ?? 16)),
+    Math.min(
+      100,
+      Number(data.paddingTop ?? 16),
+    ),
   );
 
   const paddingRight = Math.max(
     0,
-    Math.min(100, Number(data.paddingRight ?? 16)),
+    Math.min(
+      100,
+      Number(data.paddingRight ?? 16),
+    ),
   );
 
   const paddingBottom = Math.max(
     0,
-    Math.min(100, Number(data.paddingBottom ?? 16)),
+    Math.min(
+      100,
+      Number(data.paddingBottom ?? 16),
+    ),
   );
 
   const paddingLeft = Math.max(
     0,
-    Math.min(100, Number(data.paddingLeft ?? 16)),
+    Math.min(
+      100,
+      Number(data.paddingLeft ?? 16),
+    ),
   );
 
   const gridColor =
@@ -6479,63 +6471,2293 @@ function renderChart(
 
   const lineWidth = Math.max(
     1,
-    Math.min(12, Number(data.lineWidth ?? 3)),
+    Math.min(
+      12,
+      Number(data.lineWidth ?? 3),
+    ),
   );
 
   const pointSize = Math.max(
     1,
-    Math.min(20, Number(data.pointSize ?? 5)),
+    Math.min(
+      20,
+      Number(data.pointSize ?? 5),
+    ),
   );
 
   const barRadius = Math.max(
     0,
-    Math.min(40, Number(data.barRadius ?? 6)),
+    Math.min(
+      40,
+      Number(data.barRadius ?? 6),
+    ),
   );
 
   const barGap = Math.max(
     0,
-    Math.min(40, Number(data.barGap ?? 8)),
+    Math.min(
+      40,
+      Number(data.barGap ?? 8),
+    ),
   );
 
   const areaOpacity = Math.max(
     0,
-    Math.min(1, Number(data.areaOpacity ?? 0.22)),
+    Math.min(
+      1,
+      Number(data.areaOpacity ?? 0.22),
+    ),
   );
 
   const pieInnerRadius = Math.max(
     0,
-    Math.min(90, Number(data.pieInnerRadius ?? 0)),
+    Math.min(
+      90,
+      Number(data.pieInnerRadius ?? 55),
+    ),
   );
 
   const pieOuterRadius = Math.max(
     20,
-    Math.min(140, Number(data.pieOuterRadius ?? 90)),
+    Math.min(
+      140,
+      Number(data.pieOuterRadius ?? 90),
+    ),
   );
 
   const piePaddingAngle = Math.max(
     0,
-    Math.min(15, Number(data.piePaddingAngle ?? 2)),
+    Math.min(
+      15,
+      Number(data.piePaddingAngle ?? 2),
+    ),
   );
 
   const scatterPointSize = Math.max(
     2,
-    Math.min(20, Number(data.scatterPointSize ?? 7)),
+    Math.min(
+      20,
+      Number(data.scatterPointSize ?? 7),
+    ),
   );
 
-  const animationStyle =
-    data.animationStyle === "fade" ||
-    data.animationStyle === "grow"
-      ? data.animationStyle
-      : "none";
+  const fallbackColors = [
+    "#2563EB",
+    "#7C3AED",
+    "#059669",
+    "#EA580C",
+    "#DC2626",
+    "#0891B2",
+    "#DB2777",
+    "#65A30D",
+  ];
 
-  const isAnimationActive = animationStyle !== "none";
+  const getSeriesColor = (
+    item: any,
+    index: number,
+  ) =>
+    typeof item?.color === "string" &&
+    item.color
+      ? item.color
+      : fallbackColors[
+          index % fallbackColors.length
+        ];
 
-  const animationDuration =
-    animationStyle === "fade"
-      ? 500
-      : animationStyle === "grow"
-        ? 750
+  const toFiniteNumber = (
+    value: unknown,
+  ) => {
+    const numberValue = Number(value);
+
+    return Number.isFinite(numberValue)
+      ? numberValue
+      : 0;
+  };
+
+  const formatValue = (
+    value: number,
+  ) => {
+    if (!Number.isFinite(value)) {
+      return "0";
+    }
+
+    if (
+      Math.abs(value) >= 1000000000
+    ) {
+      return `${(
+        value / 1000000000
+      ).toFixed(1)}B`;
+    }
+
+    if (Math.abs(value) >= 1000000) {
+      return `${(
+        value / 1000000
+      ).toFixed(1)}M`;
+    }
+
+    if (Math.abs(value) >= 1000) {
+      return `${(
+        value / 1000
+      ).toFixed(1)}K`;
+    }
+
+    if (Number.isInteger(value)) {
+      return String(value);
+    }
+
+    return String(
+      Number(value.toFixed(2)),
+    );
+  };
+
+  const axisTextColor =
+    (axisStyle as any).color ??
+    axisColor;
+
+  const axisFontSize =
+    typeof (axisStyle as any)
+      .fontSize === "number"
+      ? (axisStyle as any).fontSize
+      : 11;
+
+  const axisFontFamily =
+    (axisStyle as any).fontFamily;
+
+  const axisFontWeight =
+    (axisStyle as any).fontWeight;
+
+  const axisLabelColor =
+    (axisLabelStyle as any).color ??
+    axisColor;
+
+  const axisLabelFontSize =
+    typeof (axisLabelStyle as any)
+      .fontSize === "number"
+      ? (axisLabelStyle as any)
+          .fontSize
+      : 12;
+
+  const dataLabelColor =
+    (dataLabelStyle as any).color ??
+    "#374151";
+
+  const dataLabelFontSize =
+    typeof (dataLabelStyle as any)
+      .fontSize === "number"
+      ? (dataLabelStyle as any)
+          .fontSize
+      : 10;
+
+  const dataLabelFontFamily =
+    (dataLabelStyle as any)
+      .fontFamily;
+
+  const dataLabelFontWeight =
+    (dataLabelStyle as any)
+      .fontWeight;
+
+  /*
+   * SVG uses a stable internal coordinate
+   * system. The browser scales the SVG to
+   * whatever dimensions the Ko-Host block
+   * currently has.
+   *
+   * No ResizeObserver or chart-library
+   * measurement cycle is required.
+   */
+  const SVG_WIDTH = 800;
+  const SVG_HEIGHT = 420;
+
+  const plotLeft =
+    data.showYAxis === false
+      ? 28
+      : 72;
+
+  const plotRight = 24;
+
+  const plotTop = 28;
+
+  const plotBottom =
+    data.showXAxis === false
+      ? 28
+      : 64;
+
+  const plotWidth =
+    SVG_WIDTH -
+    plotLeft -
+    plotRight;
+
+  const plotHeight =
+    SVG_HEIGHT -
+    plotTop -
+    plotBottom;
+
+  const allValues =
+    chartData.flatMap((row: any) =>
+      series.map((item: any) =>
+        toFiniteNumber(
+          row[item.name],
+        ),
+      ),
+    );
+
+  const rawMinimum =
+    allValues.length > 0
+      ? Math.min(...allValues)
+      : 0;
+
+  const rawMaximum =
+    allValues.length > 0
+      ? Math.max(...allValues)
+      : 1;
+
+  /*
+   * Keep zero in the domain whenever all
+   * values have the same sign. This gives
+   * bars and ordinary charts a sensible
+   * baseline while still supporting
+   * negative-only and mixed datasets.
+   */
+  let domainMinimum =
+    rawMinimum > 0
+      ? 0
+      : rawMinimum;
+
+  let domainMaximum =
+    rawMaximum < 0
+      ? 0
+      : rawMaximum;
+
+  if (
+    domainMinimum === domainMaximum
+  ) {
+    if (domainMinimum === 0) {
+      domainMaximum = 1;
+    } else {
+      const expansion =
+        Math.abs(domainMinimum) *
+          0.1 ||
+        1;
+
+      domainMinimum -= expansion;
+      domainMaximum += expansion;
+    }
+  }
+
+  const domainRange =
+    domainMaximum -
+    domainMinimum || 1;
+
+  const yForValue = (
+    value: number,
+  ) =>
+    plotTop +
+    ((domainMaximum - value) /
+      domainRange) *
+      plotHeight;
+
+  const xForCategory = (
+    index: number,
+  ) => {
+    if (chartData.length <= 1) {
+      return (
+        plotLeft +
+        plotWidth / 2
+      );
+    }
+
+    return (
+      plotLeft +
+      (index /
+        (chartData.length - 1)) *
+        plotWidth
+    );
+  };
+
+  const zeroY = yForValue(0);
+
+  const tickCount = 5;
+
+  const yTicks = Array.from(
+    {
+      length: tickCount + 1,
+    },
+    (_, index) => {
+      const ratio =
+        index / tickCount;
+
+      const value =
+        domainMaximum -
+        domainRange * ratio;
+
+      return {
+        value,
+        y:
+          plotTop +
+          plotHeight * ratio,
+      };
+    },
+  );
+
+  const escapeSvgText = (
+    value: unknown,
+  ) => String(value ?? "");
+
+  const buildLinePath = (
+    item: any,
+  ) => {
+    if (chartData.length === 0) {
+      return "";
+    }
+
+    return chartData
+      .map(
+        (
+          row: any,
+          index: number,
+        ) => {
+          const x =
+            xForCategory(index);
+
+          const y = yForValue(
+            toFiniteNumber(
+              row[item.name],
+            ),
+          );
+
+          return `${
+            index === 0 ? "M" : "L"
+          } ${x} ${y}`;
+        },
+      )
+      .join(" ");
+  };
+
+  const buildAreaPath = (
+    item: any,
+  ) => {
+    if (chartData.length === 0) {
+      return "";
+    }
+
+    const linePath =
+      buildLinePath(item);
+
+    const firstX =
+      xForCategory(0);
+
+    const lastX =
+      xForCategory(
+        chartData.length - 1,
+      );
+
+    return `${linePath} L ${lastX} ${zeroY} L ${firstX} ${zeroY} Z`;
+  };
+
+  const renderCartesianGrid = () => {
+    if (data.showGrid === false) {
+      return null;
+    }
+
+    return (
+      <g>
+        {yTicks.map(
+          (tick, index) => (
+            <line
+              key={`grid-y-${index}`}
+              x1={plotLeft}
+              x2={
+                plotLeft +
+                plotWidth
+              }
+              y1={tick.y}
+              y2={tick.y}
+              stroke={gridColor}
+              strokeWidth={1}
+              strokeDasharray="4 4"
+              vectorEffect="non-scaling-stroke"
+            />
+          ),
+        )}
+      </g>
+    );
+  };
+
+  const renderCartesianAxes = () => (
+    <>
+      {data.showXAxis !== false ? (
+        <g>
+          <line
+            x1={plotLeft}
+            x2={
+              plotLeft +
+              plotWidth
+            }
+            y1={zeroY}
+            y2={zeroY}
+            stroke={axisColor}
+            strokeWidth={1}
+            vectorEffect="non-scaling-stroke"
+          />
+
+          {chartData.map(
+            (
+              row: any,
+              index: number,
+            ) => {
+              const x =
+                xForCategory(index);
+
+              return (
+                <g
+                  key={
+                    row.id ??
+                    `x-axis-${index}`
+                  }
+                >
+                  <line
+                    x1={x}
+                    x2={x}
+                    y1={zeroY}
+                    y2={
+                      zeroY + 5
+                    }
+                    stroke={
+                      axisColor
+                    }
+                    strokeWidth={1}
+                    vectorEffect="non-scaling-stroke"
+                  />
+
+                  <text
+                    x={x}
+                    y={
+                      SVG_HEIGHT -
+                      plotBottom +
+                      22
+                    }
+                    textAnchor="middle"
+                    fill={
+                      axisTextColor
+                    }
+                    fontSize={
+                      axisFontSize
+                    }
+                    fontFamily={
+                      axisFontFamily
+                    }
+                    fontWeight={
+                      axisFontWeight
+                    }
+                  >
+                    {escapeSvgText(
+                      row.label,
+                    )}
+                  </text>
+                </g>
+              );
+            },
+          )}
+
+          {data.showXAxisLabel ===
+            true &&
+          data.xAxisLabel ? (
+            <text
+              x={
+                plotLeft +
+                plotWidth / 2
+              }
+              y={SVG_HEIGHT - 8}
+              textAnchor="middle"
+              fill={
+                axisLabelColor
+              }
+              fontSize={
+                axisLabelFontSize
+              }
+              fontFamily={
+                (axisLabelStyle as any)
+                  .fontFamily
+              }
+              fontWeight={
+                (axisLabelStyle as any)
+                  .fontWeight
+              }
+            >
+              {escapeSvgText(
+                data.xAxisLabel,
+              )}
+            </text>
+          ) : null}
+        </g>
+      ) : null}
+
+      {data.showYAxis !== false ? (
+        <g>
+          <line
+            x1={plotLeft}
+            x2={plotLeft}
+            y1={plotTop}
+            y2={
+              plotTop +
+              plotHeight
+            }
+            stroke={axisColor}
+            strokeWidth={1}
+            vectorEffect="non-scaling-stroke"
+          />
+
+          {yTicks.map(
+            (tick, index) => (
+              <g
+                key={`y-axis-${index}`}
+              >
+                <line
+                  x1={
+                    plotLeft - 5
+                  }
+                  x2={plotLeft}
+                  y1={tick.y}
+                  y2={tick.y}
+                  stroke={
+                    axisColor
+                  }
+                  strokeWidth={1}
+                  vectorEffect="non-scaling-stroke"
+                />
+
+                <text
+                  x={
+                    plotLeft - 10
+                  }
+                  y={tick.y + 4}
+                  textAnchor="end"
+                  fill={
+                    axisTextColor
+                  }
+                  fontSize={
+                    axisFontSize
+                  }
+                  fontFamily={
+                    axisFontFamily
+                  }
+                  fontWeight={
+                    axisFontWeight
+                  }
+                >
+                  {formatValue(
+                    tick.value,
+                  )}
+                </text>
+              </g>
+            ),
+          )}
+
+          {data.showYAxisLabel ===
+            true &&
+          data.yAxisLabel ? (
+            <text
+              x={16}
+              y={
+                plotTop +
+                plotHeight / 2
+              }
+              textAnchor="middle"
+              fill={
+                axisLabelColor
+              }
+              fontSize={
+                axisLabelFontSize
+              }
+              fontFamily={
+                (axisLabelStyle as any)
+                  .fontFamily
+              }
+              fontWeight={
+                (axisLabelStyle as any)
+                  .fontWeight
+              }
+              transform={`rotate(-90 16 ${
+                plotTop +
+                plotHeight / 2
+              })`}
+            >
+              {escapeSvgText(
+                data.yAxisLabel,
+              )}
+            </text>
+          ) : null}
+        </g>
+      ) : null}
+    </>
+  );
+
+  const renderLineOrArea = (
+    area: boolean,
+  ) => (
+    <>
+      {renderCartesianGrid()}
+      {renderCartesianAxes()}
+
+      {series.map(
+        (
+          item: any,
+          seriesIndex: number,
+        ) => {
+          const color =
+            getSeriesColor(
+              item,
+              seriesIndex,
+            );
+
+          const path =
+            buildLinePath(item);
+
+          return (
+            <g
+              key={
+                item.id ??
+                item.name
+              }
+            >
+              {area ? (
+                <path
+                  d={
+                    buildAreaPath(
+                      item,
+                    )
+                  }
+                  fill={color}
+                  fillOpacity={
+                    areaOpacity
+                  }
+                  stroke="none"
+                />
+              ) : null}
+
+              <path
+                d={path}
+                fill="none"
+                stroke={color}
+                strokeWidth={
+                  lineWidth
+                }
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                vectorEffect="non-scaling-stroke"
+              />
+
+              {data.showPoints !==
+              false
+                ? chartData.map(
+                    (
+                      row: any,
+                      index: number,
+                    ) => {
+                      const value =
+                        toFiniteNumber(
+                          row[
+                            item
+                              .name
+                          ],
+                        );
+
+                      const x =
+                        xForCategory(
+                          index,
+                        );
+
+                      const y =
+                        yForValue(
+                          value,
+                        );
+
+                      return (
+                        <g
+                          key={`${
+                            item.id ??
+                            item.name
+                          }-point-${index}`}
+                        >
+                          <circle
+                            cx={x}
+                            cy={y}
+                            r={
+                              pointSize
+                            }
+                            fill={
+                              color
+                            }
+                          />
+
+                          {data.showDataLabels ===
+                          true ? (
+                            <text
+                              x={x}
+                              y={
+                                y -
+                                pointSize -
+                                6
+                              }
+                              textAnchor="middle"
+                              fill={
+                                dataLabelColor
+                              }
+                              fontSize={
+                                dataLabelFontSize
+                              }
+                              fontFamily={
+                                dataLabelFontFamily
+                              }
+                              fontWeight={
+                                dataLabelFontWeight
+                              }
+                            >
+                              {formatValue(
+                                value,
+                              )}
+                            </text>
+                          ) : null}
+                        </g>
+                      );
+                    },
+                  )
+                : data.showDataLabels ===
+                    true
+                  ? chartData.map(
+                      (
+                        row: any,
+                        index: number,
+                      ) => {
+                        const value =
+                          toFiniteNumber(
+                            row[
+                              item
+                                .name
+                            ],
+                          );
+
+                        return (
+                          <text
+                            key={`${
+                              item.id ??
+                              item.name
+                            }-label-${index}`}
+                            x={xForCategory(
+                              index,
+                            )}
+                            y={
+                              yForValue(
+                                value,
+                              ) - 7
+                            }
+                            textAnchor="middle"
+                            fill={
+                              dataLabelColor
+                            }
+                            fontSize={
+                              dataLabelFontSize
+                            }
+                            fontFamily={
+                              dataLabelFontFamily
+                            }
+                            fontWeight={
+                              dataLabelFontWeight
+                            }
+                          >
+                            {formatValue(
+                              value,
+                            )}
+                          </text>
+                        );
+                      },
+                    )
+                  : null}
+            </g>
+          );
+        },
+      )}
+    </>
+  );
+
+  const renderVerticalBars = () => {
+    const categoryCount =
+      Math.max(
+        1,
+        chartData.length,
+      );
+
+    const seriesCount =
+      Math.max(
+        1,
+        series.length,
+      );
+
+    const categoryWidth =
+      plotWidth /
+      categoryCount;
+
+    const usableWidth =
+      categoryWidth * 0.72;
+
+    const resolvedGap =
+      Math.min(
+        barGap,
+        usableWidth /
+          Math.max(
+            1,
+            seriesCount * 2,
+          ),
+      );
+
+    const barWidth = Math.max(
+      2,
+      (usableWidth -
+        resolvedGap *
+          (seriesCount - 1)) /
+        seriesCount,
+    );
+
+    return (
+      <>
+        {renderCartesianGrid()}
+        {renderCartesianAxes()}
+
+        {chartData.map(
+          (
+            row: any,
+            rowIndex: number,
+          ) => {
+            const categoryStart =
+              plotLeft +
+              rowIndex *
+                categoryWidth +
+              (categoryWidth -
+                usableWidth) /
+                2;
+
+            return (
+              <g
+                key={
+                  row.id ??
+                  `bar-row-${rowIndex}`
+                }
+              >
+                {series.map(
+                  (
+                    item: any,
+                    seriesIndex: number,
+                  ) => {
+                    const value =
+                      toFiniteNumber(
+                        row[
+                          item
+                            .name
+                        ],
+                      );
+
+                    const valueY =
+                      yForValue(
+                        value,
+                      );
+
+                    const y =
+                      Math.min(
+                        zeroY,
+                        valueY,
+                      );
+
+                    const height =
+                      Math.max(
+                        1,
+                        Math.abs(
+                          zeroY -
+                            valueY,
+                        ),
+                      );
+
+                    const x =
+                      categoryStart +
+                      seriesIndex *
+                        (barWidth +
+                          resolvedGap);
+
+                    const color =
+                      getSeriesColor(
+                        item,
+                        seriesIndex,
+                      );
+
+                    return (
+                      <g
+                        key={`${
+                          item.id ??
+                          item.name
+                        }-${rowIndex}`}
+                      >
+                        <rect
+                          x={x}
+                          y={y}
+                          width={
+                            barWidth
+                          }
+                          height={
+                            height
+                          }
+                          rx={Math.min(
+                            barRadius,
+                            barWidth /
+                              2,
+                            height /
+                              2,
+                          )}
+                          fill={
+                            color
+                          }
+                        />
+
+                        {data.showDataLabels ===
+                        true ? (
+                          <text
+                            x={
+                              x +
+                              barWidth /
+                                2
+                            }
+                            y={
+                              value >=
+                              0
+                                ? y -
+                                  7
+                                : y +
+                                  height +
+                                  14
+                            }
+                            textAnchor="middle"
+                            fill={
+                              dataLabelColor
+                            }
+                            fontSize={
+                              dataLabelFontSize
+                            }
+                            fontFamily={
+                              dataLabelFontFamily
+                            }
+                            fontWeight={
+                              dataLabelFontWeight
+                            }
+                          >
+                            {formatValue(
+                              value,
+                            )}
+                          </text>
+                        ) : null}
+                      </g>
+                    );
+                  },
+                )}
+              </g>
+            );
+          },
+        )}
+      </>
+    );
+  };
+
+  const renderHorizontalBars =
+    () => {
+      const categoryCount =
+        Math.max(
+          1,
+          chartData.length,
+        );
+
+      const seriesCount =
+        Math.max(
+          1,
+          series.length,
+        );
+
+      const horizontalLeft = 120;
+      const horizontalRight = 28;
+      const horizontalTop = 28;
+      const horizontalBottom = 42;
+
+      const horizontalWidth =
+        SVG_WIDTH -
+        horizontalLeft -
+        horizontalRight;
+
+      const horizontalHeight =
+        SVG_HEIGHT -
+        horizontalTop -
+        horizontalBottom;
+
+      const categoryHeight =
+        horizontalHeight /
+        categoryCount;
+
+      const usableHeight =
+        categoryHeight * 0.72;
+
+      const resolvedGap =
+        Math.min(
+          barGap,
+          usableHeight /
+            Math.max(
+              1,
+              seriesCount * 2,
+            ),
+        );
+
+      const barHeight = Math.max(
+        2,
+        (usableHeight -
+          resolvedGap *
+            (seriesCount - 1)) /
+          seriesCount,
+      );
+
+      const xForValue = (
+        value: number,
+      ) =>
+        horizontalLeft +
+        ((value -
+          domainMinimum) /
+          domainRange) *
+          horizontalWidth;
+
+      const zeroX =
+        xForValue(0);
+
+      return (
+        <>
+          {data.showGrid !==
+          false ? (
+            <g>
+              {yTicks.map(
+                (
+                  tick,
+                  index,
+                ) => {
+                  const x =
+                    horizontalLeft +
+                    ((tick.value -
+                      domainMinimum) /
+                      domainRange) *
+                      horizontalWidth;
+
+                  return (
+                    <line
+                      key={`horizontal-grid-${index}`}
+                      x1={x}
+                      x2={x}
+                      y1={
+                        horizontalTop
+                      }
+                      y2={
+                        horizontalTop +
+                        horizontalHeight
+                      }
+                      stroke={
+                        gridColor
+                      }
+                      strokeWidth={
+                        1
+                      }
+                      strokeDasharray="4 4"
+                      vectorEffect="non-scaling-stroke"
+                    />
+                  );
+                },
+              )}
+            </g>
+          ) : null}
+
+          {data.showXAxis !==
+          false ? (
+            <g>
+              <line
+                x1={
+                  horizontalLeft
+                }
+                x2={
+                  horizontalLeft +
+                  horizontalWidth
+                }
+                y1={
+                  horizontalTop +
+                  horizontalHeight
+                }
+                y2={
+                  horizontalTop +
+                  horizontalHeight
+                }
+                stroke={axisColor}
+                vectorEffect="non-scaling-stroke"
+              />
+
+              {yTicks.map(
+                (
+                  tick,
+                  index,
+                ) => {
+                  const x =
+                    horizontalLeft +
+                    ((tick.value -
+                      domainMinimum) /
+                      domainRange) *
+                      horizontalWidth;
+
+                  return (
+                    <text
+                      key={`horizontal-tick-${index}`}
+                      x={x}
+                      y={
+                        horizontalTop +
+                        horizontalHeight +
+                        20
+                      }
+                      textAnchor="middle"
+                      fill={
+                        axisTextColor
+                      }
+                      fontSize={
+                        axisFontSize
+                      }
+                      fontFamily={
+                        axisFontFamily
+                      }
+                      fontWeight={
+                        axisFontWeight
+                      }
+                    >
+                      {formatValue(
+                        tick.value,
+                      )}
+                    </text>
+                  );
+                },
+              )}
+            </g>
+          ) : null}
+
+          {data.showYAxis !==
+          false ? (
+            <g>
+              {chartData.map(
+                (
+                  row: any,
+                  index: number,
+                ) => (
+                  <text
+                    key={
+                      row.id ??
+                      `horizontal-label-${index}`
+                    }
+                    x={
+                      horizontalLeft -
+                      12
+                    }
+                    y={
+                      horizontalTop +
+                      index *
+                        categoryHeight +
+                      categoryHeight /
+                        2 +
+                      4
+                    }
+                    textAnchor="end"
+                    fill={
+                      axisTextColor
+                    }
+                    fontSize={
+                      axisFontSize
+                    }
+                    fontFamily={
+                      axisFontFamily
+                    }
+                    fontWeight={
+                      axisFontWeight
+                    }
+                  >
+                    {escapeSvgText(
+                      row.label,
+                    )}
+                  </text>
+                ),
+              )}
+            </g>
+          ) : null}
+
+          {chartData.map(
+            (
+              row: any,
+              rowIndex: number,
+            ) => {
+              const categoryStart =
+                horizontalTop +
+                rowIndex *
+                  categoryHeight +
+                (categoryHeight -
+                  usableHeight) /
+                  2;
+
+              return (
+                <g
+                  key={
+                    row.id ??
+                    `horizontal-row-${rowIndex}`
+                  }
+                >
+                  {series.map(
+                    (
+                      item: any,
+                      seriesIndex: number,
+                    ) => {
+                      const value =
+                        toFiniteNumber(
+                          row[
+                            item
+                              .name
+                          ],
+                        );
+
+                      const valueX =
+                        xForValue(
+                          value,
+                        );
+
+                      const x =
+                        Math.min(
+                          zeroX,
+                          valueX,
+                        );
+
+                      const width =
+                        Math.max(
+                          1,
+                          Math.abs(
+                            valueX -
+                              zeroX,
+                          ),
+                        );
+
+                      const y =
+                        categoryStart +
+                        seriesIndex *
+                          (barHeight +
+                            resolvedGap);
+
+                      const color =
+                        getSeriesColor(
+                          item,
+                          seriesIndex,
+                        );
+
+                      return (
+                        <g
+                          key={`${
+                            item.id ??
+                            item.name
+                          }-${rowIndex}`}
+                        >
+                          <rect
+                            x={x}
+                            y={y}
+                            width={
+                              width
+                            }
+                            height={
+                              barHeight
+                            }
+                            rx={Math.min(
+                              barRadius,
+                              barHeight /
+                                2,
+                              width /
+                                2,
+                            )}
+                            fill={
+                              color
+                            }
+                          />
+
+                          {data.showDataLabels ===
+                          true ? (
+                            <text
+                              x={
+                                value >=
+                                0
+                                  ? x +
+                                    width +
+                                    7
+                                  : x -
+                                    7
+                              }
+                              y={
+                                y +
+                                barHeight /
+                                  2 +
+                                4
+                              }
+                              textAnchor={
+                                value >=
+                                0
+                                  ? "start"
+                                  : "end"
+                              }
+                              fill={
+                                dataLabelColor
+                              }
+                              fontSize={
+                                dataLabelFontSize
+                              }
+                              fontFamily={
+                                dataLabelFontFamily
+                              }
+                              fontWeight={
+                                dataLabelFontWeight
+                              }
+                            >
+                              {formatValue(
+                                value,
+                              )}
+                            </text>
+                          ) : null}
+                        </g>
+                      );
+                    },
+                  )}
+                </g>
+              );
+            },
+          )}
+
+          {data.showXAxisLabel ===
+            true &&
+          data.xAxisLabel ? (
+            <text
+              x={
+                horizontalLeft +
+                horizontalWidth /
+                  2
+              }
+              y={SVG_HEIGHT - 6}
+              textAnchor="middle"
+              fill={
+                axisLabelColor
+              }
+              fontSize={
+                axisLabelFontSize
+              }
+            >
+              {escapeSvgText(
+                data.xAxisLabel,
+              )}
+            </text>
+          ) : null}
+
+          {data.showYAxisLabel ===
+            true &&
+          data.yAxisLabel ? (
+            <text
+              x={16}
+              y={
+                horizontalTop +
+                horizontalHeight /
+                  2
+              }
+              textAnchor="middle"
+              fill={
+                axisLabelColor
+              }
+              fontSize={
+                axisLabelFontSize
+              }
+              transform={`rotate(-90 16 ${
+                horizontalTop +
+                horizontalHeight /
+                  2
+              })`}
+            >
+              {escapeSvgText(
+                data.yAxisLabel,
+              )}
+            </text>
+          ) : null}
+        </>
+      );
+    };
+
+  const polarToCartesian = (
+    centerX: number,
+    centerY: number,
+    radius: number,
+    angleDegrees: number,
+  ) => {
+    const angleRadians =
+      ((angleDegrees - 90) *
+        Math.PI) /
+      180;
+
+    return {
+      x:
+        centerX +
+        radius *
+          Math.cos(
+            angleRadians,
+          ),
+      y:
+        centerY +
+        radius *
+          Math.sin(
+            angleRadians,
+          ),
+    };
+  };
+
+  const describeArc = (
+    centerX: number,
+    centerY: number,
+    outerRadius: number,
+    innerRadius: number,
+    startAngle: number,
+    endAngle: number,
+  ) => {
+    const outerStart =
+      polarToCartesian(
+        centerX,
+        centerY,
+        outerRadius,
+        endAngle,
+      );
+
+    const outerEnd =
+      polarToCartesian(
+        centerX,
+        centerY,
+        outerRadius,
+        startAngle,
+      );
+
+    const largeArcFlag =
+      endAngle - startAngle <= 180
+        ? 0
+        : 1;
+
+    if (innerRadius <= 0) {
+      return [
+        `M ${centerX} ${centerY}`,
+        `L ${outerStart.x} ${outerStart.y}`,
+        `A ${outerRadius} ${outerRadius} 0 ${largeArcFlag} 0 ${outerEnd.x} ${outerEnd.y}`,
+        "Z",
+      ].join(" ");
+    }
+
+    const innerStart =
+      polarToCartesian(
+        centerX,
+        centerY,
+        innerRadius,
+        endAngle,
+      );
+
+    const innerEnd =
+      polarToCartesian(
+        centerX,
+        centerY,
+        innerRadius,
+        startAngle,
+      );
+
+    return [
+      `M ${outerStart.x} ${outerStart.y}`,
+      `A ${outerRadius} ${outerRadius} 0 ${largeArcFlag} 0 ${outerEnd.x} ${outerEnd.y}`,
+      `L ${innerEnd.x} ${innerEnd.y}`,
+      `A ${innerRadius} ${innerRadius} 0 ${largeArcFlag} 1 ${innerStart.x} ${innerStart.y}`,
+      "Z",
+    ].join(" ");
+  };
+
+  const renderPie = (
+    doughnut: boolean,
+  ) => {
+    const primarySeries =
+      series[0];
+
+    if (!primarySeries) {
+      return null;
+    }
+
+    const values =
+      chartData.map(
+        (row: any) =>
+          Math.max(
+            0,
+            toFiniteNumber(
+              row[
+                primarySeries.name
+              ],
+            ),
+          ),
+      );
+
+    const total =
+      values.reduce(
+        (
+          sum: number,
+          value: number,
+        ) => sum + value,
+        0,
+      );
+
+    if (total <= 0) {
+      return (
+        <text
+          x={SVG_WIDTH / 2}
+          y={SVG_HEIGHT / 2}
+          textAnchor="middle"
+          fill="#6B7280"
+          fontSize={14}
+        >
+          Add positive values to
+          display the chart.
+        </text>
+      );
+    }
+
+    const centerX =
+      SVG_WIDTH / 2;
+
+    const centerY =
+      SVG_HEIGHT / 2;
+
+    /*
+     * Preserve the existing inspector
+     * values while keeping the chart
+     * inside our 800 × 420 viewBox.
+     */
+    const resolvedOuterRadius =
+      Math.min(
+        150,
+        Math.max(
+          40,
+          pieOuterRadius,
+        ),
+      );
+
+    const resolvedInnerRadius =
+      doughnut
+        ? Math.min(
+            resolvedOuterRadius -
+              8,
+            Math.max(
+              12,
+              pieInnerRadius,
+            ),
+          )
         : 0;
+
+    let currentAngle = 0;
+
+    return (
+      <g>
+        {chartData.map(
+          (
+            row: any,
+            index: number,
+          ) => {
+            const value =
+              values[index];
+
+            if (value <= 0) {
+              return null;
+            }
+
+            const sweep =
+              (value / total) *
+              360;
+
+            /*
+             * Apply the requested gap to
+             * each side of a slice while
+             * preventing tiny slices from
+             * disappearing completely.
+             */
+            const requestedGap =
+              Math.min(
+                piePaddingAngle,
+                sweep * 0.35,
+              );
+
+            const startAngle =
+              currentAngle +
+              requestedGap / 2;
+
+            const endAngle =
+              currentAngle +
+              sweep -
+              requestedGap / 2;
+
+            const middleAngle =
+              currentAngle +
+              sweep / 2;
+
+            currentAngle += sweep;
+
+            const color =
+              getSeriesColor(
+                series[index] ??
+                  primarySeries,
+                index,
+              );
+
+            const path =
+              describeArc(
+                centerX,
+                centerY,
+                resolvedOuterRadius,
+                resolvedInnerRadius,
+                startAngle,
+                endAngle,
+              );
+
+            const labelRadius =
+              resolvedInnerRadius >
+              0
+                ? (resolvedInnerRadius +
+                    resolvedOuterRadius) /
+                  2
+                : resolvedOuterRadius *
+                  0.65;
+
+            const labelPoint =
+              polarToCartesian(
+                centerX,
+                centerY,
+                labelRadius,
+                middleAngle,
+              );
+
+            return (
+              <g
+                key={
+                  row.id ??
+                  `pie-${index}`
+                }
+              >
+                <path
+                  d={path}
+                  fill={color}
+                />
+
+                {data.showDataLabels ===
+                true ? (
+                  <text
+                    x={
+                      labelPoint.x
+                    }
+                    y={
+                      labelPoint.y +
+                      4
+                    }
+                    textAnchor="middle"
+                    fill="#FFFFFF"
+                    fontSize={
+                      dataLabelFontSize
+                    }
+                    fontFamily={
+                      dataLabelFontFamily
+                    }
+                    fontWeight={
+                      dataLabelFontWeight ??
+                      700
+                    }
+                  >
+                    {formatValue(
+                      value,
+                    )}
+                  </text>
+                ) : null}
+              </g>
+            );
+          },
+        )}
+      </g>
+    );
+  };
+
+  const renderScatter = () => {
+    const xSeries = series[0];
+
+    const ySeries =
+      series[1] ??
+      series[0];
+
+    if (
+      !xSeries ||
+      !ySeries
+    ) {
+      return null;
+    }
+
+    const scatterRows =
+      chartData.map(
+        (
+          row: any,
+          index: number,
+        ) => ({
+          ...row,
+
+          __x:
+            series.length > 1
+              ? toFiniteNumber(
+                  row[
+                    xSeries.name
+                  ],
+                )
+              : index + 1,
+
+          __y:
+            toFiniteNumber(
+              row[
+                ySeries.name
+              ],
+            ),
+        }),
+      );
+
+    const xValues =
+      scatterRows.map(
+        (row: any) =>
+          row.__x,
+      );
+
+    const yValues =
+      scatterRows.map(
+        (row: any) =>
+          row.__y,
+      );
+
+    let xMin =
+      xValues.length
+        ? Math.min(
+            ...xValues,
+          )
+        : 0;
+
+    let xMax =
+      xValues.length
+        ? Math.max(
+            ...xValues,
+          )
+        : 1;
+
+    let yMin =
+      yValues.length
+        ? Math.min(
+            ...yValues,
+          )
+        : 0;
+
+    let yMax =
+      yValues.length
+        ? Math.max(
+            ...yValues,
+          )
+        : 1;
+
+    if (xMin === xMax) {
+      xMin -= 1;
+      xMax += 1;
+    }
+
+    if (yMin === yMax) {
+      yMin -= 1;
+      yMax += 1;
+    }
+
+    const xRange =
+      xMax - xMin || 1;
+
+    const yRange =
+      yMax - yMin || 1;
+
+    const scatterX = (
+      value: number,
+    ) =>
+      plotLeft +
+      ((value - xMin) /
+        xRange) *
+        plotWidth;
+
+    const scatterY = (
+      value: number,
+    ) =>
+      plotTop +
+      ((yMax - value) /
+        yRange) *
+        plotHeight;
+
+    const scatterTicks =
+      Array.from(
+        { length: 6 },
+        (_, index) =>
+          index / 5,
+      );
+
+    const color =
+      getSeriesColor(
+        ySeries,
+        1,
+      );
+
+    return (
+      <>
+        {data.showGrid !==
+        false ? (
+          <g>
+            {scatterTicks.map(
+              (
+                ratio,
+                index,
+              ) => (
+                <g
+                  key={`scatter-grid-${index}`}
+                >
+                  <line
+                    x1={
+                      plotLeft +
+                      ratio *
+                        plotWidth
+                    }
+                    x2={
+                      plotLeft +
+                      ratio *
+                        plotWidth
+                    }
+                    y1={plotTop}
+                    y2={
+                      plotTop +
+                      plotHeight
+                    }
+                    stroke={
+                      gridColor
+                    }
+                    strokeDasharray="4 4"
+                    vectorEffect="non-scaling-stroke"
+                  />
+
+                  <line
+                    x1={plotLeft}
+                    x2={
+                      plotLeft +
+                      plotWidth
+                    }
+                    y1={
+                      plotTop +
+                      ratio *
+                        plotHeight
+                    }
+                    y2={
+                      plotTop +
+                      ratio *
+                        plotHeight
+                    }
+                    stroke={
+                      gridColor
+                    }
+                    strokeDasharray="4 4"
+                    vectorEffect="non-scaling-stroke"
+                  />
+                </g>
+              ),
+            )}
+          </g>
+        ) : null}
+
+        {data.showXAxis !==
+        false ? (
+          <g>
+            <line
+              x1={plotLeft}
+              x2={
+                plotLeft +
+                plotWidth
+              }
+              y1={
+                plotTop +
+                plotHeight
+              }
+              y2={
+                plotTop +
+                plotHeight
+              }
+              stroke={axisColor}
+              vectorEffect="non-scaling-stroke"
+            />
+
+            {scatterTicks.map(
+              (
+                ratio,
+                index,
+              ) => {
+                const value =
+                  xMin +
+                  xRange *
+                    ratio;
+
+                return (
+                  <text
+                    key={`scatter-x-${index}`}
+                    x={
+                      plotLeft +
+                      ratio *
+                        plotWidth
+                    }
+                    y={
+                      plotTop +
+                      plotHeight +
+                      22
+                    }
+                    textAnchor="middle"
+                    fill={
+                      axisTextColor
+                    }
+                    fontSize={
+                      axisFontSize
+                    }
+                    fontFamily={
+                      axisFontFamily
+                    }
+                    fontWeight={
+                      axisFontWeight
+                    }
+                  >
+                    {formatValue(
+                      value,
+                    )}
+                  </text>
+                );
+              },
+            )}
+          </g>
+        ) : null}
+
+        {data.showYAxis !==
+        false ? (
+          <g>
+            <line
+              x1={plotLeft}
+              x2={plotLeft}
+              y1={plotTop}
+              y2={
+                plotTop +
+                plotHeight
+              }
+              stroke={axisColor}
+              vectorEffect="non-scaling-stroke"
+            />
+
+            {scatterTicks.map(
+              (
+                ratio,
+                index,
+              ) => {
+                const value =
+                  yMax -
+                  yRange *
+                    ratio;
+
+                return (
+                  <text
+                    key={`scatter-y-${index}`}
+                    x={
+                      plotLeft -
+                      10
+                    }
+                    y={
+                      plotTop +
+                      ratio *
+                        plotHeight +
+                      4
+                    }
+                    textAnchor="end"
+                    fill={
+                      axisTextColor
+                    }
+                    fontSize={
+                      axisFontSize
+                    }
+                    fontFamily={
+                      axisFontFamily
+                    }
+                    fontWeight={
+                      axisFontWeight
+                    }
+                  >
+                    {formatValue(
+                      value,
+                    )}
+                  </text>
+                );
+              },
+            )}
+          </g>
+        ) : null}
+
+        {scatterRows.map(
+          (
+            row: any,
+            index: number,
+          ) => {
+            const x =
+              scatterX(
+                row.__x,
+              );
+
+            const y =
+              scatterY(
+                row.__y,
+              );
+
+            return (
+              <g
+                key={
+                  row.id ??
+                  `scatter-point-${index}`
+                }
+              >
+                <circle
+                  cx={x}
+                  cy={y}
+                  r={
+                    scatterPointSize
+                  }
+                  fill={color}
+                />
+
+                {data.showDataLabels ===
+                true ? (
+                  <text
+                    x={x}
+                    y={
+                      y -
+                      scatterPointSize -
+                      6
+                    }
+                    textAnchor="middle"
+                    fill={
+                      dataLabelColor
+                    }
+                    fontSize={
+                      dataLabelFontSize
+                    }
+                    fontFamily={
+                      dataLabelFontFamily
+                    }
+                    fontWeight={
+                      dataLabelFontWeight
+                    }
+                  >
+                    {formatValue(
+                      row.__y,
+                    )}
+                  </text>
+                ) : null}
+              </g>
+            );
+          },
+        )}
+
+        {data.showXAxisLabel ===
+          true &&
+        data.xAxisLabel ? (
+          <text
+            x={
+              plotLeft +
+              plotWidth / 2
+            }
+            y={SVG_HEIGHT - 8}
+            textAnchor="middle"
+            fill={
+              axisLabelColor
+            }
+            fontSize={
+              axisLabelFontSize
+            }
+          >
+            {escapeSvgText(
+              data.xAxisLabel,
+            )}
+          </text>
+        ) : null}
+
+        {data.showYAxisLabel ===
+          true &&
+        data.yAxisLabel ? (
+          <text
+            x={16}
+            y={
+              plotTop +
+              plotHeight / 2
+            }
+            textAnchor="middle"
+            fill={
+              axisLabelColor
+            }
+            fontSize={
+              axisLabelFontSize
+            }
+            transform={`rotate(-90 16 ${
+              plotTop +
+              plotHeight / 2
+            })`}
+          >
+            {escapeSvgText(
+              data.yAxisLabel,
+            )}
+          </text>
+        ) : null}
+      </>
+    );
+  };
+
+  const renderSvgChart = () => {
+    if (
+      chartData.length === 0 ||
+      series.length === 0
+    ) {
+      return (
+        <div className="flex h-full min-h-[180px] items-center justify-center rounded-xl border border-dashed border-neutral-300 px-4 text-center text-sm text-neutral-500">
+          Add chart data to begin.
+        </div>
+      );
+    }
+
+    let chartContents:
+      | React.ReactNode
+      | null = null;
+
+    if (chartType === "bar") {
+      chartContents =
+        renderVerticalBars();
+    } else if (
+      chartType ===
+      "horizontal_bar"
+    ) {
+      chartContents =
+        renderHorizontalBars();
+    } else if (
+      chartType === "area"
+    ) {
+      chartContents =
+        renderLineOrArea(true);
+    } else if (
+      chartType === "pie"
+    ) {
+      chartContents =
+        renderPie(false);
+    } else if (
+      chartType === "doughnut"
+    ) {
+      chartContents =
+        renderPie(true);
+    } else if (
+      chartType === "scatter"
+    ) {
+      chartContents =
+        renderScatter();
+    } else {
+      chartContents =
+        renderLineOrArea(false);
+    }
+
+    return (
+      <svg
+        viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`}
+        preserveAspectRatio="xMidYMid meet"
+        className="block h-full w-full"
+        role="img"
+        aria-label={
+          data.heading ||
+          "Chart"
+        }
+      >
+        {chartContents}
+      </svg>
+    );
+  };
+
+  const renderLegend = () => {
+    if (
+      data.showLegend === false ||
+      series.length === 0
+    ) {
+      return null;
+    }
+
+    const legendPosition =
+      data.legendPosition ===
+        "top" ||
+      data.legendPosition ===
+        "left" ||
+      data.legendPosition ===
+        "right"
+        ? data.legendPosition
+        : "bottom";
+
+    const isSide =
+      legendPosition ===
+        "left" ||
+      legendPosition ===
+        "right";
+
+    return (
+      <div
+        className={[
+          "flex shrink-0",
+          isSide
+            ? "flex-col items-start"
+            : "flex-row flex-wrap items-center justify-center",
+        ].join(" ")}
+        style={{
+          gap: "10px",
+          ...legendStyle,
+        }}
+      >
+        {series.map(
+          (
+            item: any,
+            index: number,
+          ) => (
+            <div
+              key={
+                item.id ??
+                item.name
+              }
+              className="flex min-w-0 items-center gap-2"
+            >
+              <span
+                className="block h-2.5 w-2.5 shrink-0 rounded-full"
+                style={{
+                  backgroundColor:
+                    getSeriesColor(
+                      item,
+                      index,
+                    ),
+                }}
+              />
+
+              <span className="min-w-0 break-words">
+                {item.name}
+              </span>
+            </div>
+          ),
+        )}
+      </div>
+    );
+  };
 
   const legendPosition =
     data.legendPosition === "top" ||
@@ -6544,878 +8766,51 @@ function renderChart(
       ? data.legendPosition
       : "bottom";
 
-  const legendVerticalAlign =
-    legendPosition === "top"
-      ? "top"
-      : legendPosition === "bottom"
-        ? "bottom"
-        : "middle";
-
-  const legendAlign =
-    legendPosition === "left"
-      ? "left"
-      : legendPosition === "right"
-        ? "right"
-        : "center";
-
-  const tickStyle = {
-    fill:
-      (axisStyle as any).color ??
-      axisColor,
-    fontSize:
-      typeof (axisStyle as any).fontSize === "number"
-        ? (axisStyle as any).fontSize
-        : 11,
-    fontFamily:
-      (axisStyle as any).fontFamily,
-    fontWeight:
-      (axisStyle as any).fontWeight,
-  };
-
-  const chartMargin = {
-    top: 20,
-    right: 24,
-    bottom:
-      data.showXAxisLabel === true
-        ? 42
-        : 20,
-    left:
-      data.showYAxisLabel === true
-        ? 42
-        : 20,
-  };
-
-  const renderLegend = () =>
-    data.showLegend !== false ? (
-      <Legend
-        verticalAlign={legendVerticalAlign}
-        align={legendAlign}
-        layout={
-          legendPosition === "left" ||
+  const chartAndLegend =
+    legendPosition === "left" ||
+    legendPosition === "right" ? (
+      <div
+        className={[
+          "flex min-h-0 flex-1 items-stretch gap-3",
           legendPosition === "right"
-            ? "vertical"
-            : "horizontal"
-        }
-        wrapperStyle={{
-          fontSize:
-            typeof (legendStyle as any).fontSize === "number"
-              ? (legendStyle as any).fontSize
-              : 12,
-          fontFamily:
-            (legendStyle as any).fontFamily,
-          fontWeight:
-            (legendStyle as any).fontWeight,
-          color:
-            (legendStyle as any).color ??
-            "#374151",
-        }}
-      />
-    ) : null;
-
-  const renderTooltip = () =>
-    data.showTooltip !== false ? (
-      <Tooltip
-        contentStyle={{
-          borderRadius: 10,
-          border: "1px solid #E5E7EB",
-          backgroundColor: "#FFFFFF",
-          color: "#111827",
-          fontSize: 12,
-          boxShadow:
-            "0 8px 24px rgba(15, 23, 42, 0.08)",
-        }}
-        labelStyle={{
-          fontWeight: 700,
-          marginBottom: 4,
-        }}
-      />
-    ) : null;
-
-  const renderGrid = () =>
-    data.showGrid !== false ? (
-      <CartesianGrid
-        stroke={gridColor}
-        strokeDasharray="3 3"
-        vertical={false}
-      />
-    ) : null;
-
-  const renderXAxis = (
-    vertical = false,
-  ) => {
-    if (data.showXAxis === false) {
-      return null;
-    }
-
-    if (vertical) {
-      return (
-        <XAxis
-          type="number"
-          tick={tickStyle}
-          axisLine={{
-            stroke: axisColor,
-          }}
-          tickLine={{
-            stroke: axisColor,
-          }}
-          label={
-            data.showXAxisLabel === true &&
-            data.xAxisLabel
-              ? {
-                  value: data.xAxisLabel,
-                  position: "insideBottom",
-                  offset: -8,
-                  fill:
-                    (axisLabelStyle as any)
-                      .color ??
-                    axisColor,
-                  fontSize:
-                    (axisLabelStyle as any)
-                      .fontSize ?? 12,
-                }
-              : undefined
-          }
-        />
-      );
-    }
-
-    return (
-      <XAxis
-        dataKey="label"
-        tick={tickStyle}
-        axisLine={{
-          stroke: axisColor,
-        }}
-        tickLine={{
-          stroke: axisColor,
-        }}
-        interval={0}
-        label={
-          data.showXAxisLabel === true &&
-          data.xAxisLabel
-            ? {
-                value: data.xAxisLabel,
-                position: "insideBottom",
-                offset: -8,
-                fill:
-                  (axisLabelStyle as any)
-                    .color ??
-                  axisColor,
-                fontSize:
-                  (axisLabelStyle as any)
-                    .fontSize ?? 12,
-              }
-            : undefined
-        }
-      />
-    );
-  };
-
-  const renderYAxis = (
-    horizontalBar = false,
-  ) => {
-    if (data.showYAxis === false) {
-      return null;
-    }
-
-    if (horizontalBar) {
-      return (
-        <YAxis
-          type="category"
-          dataKey="label"
-          width={90}
-          tick={tickStyle}
-          axisLine={{
-            stroke: axisColor,
-          }}
-          tickLine={{
-            stroke: axisColor,
-          }}
-          interval={0}
-          label={
-            data.showYAxisLabel === true &&
-            data.yAxisLabel
-              ? {
-                  value: data.yAxisLabel,
-                  angle: -90,
-                  position: "insideLeft",
-                  fill:
-                    (axisLabelStyle as any)
-                      .color ??
-                    axisColor,
-                  fontSize:
-                    (axisLabelStyle as any)
-                      .fontSize ?? 12,
-                }
-              : undefined
-          }
-        />
-      );
-    }
-
-    return (
-      <YAxis
-        tick={tickStyle}
-        axisLine={{
-          stroke: axisColor,
-        }}
-        tickLine={{
-          stroke: axisColor,
-        }}
-        label={
-          data.showYAxisLabel === true &&
-          data.yAxisLabel
-            ? {
-                value: data.yAxisLabel,
-                angle: -90,
-                position: "insideLeft",
-                fill:
-                  (axisLabelStyle as any)
-                    .color ??
-                  axisColor,
-                fontSize:
-                  (axisLabelStyle as any)
-                    .fontSize ?? 12,
-              }
-            : undefined
-        }
-      />
-    );
-  };
-
-const renderChartBody = () => {
-  return (
-    <LineChart
-      width={600}
-      height={260}
-      data={chartData}
-      margin={{
-        top: 20,
-        right: 24,
-        bottom: 20,
-        left: 20,
-      }}
-    >
-      <CartesianGrid
-        stroke="#E5E7EB"
-        strokeDasharray="3 3"
-      />
-
-      <XAxis
-        dataKey="label"
-      />
-
-      <YAxis />
-
-      {series.map(
-        (
-          item: any,
-          index: number,
-        ) => {
-          const color =
-            item.color ??
-            [
-              "#2563EB",
-              "#7C3AED",
-              "#059669",
-              "#EA580C",
-              "#DC2626",
-              "#0891B2",
-            ][index % 6];
-
-          return (
-            <Line
-              key={
-                item.id ?? item.name
-              }
-              type="monotone"
-              dataKey={item.name}
-              stroke={color}
-              strokeWidth={3}
-              dot={{
-                r: 5,
-                fill: color,
-              }}
-              isAnimationActive={false}
-            />
-          );
-        },
-      )}
-    </LineChart>
-  );
-
-  if (
-    chartData.length === 0 ||
-    series.length === 0
-  ) {
-      return (
-        <div className="flex h-full min-h-[180px] items-center justify-center rounded-xl border border-dashed border-neutral-300 px-4 text-center text-sm text-neutral-500">
-          Add chart data to begin.
-        </div>
-      );
-    }
-
-    if (chartType === "bar") {
-      return (
-        <BarChart
-          responsive
-          style={{
-            width: "100%",
-            height: "100%",
-          }}
-          data={chartData}
-          margin={chartMargin}
-          barGap={barGap}
-        >
-          {renderGrid()}
-          {renderXAxis()}
-          {renderYAxis()}
-          {renderTooltip()}
-          {renderLegend()}
-
-          {series.map(
-            (
-              item: any,
-              index: number,
-            ) => (
-              <Bar
-                key={item.id ?? item.name}
-                dataKey={item.name}
-                name={item.name}
-                fill={
-                  item.color ??
-                  [
-                    "#2563EB",
-                    "#7C3AED",
-                    "#059669",
-                    "#EA580C",
-                    "#DC2626",
-                    "#0891B2",
-                  ][index % 6]
-                }
-                radius={[
-                  barRadius,
-                  barRadius,
-                  0,
-                  0,
-                ]}
-                isAnimationActive={
-                  isAnimationActive
-                }
-                animationDuration={
-                  animationDuration
-                }
-              >
-                {data.showDataLabels ===
-                true ? (
-                  <LabelList
-                    dataKey={item.name}
-                    position="top"
-                    style={{
-                      fill:
-                        (dataLabelStyle as any)
-                          .color ??
-                        "#374151",
-                      fontSize:
-                        (dataLabelStyle as any)
-                          .fontSize ?? 10,
-                    }}
-                  />
-                ) : null}
-              </Bar>
-            ),
-          )}
-        </BarChart>
-      );
-    }
-
-    if (chartType === "horizontal_bar") {
-      return (
-        <BarChart
-          responsive
-          style={{
-            width: "100%",
-            height: "100%",
-          }}
-          data={chartData}
-          layout="vertical"
-          margin={chartMargin}
-          barGap={barGap}
-        >
-          {renderGrid()}
-          {renderXAxis(true)}
-          {renderYAxis(true)}
-          {renderTooltip()}
-          {renderLegend()}
-
-          {series.map(
-            (
-              item: any,
-              index: number,
-            ) => (
-              <Bar
-                key={item.id ?? item.name}
-                dataKey={item.name}
-                name={item.name}
-                fill={
-                  item.color ??
-                  [
-                    "#2563EB",
-                    "#7C3AED",
-                    "#059669",
-                    "#EA580C",
-                    "#DC2626",
-                    "#0891B2",
-                  ][index % 6]
-                }
-                radius={[
-                  0,
-                  barRadius,
-                  barRadius,
-                  0,
-                ]}
-                isAnimationActive={
-                  isAnimationActive
-                }
-                animationDuration={
-                  animationDuration
-                }
-              >
-                {data.showDataLabels ===
-                true ? (
-                  <LabelList
-                    dataKey={item.name}
-                    position="right"
-                    style={{
-                      fill:
-                        (dataLabelStyle as any)
-                          .color ??
-                        "#374151",
-                      fontSize:
-                        (dataLabelStyle as any)
-                          .fontSize ?? 10,
-                    }}
-                  />
-                ) : null}
-              </Bar>
-            ),
-          )}
-        </BarChart>
-      );
-    }
-
-    if (chartType === "area") {
-      return (
-        <AreaChart
-          responsive
-          style={{
-            width: "100%",
-            height: "100%",
-          }}
-          data={chartData}
-          margin={chartMargin}
-        >
-          {renderGrid()}
-          {renderXAxis()}
-          {renderYAxis()}
-          {renderTooltip()}
-          {renderLegend()}
-
-          {series.map(
-            (
-              item: any,
-              index: number,
-            ) => {
-              const color =
-                item.color ??
-                [
-                  "#2563EB",
-                  "#7C3AED",
-                  "#059669",
-                  "#EA580C",
-                  "#DC2626",
-                  "#0891B2",
-                ][index % 6];
-
-              return (
-                <Area
-                  key={
-                    item.id ?? item.name
-                  }
-                  type="monotone"
-                  dataKey={item.name}
-                  name={item.name}
-                  stroke={color}
-                  fill={color}
-                  fillOpacity={areaOpacity}
-                  strokeWidth={lineWidth}
-                  dot={
-                    data.showPoints !==
-                    false
-                      ? {
-                          r: pointSize,
-                          fill: color,
-                        }
-                      : false
-                  }
-                  activeDot={{
-                    r: pointSize + 2,
-                  }}
-                  isAnimationActive={
-                    isAnimationActive
-                  }
-                  animationDuration={
-                    animationDuration
-                  }
-                >
-                  {data.showDataLabels ===
-                  true ? (
-                    <LabelList
-                      dataKey={item.name}
-                      position="top"
-                      style={{
-                        fill:
-                          (
-                            dataLabelStyle as any
-                          ).color ??
-                          "#374151",
-                        fontSize:
-                          (
-                            dataLabelStyle as any
-                          ).fontSize ?? 10,
-                      }}
-                    />
-                  ) : null}
-                </Area>
-              );
-            },
-          )}
-        </AreaChart>
-      );
-    }
-
-    if (
-      chartType === "pie" ||
-      chartType === "doughnut"
-    ) {
-      const primarySeries = series[0];
-
-      if (!primarySeries) {
-        return null;
-      }
-
-      return (
-        <PieChart
-          responsive
-          style={{
-            width: "100%",
-            height: "100%",
-          }}
-        >
-          {renderTooltip()}
-          {renderLegend()}
-
-          <Pie
-            data={chartData}
-            dataKey={primarySeries.name}
-            nameKey="label"
-            cx="50%"
-            cy="50%"
-            innerRadius={
-              chartType === "doughnut"
-                ? Math.max(
-                    20,
-                    pieInnerRadius || 55,
-                  )
-                : 0
-            }
-            outerRadius={pieOuterRadius}
-            paddingAngle={piePaddingAngle}
-            isAnimationActive={
-              isAnimationActive
-            }
-            animationDuration={
-              animationDuration
-            }
-            label={
-              data.showDataLabels === true
-                ? ({
-                    name,
-                    value,
-                  }: any) =>
-                    `${name}: ${value}`
-                : false
-            }
-            labelLine={
-              data.showDataLabels === true
-            }
-          >
-            {chartData.map(
-              (
-                entry: any,
-                index: number,
-              ) => (
-                <Cell
-                  key={
-                    entry.id ??
-                    `chart-cell-${index}`
-                  }
-                  fill={
-                    series[index]?.color ??
-                    [
-                      "#2563EB",
-                      "#7C3AED",
-                      "#059669",
-                      "#EA580C",
-                      "#DC2626",
-                      "#0891B2",
-                      "#DB2777",
-                      "#65A30D",
-                    ][index % 8]
-                  }
-                />
-              ),
-            )}
-          </Pie>
-        </PieChart>
-      );
-    }
-
-    if (chartType === "scatter") {
-      const xSeries = series[0];
-      const ySeries =
-        series[1] ?? series[0];
-
-      const scatterData =
-        chartData.map(
-          (
-            row: any,
-            index: number,
-          ) => ({
-            ...row,
-            __x:
-              series.length > 1
-                ? Number(
-                    row[xSeries.name] ?? 0,
-                  )
-                : index + 1,
-
-            __y: Number(
-              row[ySeries.name] ?? 0,
-            ),
-          }),
-        );
-
-      return (
-        <ScatterChart
-          responsive
-          style={{
-            width: "100%",
-            height: "100%",
-          }}
-          margin={chartMargin}
-        >
-          {renderGrid()}
-
-          {data.showXAxis !== false ? (
-            <XAxis
-              type="number"
-              dataKey="__x"
-              name={
-                series.length > 1
-                  ? xSeries.name
-                  : data.xAxisLabel ||
-                    "Data Point"
-              }
-              tick={tickStyle}
-              axisLine={{
-                stroke: axisColor,
-              }}
-              tickLine={{
-                stroke: axisColor,
-              }}
-              label={
-                data.showXAxisLabel ===
-                  true &&
-                data.xAxisLabel
-                  ? {
-                      value:
-                        data.xAxisLabel,
-                      position:
-                        "insideBottom",
-                      offset: -8,
-                      fill:
-                        (
-                          axisLabelStyle as any
-                        ).color ??
-                        axisColor,
-                      fontSize:
-                        (
-                          axisLabelStyle as any
-                        ).fontSize ?? 12,
-                    }
-                  : undefined
-              }
-            />
-          ) : null}
-
-          {data.showYAxis !== false ? (
-            <YAxis
-              type="number"
-              dataKey="__y"
-              name={ySeries.name}
-              tick={tickStyle}
-              axisLine={{
-                stroke: axisColor,
-              }}
-              tickLine={{
-                stroke: axisColor,
-              }}
-              label={
-                data.showYAxisLabel ===
-                  true &&
-                data.yAxisLabel
-                  ? {
-                      value:
-                        data.yAxisLabel,
-                      angle: -90,
-                      position:
-                        "insideLeft",
-                      fill:
-                        (
-                          axisLabelStyle as any
-                        ).color ??
-                        axisColor,
-                      fontSize:
-                        (
-                          axisLabelStyle as any
-                        ).fontSize ?? 12,
-                    }
-                  : undefined
-              }
-            />
-          ) : null}
-
-          <ZAxis
-            range={[
-              scatterPointSize * 8,
-              scatterPointSize * 8,
-            ]}
-          />
-
-          {renderTooltip()}
-          {renderLegend()}
-
-          <Scatter
-            name={ySeries.name}
-            data={scatterData}
-            fill={
-              ySeries.color ??
-              "#2563EB"
-            }
-            isAnimationActive={
-              isAnimationActive
-            }
-            animationDuration={
-              animationDuration
-            }
-          />
-        </ScatterChart>
-      );
-    }
-
-    return (
-      <LineChart
-        responsive
-        style={{
-          width: "100%",
-          height: "100%",
-        }}
-        data={chartData}
-        margin={chartMargin}
+            ? "flex-row"
+            : "flex-row-reverse",
+        ].join(" ")}
       >
-          {renderGrid()}
-          {renderXAxis()}
-          {renderYAxis()}
-          {renderTooltip()}
+        <div className="min-h-0 min-w-0 flex-1">
+          {renderSvgChart()}
+        </div>
+
+        <div className="max-w-[28%] shrink-0 overflow-auto py-2">
           {renderLegend()}
+        </div>
+      </div>
+    ) : (
+      <div className="flex min-h-0 flex-1 flex-col">
+        {legendPosition === "top" ? (
+          <div className="shrink-0 pb-2">
+            {renderLegend()}
+          </div>
+        ) : null}
 
-          {series.map(
-            (
-              item: any,
-              index: number,
-            ) => {
-              const color =
-                item.color ??
-                [
-                  "#2563EB",
-                  "#7C3AED",
-                  "#059669",
-                  "#EA580C",
-                  "#DC2626",
-                  "#0891B2",
-                ][index % 6];
+        <div className="min-h-0 flex-1">
+          {renderSvgChart()}
+        </div>
 
-              return (
-                <Line
-                  key={
-                    item.id ?? item.name
-                  }
-                  type="monotone"
-                  dataKey={item.name}
-                  name={item.name}
-                  stroke={color}
-                  strokeWidth={lineWidth}
-                  dot={
-                    data.showPoints !==
-                    false
-                      ? {
-                          r: pointSize,
-                          fill: color,
-                          stroke: color,
-                        }
-                      : false
-                  }
-                  activeDot={{
-                    r: pointSize + 2,
-                  }}
-                  connectNulls
-                  isAnimationActive={
-                    isAnimationActive
-                  }
-                  animationDuration={
-                    animationDuration
-                  }
-                >
-                  {data.showDataLabels ===
-                  true ? (
-                    <LabelList
-                      dataKey={item.name}
-                      position="top"
-                      style={{
-                        fill:
-                          (dataLabelStyle as any)
-                            .color ??
-                          "#374151",
-                        fontSize:
-                          (dataLabelStyle as any)
-                            .fontSize ?? 10,
-                      }}
-                    />
-                  ) : null}
-                </Line>
-              );
-            },
-          )}
-        </LineChart>
+        {legendPosition === "bottom" ? (
+          <div className="shrink-0 pt-2">
+            {renderLegend()}
+          </div>
+        ) : null}
+      </div>
     );
-  };
 
   return (
     <div
       className="flex h-full w-full min-h-0 flex-col overflow-hidden"
       style={{
         ...appearanceStyle,
+
         backgroundColor:
           data.backgroundColor &&
           data.backgroundColor !==
@@ -7454,14 +8849,14 @@ const renderChartBody = () => {
       </div>
 
       <div
-        className="min-h-0 flex-1"
+        className="flex min-h-0 flex-1 flex-col"
         style={{
           paddingRight: `${paddingRight}px`,
           paddingBottom: `${paddingBottom}px`,
           paddingLeft: `${paddingLeft}px`,
         }}
       >
-        {renderChartBody()}
+        {chartAndLegend}
       </div>
     </div>
   );
