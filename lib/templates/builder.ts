@@ -155,6 +155,7 @@ export type BuilderBlockType =
   | "speed_dating"
   | "process_flow"
   | "statistic_cards"
+  | "chart"
   | "comparison_table"
   | "data_pyramid"
   | "circular_hub"
@@ -3438,6 +3439,108 @@ export type StatisticCardsBlock = {
   data: StatisticCardsBlockData;
 };
 
+export type ChartType =
+  | "line"
+  | "bar"
+  | "horizontal_bar"
+  | "area"
+  | "pie"
+  | "doughnut"
+  | "scatter";
+
+export type ChartLegendPosition =
+  | "top"
+  | "bottom"
+  | "left"
+  | "right";
+
+export type ChartAnimationStyle =
+  | "none"
+  | "fade"
+  | "grow";
+
+export type ChartDataRow = {
+  id: string;
+  label: string;
+  values: Record<string, number>;
+};
+
+export type ChartSeries = {
+  id: string;
+  name: string;
+  color: string;
+  visible: boolean;
+};
+
+export type ChartBlockData =
+  InfographicBaseBlockData & {
+    chartType: ChartType;
+
+    rows: ChartDataRow[];
+    series: ChartSeries[];
+
+    showHeading: boolean;
+    showSubtitle: boolean;
+
+    headingStyle: TextStyle;
+    subtitleStyle: TextStyle;
+
+    showLegend: boolean;
+    legendPosition: ChartLegendPosition;
+    legendStyle: TextStyle;
+
+    showTooltip: boolean;
+    showGrid: boolean;
+    showXAxis: boolean;
+    showYAxis: boolean;
+    showXAxisLabel: boolean;
+    showYAxisLabel: boolean;
+    showDataLabels: boolean;
+
+    xAxisLabel: string;
+    yAxisLabel: string;
+
+    axisStyle: TextStyle;
+    axisLabelStyle: TextStyle;
+    dataLabelStyle: TextStyle;
+
+    gridColor: string;
+    axisColor: string;
+
+    backgroundColor: string;
+
+    lineWidth: number;
+    showPoints: boolean;
+    pointSize: number;
+
+    barRadius: number;
+    barGap: number;
+
+    areaOpacity: number;
+
+    pieInnerRadius: number;
+    pieOuterRadius: number;
+    piePaddingAngle: number;
+
+    scatterPointSize: number;
+
+    paddingTop: number;
+    paddingRight: number;
+    paddingBottom: number;
+    paddingLeft: number;
+
+    animationStyle: ChartAnimationStyle;
+  };
+
+export type ChartBlock = {
+  id: string;
+  type: "chart";
+  label: string;
+  grid: GridPlacement;
+  appearance?: BlockAppearance;
+  data: ChartBlockData;
+};
+
 export type ComparisonTableLayout =
   | "table"
   | "cards"
@@ -3650,6 +3753,7 @@ export type MicrositeBlock =
   | SummaryBlock
   | ProcessFlowBlock
   | StatisticCardsBlock
+  | ChartBlock
   | ComparisonTableBlock
   | DataPyramidBlock
   | CircularHubBlock
@@ -6729,6 +6833,178 @@ case "statistic_cards":
     },
   };
 
+case "chart":
+  return {
+    id: makeId("chart"),
+    type: "chart",
+    label: "Chart",
+    grid: {
+      ...grid,
+      colSpan: 8,
+      rowSpan: 5,
+    },
+
+    appearance: {
+      ...createDefaultBlockAppearance(),
+      backgroundColor: "#FFFFFF",
+      borderColor: "#E5E7EB",
+      borderWidth: 1,
+      borderRadius: 20,
+    },
+
+    data: {
+      heading: "Monthly Performance",
+      subtitle: "Performance by month",
+      showHeading: true,
+      showSubtitle: true,
+
+      chartType: "line",
+
+      series: [
+        {
+          id: makeId("chart_series"),
+          name: "Sales",
+          color: "#2563EB",
+          visible: true,
+        },
+        {
+          id: makeId("chart_series"),
+          name: "Expenses",
+          color: "#7C3AED",
+          visible: true,
+        },
+      ],
+
+      rows: [
+        {
+          id: makeId("chart_row"),
+          label: "January",
+          values: {
+            Sales: 120,
+            Expenses: 80,
+          },
+        },
+        {
+          id: makeId("chart_row"),
+          label: "February",
+          values: {
+            Sales: 170,
+            Expenses: 95,
+          },
+        },
+        {
+          id: makeId("chart_row"),
+          label: "March",
+          values: {
+            Sales: 145,
+            Expenses: 105,
+          },
+        },
+        {
+          id: makeId("chart_row"),
+          label: "April",
+          values: {
+            Sales: 210,
+            Expenses: 130,
+          },
+        },
+        {
+          id: makeId("chart_row"),
+          label: "May",
+          values: {
+            Sales: 235,
+            Expenses: 150,
+          },
+        },
+      ],
+
+      style: createDefaultTextStyle(),
+
+      headingStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 24,
+        bold: true,
+        align: "center",
+        color: "#111827",
+      },
+
+      subtitleStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 13,
+        align: "center",
+        color: "#6B7280",
+      },
+
+      legendStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 12,
+        color: "#374151",
+      },
+
+      axisStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 11,
+        color: "#6B7280",
+      },
+
+      axisLabelStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 12,
+        bold: true,
+        color: "#374151",
+      },
+
+      dataLabelStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 10,
+        color: "#374151",
+      },
+
+      showLegend: true,
+      legendPosition: "bottom",
+
+      showTooltip: true,
+      showGrid: true,
+
+      showXAxis: true,
+      showYAxis: true,
+
+      showXAxisLabel: false,
+      showYAxisLabel: false,
+
+      showDataLabels: false,
+
+      xAxisLabel: "Month",
+      yAxisLabel: "Value",
+
+      gridColor: "#E5E7EB",
+      axisColor: "#9CA3AF",
+
+      backgroundColor: "transparent",
+
+      lineWidth: 3,
+      showPoints: true,
+      pointSize: 5,
+
+      barRadius: 6,
+      barGap: 8,
+
+      areaOpacity: 0.22,
+
+      pieInnerRadius: 0,
+      pieOuterRadius: 90,
+      piePaddingAngle: 2,
+
+      scatterPointSize: 7,
+
+      paddingTop: 16,
+      paddingRight: 16,
+      paddingBottom: 16,
+      paddingLeft: 16,
+
+      animationStyle: "none",
+    },
+  };
 
 case "comparison_table": {
   const columnOneId = makeId(

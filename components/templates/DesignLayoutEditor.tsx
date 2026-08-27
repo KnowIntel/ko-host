@@ -1126,6 +1126,7 @@ Scheduling: [
 Infographics: [
   { kind: "block", label: "Process Flow", type: "process_flow" },
   { kind: "block", label: "Statistic Cards", type: "statistic_cards" },
+  { kind: "block", label: "Chart", type: "chart" },
   { kind: "block", label: "Comparison Table", type: "comparison_table" },
   { kind: "block", label: "Tournament Display", type: "tournament_display" },
   { kind: "block", label: "Data Pyramid", type: "data_pyramid" },
@@ -10887,6 +10888,7 @@ return (
 if (
   block.type === "process_flow" ||
   block.type === "statistic_cards" ||
+  block.type === "chart" ||
   block.type === "comparison_table" ||
   block.type === "data_pyramid" ||
   block.type === "circular_hub" ||

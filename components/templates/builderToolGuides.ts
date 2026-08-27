@@ -246,6 +246,14 @@ export const BUILDER_TOOL_GUIDES: BuilderToolGuide[] = [
 },
 
 {
+  name: "Chart",
+  purpose:
+    "Creates professional data visualizations using editable chart data.",
+  howToUse:
+    "Drag the Chart tool onto the canvas, choose a Chart Type in the inspector, then add or edit the chart's categories, series, and values. The chart updates automatically as its data changes. Use the display and appearance controls to customize axes, grid lines, legends, labels, colors, spacing, and chart-specific styling.",
+},
+
+{
   name: "Interactive Hotspots",
   purpose:
     "Adds clickable information points to an image or visual canvas.",

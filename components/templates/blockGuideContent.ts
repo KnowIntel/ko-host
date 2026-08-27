@@ -993,6 +993,98 @@ tournament_display: {
   ],
 },
 
+chart: {
+  title: "Chart",
+  subtitle:
+    "Turn editable data into professional line, bar, area, pie, doughnut, scatter, and other chart visualizations.",
+  sections: [
+    {
+      title: "Overview",
+      body:
+        "The Chart block creates professional data visualizations directly on the microsite. Chart data is entered and edited in the inspector, and the visualization updates automatically as values change.",
+    },
+    {
+      title: "Objective",
+      bullets: [
+        "Present numerical data in an easy-to-understand visual format.",
+        "Compare values across categories or periods.",
+        "Display trends and changes over time.",
+        "Visualize proportions and relationships between values.",
+        "Switch between compatible chart types without re-entering the underlying data.",
+      ],
+    },
+    {
+      title: "Chart Types",
+      bullets: [
+        "Line - displays changes or trends across an ordered series of data points.",
+        "Bar - compares values using vertical bars.",
+        "Horizontal Bar - compares values using horizontal bars.",
+        "Area - displays trends using lines with filled areas beneath them.",
+        "Pie - displays individual values as portions of a whole.",
+        "Doughnut - displays proportional values using a circular ring.",
+        "Scatter - displays individual data points to visualize relationships between numeric values.",
+      ],
+    },
+    {
+      title: "Chart Data",
+      body:
+        "Chart data is organized into rows and series. Changes made to the chart data in the inspector are reflected automatically in the chart.",
+      bullets: [
+        "Rows define the categories or individual data points displayed by the chart.",
+        "Series define the sets of values being compared.",
+        "Additional rows can be added to expand the chart.",
+        "Additional series can be added when a chart needs to compare multiple sets of values.",
+        "Series can be individually named, colored, shown, or hidden.",
+      ],
+    },
+    {
+      title: "Axes and Grid",
+      bullets: [
+        "X Axis - displays the horizontal chart scale or categories where applicable.",
+        "Y Axis - displays the vertical value scale where applicable.",
+        "Axis Labels - optionally identify what each axis represents.",
+        "Grid Lines - provide visual reference lines for interpreting chart values.",
+        "Axis and grid appearance can be customized independently.",
+        "Pie and Doughnut charts do not use traditional X and Y axes.",
+      ],
+    },
+    {
+      title: "Display Options",
+      bullets: [
+        "Legend - identifies the data series displayed in the chart.",
+        "Tooltip - displays additional information when a visitor interacts with a data point.",
+        "Data Labels - optionally display values directly on the chart.",
+        "Points - optionally identify individual values on supported chart types.",
+        "Chart-specific controls adjust elements such as line width, bar radius, area opacity, and pie dimensions.",
+      ],
+    },
+    {
+      title: "Appearance",
+      bullets: [
+        "Heading and Subtitle can be formatted independently.",
+        "Series colors can be customized individually.",
+        "Axis, axis label, legend, and data label text can be formatted independently.",
+        "Grid and axis colors can be customized.",
+        "Chart padding controls spacing between the visualization and the edges of the block.",
+        "The overall block appearance can be customized using standard appearance controls.",
+      ],
+    },
+    {
+      title: "Best Use Cases",
+      bullets: [
+        "Business reports and performance dashboards.",
+        "Sales and financial summaries.",
+        "Surveys and poll results.",
+        "Educational data and science projects.",
+        "Market and research data.",
+        "Progress and performance tracking.",
+        "Comparisons and statistical presentations.",
+        "Infographics and visual reports.",
+      ],
+    },
+  ],
+},
+
 calendar_event: {
   title: "Calendar Event",
   subtitle:
