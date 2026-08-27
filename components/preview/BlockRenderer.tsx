@@ -29,7 +29,6 @@ import {
   LineChart,
   Pie,
   PieChart,
-  ResponsiveContainer,
   Scatter,
   ScatterChart,
   Tooltip,
@@ -6798,47 +6797,210 @@ function renderChart(
 
     if (chartType === "bar") {
       return (
-        <ResponsiveContainer
-          width="100%"
-          height="100%"
+        <BarChart
+          responsive
+          style={{
+            width: "100%",
+            height: "100%",
+          }}
+          data={chartData}
+          margin={chartMargin}
+          barGap={barGap}
         >
-          <BarChart
-            data={chartData}
-            margin={chartMargin}
-            barGap={barGap}
-          >
-            {renderGrid()}
-            {renderXAxis()}
-            {renderYAxis()}
-            {renderTooltip()}
-            {renderLegend()}
+          {renderGrid()}
+          {renderXAxis()}
+          {renderYAxis()}
+          {renderTooltip()}
+          {renderLegend()}
 
-            {series.map(
-              (
-                item: any,
-                index: number,
-              ) => (
-                <Bar
-                  key={item.id ?? item.name}
+          {series.map(
+            (
+              item: any,
+              index: number,
+            ) => (
+              <Bar
+                key={item.id ?? item.name}
+                dataKey={item.name}
+                name={item.name}
+                fill={
+                  item.color ??
+                  [
+                    "#2563EB",
+                    "#7C3AED",
+                    "#059669",
+                    "#EA580C",
+                    "#DC2626",
+                    "#0891B2",
+                  ][index % 6]
+                }
+                radius={[
+                  barRadius,
+                  barRadius,
+                  0,
+                  0,
+                ]}
+                isAnimationActive={
+                  isAnimationActive
+                }
+                animationDuration={
+                  animationDuration
+                }
+              >
+                {data.showDataLabels ===
+                true ? (
+                  <LabelList
+                    dataKey={item.name}
+                    position="top"
+                    style={{
+                      fill:
+                        (dataLabelStyle as any)
+                          .color ??
+                        "#374151",
+                      fontSize:
+                        (dataLabelStyle as any)
+                          .fontSize ?? 10,
+                    }}
+                  />
+                ) : null}
+              </Bar>
+            ),
+          )}
+        </BarChart>
+      );
+    }
+
+    if (chartType === "horizontal_bar") {
+      return (
+        <BarChart
+          responsive
+          style={{
+            width: "100%",
+            height: "100%",
+          }}
+          data={chartData}
+          layout="vertical"
+          margin={chartMargin}
+          barGap={barGap}
+        >
+          {renderGrid()}
+          {renderXAxis(true)}
+          {renderYAxis(true)}
+          {renderTooltip()}
+          {renderLegend()}
+
+          {series.map(
+            (
+              item: any,
+              index: number,
+            ) => (
+              <Bar
+                key={item.id ?? item.name}
+                dataKey={item.name}
+                name={item.name}
+                fill={
+                  item.color ??
+                  [
+                    "#2563EB",
+                    "#7C3AED",
+                    "#059669",
+                    "#EA580C",
+                    "#DC2626",
+                    "#0891B2",
+                  ][index % 6]
+                }
+                radius={[
+                  0,
+                  barRadius,
+                  barRadius,
+                  0,
+                ]}
+                isAnimationActive={
+                  isAnimationActive
+                }
+                animationDuration={
+                  animationDuration
+                }
+              >
+                {data.showDataLabels ===
+                true ? (
+                  <LabelList
+                    dataKey={item.name}
+                    position="right"
+                    style={{
+                      fill:
+                        (dataLabelStyle as any)
+                          .color ??
+                        "#374151",
+                      fontSize:
+                        (dataLabelStyle as any)
+                          .fontSize ?? 10,
+                    }}
+                  />
+                ) : null}
+              </Bar>
+            ),
+          )}
+        </BarChart>
+      );
+    }
+
+    if (chartType === "area") {
+      return (
+        <AreaChart
+          responsive
+          style={{
+            width: "100%",
+            height: "100%",
+          }}
+          data={chartData}
+          margin={chartMargin}
+        >
+          {renderGrid()}
+          {renderXAxis()}
+          {renderYAxis()}
+          {renderTooltip()}
+          {renderLegend()}
+
+          {series.map(
+            (
+              item: any,
+              index: number,
+            ) => {
+              const color =
+                item.color ??
+                [
+                  "#2563EB",
+                  "#7C3AED",
+                  "#059669",
+                  "#EA580C",
+                  "#DC2626",
+                  "#0891B2",
+                ][index % 6];
+
+              return (
+                <Area
+                  key={
+                    item.id ?? item.name
+                  }
+                  type="monotone"
                   dataKey={item.name}
                   name={item.name}
-                  fill={
-                    item.color ??
-                    [
-                      "#2563EB",
-                      "#7C3AED",
-                      "#059669",
-                      "#EA580C",
-                      "#DC2626",
-                      "#0891B2",
-                    ][index % 6]
+                  stroke={color}
+                  fill={color}
+                  fillOpacity={areaOpacity}
+                  strokeWidth={lineWidth}
+                  dot={
+                    data.showPoints !==
+                    false
+                      ? {
+                          r: pointSize,
+                          fill: color,
+                        }
+                      : false
                   }
-                  radius={[
-                    barRadius,
-                    barRadius,
-                    0,
-                    0,
-                  ]}
+                  activeDot={{
+                    r: pointSize + 2,
+                  }}
                   isAnimationActive={
                     isAnimationActive
                   }
@@ -6853,185 +7015,22 @@ function renderChart(
                       position="top"
                       style={{
                         fill:
-                          (dataLabelStyle as any)
-                            .color ??
+                          (
+                            dataLabelStyle as any
+                          ).color ??
                           "#374151",
                         fontSize:
-                          (dataLabelStyle as any)
-                            .fontSize ?? 10,
+                          (
+                            dataLabelStyle as any
+                          ).fontSize ?? 10,
                       }}
                     />
                   ) : null}
-                </Bar>
-              ),
-            )}
-          </BarChart>
-        </ResponsiveContainer>
-      );
-    }
-
-    if (chartType === "horizontal_bar") {
-      return (
-        <ResponsiveContainer
-          width="100%"
-          height="100%"
-        >
-          <BarChart
-            data={chartData}
-            layout="vertical"
-            margin={chartMargin}
-            barGap={barGap}
-          >
-            {renderGrid()}
-            {renderXAxis(true)}
-            {renderYAxis(true)}
-            {renderTooltip()}
-            {renderLegend()}
-
-            {series.map(
-              (
-                item: any,
-                index: number,
-              ) => (
-                <Bar
-                  key={item.id ?? item.name}
-                  dataKey={item.name}
-                  name={item.name}
-                  fill={
-                    item.color ??
-                    [
-                      "#2563EB",
-                      "#7C3AED",
-                      "#059669",
-                      "#EA580C",
-                      "#DC2626",
-                      "#0891B2",
-                    ][index % 6]
-                  }
-                  radius={[
-                    0,
-                    barRadius,
-                    barRadius,
-                    0,
-                  ]}
-                  isAnimationActive={
-                    isAnimationActive
-                  }
-                  animationDuration={
-                    animationDuration
-                  }
-                >
-                  {data.showDataLabels ===
-                  true ? (
-                    <LabelList
-                      dataKey={item.name}
-                      position="right"
-                      style={{
-                        fill:
-                          (dataLabelStyle as any)
-                            .color ??
-                          "#374151",
-                        fontSize:
-                          (dataLabelStyle as any)
-                            .fontSize ?? 10,
-                      }}
-                    />
-                  ) : null}
-                </Bar>
-              ),
-            )}
-          </BarChart>
-        </ResponsiveContainer>
-      );
-    }
-
-    if (chartType === "area") {
-      return (
-        <ResponsiveContainer
-          width="100%"
-          height="100%"
-        >
-          <AreaChart
-            data={chartData}
-            margin={chartMargin}
-          >
-            {renderGrid()}
-            {renderXAxis()}
-            {renderYAxis()}
-            {renderTooltip()}
-            {renderLegend()}
-
-            {series.map(
-              (
-                item: any,
-                index: number,
-              ) => {
-                const color =
-                  item.color ??
-                  [
-                    "#2563EB",
-                    "#7C3AED",
-                    "#059669",
-                    "#EA580C",
-                    "#DC2626",
-                    "#0891B2",
-                  ][index % 6];
-
-                return (
-                  <Area
-                    key={
-                      item.id ?? item.name
-                    }
-                    type="monotone"
-                    dataKey={item.name}
-                    name={item.name}
-                    stroke={color}
-                    fill={color}
-                    fillOpacity={areaOpacity}
-                    strokeWidth={lineWidth}
-                    dot={
-                      data.showPoints !==
-                      false
-                        ? {
-                            r: pointSize,
-                            fill: color,
-                          }
-                        : false
-                    }
-                    activeDot={{
-                      r: pointSize + 2,
-                    }}
-                    isAnimationActive={
-                      isAnimationActive
-                    }
-                    animationDuration={
-                      animationDuration
-                    }
-                  >
-                    {data.showDataLabels ===
-                    true ? (
-                      <LabelList
-                        dataKey={item.name}
-                        position="top"
-                        style={{
-                          fill:
-                            (
-                              dataLabelStyle as any
-                            ).color ??
-                            "#374151",
-                          fontSize:
-                            (
-                              dataLabelStyle as any
-                            ).fontSize ?? 10,
-                        }}
-                      />
-                    ) : null}
-                  </Area>
-                );
-              },
-            )}
-          </AreaChart>
-        </ResponsiveContainer>
+                </Area>
+              );
+            },
+          )}
+        </AreaChart>
       );
     }
 
@@ -7046,78 +7045,79 @@ function renderChart(
       }
 
       return (
-        <ResponsiveContainer
-          width="100%"
-          height="100%"
+        <PieChart
+          responsive
+          style={{
+            width: "100%",
+            height: "100%",
+          }}
         >
-          <PieChart>
-            {renderTooltip()}
-            {renderLegend()}
+          {renderTooltip()}
+          {renderLegend()}
 
-            <Pie
-              data={chartData}
-              dataKey={primarySeries.name}
-              nameKey="label"
-              cx="50%"
-              cy="50%"
-              innerRadius={
-                chartType === "doughnut"
-                  ? Math.max(
-                      20,
-                      pieInnerRadius || 55,
-                    )
-                  : 0
-              }
-              outerRadius={pieOuterRadius}
-              paddingAngle={piePaddingAngle}
-              isAnimationActive={
-                isAnimationActive
-              }
-              animationDuration={
-                animationDuration
-              }
-              label={
-                data.showDataLabels === true
-                  ? ({
-                      name,
-                      value,
-                    }: any) =>
-                      `${name}: ${value}`
-                  : false
-              }
-              labelLine={
-                data.showDataLabels === true
-              }
-            >
-              {chartData.map(
-                (
-                  entry: any,
-                  index: number,
-                ) => (
-                  <Cell
-                    key={
-                      entry.id ??
-                      `chart-cell-${index}`
-                    }
-                    fill={
-                      series[index]?.color ??
-                      [
-                        "#2563EB",
-                        "#7C3AED",
-                        "#059669",
-                        "#EA580C",
-                        "#DC2626",
-                        "#0891B2",
-                        "#DB2777",
-                        "#65A30D",
-                      ][index % 8]
-                    }
-                  />
-                ),
-              )}
-            </Pie>
-          </PieChart>
-        </ResponsiveContainer>
+          <Pie
+            data={chartData}
+            dataKey={primarySeries.name}
+            nameKey="label"
+            cx="50%"
+            cy="50%"
+            innerRadius={
+              chartType === "doughnut"
+                ? Math.max(
+                    20,
+                    pieInnerRadius || 55,
+                  )
+                : 0
+            }
+            outerRadius={pieOuterRadius}
+            paddingAngle={piePaddingAngle}
+            isAnimationActive={
+              isAnimationActive
+            }
+            animationDuration={
+              animationDuration
+            }
+            label={
+              data.showDataLabels === true
+                ? ({
+                    name,
+                    value,
+                  }: any) =>
+                    `${name}: ${value}`
+                : false
+            }
+            labelLine={
+              data.showDataLabels === true
+            }
+          >
+            {chartData.map(
+              (
+                entry: any,
+                index: number,
+              ) => (
+                <Cell
+                  key={
+                    entry.id ??
+                    `chart-cell-${index}`
+                  }
+                  fill={
+                    series[index]?.color ??
+                    [
+                      "#2563EB",
+                      "#7C3AED",
+                      "#059669",
+                      "#EA580C",
+                      "#DC2626",
+                      "#0891B2",
+                      "#DB2777",
+                      "#65A30D",
+                    ][index % 8]
+                  }
+                />
+              ),
+            )}
+          </Pie>
+        </PieChart>
       );
     }
 
@@ -7147,130 +7147,133 @@ function renderChart(
         );
 
       return (
-        <ResponsiveContainer
-          width="100%"
-          height="100%"
+        <ScatterChart
+          responsive
+          style={{
+            width: "100%",
+            height: "100%",
+          }}
+          margin={chartMargin}
         >
-          <ScatterChart margin={chartMargin}>
-            {renderGrid()}
+          {renderGrid()}
 
-            {data.showXAxis !== false ? (
-              <XAxis
-                type="number"
-                dataKey="__x"
-                name={
-                  series.length > 1
-                    ? xSeries.name
-                    : data.xAxisLabel ||
-                      "Data Point"
-                }
-                tick={tickStyle}
-                axisLine={{
-                  stroke: axisColor,
-                }}
-                tickLine={{
-                  stroke: axisColor,
-                }}
-                label={
-                  data.showXAxisLabel ===
-                    true &&
-                  data.xAxisLabel
-                    ? {
-                        value:
-                          data.xAxisLabel,
-                        position:
-                          "insideBottom",
-                        offset: -8,
-                        fill:
-                          (
-                            axisLabelStyle as any
-                          ).color ??
-                          axisColor,
-                        fontSize:
-                          (
-                            axisLabelStyle as any
-                          ).fontSize ?? 12,
-                      }
-                    : undefined
-                }
-              />
-            ) : null}
-
-            {data.showYAxis !== false ? (
-              <YAxis
-                type="number"
-                dataKey="__y"
-                name={ySeries.name}
-                tick={tickStyle}
-                axisLine={{
-                  stroke: axisColor,
-                }}
-                tickLine={{
-                  stroke: axisColor,
-                }}
-                label={
-                  data.showYAxisLabel ===
-                    true &&
-                  data.yAxisLabel
-                    ? {
-                        value:
-                          data.yAxisLabel,
-                        angle: -90,
-                        position:
-                          "insideLeft",
-                        fill:
-                          (
-                            axisLabelStyle as any
-                          ).color ??
-                          axisColor,
-                        fontSize:
-                          (
-                            axisLabelStyle as any
-                          ).fontSize ?? 12,
-                      }
-                    : undefined
-                }
-              />
-            ) : null}
-
-            <ZAxis
-              range={[
-                scatterPointSize * 8,
-                scatterPointSize * 8,
-              ]}
+          {data.showXAxis !== false ? (
+            <XAxis
+              type="number"
+              dataKey="__x"
+              name={
+                series.length > 1
+                  ? xSeries.name
+                  : data.xAxisLabel ||
+                    "Data Point"
+              }
+              tick={tickStyle}
+              axisLine={{
+                stroke: axisColor,
+              }}
+              tickLine={{
+                stroke: axisColor,
+              }}
+              label={
+                data.showXAxisLabel ===
+                  true &&
+                data.xAxisLabel
+                  ? {
+                      value:
+                        data.xAxisLabel,
+                      position:
+                        "insideBottom",
+                      offset: -8,
+                      fill:
+                        (
+                          axisLabelStyle as any
+                        ).color ??
+                        axisColor,
+                      fontSize:
+                        (
+                          axisLabelStyle as any
+                        ).fontSize ?? 12,
+                    }
+                  : undefined
+              }
             />
+          ) : null}
 
-            {renderTooltip()}
-            {renderLegend()}
-
-            <Scatter
+          {data.showYAxis !== false ? (
+            <YAxis
+              type="number"
+              dataKey="__y"
               name={ySeries.name}
-              data={scatterData}
-              fill={
-                ySeries.color ??
-                "#2563EB"
-              }
-              isAnimationActive={
-                isAnimationActive
-              }
-              animationDuration={
-                animationDuration
+              tick={tickStyle}
+              axisLine={{
+                stroke: axisColor,
+              }}
+              tickLine={{
+                stroke: axisColor,
+              }}
+              label={
+                data.showYAxisLabel ===
+                  true &&
+                data.yAxisLabel
+                  ? {
+                      value:
+                        data.yAxisLabel,
+                      angle: -90,
+                      position:
+                        "insideLeft",
+                      fill:
+                        (
+                          axisLabelStyle as any
+                        ).color ??
+                        axisColor,
+                      fontSize:
+                        (
+                          axisLabelStyle as any
+                        ).fontSize ?? 12,
+                    }
+                  : undefined
               }
             />
-          </ScatterChart>
-        </ResponsiveContainer>
+          ) : null}
+
+          <ZAxis
+            range={[
+              scatterPointSize * 8,
+              scatterPointSize * 8,
+            ]}
+          />
+
+          {renderTooltip()}
+          {renderLegend()}
+
+          <Scatter
+            name={ySeries.name}
+            data={scatterData}
+            fill={
+              ySeries.color ??
+              "#2563EB"
+            }
+            isAnimationActive={
+              isAnimationActive
+            }
+            animationDuration={
+              animationDuration
+            }
+          />
+        </ScatterChart>
       );
     }
 
     return (
-      <ResponsiveContainer
-        width="100%"
-        height="100%"
+      <LineChart
+        responsive
+        style={{
+          width: "100%",
+          height: "100%",
+        }}
+        data={chartData}
+        margin={chartMargin}
       >
-        <LineChart
-          data={chartData}
-          margin={chartMargin}
-        >
           {renderGrid()}
           {renderXAxis()}
           {renderYAxis()}
@@ -7345,7 +7348,6 @@ function renderChart(
             },
           )}
         </LineChart>
-      </ResponsiveContainer>
     );
   };
 

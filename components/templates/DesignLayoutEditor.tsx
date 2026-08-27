@@ -57,6 +57,7 @@ import {
   LinksInspector,
   ProcessFlowInspector,
   StatisticCardsInspector,
+  ChartInspector,
   ComparisonTableInspector,
   CircularHubInspector,
   DataPyramidInspector,
@@ -73,6 +74,17 @@ import {
   applyImageCaptionStylePatch,
   isImageCaptionFormattingTarget,
 } from "@/components/builder/formatting/imageFormatting";
+
+import {
+  applyChartStylePatch,
+  applyChartTextStylePatch,
+  getChartTextStyle,
+} from "@/components/builder/formatting/chartFormatting";
+
+import type {
+  ChartStyleTarget,
+  ChartTextTarget,
+} from "@/components/builder/formatting/chartFormatting";
 
 import {
   applyListingStylePatch,
@@ -2159,6 +2171,7 @@ function getToolIconPath(tool: (typeof CATEGORY_BUTTONS)[BottomCategory][number]
 
   if (tool.label === "Process Flow") return "/menu-icons/block-process-flow.svg";
   if (tool.label === "Statistic Cards") return "/menu-icons/block-statistic-cards.svg";
+  if (tool.label === "Chart") return "/menu-icons/block-chart.svg";
   if (tool.label === "Comparison Table") return "/menu-icons/block-comparison-table.svg";
   if (tool.label === "Tournament Display") return "/menu-icons/block-tournament-display.svg";
   if (tool.label === "Data Pyramid") return "/menu-icons/block-pyramid.svg";
@@ -2449,6 +2462,16 @@ const [
 statisticCardsStyleTarget,
 setStatisticCardsStyleTarget,
 ] = useState<StatisticCardsStyleTarget>("card");
+
+const [
+  chartTextTarget,
+  setChartTextTarget,
+] = useState<ChartTextTarget>("heading");
+
+const [
+  chartStyleTarget,
+  setChartStyleTarget,
+] = useState<ChartStyleTarget>("block");
 
 const [
   comparisonTableTextTarget,
@@ -2897,6 +2920,11 @@ const selectedStyle =
       selectedBlockFromDraft,
       statisticCardsTextTarget,
     ) as TextStyle)
+: selectedBlockFromDraft?.type === "chart"
+  ? (getChartTextStyle(
+      selectedBlockFromDraft,
+      chartTextTarget,
+    ) as TextStyle)
 : selectedBlockFromDraft?.type === "comparison_table"
   ? (getComparisonTableTextStyle(
       selectedBlockFromDraft,
@@ -3332,6 +3360,7 @@ const showTextControls =
   selectedBlock?.type === "map_location" ||
 selectedBlock?.type === "process_flow" ||
 selectedBlock?.type === "statistic_cards" ||
+selectedBlock?.type === "chart" ||
 selectedBlock?.type === "comparison_table" ||
 selectedBlock?.type === "data_pyramid" ||
 selectedBlock?.type === "circular_hub" ||
@@ -3382,6 +3411,7 @@ const showAppearanceControls =
   selectedBlock?.type === "map_location" ||
 selectedBlock?.type === "process_flow" ||
 selectedBlock?.type === "statistic_cards" ||
+selectedBlock?.type === "chart" ||
 selectedBlock?.type === "comparison_table" ||
 selectedBlock?.type === "data_pyramid" ||
 selectedBlock?.type === "circular_hub" ||
@@ -3433,6 +3463,7 @@ const showBorderWidthRadiusControls =
   selectedBlock?.type === "map_location" ||
   selectedBlock?.type === "process_flow" ||
   selectedBlock?.type === "statistic_cards" ||
+selectedBlock?.type === "chart" ||
 selectedBlock?.type === "comparison_table" ||
 selectedBlock?.type === "data_pyramid" ||
 selectedBlock?.type === "story_cards" ||
@@ -5378,6 +5409,20 @@ if (selectedBlock?.type === "checklist") {
     return;
   }
 
+  if (selectedBlock?.type === "chart") {
+  updateSelectedBlock((block) =>
+    block.type !== "chart"
+      ? block
+      : applyChartTextStylePatch(
+          block,
+          chartTextTarget,
+          patch,
+        ),
+  );
+
+  return;
+}
+
   if (selectedBlock?.type === "comparison_table") {
   updateSelectedBlock((block) =>
     block.type !== "comparison_table"
@@ -6238,6 +6283,20 @@ if (selectedBlock?.type === "checklist") {
 
     return;
   }
+
+  if (selectedBlock?.type === "chart") {
+  updateSelectedBlock((block) =>
+    block.type !== "chart"
+      ? block
+      : applyChartStylePatch(
+          block,
+          chartStyleTarget,
+          patch,
+        ),
+  );
+
+  return;
+}
 
   if (selectedBlock?.type === "comparison_table") {
   updateSelectedBlock((block) =>
@@ -14539,6 +14598,36 @@ selectedBlock?.type === "statistic_cards" ? (
       toolSetButtonClass
     }
   />
+) : null}
+
+{!isMultiSelection &&
+selectedBlock?.type === "chart" ? (
+<ChartInspector
+  selectedBlock={selectedBlock}
+  updateSelectedBlock={updateSelectedBlock}
+  makeClientId={makeClientId}
+  chartTextTarget={
+    chartTextTarget
+  }
+  setChartTextTarget={
+    setChartTextTarget
+  }
+  chartStyleTarget={
+    chartStyleTarget
+  }
+  setChartStyleTarget={
+    setChartStyleTarget
+  }
+  inspectorCardClass={
+    inspectorCardClass
+  }
+  inspectorLabelClass={
+    inspectorLabelClass
+  }
+  inspectorInputClass={
+    inspectorInputClass
+  }
+/>
 ) : null}
 
 {!isMultiSelection &&
