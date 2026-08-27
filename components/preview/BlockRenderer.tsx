@@ -6609,72 +6609,72 @@ function renderChart(
     );
   };
 
-    const renderSvgTooltip = (
-    x: number,
-    y: number,
-    title: string,
-    value: number,
-    color: string,
-  ) => {
-    const tooltipWidth = 138;
-    const tooltipHeight = 48;
+const renderSvgTooltip = (
+  x: number,
+  y: number,
+  title: string,
+  value: number,
+  color: string,
+) => {
+  const tooltipWidth = 138;
+  const tooltipHeight = 48;
 
-    const resolvedX = Math.max(
-      6,
-      Math.min(
-        SVG_WIDTH - tooltipWidth - 6,
-        x - tooltipWidth / 2,
-      ),
-    );
+  const resolvedX = Math.max(
+    6,
+    Math.min(
+      SVG_WIDTH - tooltipWidth - 6,
+      x - tooltipWidth / 2,
+    ),
+  );
 
-    const resolvedY = Math.max(
-      6,
-      y - tooltipHeight - 12,
-    );
+  const resolvedY = Math.max(
+    6,
+    y - tooltipHeight - 12,
+  );
 
-    return (
-      <g
-        className="pointer-events-none opacity-0 transition-opacity duration-150 group-hover:opacity-100"
+  return (
+    <g
+      className="pointer-events-none opacity-0 transition-opacity duration-150 group-hover/chart-tooltip:opacity-100"
+    >
+      <rect
+        x={resolvedX}
+        y={resolvedY}
+        width={tooltipWidth}
+        height={tooltipHeight}
+        rx={8}
+        fill="#111827"
+        opacity={0.96}
+      />
+
+      <circle
+        cx={resolvedX + 12}
+        cy={resolvedY + 15}
+        r={4}
+        fill={color}
+      />
+
+      <text
+        x={resolvedX + 22}
+        y={resolvedY + 18}
+        fill="#FFFFFF"
+        fontSize={10}
+        fontWeight={600}
       >
-        <rect
-          x={resolvedX}
-          y={resolvedY}
-          width={tooltipWidth}
-          height={tooltipHeight}
-          rx={8}
-          fill="#111827"
-          opacity={0.96}
-        />
+        {title}
+      </text>
 
-        <circle
-          cx={resolvedX + 12}
-          cy={resolvedY + 15}
-          r={4}
-          fill={color}
-        />
-
-        <text
-          x={resolvedX + 22}
-          y={resolvedY + 18}
-          fill="#FFFFFF"
-          fontSize={10}
-          fontWeight={600}
-        >
-          {title}
-        </text>
-
-        <text
-          x={resolvedX + 12}
-          y={resolvedY + 36}
-          fill="#D1D5DB"
-          fontSize={11}
-          fontWeight={700}
-        >
-          {formatValue(value)}
-        </text>
-      </g>
-    );
-  };
+      <text
+        x={resolvedX + 12}
+        y={resolvedY + 36}
+        fill="#D1D5DB"
+        fontSize={11}
+        fontWeight={700}
+      >
+        {formatValue(value)}
+      </text>
+    </g>
+  );
+};
 
   const axisTextColor =
     (axisStyle as any).color ??
@@ -7277,7 +7277,7 @@ function renderChart(
     item.id ??
     item.name
   }-point-${index}`}
-  className="group cursor-pointer"
+  className="group/chart-tooltip cursor-pointer"
 >
   <circle
     cx={x}
@@ -7485,7 +7485,7 @@ function renderChart(
     item.id ??
     item.name
   }-${rowIndex}`}
-  className="group cursor-pointer"
+  className="group/chart-tooltip cursor-pointer"
 >
                         <rect
                           x={x}
@@ -7864,7 +7864,7 @@ return (
       item.id ??
       item.name
     }-${rowIndex}`}
-    className="group cursor-pointer"
+    className="group/chart-tooltip cursor-pointer"
   >
     <rect
       x={x}
@@ -8266,7 +8266,7 @@ const color =
     row.id ??
     `pie-${index}`
   }
-  className="group cursor-pointer"
+  className="group/chart-tooltip cursor-pointer"
 >
   <path
     d={path}
@@ -8660,7 +8660,7 @@ const color =
     row.id ??
     `scatter-point-${index}`
   }
-  className="group cursor-pointer"
+  className="group/chart-tooltip cursor-pointer"
 >
                 <circle
                   cx={x}
