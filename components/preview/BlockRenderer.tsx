@@ -6783,11 +6783,17 @@ function renderChart(
     );
   };
 
-  const renderChartBody = () => {
-    if (
-      chartData.length === 0 ||
-      series.length === 0
-    ) {
+const renderChartBody = () => {
+  return (
+    <div className="flex h-full min-h-[180px] items-center justify-center rounded-xl border border-dashed border-neutral-300 px-4 text-center text-sm text-neutral-500">
+      Chart renderer test
+    </div>
+  );
+
+  if (
+    chartData.length === 0 ||
+    series.length === 0
+  ) {
       return (
         <div className="flex h-full min-h-[180px] items-center justify-center rounded-xl border border-dashed border-neutral-300 px-4 text-center text-sm text-neutral-500">
           Add chart data to begin.
@@ -31120,14 +31126,7 @@ case "statistic_cards":
   return renderStatisticCards(block, designKey);
 
 case "chart":
-  return (
-    <div
-      className="flex h-full w-full items-center justify-center"
-      style={getAppearanceStyle(block)}
-    >
-      Chart
-    </div>
-  );
+  return renderChart(block, designKey);
 
   case "comparison_table":
   return renderComparisonTable(block, designKey);
