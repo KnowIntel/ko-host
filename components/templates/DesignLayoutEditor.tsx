@@ -541,20 +541,39 @@ onReorderPages?: (nextPages: Array<{
 }>) => void | Promise<void>;
 };
 
-type PageLengthOption =
-  | "1200"
-  | "1400"
-  | "1600"
-  | "1800"
-  | "2000"
-  | "2400"
-  | "2800"
-  | "3200"
-  | "3600"
-  | "4000"
-  | "4400"
-  | "5000"
-  | "5600";
+const MIN_PAGE_LENGTH = 1200;
+const MAX_PAGE_LENGTH = 5600;
+const PAGE_LENGTH_STEP = 1000;
+
+function normalizePageLength(
+  value: unknown,
+  fallback = 1800,
+) {
+  const numericValue =
+    typeof value === "number"
+      ? value
+      : Number(value);
+
+  if (!Number.isFinite(numericValue)) {
+    return fallback;
+  }
+
+  return Math.max(
+    MIN_PAGE_LENGTH,
+    Math.min(
+      MAX_PAGE_LENGTH,
+      Math.round(numericValue),
+    ),
+  );
+}
+
+function getPageLengthPx(
+  length: unknown,
+) {
+  return normalizePageLength(
+    length,
+  );
+}
 
 type DraftPageVisibility = Partial<{
   title: boolean;
@@ -583,7 +602,7 @@ type DraftWithPageExtras = BuilderDraft & {
     title: DraftPageElementLayout;
   }>;
 
-  pageLength?: PageLengthOption;
+  pageLength?: number;
 
   pageBlockAppearance?: Partial<
     Record<
@@ -1226,24 +1245,6 @@ function formatCurrency(value: number) {
     maximumFractionDigits: 2,
   });
 }
-
-function getPageLengthPx(length: PageLengthOption) {
-  if (length === "1200") return 1200;
-  if (length === "1400") return 1400;
-  if (length === "1600") return 1600;
-  if (length === "1800") return 1800;
-  if (length === "2000") return 2000;
-  if (length === "2400") return 2400;
-  if (length === "2800") return 2800;
-  if (length === "3200") return 3200;
-  if (length === "3600") return 3600;
-  if (length === "4000") return 4000;
-  if (length === "4400") return 4400;
-  if (length === "5000") return 5000;
-
-  return 5600;
-}
-
 
 function cloneDraft<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
@@ -2353,8 +2354,46 @@ export default function DesignLayoutEditor({
   const [resetDraftModalOpen, setResetDraftModalOpen] = useState(false);
   const [clearClipboardModalOpen, setClearClipboardModalOpen] = useState(false);
   const [draggedPageId, setDraggedPageId] = useState<string | null>(null);
-  const selectedPageLength =
-    ((draft as DraftWithPageExtras).pageLength ?? "1800") as PageLengthOption;
+const selectedPageLength =
+  normalizePageLength(
+    (draft as DraftWithPageExtras).pageLength,
+  );
+
+function updatePageLength(
+  nextLength: number,
+) {
+  const normalizedLength =
+    normalizePageLength(
+      nextLength,
+    );
+
+  setDraft((prev) => ({
+    ...(prev as DraftWithPageExtras),
+
+    pageLength:
+      normalizedLength,
+  }));
+}
+
+function increasePageLength() {
+  updatePageLength(
+    Math.min(
+      MAX_PAGE_LENGTH,
+      selectedPageLength +
+        PAGE_LENGTH_STEP,
+    ),
+  );
+}
+
+function decreasePageLength() {
+  updatePageLength(
+    Math.max(
+      MIN_PAGE_LENGTH,
+      selectedPageLength -
+        PAGE_LENGTH_STEP,
+    ),
+  );
+}
 
 
     
@@ -5196,13 +5235,6 @@ function confirmResetDraft() {
   lastDraftRef.current = cloneDraft(resetDraft);
   setDraft(resetDraft);
   setResetDraftModalOpen(false);
-}
-
-function updatePageLength(value: PageLengthOption) {
-  setDraft((prev) => ({
-    ...(prev as DraftWithPageExtras),
-    pageLength: value,
-  }));
 }
 
 async function uploadPuzzleImageToSelectedBlock(blockId: string) {
@@ -11651,26 +11683,81 @@ onDrop={async (e) => {
         />
       </button>
 
-<select
-  value={selectedPageLength}
-  onChange={(e) => updatePageLength(e.target.value as PageLengthOption)}
-  className={topBarFieldClass("w-[90px]")}
-  title="Page length"
->
-<option value="1200">1200px</option>
-<option value="1400">1400px</option>
-<option value="1600">1600px</option>
-<option value="1800">1800px</option>
-<option value="2000">2000px</option>
-<option value="2400">2400px</option>
-<option value="2800">2800px</option>
-<option value="3200">3200px</option>
-<option value="3600">3600px</option>
-<option value="4000">4000px</option>
-<option value="4400">4400px</option>
-<option value="5000">5000px</option>
-<option value="5600">5600px</option>
-</select>
+<div className="flex items-center gap-1.5">
+  {/* DECREASE PAGE LENGTH */}
+
+  <button
+    type="button"
+    onClick={
+      decreasePageLength
+    }
+    disabled={
+      selectedPageLength <=
+      MIN_PAGE_LENGTH
+    }
+    className={[
+      topBarButtonClass(false),
+      selectedPageLength <=
+      MIN_PAGE_LENGTH
+        ? "cursor-not-allowed opacity-40"
+        : "",
+    ].join(" ")}
+    title="Decrease page length"
+  >
+    <Image
+      src="/icons/icon_page_decrease.png"
+      alt="decrease page length"
+      width={20}
+      height={20}
+      className="pointer-events-none h-5 w-5 object-contain"
+    />
+  </button>
+
+  {/* CURRENT PAGE LENGTH */}
+
+  <input
+    type="text"
+    value={`${selectedPageLength}px`}
+    readOnly
+    tabIndex={-1}
+    aria-label="Current page length"
+    className={[
+      topBarFieldClass(
+        "w-[82px]",
+      ),
+      "cursor-default text-center",
+    ].join(" ")}
+  />
+
+  {/* INCREASE PAGE LENGTH */}
+
+  <button
+    type="button"
+    onClick={
+      increasePageLength
+    }
+    disabled={
+      selectedPageLength >=
+      MAX_PAGE_LENGTH
+    }
+    className={[
+      topBarButtonClass(false),
+      selectedPageLength >=
+      MAX_PAGE_LENGTH
+        ? "cursor-not-allowed opacity-40"
+        : "",
+    ].join(" ")}
+    title="Increase page length"
+  >
+    <Image
+      src="/icons/icon_page_increase.png"
+      alt="increase page length"
+      width={20}
+      height={20}
+      className="pointer-events-none h-5 w-5 object-contain"
+    />
+  </button>
+</div>
 
 <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
 

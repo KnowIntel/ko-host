@@ -39,20 +39,7 @@ type DraftWithExtras = BuilderDraft & {
   pageBackgroundImage?: string;
   pageBackgroundImageFit?: "clip" | "zoom" | "stretch";
 
-  pageLength?:
-    | "1200"
-    | "1400"
-    | "1600"
-    | "1800"
-    | "2000"
-    | "2400"
-    | "2800"
-    | "3200"
-    | "3600"
-    | "4000"
-    | "4400"
-    | "5000"
-    | "5600";
+pageLength?: number;
 
   pages?: Array<{
     id: string;
@@ -103,21 +90,29 @@ const HIDE_PREVIEW_SCROLLBAR_STYLE: React.CSSProperties = {
 };
 
 
-function getPageLengthConfig(length?: DraftWithExtras["pageLength"]) {
-  if (length === "1200") return { widthRatio: 1, pageHeight: 1200 };
-  if (length === "1400") return { widthRatio: 1, pageHeight: 1400 };
-  if (length === "1600") return { widthRatio: 1, pageHeight: 1600 };
-  if (length === "1800") return { widthRatio: 1, pageHeight: 1800 };
-  if (length === "2000") return { widthRatio: 1, pageHeight: 2000 };
-  if (length === "2400") return { widthRatio: 1, pageHeight: 2400 };
-  if (length === "2800") return { widthRatio: 1, pageHeight: 2800 };
-  if (length === "3200") return { widthRatio: 1, pageHeight: 3200 };
-  if (length === "3600") return { widthRatio: 1, pageHeight: 3600 };
-  if (length === "4000") return { widthRatio: 1, pageHeight: 4000 };
-  if (length === "4400") return { widthRatio: 1, pageHeight: 4400 };
-  if (length === "5000") return { widthRatio: 1, pageHeight: 5000 };
+function getPageLengthConfig(
+  length?: unknown,
+) {
+  const numericLength =
+    typeof length === "number"
+      ? length
+      : Number(length);
 
-  return { widthRatio: 1, pageHeight: 5600 };
+  const pageHeight =
+    Number.isFinite(numericLength)
+      ? Math.max(
+          1200,
+          Math.min(
+            5600,
+            Math.round(numericLength),
+          ),
+        )
+      : 1800;
+
+  return {
+    widthRatio: 1,
+    pageHeight,
+  };
 }
 
 function getColumnWidth(pageWidth: number) {

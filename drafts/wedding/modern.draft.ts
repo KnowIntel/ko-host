@@ -7,7 +7,7 @@ type DraftWithPageExtras = BuilderDraft & {
   pageBackgroundImage?: string;
   pageBackgroundImageFit?: "clip" | "zoom" | "stretch";
   pageBlockAppearance?: Record<string, unknown>;
-  pageLength?: string;
+  pageLength?: number;
 };
 
 type DraftPage = DraftWithPageExtras & {
@@ -794,7 +794,7 @@ const aboutPage: DraftPage = {
   pageVisibility: { title: false, subtitle: false, subtext: false, description: false },
   pageElements: homePage.pageElements,
   pageBlockAppearance: {},
-  pageLength: "1200",
+  pageLength: 1200,
 };
 
 const registryPage: DraftPage = {
@@ -912,7 +912,7 @@ const registryPage: DraftPage = {
   pageVisibility: { title: false, subtitle: false, subtext: false, description: false },
   pageElements: homePage.pageElements,
   pageBlockAppearance: {},
-  pageLength: "3200",
+  pageLength: 3200,
 };
 
 const schedulePage: DraftPage = {
@@ -1031,7 +1031,7 @@ const schedulePage: DraftPage = {
   pageVisibility: { title: false, subtitle: false, subtext: false, description: false },
   pageElements: homePage.pageElements,
   pageBlockAppearance: {},
-  pageLength: "1800",
+  pageLength: 1800,
 };
 
 const contactPage: DraftPage = {
@@ -1082,7 +1082,7 @@ const contactPage: DraftPage = {
   pageVisibility: { title: false, subtitle: false, subtext: false, description: false },
   pageElements: homePage.pageElements,
   pageBlockAppearance: {},
-  pageLength: "1800",
+  pageLength: 1800,
 };
 
 const weddingModernDraft: DraftWithPages = {

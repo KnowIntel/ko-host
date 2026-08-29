@@ -3810,20 +3810,7 @@ export type BuilderDraft = {
   pageBackgroundImage?: string;
   pageBackgroundImageFit?: "clip" | "zoom" | "stretch";
   pageVisibility?: PageVisibility;
-  pageLength?:
-  | "1200"
-  | "1400"
-  | "1600"
-  | "1800"
-  | "2000"
-  | "2400"
-  | "2800"
-  | "3200"
-  | "3600"
-  | "4000"
-  | "4400"
-  | "5000"
-  | "5600";
+pageLength?: number;
   pageElements?: PageElements;
   pageBlockAppearance?: PageBlockAppearance;
 
@@ -12087,22 +12074,33 @@ if (block.type === "summary") {
         ? draft.pageBackgroundImageFit
         : "zoom",
 
-pageLength:
-  (draft as any).pageLength === "1200" ||
-  (draft as any).pageLength === "1400" ||
-  (draft as any).pageLength === "1600" ||
-  (draft as any).pageLength === "1800" ||
-  (draft as any).pageLength === "2000" ||
-  (draft as any).pageLength === "2400" ||
-  (draft as any).pageLength === "2800" ||
-  (draft as any).pageLength === "3200" ||
-  (draft as any).pageLength === "3600" ||
-  (draft as any).pageLength === "4000" ||
-  (draft as any).pageLength === "4400" ||
-  (draft as any).pageLength === "5000" ||
-  (draft as any).pageLength === "5600"
-    ? (draft as any).pageLength
-    : "1800",
+pageLength: (() => {
+  const rawPageLength =
+    (draft as any).pageLength;
+
+  const numericPageLength =
+    typeof rawPageLength === "number"
+      ? rawPageLength
+      : Number(rawPageLength);
+
+  if (
+    !Number.isFinite(
+      numericPageLength,
+    )
+  ) {
+    return 1800;
+  }
+
+  return Math.max(
+    1200,
+    Math.min(
+      5600,
+      Math.round(
+        numericPageLength,
+      ),
+    ),
+  );
+})(),
 
     pageVisibility:
       draft.pageVisibility && typeof draft.pageVisibility === "object"
