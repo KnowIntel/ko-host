@@ -1,6 +1,7 @@
 // components\templates\DesignLayoutEditor.tsx
 "use client";
 
+import { useUser } from "@clerk/nextjs";
 import AppModal from "@/components/ui/AppModal";
 import { BUILDER_TOOL_GUIDES } from "@/components/templates/builderToolGuides";
 import { BLOCK_GUIDES } from "@/components/templates/blockGuideContent";
@@ -2351,6 +2352,7 @@ export default function DesignLayoutEditor({
   microsite,
   builderCapacityContent,
 }: Props) {
+  const { user, isLoaded: isUserLoaded } = useUser();
   const [resetDraftModalOpen, setResetDraftModalOpen] = useState(false);
   const [clearClipboardModalOpen, setClearClipboardModalOpen] = useState(false);
   const [draggedPageId, setDraggedPageId] = useState<string | null>(null);
@@ -2885,33 +2887,195 @@ type ClipboardEntry = {
   block: MicrositeBlock;
 };
 
-const [clipboardEntries, setClipboardEntries] = useState<ClipboardEntry[]>(() => {
-  if (typeof window === "undefined") return [];
+const [clipboardEntries, setClipboardEntries] =
+  useState<ClipboardEntry[]>([]);
 
-  try {
-    const raw = window.sessionStorage.getItem("ko-host-canvas-clipboard");
-    const parsed = raw ? JSON.parse(raw) : [];
+const [clipboardOpen, setClipboardOpen] =
+  useState(false);
 
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-});
+/*
+ * Prevent the initial empty clipboard state from overwriting
+ * the account's saved clipboard before it has been loaded.
+ */
+const clipboardLoadedRef =
+  useRef(false);
 
-const [clipboardOpen, setClipboardOpen] = useState(false);
+const clipboardStorageKey =
+  user?.id
+    ? `ko-host-canvas-clipboard:${user.id}`
+    : null;
 
+/*
+ * ================================================================
+ * LOAD ACCOUNT CLIPBOARD
+ * ================================================================
+ *
+ * The clipboard belongs to the logged-in Ko-Host account rather
+ * than to the current microsite, page, or builder instance.
+ */
 useEffect(() => {
-  if (typeof window === "undefined") return;
+  if (
+    typeof window === "undefined" ||
+    !isUserLoaded
+  ) {
+    return;
+  }
+
+  clipboardLoadedRef.current =
+    false;
+
+  /*
+   * No logged-in account = no persistent account clipboard.
+   */
+  if (!clipboardStorageKey) {
+    setClipboardEntries([]);
+    clipboardLoadedRef.current =
+      true;
+
+    return;
+  }
 
   try {
-    window.sessionStorage.setItem(
-      "ko-host-canvas-clipboard",
-      JSON.stringify(clipboardEntries),
+    const raw =
+      window.localStorage.getItem(
+        clipboardStorageKey,
+      );
+
+    const parsed =
+      raw
+        ? JSON.parse(raw)
+        : [];
+
+    const nextEntries:
+      ClipboardEntry[] =
+      Array.isArray(parsed)
+        ? parsed.filter(
+            (entry: any) =>
+              entry &&
+              typeof entry === "object" &&
+              typeof entry.clipboardId ===
+                "string" &&
+              typeof entry.copiedAt ===
+                "number" &&
+              entry.block &&
+              typeof entry.block ===
+                "object",
+          )
+        : [];
+
+    setClipboardEntries(
+      nextEntries,
     );
   } catch {
-    // ignore clipboard persistence errors
+    setClipboardEntries([]);
+  } finally {
+    clipboardLoadedRef.current =
+      true;
   }
-}, [clipboardEntries]);
+}, [
+  isUserLoaded,
+  clipboardStorageKey,
+]);
+
+/*
+ * ================================================================
+ * SAVE ACCOUNT CLIPBOARD
+ * ================================================================
+ */
+useEffect(() => {
+  if (
+    typeof window === "undefined" ||
+    !clipboardStorageKey ||
+    !clipboardLoadedRef.current
+  ) {
+    return;
+  }
+
+  try {
+    window.localStorage.setItem(
+      clipboardStorageKey,
+      JSON.stringify(
+        clipboardEntries,
+      ),
+    );
+  } catch {
+    // Ignore browser-storage/quota errors.
+  }
+}, [
+  clipboardEntries,
+  clipboardStorageKey,
+]);
+
+/*
+ * ================================================================
+ * SYNC OTHER BUILDER TABS
+ * ================================================================
+ *
+ * If the same account has another Ko-Host builder tab open,
+ * clipboard changes made there appear here automatically.
+ */
+useEffect(() => {
+  if (
+    typeof window === "undefined" ||
+    !clipboardStorageKey
+  ) {
+    return;
+  }
+
+  function handleClipboardStorageChange(
+    event: StorageEvent,
+  ) {
+    if (
+      event.key !==
+      clipboardStorageKey
+    ) {
+      return;
+    }
+
+    try {
+      const parsed =
+        event.newValue
+          ? JSON.parse(
+              event.newValue,
+            )
+          : [];
+
+      setClipboardEntries(
+        Array.isArray(parsed)
+          ? parsed.filter(
+              (entry: any) =>
+                entry &&
+                typeof entry ===
+                  "object" &&
+                typeof entry.clipboardId ===
+                  "string" &&
+                typeof entry.copiedAt ===
+                  "number" &&
+                entry.block &&
+                typeof entry.block ===
+                  "object",
+            )
+          : [],
+      );
+    } catch {
+      // Ignore malformed external storage updates.
+    }
+  }
+
+  window.addEventListener(
+    "storage",
+    handleClipboardStorageChange,
+  );
+
+  return () => {
+    window.removeEventListener(
+      "storage",
+      handleClipboardStorageChange,
+    );
+  };
+}, [
+  clipboardStorageKey,
+]);
 
 const [focusedTimelineEntryId, setFocusedTimelineEntryId] =
   useState<string | null>(null);
