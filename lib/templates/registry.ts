@@ -17,6 +17,8 @@ export type TemplateKey =
   | "business_card"
   | "church_event"
   | "watch_club"
+  | "project"
+  | "newsletter"
   // | "commercial_leasing"
   | "community_alert"
   | "companion_service"
@@ -1642,7 +1644,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
   }, */
   {
     key: "local_classified_ad",
-    title: "Local Classified Ad",
+    title: "Advertisement",
     description: "A clean classified ad with details and contact.",
     thumb: "localclassifiedad",
     setupMins: 2,
@@ -1748,6 +1750,35 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     category: "Personal",
     defaultDraft: { title: "Weight Loss Journey", slugSuggestion: "weightlossjourney" },
   }, */
+  {
+  key: "project",
+  title: "Project",
+  description:
+    "Create a polished project site for school, work, research, presentations, and more.",
+  thumb: "project",
+  setupMins: 3,
+  demoSlug: "project",
+  category: "Business",
+  defaultDraft: {
+    title: "Project",
+    slugSuggestion: "project",
+  },
+},
+
+{
+  key: "newsletter",
+  title: "Newsletter",
+  description:
+    "Share updates, announcements, stories, highlights, and resources in one polished newsletter.",
+  thumb: "newletter",
+  setupMins: 3,
+  demoSlug: "newsletter",
+  category: "Business",
+  defaultDraft: {
+    title: "Newsletter",
+    slugSuggestion: "newsletter",
+  },
+},
   {
     key: "guided_tutorial",
     title: "Guided Tutorial",
