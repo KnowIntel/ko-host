@@ -358,6 +358,7 @@ const H = isDesktop ? DESKTOP_H : MOBILE_H;
       : "Choose a design and make it your own."}
   </div>
 
+{templateKey !== "custom_template" ? (
   <button
     type="button"
     onClick={handlePreviewClick}
@@ -366,6 +367,7 @@ const H = isDesktop ? DESKTOP_H : MOBILE_H;
     View Designs
     <span aria-hidden="true">→</span>
   </button>
+) : null}
 </div>
       </div>
     </div>
