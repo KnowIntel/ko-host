@@ -543,7 +543,7 @@ onReorderPages?: (nextPages: Array<{
 
 const MIN_PAGE_LENGTH = 1200;
 const MAX_PAGE_LENGTH = 5600;
-const PAGE_LENGTH_STEP = 1000;
+const PAGE_LENGTH_STEP = 100;
 
 function normalizePageLength(
   value: unknown,
