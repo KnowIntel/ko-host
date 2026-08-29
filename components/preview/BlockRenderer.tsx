@@ -6408,137 +6408,215 @@ function renderChart(
       ? data.chartType
       : "line";
 
-  const rows = Array.isArray(data.rows)
+  const rawRows = Array.isArray(data.rows)
     ? data.rows
     : [];
 
-  const series = Array.isArray(data.series)
-    ? data.series.filter(
-        (item: any) =>
-          item &&
-          typeof item.name === "string" &&
-          item.visible !== false,
-      )
+  const rawSeries = Array.isArray(data.series)
+    ? data.series
     : [];
 
-  const chartData = rows.map((row: any) => ({
-    id: row.id,
-    label: row.label ?? "",
-    ...(row.values ?? {}),
-  }));
+  /*
+   * Keep only usable, visible series.
+   *
+   * Empty names are ignored rather than
+   * allowing undefined data keys into the
+   * renderer.
+   *
+   * Duplicate names are also ignored after
+   * the first occurrence because row values
+   * are keyed by series name.
+   */
+  const usedSeriesNames = new Set<string>();
 
-  const paddingTop = Math.max(
-    0,
-    Math.min(
-      100,
-      Number(data.paddingTop ?? 16),
-    ),
+  const series = rawSeries.filter(
+    (item: any) => {
+      if (
+        !item ||
+        typeof item.name !== "string" ||
+        item.name.trim().length === 0 ||
+        item.visible === false
+      ) {
+        return false;
+      }
+
+      if (
+        usedSeriesNames.has(item.name)
+      ) {
+        return false;
+      }
+
+      usedSeriesNames.add(item.name);
+
+      return true;
+    },
   );
 
-  const paddingRight = Math.max(
-    0,
-    Math.min(
-      100,
-      Number(data.paddingRight ?? 16),
-    ),
+  /*
+   * Preserve row-level color because Pie and
+   * Doughnut use it for individual slices.
+   *
+   * Spread row.values first so reserved
+   * renderer fields such as id, label, and
+   * color cannot accidentally be overwritten
+   * by a series with one of those names.
+   */
+  const chartData = rawRows.map(
+    (
+      row: any,
+      index: number,
+    ) => ({
+      ...(row?.values ?? {}),
+
+      id:
+        row?.id ??
+        `chart-row-${index}`,
+
+      label:
+        typeof row?.label === "string"
+          ? row.label
+          : "",
+
+      color:
+        typeof row?.color === "string"
+          ? row.color
+          : undefined,
+    }),
   );
 
-  const paddingBottom = Math.max(
+  const toFiniteNumber = (
+    value: unknown,
+    fallback = 0,
+  ) => {
+    const numberValue = Number(value);
+
+    return Number.isFinite(numberValue)
+      ? numberValue
+      : fallback;
+  };
+
+  const clampNumber = (
+    value: unknown,
+    minimum: number,
+    maximum: number,
+    fallback: number,
+  ) => {
+    const numberValue =
+      toFiniteNumber(
+        value,
+        fallback,
+      );
+
+    return Math.max(
+      minimum,
+      Math.min(
+        maximum,
+        numberValue,
+      ),
+    );
+  };
+
+  const paddingTop = clampNumber(
+    data.paddingTop,
     0,
-    Math.min(
-      100,
-      Number(data.paddingBottom ?? 16),
-    ),
+    100,
+    16,
   );
 
-  const paddingLeft = Math.max(
+  const paddingRight = clampNumber(
+    data.paddingRight,
     0,
-    Math.min(
-      100,
-      Number(data.paddingLeft ?? 16),
-    ),
+    100,
+    16,
+  );
+
+  const paddingBottom = clampNumber(
+    data.paddingBottom,
+    0,
+    100,
+    16,
+  );
+
+  const paddingLeft = clampNumber(
+    data.paddingLeft,
+    0,
+    100,
+    16,
   );
 
   const gridColor =
-    typeof data.gridColor === "string"
+    typeof data.gridColor === "string" &&
+    data.gridColor.trim()
       ? data.gridColor
       : "#E5E7EB";
 
   const axisColor =
-    typeof data.axisColor === "string"
+    typeof data.axisColor === "string" &&
+    data.axisColor.trim()
       ? data.axisColor
       : "#9CA3AF";
 
-  const lineWidth = Math.max(
+  const lineWidth = clampNumber(
+    data.lineWidth,
     1,
-    Math.min(
-      12,
-      Number(data.lineWidth ?? 3),
-    ),
+    12,
+    3,
   );
 
-  const pointSize = Math.max(
+  const pointSize = clampNumber(
+    data.pointSize,
     1,
-    Math.min(
-      20,
-      Number(data.pointSize ?? 5),
-    ),
-  );
-
-  const barRadius = Math.max(
-    0,
-    Math.min(
-      40,
-      Number(data.barRadius ?? 6),
-    ),
-  );
-
-  const barGap = Math.max(
-    0,
-    Math.min(
-      40,
-      Number(data.barGap ?? 8),
-    ),
-  );
-
-  const areaOpacity = Math.max(
-    0,
-    Math.min(
-      1,
-      Number(data.areaOpacity ?? 0.22),
-    ),
-  );
-
-  const pieInnerRadius = Math.max(
-    0,
-    Math.min(
-      90,
-      Number(data.pieInnerRadius ?? 55),
-    ),
-  );
-
-  const pieOuterRadius = Math.max(
     20,
-    Math.min(
-      140,
-      Number(data.pieOuterRadius ?? 90),
-    ),
+    5,
   );
 
-  const piePaddingAngle = Math.max(
+  const barRadius = clampNumber(
+    data.barRadius,
     0,
-    Math.min(
-      15,
-      Number(data.piePaddingAngle ?? 2),
-    ),
+    40,
+    6,
   );
 
-  const scatterPointSize = Math.max(
+  const barGap = clampNumber(
+    data.barGap,
+    0,
+    40,
+    8,
+  );
+
+  const areaOpacity = clampNumber(
+    data.areaOpacity,
+    0,
+    1,
+    0.22,
+  );
+
+  const pieInnerRadius = clampNumber(
+    data.pieInnerRadius,
+    0,
+    90,
+    55,
+  );
+
+  const pieOuterRadius = clampNumber(
+    data.pieOuterRadius,
+    20,
+    140,
+    90,
+  );
+
+  const piePaddingAngle = clampNumber(
+    data.piePaddingAngle,
+    0,
+    15,
     2,
-    Math.min(
-      20,
-      Number(data.scatterPointSize ?? 7),
-    ),
+  );
+
+  const scatterPointSize = clampNumber(
+    data.scatterPointSize,
+    2,
+    20,
+    7,
   );
 
   const fallbackColors = [
@@ -6557,21 +6635,12 @@ function renderChart(
     index: number,
   ) =>
     typeof item?.color === "string" &&
-    item.color
+    item.color.trim()
       ? item.color
       : fallbackColors[
-          index % fallbackColors.length
+          index %
+            fallbackColors.length
         ];
-
-  const toFiniteNumber = (
-    value: unknown,
-  ) => {
-    const numberValue = Number(value);
-
-    return Number.isFinite(numberValue)
-      ? numberValue
-      : 0;
-  };
 
   const formatValue = (
     value: number,
@@ -6581,100 +6650,64 @@ function renderChart(
     }
 
     if (
-      Math.abs(value) >= 1000000000
+      Math.abs(value) >=
+      1000000000
     ) {
-      return `${(
-        value / 1000000000
-      ).toFixed(1)}B`;
+      return `${Number(
+        (
+          value /
+          1000000000
+        ).toFixed(1),
+      )}B`;
     }
 
-    if (Math.abs(value) >= 1000000) {
-      return `${(
-        value / 1000000
-      ).toFixed(1)}M`;
+    if (
+      Math.abs(value) >=
+      1000000
+    ) {
+      return `${Number(
+        (
+          value /
+          1000000
+        ).toFixed(1),
+      )}M`;
     }
 
-    if (Math.abs(value) >= 1000) {
-      return `${(
-        value / 1000
-      ).toFixed(1)}K`;
+    if (
+      Math.abs(value) >=
+      1000
+    ) {
+      return `${Number(
+        (
+          value /
+          1000
+        ).toFixed(1),
+      )}K`;
     }
 
-    if (Number.isInteger(value)) {
+    if (
+      Number.isInteger(value)
+    ) {
       return String(value);
     }
 
     return String(
-      Number(value.toFixed(2)),
+      Number(
+        value.toFixed(2),
+      ),
     );
   };
 
-const renderSvgTooltip = (
-  x: number,
-  y: number,
-  title: string,
-  value: number,
-  color: string,
-) => {
-  const tooltipWidth = 138;
-  const tooltipHeight = 48;
-
-  const resolvedX = Math.max(
-    6,
-    Math.min(
-      SVG_WIDTH - tooltipWidth - 6,
-      x - tooltipWidth / 2,
-    ),
-  );
-
-  const resolvedY = Math.max(
-    6,
-    y - tooltipHeight - 12,
-  );
-
-  return (
-    <g
-      className="pointer-events-none opacity-0 transition-opacity duration-150 group-hover/chart-tooltip:opacity-100"
-    >
-      <rect
-        x={resolvedX}
-        y={resolvedY}
-        width={tooltipWidth}
-        height={tooltipHeight}
-        rx={8}
-        fill="#111827"
-        opacity={0.96}
-      />
-
-      <circle
-        cx={resolvedX + 12}
-        cy={resolvedY + 15}
-        r={4}
-        fill={color}
-      />
-
-      <text
-        x={resolvedX + 22}
-        y={resolvedY + 18}
-        fill="#FFFFFF"
-        fontSize={10}
-        fontWeight={600}
-      >
-        {title}
-      </text>
-
-      <text
-        x={resolvedX + 12}
-        y={resolvedY + 36}
-        fill="#D1D5DB"
-        fontSize={11}
-        fontWeight={700}
-      >
-        {formatValue(value)}
-      </text>
-    </g>
-  );
-};
+  /*
+   * Stable SVG coordinate system.
+   *
+   * The browser scales this viewBox with the
+   * Ko-Host canvas block. There is no chart
+   * library, ResizeObserver, or secondary
+   * layout measurement system involved.
+   */
+  const SVG_WIDTH = 800;
+  const SVG_HEIGHT = 420;
 
   const axisTextColor =
     (axisStyle as any).color ??
@@ -6683,7 +6716,11 @@ const renderSvgTooltip = (
   const axisFontSize =
     typeof (axisStyle as any)
       .fontSize === "number"
-      ? (axisStyle as any).fontSize
+      ? Math.max(
+          8,
+          (axisStyle as any)
+            .fontSize,
+        )
       : 11;
 
   const axisFontFamily =
@@ -6693,25 +6730,33 @@ const renderSvgTooltip = (
     (axisStyle as any).fontWeight;
 
   const axisLabelColor =
-    (axisLabelStyle as any).color ??
+    (axisLabelStyle as any)
+      .color ??
     axisColor;
 
   const axisLabelFontSize =
     typeof (axisLabelStyle as any)
       .fontSize === "number"
-      ? (axisLabelStyle as any)
-          .fontSize
+      ? Math.max(
+          8,
+          (axisLabelStyle as any)
+            .fontSize,
+        )
       : 12;
 
   const dataLabelColor =
-    (dataLabelStyle as any).color ??
+    (dataLabelStyle as any)
+      .color ??
     "#374151";
 
   const dataLabelFontSize =
     typeof (dataLabelStyle as any)
       .fontSize === "number"
-      ? (dataLabelStyle as any)
-          .fontSize
+      ? Math.max(
+          8,
+          (dataLabelStyle as any)
+            .fontSize,
+        )
       : 10;
 
   const dataLabelFontFamily =
@@ -6722,68 +6767,101 @@ const renderSvgTooltip = (
     (dataLabelStyle as any)
       .fontWeight;
 
-  /*
-   * SVG uses a stable internal coordinate
-   * system. The browser scales the SVG to
-   * whatever dimensions the Ko-Host block
-   * currently has.
-   *
-   * No ResizeObserver or chart-library
-   * measurement cycle is required.
-   */
-  const SVG_WIDTH = 800;
-  const SVG_HEIGHT = 420;
+  const isCompactChart =
+    chartData.length >= 6 ||
+    series.length >= 4;
 
+  const compactAxisFontSize =
+    isCompactChart
+      ? Math.max(
+          8,
+          axisFontSize - 2,
+        )
+      : axisFontSize;
+
+  const compactDataLabelFontSize =
+    isCompactChart
+      ? Math.max(
+          8,
+          dataLabelFontSize - 1,
+        )
+      : dataLabelFontSize;
+
+  /*
+   * Slightly tighter plot margins for dense
+   * charts while retaining room for axis
+   * labels.
+   */
   const plotLeft =
     data.showYAxis === false
-      ? 28
-      : 72;
+      ? 24
+      : isCompactChart
+        ? 64
+        : 72;
 
-  const plotRight = 24;
+  const plotRight =
+    isCompactChart
+      ? 18
+      : 24;
 
-  const plotTop = 28;
+  const plotTop =
+    isCompactChart
+      ? 22
+      : 28;
 
   const plotBottom =
     data.showXAxis === false
-      ? 28
-      : 64;
+      ? 24
+      : isCompactChart
+        ? 58
+        : 64;
 
-  const plotWidth =
+  const plotWidth = Math.max(
+    1,
     SVG_WIDTH -
-    plotLeft -
-    plotRight;
+      plotLeft -
+      plotRight,
+  );
 
-  const plotHeight =
+  const plotHeight = Math.max(
+    1,
     SVG_HEIGHT -
-    plotTop -
-    plotBottom;
+      plotTop -
+      plotBottom,
+  );
 
+  /*
+   * Cartesian value domain.
+   *
+   * Zero is included whenever every value has
+   * the same sign so bars always have a
+   * meaningful baseline.
+   */
   const allValues =
-    chartData.flatMap((row: any) =>
-      series.map((item: any) =>
-        toFiniteNumber(
-          row[item.name],
+    chartData.flatMap(
+      (row: any) =>
+        series.map(
+          (item: any) =>
+            toFiniteNumber(
+              row[item.name],
+            ),
         ),
-      ),
     );
 
   const rawMinimum =
     allValues.length > 0
-      ? Math.min(...allValues)
+      ? Math.min(
+          ...allValues,
+        )
       : 0;
 
   const rawMaximum =
     allValues.length > 0
-      ? Math.max(...allValues)
+      ? Math.max(
+          ...allValues,
+        )
       : 1;
 
-  /*
-   * Keep zero in the domain whenever all
-   * values have the same sign. This gives
-   * bars and ordinary charts a sensible
-   * baseline while still supporting
-   * negative-only and mixed datasets.
-   */
   let domainMinimum =
     rawMinimum > 0
       ? 0
@@ -6794,59 +6872,123 @@ const renderSvgTooltip = (
       ? 0
       : rawMaximum;
 
+  /*
+   * All-zero data needs a usable vertical
+   * range. A single non-zero repeated value
+   * also needs expansion so points do not
+   * collapse onto one horizontal coordinate.
+   */
   if (
-    domainMinimum === domainMaximum
+    domainMinimum ===
+    domainMaximum
   ) {
     if (domainMinimum === 0) {
       domainMaximum = 1;
     } else {
       const expansion =
-        Math.abs(domainMinimum) *
-          0.1 ||
-        1;
+        Math.max(
+          Math.abs(
+            domainMinimum,
+          ) * 0.1,
+          1,
+        );
 
-      domainMinimum -= expansion;
-      domainMaximum += expansion;
+      domainMinimum -=
+        expansion;
+
+      domainMaximum +=
+        expansion;
     }
   }
 
-  const domainRange =
+  /*
+   * Add a small amount of visual breathing
+   * room when the domain already spans both
+   * positive and negative values.
+   *
+   * We do not pad zero-baseline charts because
+   * bars should remain anchored precisely at
+   * zero.
+   */
+  if (
+    domainMinimum < 0 &&
+    domainMaximum > 0
+  ) {
+    const padding =
+      (domainMaximum -
+        domainMinimum) *
+      0.04;
+
+    domainMinimum -= padding;
+    domainMaximum += padding;
+  }
+
+  const domainRange = Math.max(
+    Number.EPSILON,
     domainMaximum -
-    domainMinimum || 1;
+      domainMinimum,
+  );
 
   const yForValue = (
     value: number,
-  ) =>
-    plotTop +
-    ((domainMaximum - value) /
-      domainRange) *
-      plotHeight;
+  ) => {
+    const safeValue =
+      toFiniteNumber(value);
+
+    return (
+      plotTop +
+      ((domainMaximum -
+        safeValue) /
+        domainRange) *
+        plotHeight
+    );
+  };
 
   const xForCategory = (
     index: number,
   ) => {
-    if (chartData.length <= 1) {
+    if (
+      chartData.length <= 1
+    ) {
       return (
         plotLeft +
         plotWidth / 2
       );
     }
 
+    const safeIndex =
+      Math.max(
+        0,
+        Math.min(
+          chartData.length - 1,
+          index,
+        ),
+      );
+
     return (
       plotLeft +
-      (index /
-        (chartData.length - 1)) *
+      (safeIndex /
+        (chartData.length -
+          1)) *
         plotWidth
     );
   };
 
   const zeroY = yForValue(0);
 
-  const tickCount = 5;
+  /*
+   * Dense charts use fewer Y ticks to keep
+   * axis text from becoming cluttered.
+   */
+  const tickCount =
+    isCompactChart
+      ? 4
+      : 5;
 
   const yTicks = Array.from(
     {
-      length: tickCount + 1,
+      length:
+        tickCount + 1,
     },
     (_, index) => {
       const ratio =
@@ -6854,57 +6996,224 @@ const renderSvgTooltip = (
 
       const value =
         domainMaximum -
-        domainRange * ratio;
+        domainRange *
+          ratio;
 
       return {
         value,
         y:
           plotTop +
-          plotHeight * ratio,
+          plotHeight *
+            ratio,
       };
     },
   );
 
   const escapeSvgText = (
     value: unknown,
-  ) => String(value ?? "");
+  ) =>
+    String(
+      value ?? "",
+    );
 
-    const truncateText = (
+  const truncateText = (
     value: unknown,
     maxLength: number,
   ) => {
-    const text = String(value ?? "");
+    const text =
+      String(
+        value ?? "",
+      );
 
-    if (text.length <= maxLength) {
+    if (
+      text.length <= maxLength
+    ) {
       return text;
     }
 
     return `${text.slice(
       0,
-      Math.max(1, maxLength - 1),
+      Math.max(
+        1,
+        maxLength - 1,
+      ),
     )}…`;
   };
 
-  const getXAxisLabelLength = () => {
-    if (chartData.length <= 3) {
-      return 18;
-    }
+  const getResponsiveXAxisLabelLength =
+    () => {
+      if (
+        chartData.length <= 3
+      ) {
+        return 18;
+      }
 
-    if (chartData.length <= 5) {
-      return 12;
-    }
+      if (
+        chartData.length <= 5
+      ) {
+        return 12;
+      }
 
-    if (chartData.length <= 8) {
-      return 9;
-    }
+      if (
+        chartData.length <= 8
+      ) {
+        return 9;
+      }
 
-    return 7;
+      if (
+        chartData.length <= 12
+      ) {
+        return 7;
+      }
+
+      return 5;
+    };
+
+  const getTooltipTitle = (
+    title: string,
+  ) =>
+    truncateText(
+      title,
+      24,
+    );
+
+  const renderSvgTooltip = (
+    x: number,
+    y: number,
+    title: string,
+    value: number,
+    color: string,
+  ) => {
+    const tooltipWidth = 158;
+    const tooltipHeight = 48;
+    const edgePadding = 6;
+    const verticalGap = 12;
+
+    const safeX =
+      toFiniteNumber(
+        x,
+        SVG_WIDTH / 2,
+      );
+
+    const safeY =
+      toFiniteNumber(
+        y,
+        SVG_HEIGHT / 2,
+      );
+
+    const resolvedX =
+      Math.max(
+        edgePadding,
+        Math.min(
+          SVG_WIDTH -
+            tooltipWidth -
+            edgePadding,
+          safeX -
+            tooltipWidth /
+              2,
+        ),
+      );
+
+    /*
+     * Prefer showing the tooltip above the
+     * hovered element. If there is not enough
+     * room, place it below instead.
+     */
+    const showBelow =
+      safeY -
+        tooltipHeight -
+        verticalGap <
+      edgePadding;
+
+    const proposedY =
+      showBelow
+        ? safeY +
+          verticalGap
+        : safeY -
+          tooltipHeight -
+          verticalGap;
+
+    const resolvedY =
+      Math.max(
+        edgePadding,
+        Math.min(
+          SVG_HEIGHT -
+            tooltipHeight -
+            edgePadding,
+          proposedY,
+        ),
+      );
+
+    return (
+      <g
+        className="pointer-events-none opacity-0 transition-opacity duration-150 group-hover/chart-tooltip:opacity-100"
+      >
+        <rect
+          x={resolvedX}
+          y={resolvedY}
+          width={
+            tooltipWidth
+          }
+          height={
+            tooltipHeight
+          }
+          rx={8}
+          fill="#111827"
+          opacity={0.96}
+        />
+
+        <circle
+          cx={
+            resolvedX + 12
+          }
+          cy={
+            resolvedY + 15
+          }
+          r={4}
+          fill={color}
+        />
+
+        <text
+          x={
+            resolvedX + 22
+          }
+          y={
+            resolvedY + 18
+          }
+          fill="#FFFFFF"
+          fontSize={10}
+          fontWeight={600}
+        >
+          {getTooltipTitle(
+            title,
+          )}
+        </text>
+
+        <text
+          x={
+            resolvedX + 12
+          }
+          y={
+            resolvedY + 36
+          }
+          fill="#D1D5DB"
+          fontSize={11}
+          fontWeight={700}
+        >
+          {formatValue(
+            value,
+          )}
+        </text>
+      </g>
+    );
   };
 
   const buildLinePath = (
     item: any,
   ) => {
-    if (chartData.length === 0) {
+    if (
+      chartData.length === 0
+    ) {
       return "";
     }
 
@@ -6915,16 +7224,23 @@ const renderSvgTooltip = (
           index: number,
         ) => {
           const x =
-            xForCategory(index);
+            xForCategory(
+              index,
+            );
 
-          const y = yForValue(
-            toFiniteNumber(
-              row[item.name],
-            ),
-          );
+          const y =
+            yForValue(
+              toFiniteNumber(
+                row[
+                  item.name
+                ],
+              ),
+            );
 
           return `${
-            index === 0 ? "M" : "L"
+            index === 0
+              ? "M"
+              : "L"
           } ${x} ${y}`;
         },
       )
@@ -6934,7 +7250,20 @@ const renderSvgTooltip = (
   const buildAreaPath = (
     item: any,
   ) => {
-    if (chartData.length === 0) {
+    if (
+      chartData.length === 0
+    ) {
+      return "";
+    }
+
+    /*
+     * With one category there is no meaningful
+     * area polygon. The point/line renderer
+     * will still display the value correctly.
+     */
+    if (
+      chartData.length === 1
+    ) {
       return "";
     }
 
@@ -6946,21 +7275,27 @@ const renderSvgTooltip = (
 
     const lastX =
       xForCategory(
-        chartData.length - 1,
+        chartData.length -
+          1,
       );
 
     return `${linePath} L ${lastX} ${zeroY} L ${firstX} ${zeroY} Z`;
   };
 
   const renderCartesianGrid = () => {
-    if (data.showGrid === false) {
+    if (
+      data.showGrid === false
+    ) {
       return null;
     }
 
     return (
       <g>
         {yTicks.map(
-          (tick, index) => (
+          (
+            tick,
+            index,
+          ) => (
             <line
               key={`grid-y-${index}`}
               x1={plotLeft}
@@ -6970,7 +7305,9 @@ const renderSvgTooltip = (
               }
               y1={tick.y}
               y2={tick.y}
-              stroke={gridColor}
+              stroke={
+                gridColor
+              }
               strokeWidth={1}
               strokeDasharray="4 4"
               vectorEffect="non-scaling-stroke"
@@ -6981,161 +7318,56 @@ const renderSvgTooltip = (
     );
   };
 
-  const renderCartesianAxes = () => (
-    <>
-      {data.showXAxis !== false ? (
-        <g>
-          <line
-            x1={plotLeft}
-            x2={
-              plotLeft +
-              plotWidth
-            }
-            y1={zeroY}
-            y2={zeroY}
-            stroke={axisColor}
-            strokeWidth={1}
-            vectorEffect="non-scaling-stroke"
-          />
+const renderCartesianAxes = () => (
+  <>
+    {data.showXAxis !== false ? (
+      <g>
+        <line
+          x1={plotLeft}
+          x2={plotLeft + plotWidth}
+          y1={zeroY}
+          y2={zeroY}
+          stroke={axisColor}
+          strokeWidth={1}
+          vectorEffect="non-scaling-stroke"
+        />
 
-          {chartData.map(
-            (
-              row: any,
-              index: number,
-            ) => {
-              const x =
-                xForCategory(index);
+        {chartData.map(
+          (
+            row: any,
+            index: number,
+          ) => {
+            const x =
+              xForCategory(index);
 
-              return (
-                <g
-                  key={
-                    row.id ??
-                    `x-axis-${index}`
-                  }
-                >
-                  <line
-                    x1={x}
-                    x2={x}
-                    y1={zeroY}
-                    y2={
-                      zeroY + 5
-                    }
-                    stroke={
-                      axisColor
-                    }
-                    strokeWidth={1}
-                    vectorEffect="non-scaling-stroke"
-                  />
-
-<text
-  x={x}
-  y={
-    SVG_HEIGHT -
-    plotBottom +
-    22
-  }
-  textAnchor="middle"
-  fill={
-    axisTextColor
-  }
-  fontSize={
-    axisFontSize
-  }
-  fontFamily={
-    axisFontFamily
-  }
-  fontWeight={
-    axisFontWeight
-  }
->
-  {truncateText(
-    row.label,
-    getXAxisLabelLength(),
-  )}
-</text>
-                </g>
-              );
-            },
-          )}
-
-          {data.showXAxisLabel ===
-            true &&
-          data.xAxisLabel ? (
-            <text
-              x={
-                plotLeft +
-                plotWidth / 2
-              }
-              y={SVG_HEIGHT - 8}
-              textAnchor="middle"
-              fill={
-                axisLabelColor
-              }
-              fontSize={
-                axisLabelFontSize
-              }
-              fontFamily={
-                (axisLabelStyle as any)
-                  .fontFamily
-              }
-              fontWeight={
-                (axisLabelStyle as any)
-                  .fontWeight
-              }
-            >
-              {escapeSvgText(
-                data.xAxisLabel,
-              )}
-            </text>
-          ) : null}
-        </g>
-      ) : null}
-
-      {data.showYAxis !== false ? (
-        <g>
-          <line
-            x1={plotLeft}
-            x2={plotLeft}
-            y1={plotTop}
-            y2={
-              plotTop +
-              plotHeight
-            }
-            stroke={axisColor}
-            strokeWidth={1}
-            vectorEffect="non-scaling-stroke"
-          />
-
-          {yTicks.map(
-            (tick, index) => (
+            return (
               <g
-                key={`y-axis-${index}`}
+                key={
+                  row.id ??
+                  `x-axis-${index}`
+                }
               >
                 <line
-                  x1={
-                    plotLeft - 5
-                  }
-                  x2={plotLeft}
-                  y1={tick.y}
-                  y2={tick.y}
-                  stroke={
-                    axisColor
-                  }
+                  x1={x}
+                  x2={x}
+                  y1={zeroY}
+                  y2={zeroY + 5}
+                  stroke={axisColor}
                   strokeWidth={1}
                   vectorEffect="non-scaling-stroke"
                 />
 
                 <text
-                  x={
-                    plotLeft - 10
+                  x={x}
+                  y={
+                    SVG_HEIGHT -
+                    plotBottom +
+                    22
                   }
-                  y={tick.y + 4}
-                  textAnchor="end"
-                  fill={
-                    axisTextColor
-                  }
+                  textAnchor="middle"
+                  fill={axisTextColor}
                   fontSize={
-                    axisFontSize
+                    compactAxisFontSize
                   }
                   fontFamily={
                     axisFontFamily
@@ -7144,52 +7376,136 @@ const renderSvgTooltip = (
                     axisFontWeight
                   }
                 >
-                  {formatValue(
-                    tick.value,
+                  {truncateText(
+                    row.label,
+                    getResponsiveXAxisLabelLength(),
                   )}
                 </text>
               </g>
-            ),
-          )}
+            );
+          },
+        )}
 
-          {data.showYAxisLabel ===
-            true &&
-          data.yAxisLabel ? (
-            <text
-              x={16}
-              y={
-                plotTop +
-                plotHeight / 2
-              }
-              textAnchor="middle"
-              fill={
-                axisLabelColor
-              }
-              fontSize={
-                axisLabelFontSize
-              }
-              fontFamily={
-                (axisLabelStyle as any)
-                  .fontFamily
-              }
-              fontWeight={
-                (axisLabelStyle as any)
-                  .fontWeight
-              }
-              transform={`rotate(-90 16 ${
-                plotTop +
-                plotHeight / 2
-              })`}
+        {data.showXAxisLabel ===
+          true &&
+        data.xAxisLabel ? (
+          <text
+            x={
+              plotLeft +
+              plotWidth / 2
+            }
+            y={SVG_HEIGHT - 8}
+            textAnchor="middle"
+            fill={axisLabelColor}
+            fontSize={
+              axisLabelFontSize
+            }
+            fontFamily={
+              (axisLabelStyle as any)
+                .fontFamily
+            }
+            fontWeight={
+              (axisLabelStyle as any)
+                .fontWeight
+            }
+          >
+            {escapeSvgText(
+              data.xAxisLabel,
+            )}
+          </text>
+        ) : null}
+      </g>
+    ) : null}
+
+    {data.showYAxis !== false ? (
+      <g>
+        <line
+          x1={plotLeft}
+          x2={plotLeft}
+          y1={plotTop}
+          y2={plotTop + plotHeight}
+          stroke={axisColor}
+          strokeWidth={1}
+          vectorEffect="non-scaling-stroke"
+        />
+
+        {yTicks.map(
+          (
+            tick,
+            index,
+          ) => (
+            <g
+              key={`y-axis-${index}`}
             >
-              {escapeSvgText(
-                data.yAxisLabel,
-              )}
-            </text>
-          ) : null}
-        </g>
-      ) : null}
-    </>
-  );
+              <line
+                x1={plotLeft - 5}
+                x2={plotLeft}
+                y1={tick.y}
+                y2={tick.y}
+                stroke={axisColor}
+                strokeWidth={1}
+                vectorEffect="non-scaling-stroke"
+              />
+
+              <text
+                x={plotLeft - 10}
+                y={tick.y + 4}
+                textAnchor="end"
+                fill={axisTextColor}
+                fontSize={
+                  compactAxisFontSize
+                }
+                fontFamily={
+                  axisFontFamily
+                }
+                fontWeight={
+                  axisFontWeight
+                }
+              >
+                {formatValue(
+                  tick.value,
+                )}
+              </text>
+            </g>
+          ),
+        )}
+
+        {data.showYAxisLabel ===
+          true &&
+        data.yAxisLabel ? (
+          <text
+            x={16}
+            y={
+              plotTop +
+              plotHeight / 2
+            }
+            textAnchor="middle"
+            fill={axisLabelColor}
+            fontSize={
+              axisLabelFontSize
+            }
+            fontFamily={
+              (axisLabelStyle as any)
+                .fontFamily
+            }
+            fontWeight={
+              (axisLabelStyle as any)
+                .fontWeight
+            }
+            transform={`rotate(-90 16 ${
+              plotTop +
+              plotHeight / 2
+            })`}
+          >
+            {escapeSvgText(
+              data.yAxisLabel,
+            )}
+          </text>
+        ) : null}
+      </g>
+    ) : null}
+  </>
+);
 
   const renderLineOrArea = (
     area: boolean,
@@ -8835,112 +9151,119 @@ const color =
     );
   };
 
-  const renderLegend = () => {
-    if (
-      data.showLegend === false ||
-      series.length === 0
-    ) {
-      return null;
-    }
+const renderLegend = () => {
+  if (
+    data.showLegend === false ||
+    series.length === 0
+  ) {
+    return null;
+  }
 
-    const legendPosition =
-      data.legendPosition ===
-        "top" ||
-      data.legendPosition ===
-        "left" ||
-      data.legendPosition ===
-        "right"
-        ? data.legendPosition
-        : "bottom";
+  const legendPosition =
+    data.legendPosition === "top" ||
+    data.legendPosition === "left" ||
+    data.legendPosition === "right"
+      ? data.legendPosition
+      : "bottom";
 
-    const isSide =
-      legendPosition ===
-        "left" ||
-      legendPosition ===
-        "right";
+  const isSide =
+    legendPosition === "left" ||
+    legendPosition === "right";
 
-const isPieChart =
-  chartType === "pie" ||
-  chartType === "doughnut";
+  const isPieChart =
+    chartType === "pie" ||
+    chartType === "doughnut";
 
-const legendItems = isPieChart
-  ? chartData.map(
-      (
-        row: any,
-        index: number,
-      ) => ({
-        id:
-          row.id ??
-          `pie-legend-${index}`,
-        name:
-          row.label ||
-          `Slice ${index + 1}`,
-        color:
-          typeof row.color ===
-            "string" &&
-          row.color
-            ? row.color
-            : fallbackColors[
-                index %
-                  fallbackColors.length
-              ],
-      }),
-    )
-  : series.map(
-      (
-        item: any,
-        index: number,
-      ) => ({
-        id:
-          item.id ??
-          item.name,
-        name: item.name,
-        color:
-          getSeriesColor(
-            item,
-            index,
-          ),
-      }),
-    );
+  const legendItems = isPieChart
+    ? chartData.map(
+        (
+          row: any,
+          index: number,
+        ) => ({
+          id:
+            row.id ??
+            `pie-legend-${index}`,
+          name:
+            row.label ||
+            `Slice ${index + 1}`,
+          color:
+            typeof row.color ===
+              "string" &&
+            row.color
+              ? row.color
+              : fallbackColors[
+                  index %
+                    fallbackColors.length
+                ],
+        }),
+      )
+    : series.map(
+        (
+          item: any,
+          index: number,
+        ) => ({
+          id:
+            item.id ??
+            item.name,
+          name:
+            item.name,
+          color:
+            getSeriesColor(
+              item,
+              index,
+            ),
+        }),
+      );
 
-    return (
-      <div
-        className={[
-          "flex shrink-0",
-          isSide
-            ? "flex-col items-start"
-            : "flex-row flex-wrap items-center justify-center",
-        ].join(" ")}
-        style={{
-          gap: "10px",
-          ...legendStyle,
-        }}
-      >
-{legendItems.map(
-  (
-    item: any,
-  ) => (
+  return (
     <div
-      key={item.id}
-              className="flex min-w-0 items-center gap-2"
-            >
-              <span
-                className="block h-2.5 w-2.5 shrink-0 rounded-full"
-                style={{
-backgroundColor:
-  item.color,
-                }}
-              />
+      className={[
+        "flex shrink-0",
+        isSide
+          ? "max-h-full flex-col items-stretch overflow-y-auto"
+          : "max-h-[72px] flex-row flex-wrap items-center justify-center overflow-y-auto",
+      ].join(" ")}
+      style={{
+        gap:
+          isCompactChart
+            ? "6px"
+            : "10px",
+        ...legendStyle,
+      }}
+    >
+      {legendItems.map(
+        (
+          item: any,
+        ) => (
+          <div
+            key={item.id}
+            className="flex min-w-0 items-center gap-2"
+            title={item.name}
+          >
+            <span
+              className="block h-2.5 w-2.5 shrink-0 rounded-full"
+              style={{
+                backgroundColor:
+                  item.color,
+              }}
+            />
 
-              <span className="min-w-0 break-words">
-                {item.name}
-              </span>
-            </div>
-          ),
-        )}
-      </div>
-    );
-  };
+            <span
+              className={[
+                "min-w-0",
+                isSide
+                  ? "truncate"
+                  : "max-w-[150px] truncate",
+              ].join(" ")}
+            >
+              {item.name}
+            </span>
+          </div>
+        ),
+      )}
+    </div>
+  );
+};
 
   const legendPosition =
     data.legendPosition === "top" ||
@@ -8964,9 +9287,16 @@ backgroundColor:
           {renderSvgChart()}
         </div>
 
-        <div className="max-w-[28%] shrink-0 overflow-auto py-2">
-          {renderLegend()}
-        </div>
+<div
+  className={[
+    "shrink-0 overflow-auto py-2",
+    isCompactChart
+      ? "max-w-[24%]"
+      : "max-w-[28%]",
+  ].join(" ")}
+>
+  {renderLegend()}
+</div>
       </div>
     ) : (
       <div className="flex min-h-0 flex-1 flex-col">
