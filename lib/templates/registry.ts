@@ -1770,7 +1770,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
   title: "Newsletter",
   description:
     "Share updates, announcements, stories, highlights, and resources in one polished newsletter.",
-  thumb: "newletter",
+  thumb: "newsletter",
   setupMins: 3,
   demoSlug: "newsletter",
   category: "Business",
