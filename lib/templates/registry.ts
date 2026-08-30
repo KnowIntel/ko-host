@@ -1597,15 +1597,6 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "book",
     defaultDraft: { title: "Book Club", slugSuggestion: "bookclub" },
   },
- /*  {
-    key: "newsletter_signup",
-    title: "Newsletter Signup",
-    description: "Collect subscribers and share benefits.",
-    thumb: "newslettersignup",
-    setupMins: 2,
-    demoSlug: "newsletter",
-    defaultDraft: { title: "Newsletter", slugSuggestion: "newslettersignup" },
-  }, */
 /*   {
     key: "moving_sale",
     title: "Moving Sale",
@@ -1751,6 +1742,21 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     defaultDraft: { title: "Weight Loss Journey", slugSuggestion: "weightlossjourney" },
   }, */
   {
+  key: "newsletter",
+  title: "Newsletter",
+  description:
+    "Share updates, announcements, stories, highlights, and resources in one polished newsletter.",
+  thumb: "newsletters",
+  setupMins: 3,
+  demoSlug: "newsletter",
+  category: "Business",
+  defaultDraft: {
+    title: "Newsletter",
+    slugSuggestion: "newsletter",
+  },
+},
+
+  {
   key: "project",
   title: "Project",
   description:
@@ -1765,20 +1771,6 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
   },
 },
 
-{
-  key: "newsletter",
-  title: "Newsletter",
-  description:
-    "Share updates, announcements, stories, highlights, and resources in one polished newsletter.",
-  thumb: "newsletter",
-  setupMins: 3,
-  demoSlug: "newsletter",
-  category: "Business",
-  defaultDraft: {
-    title: "Newsletter",
-    slugSuggestion: "newsletter",
-  },
-},
   {
     key: "guided_tutorial",
     title: "Guided Tutorial",
