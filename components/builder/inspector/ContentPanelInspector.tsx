@@ -159,6 +159,23 @@ const [
     </select>
   </div>
 
+  <div className="mt-3">
+    <div className={inspectorLabelClass()}>Style Target</div>
+    <select
+      value={contentPanelStyleTarget}
+      onChange={(e) =>
+        setContentPanelStyleTarget(e.target.value as ContentPanelStyleTarget)
+      }
+      className={inspectorInputClass()}
+    >
+      <option value="form">Form</option>
+      <option value="activeNavigation">Active Navigation</option>
+      <option value="inactiveNavigation">Inactive Navigation</option>
+      <option value="panel">Panel</option>
+    </select>
+  </div>
+</div>
+
   {/* ============================================================ */}
   {/* STYLE VARIANT */}
   {/* ============================================================ */}
@@ -224,23 +241,6 @@ const [
       </option>
     </select>
   </div>
-
-  <div className="mt-3">
-    <div className={inspectorLabelClass()}>Style Target</div>
-    <select
-      value={contentPanelStyleTarget}
-      onChange={(e) =>
-        setContentPanelStyleTarget(e.target.value as ContentPanelStyleTarget)
-      }
-      className={inspectorInputClass()}
-    >
-      <option value="form">Form</option>
-      <option value="activeNavigation">Active Navigation</option>
-      <option value="inactiveNavigation">Inactive Navigation</option>
-      <option value="panel">Panel</option>
-    </select>
-  </div>
-</div>
 
     <div className="mt-4">
       <div className={inspectorLabelClass()}>Heading</div>
