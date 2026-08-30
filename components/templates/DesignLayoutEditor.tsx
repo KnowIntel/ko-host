@@ -8872,8 +8872,55 @@ function removeCanvasBlocks(blockIds: string[]) {
 }
 
 function removeCanvasBlock(blockId: string) {
+  /*
+   * ================================================================
+   * BUILD REMOVAL SET
+   * ================================================================
+   *
+   * Normal block:
+   *   remove only itself.
+   *
+   * Content Panel:
+   *   remove the panel plus every block attached to any of its slides.
+   */
+
+  const blocksToRemove = new Set<string>();
+
+  blocksToRemove.add(blockId);
+
+  const contentPanelBlock =
+    draft.blocks.find(
+      (block) =>
+        block.id === blockId &&
+        block.type === "content_panel",
+    ) ?? null;
+
+  if (contentPanelBlock) {
+    draft.blocks.forEach((block) => {
+      if (
+        block.contentPanelParentId ===
+        contentPanelBlock.id
+      ) {
+        blocksToRemove.add(
+          block.id,
+        );
+      }
+    });
+  }
+
+  /*
+   * ================================================================
+   * CLEAR SELECTION
+   * ================================================================
+   */
+
   const clearRemovedBlockSelection = () => {
-    setSelectedBlockIds((prev) => prev.filter((id) => id !== blockId));
+    setSelectedBlockIds((prev) =>
+      prev.filter(
+        (id) =>
+          !blocksToRemove.has(id),
+      ),
+    );
 
     setSelection((prev) => {
       const selectedCanvasBlockId =
@@ -8881,31 +8928,64 @@ function removeCanvasBlock(blockId: string) {
         (prev as any)?.blockId ??
         (prev as any)?.id;
 
-      return selectedCanvasBlockId === blockId
+      return selectedCanvasBlockId &&
+        blocksToRemove.has(
+          selectedCanvasBlockId,
+        )
         ? createEmptySelection()
         : prev;
     });
   };
 
-  if (blockId === PAGE_TITLE_BLOCK_ID) {
+  /*
+   * ================================================================
+   * PAGE TITLE
+   * ================================================================
+   */
+
+  if (
+    blockId ===
+    PAGE_TITLE_BLOCK_ID
+  ) {
     clearRemovedBlockSelection();
 
     setDraft((prev) => ({
       ...(prev as DraftWithPageExtras),
+
       pageVisibility: {
-        ...((prev as DraftWithPageExtras).pageVisibility ?? {}),
-        title: false,
+        ...(
+          (
+            prev as DraftWithPageExtras
+          ).pageVisibility ??
+          {}
+        ),
+
+        title:
+          false,
       },
     }));
 
     return;
   }
 
+  /*
+   * ================================================================
+   * NORMAL / CONTENT PANEL BLOCK REMOVAL
+   * ================================================================
+   */
+
   clearRemovedBlockSelection();
 
   setDraft((prev) => ({
     ...prev,
-    blocks: removeBlockFromDraft(prev.blocks, blockId),
+
+    blocks:
+      prev.blocks.filter(
+        (block) =>
+          !blocksToRemove.has(
+            block.id,
+          ),
+      ),
   }));
 }
 

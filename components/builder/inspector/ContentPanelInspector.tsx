@@ -208,24 +208,77 @@ const [
             return {
               ...block,
 
-              data: {
-                ...block.data,
+data: {
+  ...block.data,
 
-                styleVariant,
+  styleVariant,
 
-                ...(styleVariant ===
-                "slideshow"
-                  ? {
-                      editingPanelId:
-                        block.data
-                          .editingPanelId ??
-                        block.data
-                          .panels?.[0]
-                          ?.id ??
-                        "",
-                    }
-                  : {}),
-              },
+  ...(styleVariant === "slideshow"
+    ? (() => {
+        const existingPanels =
+          Array.isArray(
+            block.data.panels,
+          )
+            ? block.data.panels
+            : [];
+
+        /*
+         * A newly-converted slideshow starts with ONE slide.
+         * Additional slides only exist after Add Slide is used.
+         */
+        const firstSlide =
+          existingPanels[0] ?? {
+            id:
+              makeClientId("panel"),
+
+            title:
+              "Slide 1",
+
+            subtitle:
+              "",
+
+            content:
+              "Add your slide content here.",
+
+            contentStyle:
+              "plain_text",
+
+            imagePosition:
+              "above",
+
+            icon:
+              "",
+
+            badge:
+              "",
+          };
+
+        const normalizedFirstSlide = {
+          ...firstSlide,
+
+          title:
+            firstSlide.title ||
+            "Slide 1",
+
+          icon:
+            firstSlide.icon ??
+            "",
+        };
+
+        return {
+          panels: [
+            normalizedFirstSlide,
+          ],
+
+          editingPanelId:
+            normalizedFirstSlide.id,
+
+          defaultPanelId:
+            normalizedFirstSlide.id,
+        };
+      })()
+    : {}),
+},
             };
           },
         )
@@ -2143,80 +2196,164 @@ const [
         );
       })}
 
-      <button
-        type="button"
-        className={toolSetButtonClass("front")}
-        onClick={() =>
-          updateSelectedBlock((block: any) =>
-            block.type !== "content_panel"
-              ? block
-              : {
-                  ...block,
-                  data: {
-                    ...block.data,
-                    panels: [
-                      ...block.data.panels,
-                      {
-                        id: makeClientId("panel"),
-                        title:
-  block.data.styleVariant === "slideshow"
-    ? `Slide ${(block.data.panels?.length ?? 0) + 1}`
-    : "New Panel",
-                        subtitle: "",
-                        content:
-  block.data.styleVariant === "slideshow"
-    ? "Add your slide content here."
-    : "Add your panel content here.",
-                        contentStyle: "plain_text",
-                        grid: {
-                          showRowLines: false,
-                          showColumnLines: false,
-                          showHeaderRow: true,
-                          freezeHeaderRow: true,
-                          columns: [
-                            {
-                              id: makeClientId("col"),
-                              label: "Item",
-                              type: "text",
-                            },
-                            {
-                              id: makeClientId("col"),
-                              label: "Details",
-                              type: "text",
-                            },
-                          ],
-                          rows: [
-                            {
-                              id: makeClientId("row"),
-                              cells: [
-                                {
-                                  id: makeClientId("cell"),
-                                  type: "text",
-                                  value: "",
-                                },
-                                {
-                                  id: makeClientId("cell"),
-                                  type: "text",
-                                  value: "",
-                                },
-                              ],
-                            },
-                          ],
-                        },
-                        imagePosition: "above",
-                        icon: "",
-                        badge: "",
-                      },
-                    ],
-                  },
-                },
-          )
+<button
+  type="button"
+  className={toolSetButtonClass("front")}
+  onClick={() => {
+    const newPanelId =
+      makeClientId("panel");
+
+    updateSelectedBlock(
+      (block: any) => {
+        if (
+          block.type !==
+          "content_panel"
+        ) {
+          return block;
         }
-      >
-        {isSlideshow
-  ? "Add Slide"
-  : "Add Panel"}
-      </button>
+
+        const isSlideShow =
+          block.data.styleVariant ===
+          "slideshow";
+
+        const currentPanels =
+          Array.isArray(
+            block.data.panels,
+          )
+            ? block.data.panels
+            : [];
+
+        const newPanel = {
+          id:
+            newPanelId,
+
+          title:
+            isSlideShow
+              ? `Slide ${currentPanels.length + 1}`
+              : "New Panel",
+
+          subtitle:
+            "",
+
+          content:
+            isSlideShow
+              ? "Add your slide content here."
+              : "Add your panel content here.",
+
+          contentStyle:
+            "plain_text",
+
+          grid: {
+            showRowLines:
+              false,
+
+            showColumnLines:
+              false,
+
+            showHeaderRow:
+              true,
+
+            freezeHeaderRow:
+              true,
+
+            columns: [
+              {
+                id:
+                  makeClientId("col"),
+
+                label:
+                  "Item",
+
+                type:
+                  "text",
+              },
+
+              {
+                id:
+                  makeClientId("col"),
+
+                label:
+                  "Details",
+
+                type:
+                  "text",
+              },
+            ],
+
+            rows: [
+              {
+                id:
+                  makeClientId("row"),
+
+                cells: [
+                  {
+                    id:
+                      makeClientId("cell"),
+
+                    type:
+                      "text",
+
+                    value:
+                      "",
+                  },
+
+                  {
+                    id:
+                      makeClientId("cell"),
+
+                    type:
+                      "text",
+
+                    value:
+                      "",
+                  },
+                ],
+              },
+            ],
+          },
+
+          imagePosition:
+            "above",
+
+          icon:
+            "",
+
+          badge:
+            "",
+        };
+
+        return {
+          ...block,
+
+          data: {
+            ...block.data,
+
+            panels: [
+              ...currentPanels,
+              newPanel,
+            ],
+
+            /*
+             * Slide Show:
+             * immediately switch the inspector/canvas to the
+             * newly-created slide.
+             */
+            ...(isSlideShow
+              ? {
+                  editingPanelId:
+                    newPanelId,
+                }
+              : {}),
+          },
+        };
+      },
+    );
+  }}
+>
+  {isSlideshow
+    ? "Add Slide"
+    : "Add Panel"}
+</button>
     </div>
     </div>
   );
