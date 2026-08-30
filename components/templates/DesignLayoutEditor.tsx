@@ -8724,141 +8724,745 @@ function addPageBlock(type: PageBlockType) {
   }
 }
 
-function handleDuplicateCanvasBlock(blockId: string) {
-  handleDuplicateCanvasBlocks([blockId]);
-}
+function getValidContentPanelSlideOwnership(
+  blocks: MicrositeBlock[],
+  block: MicrositeBlock,
+) {
+  const parentId =
+    block.contentPanelParentId?.trim() ?? "";
 
-function handleDuplicateCanvasBlocks(blockIds: string[]) {
-  const idsToDuplicate = blockIds.filter((id) => !isPageBlockId(id));
-  if (!idsToDuplicate.length) return;
+  const slideId =
+    block.contentPanelSlideId?.trim() ?? "";
 
-  const duplicatedIds: string[] = [];
+  if (!parentId || !slideId) {
+    return null;
+  }
 
-  setDraft((prev) => {
-    const highestZIndex = Math.max(
-      1,
-      ...prev.blocks.map((block) => block.grid?.zIndex ?? 1),
+  const parent = blocks.find(
+    (candidate) =>
+      candidate.id === parentId &&
+      candidate.type === "content_panel" &&
+      (candidate.data as any).styleVariant === "slideshow",
+  );
+
+  if (!parent || parent.type !== "content_panel") {
+    return null;
+  }
+
+  const parentData =
+    parent.data as any;
+
+  const slides =
+    Array.isArray(parentData.panels)
+      ? parentData.panels
+      : [];
+
+  const slideExists =
+    slides.some(
+      (slide: any) =>
+        slide.id === slideId,
     );
 
-    const duplicatedBlocks = idsToDuplicate
-      .map((id, index) => {
-        const original = prev.blocks.find((block) => block.id === id);
-        if (!original) return null;
+  if (!slideExists) {
+    return null;
+  }
 
-        const duplicatedBlockId = `block_${Math.random()
-          .toString(36)
-          .slice(2, 10)}`;
+  return {
+    parentId,
+    slideId,
+  };
+}
 
-        duplicatedIds.push(duplicatedBlockId);
+/* ================================================================= */
+/* DUPLICATE */
+/* ================================================================= */
 
-        const originalGrid = original.grid ?? {
+function handleDuplicateCanvasBlock(
+  blockId: string,
+) {
+  handleDuplicateCanvasBlocks(
+    [blockId],
+  );
+}
+
+function handleDuplicateCanvasBlocks(
+  blockIds: string[],
+) {
+  const requestedIds =
+    blockIds.filter(
+      (id) =>
+        !isPageBlockId(id),
+    );
+
+  if (!requestedIds.length) {
+    return;
+  }
+
+  const duplicatedIds:
+    string[] = [];
+
+  setDraft((prev) => {
+    let nextHighestZIndex =
+      Math.max(
+        1,
+        ...prev.blocks.map(
+          (block) =>
+            block.grid?.zIndex ??
+            1,
+        ),
+      );
+
+    const blocksToDuplicate =
+      new Map<
+        string,
+        MicrositeBlock
+      >();
+
+    /*
+     * Add explicitly-selected blocks.
+     */
+    requestedIds.forEach(
+      (id) => {
+        const block =
+          prev.blocks.find(
+            (candidate) =>
+              candidate.id === id,
+          );
+
+        if (block) {
+          blocksToDuplicate.set(
+            block.id,
+            block,
+          );
+        }
+      },
+    );
+
+    /*
+     * If a Content Panel is duplicated,
+     * automatically include every block
+     * attached to its slides.
+     */
+    requestedIds.forEach(
+      (id) => {
+        const parent =
+          prev.blocks.find(
+            (candidate) =>
+              candidate.id === id &&
+              candidate.type ===
+                "content_panel",
+          );
+
+        if (!parent) {
+          return;
+        }
+
+        prev.blocks.forEach(
+          (candidate) => {
+            if (
+              candidate
+                .contentPanelParentId ===
+              parent.id
+            ) {
+              blocksToDuplicate.set(
+                candidate.id,
+                candidate,
+              );
+            }
+          },
+        );
+      },
+    );
+
+    /*
+     * Maps old block IDs to duplicated IDs.
+     */
+    const blockIdMap =
+      new Map<
+        string,
+        string
+      >();
+
+    /*
+     * Maps:
+     *
+     * oldContentPanelId
+     *     ↓
+     * newContentPanelId
+     */
+    const contentPanelIdMap =
+      new Map<
+        string,
+        string
+      >();
+
+    /*
+     * Maps:
+     *
+     * oldContentPanelId
+     *     ↓
+     * Map<oldSlideId, newSlideId>
+     */
+    const slideIdMaps =
+      new Map<
+        string,
+        Map<string, string>
+      >();
+
+    /*
+     * First pass:
+     * generate every new block ID.
+     */
+    blocksToDuplicate.forEach(
+      (original) => {
+        const newId =
+          makeClientId(
+            original.type,
+          );
+
+        blockIdMap.set(
+          original.id,
+          newId,
+        );
+
+        if (
+          original.type ===
+          "content_panel"
+        ) {
+          contentPanelIdMap.set(
+            original.id,
+            newId,
+          );
+        }
+      },
+    );
+
+    /*
+     * Build new slide IDs for duplicated
+     * Content Panels.
+     */
+    blocksToDuplicate.forEach(
+      (original) => {
+        if (
+          original.type !==
+          "content_panel"
+        ) {
+          return;
+        }
+
+        const data =
+          original.data as any;
+
+        const panels =
+          Array.isArray(
+            data.panels,
+          )
+            ? data.panels
+            : [];
+
+        const slideMap =
+          new Map<
+            string,
+            string
+          >();
+
+        panels.forEach(
+          (panel: any) => {
+            slideMap.set(
+              panel.id,
+              makeClientId(
+                "panel",
+              ),
+            );
+          },
+        );
+
+        slideIdMaps.set(
+          original.id,
+          slideMap,
+        );
+      },
+    );
+
+    const duplicatedBlocks:
+      MicrositeBlock[] = [];
+
+    blocksToDuplicate.forEach(
+      (original) => {
+        const newBlockId =
+          blockIdMap.get(
+            original.id,
+          );
+
+        if (!newBlockId) {
+          return;
+        }
+
+        const clone =
+          structuredClone(
+            original,
+          );
+
+        const originalGrid =
+          original.grid ?? {
+            colStart: 1,
+            rowStart: 1,
+            colSpan: 4,
+            rowSpan: 1,
+            zIndex: 1,
+          };
+
+        nextHighestZIndex += 1;
+
+        /*
+         * ==========================================================
+         * DUPLICATING A CONTENT PANEL
+         * ==========================================================
+         */
+
+        if (
+          clone.type ===
+          "content_panel"
+        ) {
+          const data =
+            clone.data as any;
+
+          const panels =
+            Array.isArray(
+              data.panels,
+            )
+              ? data.panels
+              : [];
+
+          const slideMap =
+            slideIdMaps.get(
+              original.id,
+            ) ??
+            new Map<
+              string,
+              string
+            >();
+
+          const remappedPanels =
+            panels.map(
+              (panel: any) => ({
+                ...panel,
+
+                id:
+                  slideMap.get(
+                    panel.id,
+                  ) ??
+                  makeClientId(
+                    "panel",
+                  ),
+              }),
+            );
+
+          const remappedEditingPanelId =
+            data.editingPanelId
+              ? slideMap.get(
+                  data.editingPanelId,
+                )
+              : undefined;
+
+          const remappedDefaultPanelId =
+            data.defaultPanelId
+              ? slideMap.get(
+                  data.defaultPanelId,
+                )
+              : undefined;
+
+          duplicatedBlocks.push({
+            ...clone,
+
+            id:
+              newBlockId,
+
+            /*
+             * A Content Panel itself should not
+             * inherit ownership by another panel
+             * during this duplicate operation.
+             */
+            contentPanelParentId:
+              undefined,
+
+            contentPanelSlideId:
+              undefined,
+
+            grid: {
+              ...originalGrid,
+
+              rowStart:
+                originalGrid.rowStart +
+                1,
+
+              zIndex:
+                nextHighestZIndex,
+            },
+
+            data: {
+              ...data,
+
+              panels:
+                remappedPanels,
+
+              editingPanelId:
+                remappedEditingPanelId ??
+                remappedPanels[0]?.id ??
+                "",
+
+              defaultPanelId:
+                remappedDefaultPanelId ??
+                remappedPanels[0]?.id ??
+                "",
+            },
+          } as MicrositeBlock);
+
+          duplicatedIds.push(
+            newBlockId,
+          );
+
+          return;
+        }
+
+        /*
+         * ==========================================================
+         * DUPLICATING A CHILD OF A CONTENT PANEL
+         * ==========================================================
+         */
+
+        const originalParentId =
+          clone
+            .contentPanelParentId
+            ?.trim() ??
+          "";
+
+        const originalSlideId =
+          clone
+            .contentPanelSlideId
+            ?.trim() ??
+          "";
+
+        const duplicatedParentId =
+          originalParentId
+            ? contentPanelIdMap.get(
+                originalParentId,
+              )
+            : undefined;
+
+        const duplicatedSlideId =
+          originalParentId &&
+          originalSlideId
+            ? slideIdMaps
+                .get(
+                  originalParentId,
+                )
+                ?.get(
+                  originalSlideId,
+                )
+            : undefined;
+
+        /*
+         * If its parent is being duplicated too,
+         * attach it to the duplicated parent/slide.
+         *
+         * Otherwise preserve its existing valid
+         * ownership in the current draft.
+         */
+        const existingOwnership =
+          getValidContentPanelSlideOwnership(
+            prev.blocks,
+            original,
+          );
+
+        const nextParentId =
+          duplicatedParentId &&
+          duplicatedSlideId
+            ? duplicatedParentId
+            : existingOwnership
+              ?.parentId;
+
+        const nextSlideId =
+          duplicatedParentId &&
+          duplicatedSlideId
+            ? duplicatedSlideId
+            : existingOwnership
+              ?.slideId;
+
+        duplicatedBlocks.push({
+          ...clone,
+
+          id:
+            newBlockId,
+
+          contentPanelParentId:
+            nextParentId,
+
+          contentPanelSlideId:
+            nextSlideId,
+
+          grid: {
+            ...originalGrid,
+
+            rowStart:
+              originalGrid.rowStart +
+              1,
+
+            zIndex:
+              nextHighestZIndex,
+          },
+        } as MicrositeBlock);
+
+        duplicatedIds.push(
+          newBlockId,
+        );
+      },
+    );
+
+    return {
+      ...prev,
+
+      blocks: [
+        ...prev.blocks,
+        ...duplicatedBlocks,
+      ],
+    };
+  });
+
+  window.requestAnimationFrame(
+    () => {
+      setSelectedBlockIds(
+        duplicatedIds,
+      );
+
+      if (
+        duplicatedIds.length ===
+        1
+      ) {
+        setSelection(
+          selectionFromCanvasBlockId(
+            duplicatedIds[0],
+          ),
+        );
+      } else {
+        setSelection(
+          createEmptySelection(),
+        );
+      }
+    },
+  );
+}
+
+/* ================================================================= */
+/* COPY */
+/* ================================================================= */
+
+function handleCopyCanvasBlock(
+  blockId: string,
+) {
+  handleCopyCanvasBlocks(
+    [blockId],
+  );
+}
+
+function handleCopyCanvasBlocks(
+  blockIds: string[],
+) {
+  const requestedIds =
+    blockIds.filter(
+      (id) =>
+        !isPageBlockId(id),
+    );
+
+  if (!requestedIds.length) {
+    return;
+  }
+
+  const idsToCopy =
+    new Set<string>();
+
+  requestedIds.forEach(
+    (id) => {
+      idsToCopy.add(id);
+
+      const contentPanel =
+        draft.blocks.find(
+          (block) =>
+            block.id === id &&
+            block.type ===
+              "content_panel",
+        );
+
+      /*
+       * Copying a Content Panel copies
+       * every block belonging to its slides.
+       */
+      if (contentPanel) {
+        draft.blocks.forEach(
+          (candidate) => {
+            if (
+              candidate
+                .contentPanelParentId ===
+              contentPanel.id
+            ) {
+              idsToCopy.add(
+                candidate.id,
+              );
+            }
+          },
+        );
+      }
+    },
+  );
+
+  const copiedAt =
+    Date.now();
+
+  const clipboardEntriesToAdd:
+    ClipboardEntry[] = [];
+
+  idsToCopy.forEach(
+    (id) => {
+      const original =
+        draft.blocks.find(
+          (block) =>
+            block.id === id,
+        );
+
+      if (!original) {
+        return;
+      }
+
+      clipboardEntriesToAdd.push({
+        clipboardId:
+          makeClipboardId(),
+
+        copiedAt,
+
+        block:
+          cloneClipboardBlock(
+            original,
+          ),
+      });
+    },
+  );
+
+  if (
+    !clipboardEntriesToAdd.length
+  ) {
+    return;
+  }
+
+  setClipboardEntries(
+    (prev) => [
+      ...clipboardEntriesToAdd,
+      ...prev,
+    ],
+  );
+
+  setClipboardOpen(true);
+}
+
+/* ================================================================= */
+/* SINGLE PASTE */
+/* ================================================================= */
+
+function handlePasteClipboardBlock(
+  entry: ClipboardEntry,
+) {
+  const cloned =
+    structuredClone(
+      entry.block,
+    );
+
+  const newBlockId =
+    makeClientId(
+      cloned.type,
+    );
+
+  setDraft((prev) => {
+    const highestZIndex =
+      Math.max(
+        1,
+        ...prev.blocks.map(
+          (block) =>
+            block.grid?.zIndex ??
+            1,
+        ),
+      );
+
+    const ownership =
+      getValidContentPanelSlideOwnership(
+        prev.blocks,
+        cloned,
+      );
+
+    const nextBlock:
+      MicrositeBlock = {
+      ...cloned,
+
+      id:
+        newBlockId,
+
+      contentPanelParentId:
+        ownership?.parentId,
+
+      contentPanelSlideId:
+        ownership?.slideId,
+
+      grid: {
+        ...(cloned.grid ?? {
           colStart: 1,
           rowStart: 1,
           colSpan: 4,
           rowSpan: 1,
-          zIndex: 1,
-        };
+        }),
 
-        return {
-          ...structuredClone(original),
-          id: duplicatedBlockId,
-          grid: {
-            colStart: originalGrid.colStart,
-            rowStart: originalGrid.rowStart + 1,
-            colSpan: originalGrid.colSpan,
-            rowSpan: originalGrid.rowSpan,
-            zIndex: highestZIndex + index + 1,
-          },
-        } as MicrositeBlock;
-      })
-      .filter(Boolean) as MicrositeBlock[];
+        zIndex:
+          highestZIndex +
+          1,
+      },
+    };
 
     return {
       ...prev,
-      blocks: [...prev.blocks, ...duplicatedBlocks],
+
+      blocks: [
+        ...prev.blocks,
+        nextBlock,
+      ],
     };
   });
 
-  window.requestAnimationFrame(() => {
-    setSelectedBlockIds(duplicatedIds);
+  window.requestAnimationFrame(
+    () => {
+      setSelectedBlockIds(
+        [newBlockId],
+      );
 
-    if (duplicatedIds.length === 1) {
-      setSelection(selectionFromCanvasBlockId(duplicatedIds[0]));
-    } else {
-      setSelection(createEmptySelection());
-    }
-  });
-}
-
-function handleCopyCanvasBlock(blockId: string) {
-  handleCopyCanvasBlocks([blockId]);
-}
-
-function handleCopyCanvasBlocks(blockIds: string[]) {
-  const idsToCopy = blockIds.filter((id) => !isPageBlockId(id));
-  if (!idsToCopy.length) return;
-
-  const copiedAt = Date.now();
-
-  const clipboardEntriesToAdd: ClipboardEntry[] = idsToCopy
-    .map((id) => {
-      const original = draft.blocks.find((block) => block.id === id);
-      if (!original) return null;
-
-      return {
-        clipboardId: makeClipboardId(),
-        copiedAt,
-        block: cloneClipboardBlock(original),
-      } as ClipboardEntry;
-    })
-    .filter(Boolean) as ClipboardEntry[];
-
-  if (!clipboardEntriesToAdd.length) return;
-
-  setClipboardEntries((prev) => [...clipboardEntriesToAdd, ...prev]);
-  setClipboardOpen(true);
-}
-
-function handlePasteClipboardBlock(entry: ClipboardEntry) {
-  const cloned = structuredClone(entry.block);
-
-  const newBlockId =
-    typeof makeClientId === "function"
-      ? makeClientId(cloned.type)
-      : `block_${Math.random().toString(36).slice(2, 10)}`;
-
-  const highestZIndex = Math.max(
-    1,
-    ...draft.blocks.map((block) => block.grid?.zIndex ?? 1),
-  );
-
-  const nextBlock: MicrositeBlock = {
-    ...cloned,
-    id: newBlockId,
-    grid: {
-      ...(cloned.grid ?? {
-        colStart: 1,
-        rowStart: 1,
-        colSpan: 4,
-        rowSpan: 1,
-      }),
-      zIndex: highestZIndex + 1,
+      setSelection(
+        selectionFromCanvasBlockId(
+          newBlockId,
+        ),
+      );
     },
-  };
-
-  setDraft((prev) => ({
-    ...prev,
-    blocks: [...prev.blocks, nextBlock],
-  }));
-
-  window.requestAnimationFrame(() => {
-    setSelection(selectionFromCanvasBlockId(newBlockId));
-  });
+  );
 }
 
-function handleRemoveClipboardEntry(clipboardId: string) {
-  setClipboardEntries((prev) =>
-    prev.filter((entry) => entry.clipboardId !== clipboardId),
+/* ================================================================= */
+/* CLIPBOARD REMOVE */
+/* ================================================================= */
+
+function handleRemoveClipboardEntry(
+  clipboardId: string,
+) {
+  setClipboardEntries(
+    (prev) =>
+      prev.filter(
+        (entry) =>
+          entry.clipboardId !==
+          clipboardId,
+      ),
   );
 }
 
@@ -8866,153 +9470,305 @@ function handleClearClipboard() {
   setClipboardEntries([]);
 }
 
-function removeCanvasBlocks(blockIds: string[]) {
-  const idsToRemove = new Set(blockIds);
+/* ================================================================= */
+/* BULK REMOVE */
+/* ================================================================= */
+
+function removeCanvasBlocks(
+  blockIds: string[],
+) {
+  const requestedIds =
+    new Set(
+      blockIds,
+    );
+
+  const idsToRemove =
+    new Set<string>(
+      blockIds,
+    );
+
+  /*
+   * Cascade-delete children of every
+   * Content Panel being removed.
+   */
+  draft.blocks.forEach(
+    (block) => {
+      if (
+        block.type !==
+          "content_panel" ||
+        !requestedIds.has(
+          block.id,
+        )
+      ) {
+        return;
+      }
+
+      draft.blocks.forEach(
+        (candidate) => {
+          if (
+            candidate
+              .contentPanelParentId ===
+            block.id
+          ) {
+            idsToRemove.add(
+              candidate.id,
+            );
+          }
+        },
+      );
+    },
+  );
+
+  setSelectedBlockIds(
+    (prev) =>
+      prev.filter(
+        (id) =>
+          !idsToRemove.has(id),
+      ),
+  );
+
+  setSelection((prev) => {
+    const selectedCanvasBlockId =
+      (prev as any)
+        ?.canvasBlockId ??
+      (prev as any)
+        ?.blockId ??
+      (prev as any)?.id;
+
+    return selectedCanvasBlockId &&
+      idsToRemove.has(
+        selectedCanvasBlockId,
+      )
+      ? createEmptySelection()
+      : prev;
+  });
 
   setDraft((prev) => {
-    const next = prev as DraftWithPageExtras;
+    const next =
+      prev as DraftWithPageExtras;
 
     return {
       ...prev,
-      pageVisibility: {
-        ...(next.pageVisibility ?? {}),
-        title: idsToRemove.has(PAGE_TITLE_BLOCK_ID)
-          ? false
-          : (next.pageVisibility?.title ?? true),
-      },
-      blocks: prev.blocks.filter((block) => !idsToRemove.has(block.id)),
-    };
-  });
-}
-
-function removeCanvasBlock(blockId: string) {
-  /*
-   * ================================================================
-   * BUILD REMOVAL SET
-   * ================================================================
-   *
-   * Normal block:
-   *   remove only itself.
-   *
-   * Content Panel:
-   *   remove the panel plus every block attached to any of its slides.
-   */
-
-  const blocksToRemove = new Set<string>();
-
-  blocksToRemove.add(blockId);
-
-  const contentPanelBlock =
-    draft.blocks.find(
-      (block) =>
-        block.id === blockId &&
-        block.type === "content_panel",
-    ) ?? null;
-
-  if (contentPanelBlock) {
-    draft.blocks.forEach((block) => {
-      if (
-        block.contentPanelParentId ===
-        contentPanelBlock.id
-      ) {
-        blocksToRemove.add(
-          block.id,
-        );
-      }
-    });
-  }
-
-  /*
-   * ================================================================
-   * CLEAR SELECTION
-   * ================================================================
-   */
-
-  const clearRemovedBlockSelection = () => {
-    setSelectedBlockIds((prev) =>
-      prev.filter(
-        (id) =>
-          !blocksToRemove.has(id),
-      ),
-    );
-
-    setSelection((prev) => {
-      const selectedCanvasBlockId =
-        (prev as any)?.canvasBlockId ??
-        (prev as any)?.blockId ??
-        (prev as any)?.id;
-
-      return selectedCanvasBlockId &&
-        blocksToRemove.has(
-          selectedCanvasBlockId,
-        )
-        ? createEmptySelection()
-        : prev;
-    });
-  };
-
-  /*
-   * ================================================================
-   * PAGE TITLE
-   * ================================================================
-   */
-
-  if (
-    blockId ===
-    PAGE_TITLE_BLOCK_ID
-  ) {
-    clearRemovedBlockSelection();
-
-    setDraft((prev) => ({
-      ...(prev as DraftWithPageExtras),
 
       pageVisibility: {
         ...(
-          (
-            prev as DraftWithPageExtras
-          ).pageVisibility ??
+          next.pageVisibility ??
           {}
         ),
 
         title:
-          false,
+          idsToRemove.has(
+            PAGE_TITLE_BLOCK_ID,
+          )
+            ? false
+            : (
+                next
+                  .pageVisibility
+                  ?.title ??
+                true
+              ),
       },
-    }));
 
-    return;
-  }
-
-  /*
-   * ================================================================
-   * NORMAL / CONTENT PANEL BLOCK REMOVAL
-   * ================================================================
-   */
-
-  clearRemovedBlockSelection();
-
-  setDraft((prev) => ({
-    ...prev,
-
-    blocks:
-      prev.blocks.filter(
-        (block) =>
-          !blocksToRemove.has(
-            block.id,
-          ),
-      ),
-  }));
+      blocks:
+        prev.blocks.filter(
+          (block) =>
+            !idsToRemove.has(
+              block.id,
+            ),
+        ),
+    };
+  });
 }
+
+/* ================================================================= */
+/* SINGLE REMOVE */
+/* ================================================================= */
+
+function removeCanvasBlock(
+  blockId: string,
+) {
+  removeCanvasBlocks(
+    [blockId],
+  );
+}
+
+/* ================================================================= */
+/* DELETE CONTENT PANEL SLIDE */
+/* ================================================================= */
 
 function removeContentPanelSlide(
   contentPanelId: string,
   slideId: string,
 ) {
+  const removedChildIds =
+    new Set<string>();
+
+  draft.blocks.forEach(
+    (block) => {
+      if (
+        block
+          .contentPanelParentId ===
+          contentPanelId &&
+        block
+          .contentPanelSlideId ===
+          slideId
+      ) {
+        removedChildIds.add(
+          block.id,
+        );
+      }
+    },
+  );
+
   setDraft((prev) => {
-    const contentPanel = prev.blocks.find(
-      (block) =>
-        block.id === contentPanelId &&
-        block.type === "content_panel",
-    );
+    const contentPanel =
+      prev.blocks.find(
+        (block) =>
+          block.id ===
+            contentPanelId &&
+          block.type ===
+            "content_panel",
+      );
+
+    if (
+      !contentPanel ||
+      contentPanel.type !==
+        "content_panel"
+    ) {
+      return prev;
+    }
+
+    const data =
+      contentPanel.data as any;
+
+    const panels =
+      Array.isArray(
+        data.panels,
+      )
+        ? data.panels
+        : [];
+
+    /*
+     * Never delete the last remaining
+     * panel / slide.
+     */
+    if (
+      panels.length <= 1
+    ) {
+      return prev;
+    }
+
+    const remainingPanels =
+      panels.filter(
+        (panel: any) =>
+          panel.id !== slideId,
+      );
+
+    const nextPanelId =
+      remainingPanels[0]?.id ??
+      "";
+
+    return {
+      ...prev,
+
+      blocks:
+        prev.blocks
+          .filter(
+            (block) =>
+              !(
+                block
+                  .contentPanelParentId ===
+                  contentPanelId &&
+                block
+                  .contentPanelSlideId ===
+                  slideId
+              ),
+          )
+          .map(
+            (block) => {
+              if (
+                block.id !==
+                  contentPanelId ||
+                block.type !==
+                  "content_panel"
+              ) {
+                return block;
+              }
+
+              const blockData =
+                block.data as any;
+
+              return {
+                ...block,
+
+                data: {
+                  ...blockData,
+
+                  panels:
+                    remainingPanels,
+
+                  editingPanelId:
+                    blockData
+                      .editingPanelId ===
+                    slideId
+                      ? nextPanelId
+                      : blockData
+                          .editingPanelId,
+
+                  defaultPanelId:
+                    blockData
+                      .defaultPanelId ===
+                    slideId
+                      ? nextPanelId
+                      : blockData
+                          .defaultPanelId,
+                },
+              };
+            },
+          ),
+    };
+  });
+
+  setSelectedBlockIds(
+    (prev) =>
+      prev.filter(
+        (id) =>
+          !removedChildIds.has(
+            id,
+          ),
+      ),
+  );
+
+  setSelection((prev) => {
+    const selectedCanvasBlockId =
+      (prev as any)
+        ?.canvasBlockId ??
+      (prev as any)
+        ?.blockId ??
+      (prev as any)?.id;
+
+    return selectedCanvasBlockId &&
+      removedChildIds.has(
+        selectedCanvasBlockId,
+      )
+      ? createEmptySelection()
+      : prev;
+  });
+}
+
+function duplicateContentPanelSlide(
+  contentPanelId: string,
+  slideId: string,
+) {
+  let newSlideId = "";
+
+  setDraft((prev) => {
+    const contentPanel =
+      prev.blocks.find(
+        (block) =>
+          block.id === contentPanelId &&
+          block.type === "content_panel",
+      );
 
     if (
       !contentPanel ||
@@ -9021,85 +9777,369 @@ function removeContentPanelSlide(
       return prev;
     }
 
-    const data = contentPanel.data as any;
+    const data =
+      contentPanel.data as any;
 
-    const panels = Array.isArray(data.panels)
-      ? data.panels
-      : [];
+    const panels =
+      Array.isArray(data.panels)
+        ? data.panels
+        : [];
 
-    // Always keep at least one panel / slide.
-    if (panels.length <= 1) {
+    const sourceIndex =
+      panels.findIndex(
+        (panel: any) =>
+          panel.id === slideId,
+      );
+
+    if (sourceIndex < 0) {
       return prev;
     }
 
-    const remainingPanels = panels.filter(
-      (panel: any) => panel.id !== slideId,
-    );
+    const sourcePanel =
+      panels[sourceIndex];
 
-    const nextPanelId =
-      remainingPanels[0]?.id ?? "";
+    newSlideId =
+      makeClientId("panel");
+
+    const duplicatedPanel = {
+      ...structuredClone(
+        sourcePanel,
+      ),
+
+      id:
+        newSlideId,
+
+      title:
+        data.styleVariant ===
+        "slideshow"
+          ? `Slide ${panels.length + 1}`
+          : `${sourcePanel.title || "Panel"} Copy`,
+    };
+
+    const nextPanels = [
+      ...panels.slice(
+        0,
+        sourceIndex + 1,
+      ),
+
+      duplicatedPanel,
+
+      ...panels.slice(
+        sourceIndex + 1,
+      ),
+    ];
+
+    let highestZIndex =
+      Math.max(
+        1,
+        ...prev.blocks.map(
+          (block) =>
+            block.grid?.zIndex ??
+            1,
+        ),
+      );
+
+    /*
+     * Duplicate every canvas block attached
+     * specifically to the source slide.
+     */
+    const duplicatedSlideBlocks =
+      prev.blocks
+        .filter(
+          (block) =>
+            block.contentPanelParentId ===
+              contentPanelId &&
+            block.contentPanelSlideId ===
+              slideId,
+        )
+        .map(
+          (sourceBlock) => {
+            highestZIndex += 1;
+
+            return {
+              ...structuredClone(
+                sourceBlock,
+              ),
+
+              id:
+                makeClientId(
+                  sourceBlock.type,
+                ),
+
+              contentPanelParentId:
+                contentPanelId,
+
+              contentPanelSlideId:
+                newSlideId,
+
+              grid: {
+                ...(sourceBlock.grid ?? {
+                  colStart: 1,
+                  rowStart: 1,
+                  colSpan: 4,
+                  rowSpan: 1,
+                }),
+
+                /*
+                 * Keep the exact same placement
+                 * relative to the Content Panel.
+                 */
+                zIndex:
+                  highestZIndex,
+              },
+            } as MicrositeBlock;
+          },
+        );
 
     return {
       ...prev,
 
-      blocks: prev.blocks
-        // Remove every canvas block belonging to the deleted slide.
-        .filter(
-          (block) =>
-            !(
-              block.contentPanelParentId === contentPanelId &&
-              block.contentPanelSlideId === slideId
-            ),
-        )
-        .map((block) => {
-          if (
-            block.id !== contentPanelId ||
-            block.type !== "content_panel"
-          ) {
-            return block;
-          }
+      blocks: [
+        ...prev.blocks.map(
+          (block) => {
+            if (
+              block.id !==
+                contentPanelId ||
+              block.type !==
+                "content_panel"
+            ) {
+              return block;
+            }
 
-          const blockData = block.data as any;
+            return {
+              ...block,
 
-          return {
-            ...block,
+              data: {
+                ...(block.data as any),
 
-            data: {
-              ...blockData,
+                panels:
+                  nextPanels,
 
-              panels: remainingPanels,
+                /*
+                 * Immediately edit the duplicate.
+                 */
+                editingPanelId:
+                  newSlideId,
+              },
+            };
+          },
+        ),
 
-              editingPanelId:
-                blockData.editingPanelId === slideId
-                  ? nextPanelId
-                  : blockData.editingPanelId,
-
-              defaultPanelId:
-                blockData.defaultPanelId === slideId
-                  ? nextPanelId
-                  : blockData.defaultPanelId,
-            },
-          };
-        }),
+        ...duplicatedSlideBlocks,
+      ],
     };
   });
 
-  setSelectedBlockIds((prev) =>
-    prev.filter((id) => {
-      const block = draft.blocks.find(
-        (candidate) => candidate.id === id,
-      );
+  /*
+   * Select the Content Panel after duplication so
+   * its Edit Slide state controls the canvas.
+   */
+  if (newSlideId) {
+    window.requestAnimationFrame(
+      () => {
+        setSelectedBlockIds(
+          [contentPanelId],
+        );
 
-      return !(
-        block?.contentPanelParentId === contentPanelId &&
-        block?.contentPanelSlideId === slideId
-      );
-    }),
-  );
+        setSelection(
+          selectionFromCanvasBlockId(
+            contentPanelId,
+          ),
+        );
+      },
+    );
+  }
 }
 
+
+function changeContentPanelStyleVariant(
+  contentPanelId: string,
+  nextVariant:
+    | "standard"
+    | "slideshow",
+) {
+  setDraft((prev) => {
+    const parent =
+      prev.blocks.find(
+        (block) =>
+          block.id ===
+            contentPanelId &&
+          block.type ===
+            "content_panel",
+      );
+
+    if (
+      !parent ||
+      parent.type !==
+        "content_panel"
+    ) {
+      return prev;
+    }
+
+    const data =
+      parent.data as any;
+
+    const existingPanels =
+      Array.isArray(
+        data.panels,
+      )
+        ? data.panels
+        : [];
+
+    /*
+     * ============================================================
+     * SWITCH TO SLIDE SHOW
+     * ============================================================
+     *
+     * A newly-converted Slide Show begins with one slide.
+     */
+    if (
+      nextVariant ===
+      "slideshow"
+    ) {
+      const firstPanel =
+        existingPanels[0] ?? {
+          id:
+            makeClientId(
+              "panel",
+            ),
+
+          title:
+            "Slide 1",
+
+          subtitle:
+            "",
+
+          content:
+            "Add your slide content here.",
+
+          contentStyle:
+            "plain_text",
+
+          imagePosition:
+            "above",
+
+          icon:
+            "",
+
+          badge:
+            "",
+        };
+
+      const firstSlide = {
+        ...firstPanel,
+
+        title:
+          firstPanel.title ||
+          "Slide 1",
+
+        icon:
+          firstPanel.icon ??
+          "",
+      };
+
+      return {
+        ...prev,
+
+        blocks:
+          prev.blocks.map(
+            (block) =>
+              block.id ===
+                  contentPanelId &&
+              block.type ===
+                  "content_panel"
+                ? {
+                    ...block,
+
+                    data: {
+                      ...(block.data as any),
+
+                      styleVariant:
+                        "slideshow",
+
+                      panels: [
+                        firstSlide,
+                      ],
+
+                      editingPanelId:
+                        firstSlide.id,
+
+                      defaultPanelId:
+                        firstSlide.id,
+                    },
+                  }
+                : block,
+          ),
+      };
+    }
+
+    /*
+     * ============================================================
+     * SWITCH BACK TO STANDARD
+     * ============================================================
+     *
+     * Slide-owned blocks become ordinary canvas blocks instead of
+     * remaining attached to a slideshow that no longer exists.
+     *
+     * All slide definitions remain available as Standard panels.
+     */
+    return {
+      ...prev,
+
+      blocks:
+        prev.blocks.map(
+          (block) => {
+            if (
+              block.id ===
+                contentPanelId &&
+              block.type ===
+                "content_panel"
+            ) {
+              return {
+                ...block,
+
+                data: {
+                  ...(block.data as any),
+
+                  styleVariant:
+                    "standard",
+
+                  editingPanelId:
+                    undefined,
+                },
+              };
+            }
+
+            if (
+              block.contentPanelParentId ===
+              contentPanelId
+            ) {
+              return {
+                ...block,
+
+                contentPanelParentId:
+                  undefined,
+
+                contentPanelSlideId:
+                  undefined,
+              };
+            }
+
+            return block;
+          },
+        ),
+    };
+  });
+}
+
+/* ================================================================= */
+/* REMOVE ALL */
+/* ================================================================= */
+
 function removeAllBlocks() {
-  setRemoveAllModalOpen(true);
+  setRemoveAllModalOpen(
+    true,
+  );
 }
 
 function confirmRemoveAllBlocks() {
@@ -9548,43 +10588,147 @@ function handlePasteAllClipboardBlocks() {
   setDraft((prev) => {
     let nextHighestZIndex = Math.max(
       1,
-      ...prev.blocks.map((block) => block.grid?.zIndex ?? 1),
+      ...prev.blocks.map(
+        (block) =>
+          block.grid?.zIndex ?? 1,
+      ),
     );
 
-    const pastedBlocks = clipboardEntries.map((entry) => {
-      const cloned = structuredClone(entry.block);
-      const newBlockId = makeClientId(cloned.type);
+    const pastedBlocks =
+      clipboardEntries.map((entry) => {
+        const cloned =
+          structuredClone(
+            entry.block,
+          );
 
-      newBlockIds.push(newBlockId);
-      nextHighestZIndex += 1;
+        const newBlockId =
+          typeof makeClientId === "function"
+            ? makeClientId(cloned.type)
+            : `block_${Math.random()
+                .toString(36)
+                .slice(2, 10)}`;
 
-      return {
-        ...cloned,
-        id: newBlockId,
-        grid: {
-          ...(cloned.grid ?? {
-            colStart: 1,
-            rowStart: 1,
-            colSpan: 4,
-            rowSpan: 1,
-          }),
-          zIndex: nextHighestZIndex,
-        },
-      } as MicrositeBlock;
-    });
+        newBlockIds.push(
+          newBlockId,
+        );
+
+        nextHighestZIndex += 1;
+
+        /*
+         * ==========================================================
+         * VALIDATE CONTENT PANEL SLIDE OWNERSHIP
+         * ==========================================================
+         */
+
+        const requestedParentId =
+          cloned
+            .contentPanelParentId
+            ?.trim() ??
+          "";
+
+        const requestedSlideId =
+          cloned
+            .contentPanelSlideId
+            ?.trim() ??
+          "";
+
+        const destinationParent =
+          requestedParentId
+            ? prev.blocks.find(
+                (candidate) =>
+                  candidate.id ===
+                    requestedParentId &&
+                  candidate.type ===
+                    "content_panel" &&
+                  (candidate.data as any)
+                    .styleVariant ===
+                    "slideshow",
+              ) ?? null
+            : null;
+
+        const destinationParentData =
+          destinationParent?.data as any;
+
+        const destinationSlides =
+          Array.isArray(
+            destinationParentData?.panels,
+          )
+            ? destinationParentData.panels
+            : [];
+
+        const validSlideOwnership =
+          Boolean(
+            destinationParent &&
+              requestedSlideId &&
+              destinationSlides.some(
+                (slide: any) =>
+                  slide.id ===
+                  requestedSlideId,
+              ),
+          );
+
+        return {
+          ...cloned,
+
+          id:
+            newBlockId,
+
+          contentPanelParentId:
+            validSlideOwnership
+              ? requestedParentId
+              : undefined,
+
+          contentPanelSlideId:
+            validSlideOwnership
+              ? requestedSlideId
+              : undefined,
+
+          grid: {
+            ...(cloned.grid ?? {
+              colStart:
+                1,
+
+              rowStart:
+                1,
+
+              colSpan:
+                4,
+
+              rowSpan:
+                1,
+            }),
+
+            zIndex:
+              nextHighestZIndex,
+          },
+        } as MicrositeBlock;
+      });
 
     return {
       ...prev,
-      blocks: [...prev.blocks, ...pastedBlocks],
+
+      blocks: [
+        ...prev.blocks,
+        ...pastedBlocks,
+      ],
     };
   });
 
-  window.requestAnimationFrame(() => {
-    setSelectedBlockIds(newBlockIds);
-    if (newBlockIds[0]) {
-      setSelection(selectionFromCanvasBlockId(newBlockIds[0]));
-    }
-  });
+  window.requestAnimationFrame(
+    () => {
+      setSelectedBlockIds(
+        newBlockIds,
+      );
+
+      if (newBlockIds[0]) {
+        setSelection(
+          selectionFromCanvasBlockId(
+            newBlockIds[0],
+          ),
+        );
+      }
+    },
+  );
 }
 
 function handleCreateToolDrop(
@@ -16368,25 +17512,67 @@ selectedBlock?.type === "comparison_table" ? (
   />
 ) : null}
 
-{!isMultiSelection && selectedBlock?.type === "content_panel" ? (
+{!isMultiSelection &&
+selectedBlock?.type === "content_panel" ? (
   <ContentPanelInspector
     selectedBlock={selectedBlock}
     updateSelectedBlock={updateSelectedBlock}
-    CATEGORY_BUTTONS={CATEGORY_BUTTONS}
-    contentPanelTextTarget={contentPanelTextTarget}
-    setContentPanelTextTarget={setContentPanelTextTarget}
-    contentPanelStyleTarget={contentPanelStyleTarget}
-    setContentPanelStyleTarget={setContentPanelStyleTarget}
-    makeClientId={makeClientId}
-    uploadImageToSelectedBlock={uploadImageToSelectedBlock}
-    inspectorCardClass={inspectorCardClass}
-    inspectorLabelClass={inspectorLabelClass}
-    inspectorInputClass={inspectorInputClass}
-    inspectorTextareaClass={inspectorTextareaClass}
-    toolSetButtonClass={toolSetButtonClass}
+
     removeContentPanelSlide={
-  removeContentPanelSlide
-}
+      removeContentPanelSlide
+    }
+
+    duplicateContentPanelSlide={
+      duplicateContentPanelSlide
+    }
+
+    changeContentPanelStyleVariant={
+      changeContentPanelStyleVariant
+    }
+
+    CATEGORY_BUTTONS={CATEGORY_BUTTONS}
+
+    contentPanelTextTarget={
+      contentPanelTextTarget
+    }
+
+    setContentPanelTextTarget={
+      setContentPanelTextTarget
+    }
+
+    contentPanelStyleTarget={
+      contentPanelStyleTarget
+    }
+
+    setContentPanelStyleTarget={
+      setContentPanelStyleTarget
+    }
+
+    makeClientId={makeClientId}
+
+    uploadImageToSelectedBlock={
+      uploadImageToSelectedBlock
+    }
+
+    inspectorCardClass={
+      inspectorCardClass
+    }
+
+    inspectorLabelClass={
+      inspectorLabelClass
+    }
+
+    inspectorInputClass={
+      inspectorInputClass
+    }
+
+    inspectorTextareaClass={
+      inspectorTextareaClass
+    }
+
+    toolSetButtonClass={
+      toolSetButtonClass
+    }
   />
 ) : null}
 

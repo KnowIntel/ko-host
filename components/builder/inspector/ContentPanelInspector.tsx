@@ -41,12 +41,26 @@ setContentPanelStyleTarget: (target: ContentPanelStyleTarget) => void;
   contentPanelId: string,
   slideId: string,
 ) => void;
+
+duplicateContentPanelSlide: (
+  contentPanelId: string,
+  slideId: string,
+) => void;
+
+changeContentPanelStyleVariant: (
+  contentPanelId: string,
+  nextVariant:
+    | "standard"
+    | "slideshow",
+) => void;
 };
 
 export function ContentPanelInspector({
 selectedBlock,
 updateSelectedBlock,
 removeContentPanelSlide,
+duplicateContentPanelSlide,
+changeContentPanelStyleVariant,
   makeClientId,
   uploadImageToSelectedBlock,
   inspectorCardClass,
@@ -182,124 +196,39 @@ const [
   </div>
 </div>
 
-  {/* ============================================================ */}
-  {/* STYLE VARIANT */}
-  {/* ============================================================ */}
+{/* ============================================================ */}
+{/* STYLE VARIANT */}
+{/* ============================================================ */}
 
-  <div className="mt-4">
-    <div className={inspectorLabelClass()}>
-      Style Variant
-    </div>
-
-    <select
-      value={
-        selectedBlock.data.styleVariant ??
-        "standard"
-      }
-      onChange={(e) =>
-        updateSelectedBlock(
-          (block: any) => {
-            if (
-              block.type !==
-              "content_panel"
-            ) {
-              return block;
-            }
-
-            const styleVariant =
-              e.target.value as
-                | "standard"
-                | "slideshow";
-
-            return {
-              ...block,
-
-data: {
-  ...block.data,
-
-  styleVariant,
-
-  ...(styleVariant === "slideshow"
-    ? (() => {
-        const existingPanels =
-          Array.isArray(
-            block.data.panels,
-          )
-            ? block.data.panels
-            : [];
-
-        /*
-         * A newly-converted slideshow starts with ONE slide.
-         * Additional slides only exist after Add Slide is used.
-         */
-        const firstSlide =
-          existingPanels[0] ?? {
-            id:
-              makeClientId("panel"),
-
-            title:
-              "Slide 1",
-
-            subtitle:
-              "",
-
-            content:
-              "Add your slide content here.",
-
-            contentStyle:
-              "plain_text",
-
-            imagePosition:
-              "above",
-
-            icon:
-              "",
-
-            badge:
-              "",
-          };
-
-        const normalizedFirstSlide = {
-          ...firstSlide,
-
-          title:
-            firstSlide.title ||
-            "Slide 1",
-
-          icon:
-            firstSlide.icon ??
-            "",
-        };
-
-        return {
-          panels: [
-            normalizedFirstSlide,
-          ],
-
-          editingPanelId:
-            normalizedFirstSlide.id,
-
-          defaultPanelId:
-            normalizedFirstSlide.id,
-        };
-      })()
-    : {}),
-},
-            };
-          },
-        )
-      }
-      className={inspectorInputClass()}
-    >
-      <option value="standard">
-        Standard
-      </option>
-
-      <option value="slideshow">
-        Slide Show
-      </option>
-    </select>
+<div className="mt-4">
+  <div className={inspectorLabelClass()}>
+    Style Variant
   </div>
+
+  <select
+    value={
+      selectedBlock.data.styleVariant ??
+      "standard"
+    }
+    onChange={(e) =>
+      changeContentPanelStyleVariant(
+        selectedBlock.id,
+        e.target.value as
+          | "standard"
+          | "slideshow",
+      )
+    }
+    className={inspectorInputClass()}
+  >
+    <option value="standard">
+      Standard
+    </option>
+
+    <option value="slideshow">
+      Slide Show
+    </option>
+  </select>
+</div>
 
     <div className="mt-4">
       <div className={inspectorLabelClass()}>Heading</div>
@@ -2140,27 +2069,20 @@ data: {
             </label>
 
             <div className="mt-3 flex flex-wrap gap-2">
-              <button
-                type="button"
-                className={toolSetButtonClass("front")}
-                onClick={() =>
-                  updateSelectedBlock((block: any) =>
-                    block.type !== "content_panel"
-                      ? block
-                      : {
-                          ...block,
-                          data: {
-                            ...block.data,
-                            defaultPanelId: panel.id,
-                          },
-                        },
-                  )
-                }
-              >
-                {selectedBlock.data.defaultPanelId === panel.id
-                  ? "Default Panel"
-                  : "Set Default"}
-              </button>
+<button
+  type="button"
+  className={toolSetButtonClass("front")}
+  onClick={() =>
+    duplicateContentPanelSlide(
+      selectedBlock.id,
+      panel.id,
+    )
+  }
+>
+  {isSlideshow
+    ? "Duplicate Slide"
+    : "Duplicate"}
+</button>
 
               <button
                 type="button"
