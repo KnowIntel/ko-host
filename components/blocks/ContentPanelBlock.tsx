@@ -1360,60 +1360,124 @@ const activeSlideBlocks =
 function getSlideOverlayStyle(
   childBlock: MicrositeBlock,
 ): React.CSSProperties {
-  const parentGrid =
-    block.grid;
-
-  const childGrid =
-    childBlock.grid;
+  const parentGrid = block.grid;
+  const childGrid = childBlock.grid;
 
   if (
     !parentGrid ||
-    !childGrid ||
-    !parentGrid.colSpan ||
-    !parentGrid.rowSpan
+    !childGrid
   ) {
     return {
       position: "absolute",
       inset: 0,
+      zIndex: 10,
     };
   }
 
-  const left =
-    ((childGrid.colStart -
-      parentGrid.colStart) /
-      parentGrid.colSpan) *
+  const parentColStart =
+    Number(parentGrid.colStart ?? 1);
+
+  const parentRowStart =
+    Number(parentGrid.rowStart ?? 1);
+
+  const parentColSpan =
+    Math.max(
+      0.01,
+      Number(parentGrid.colSpan ?? 1),
+    );
+
+  const parentRowSpan =
+    Math.max(
+      0.01,
+      Number(parentGrid.rowSpan ?? 1),
+    );
+
+  const childColStart =
+    Number(childGrid.colStart ?? 1);
+
+  const childRowStart =
+    Number(childGrid.rowStart ?? 1);
+
+  const childColSpan =
+    Math.max(
+      0.01,
+      Number(childGrid.colSpan ?? 1),
+    );
+
+  const childRowSpan =
+    Math.max(
+      0.01,
+      Number(childGrid.rowSpan ?? 1),
+    );
+
+  /*
+   * Convert the child's page-grid coordinates into coordinates
+   * relative to the Content Panel's own box.
+   */
+  const relativeColStart =
+    childColStart -
+    parentColStart;
+
+  const relativeRowStart =
+    childRowStart -
+    parentRowStart;
+
+  const leftPercent =
+    (relativeColStart /
+      parentColSpan) *
     100;
 
-  const top =
-    ((childGrid.rowStart -
-      parentGrid.rowStart) /
-      parentGrid.rowSpan) *
+  const topPercent =
+    (relativeRowStart /
+      parentRowSpan) *
     100;
 
-  const width =
-    (childGrid.colSpan /
-      parentGrid.colSpan) *
+  const widthPercent =
+    (childColSpan /
+      parentColSpan) *
     100;
 
-  const height =
-    (childGrid.rowSpan /
-      parentGrid.rowSpan) *
+  const heightPercent =
+    (childRowSpan /
+      parentRowSpan) *
     100;
 
   return {
     position: "absolute",
 
-    left: `${left}%`,
-    top: `${top}%`,
+    left:
+      `${leftPercent}%`,
 
-    width: `${width}%`,
-    height: `${height}%`,
+    top:
+      `${topPercent}%`,
 
+    width:
+      `${widthPercent}%`,
+
+    height:
+      `${heightPercent}%`,
+
+    /*
+     * Slide-owned blocks should sit above the panel's own
+     * background/content.
+     */
     zIndex:
-      childGrid.zIndex ??
-      1,
+      Math.max(
+        10,
+        Number(
+          childGrid.zIndex ??
+            10,
+        ),
+      ),
 
-    overflow: "visible",
+    overflow:
+      "visible",
+
+    pointerEvents:
+      "auto",
+
+    boxSizing:
+      "border-box",
   };
 }
 
@@ -1585,27 +1649,36 @@ function getSlideOverlayStyle(
   {/* BLOCKS ATTACHED TO THIS SLIDE */}
   {/* ========================================================== */}
 
-{!isBuilder && renderOverlayBlock
-  ? activeSlideBlocks.map(
+{!isBuilder &&
+renderOverlayBlock &&
+activeSlideBlocks.length > 0 ? (
+  <div
+    className="pointer-events-none absolute inset-0 z-20 overflow-visible"
+    data-content-panel-overlay-layer="true"
+  >
+    {activeSlideBlocks.map(
       (slideBlock) => (
         <div
           key={slideBlock.id}
           data-content-panel-overlay-block-id={
             slideBlock.id
           }
-          style={getSlideOverlayStyle(
-            slideBlock,
-          )}
+          style={
+            getSlideOverlayStyle(
+              slideBlock,
+            )
+          }
         >
-          <div className="h-full w-full">
+          <div className="pointer-events-auto h-full w-full">
             {renderOverlayBlock(
               slideBlock,
             )}
           </div>
         </div>
       ),
-    )
-  : null}
+    )}
+  </div>
+) : null}
 </div>
 
         {/* ======================================================== */}
