@@ -2710,54 +2710,107 @@ export type PostBoardBlock = BaseBlock & {
   };
 };
 
-export type ContentPanelContentStyle = "plain_text" | "list_grid";
+export type ContentPanelContentStyle =
+  | "plain_text"
+  | "list_grid";
+
+export type ContentPanelStyleVariant =
+  | "standard"
+  | "slideshow";
+
+export type ContentPanelSlideshowMode =
+  | "automatic"
+  | "manual";
+
+export type ContentPanelSlideDirection =
+  | "left"
+  | "right";
 
 export type ContentPanelGridCell = {
   id: string;
+
   type?: "text" | "image";
+
   value?: string;
+
   imageUrl?: string;
+
   imageStoragePath?: string;
+
   imageAlt?: string;
 };
 
 export type ContentPanelGridColumn = {
   id: string;
+
   label: string;
+
   type?: "text" | "image";
 };
 
 export type ContentPanelGridRow = {
   id: string;
+
   cells: ContentPanelGridCell[];
 };
 
 export type ContentPanelGrid = {
   columns: ContentPanelGridColumn[];
+
   rows: ContentPanelGridRow[];
+
   showRowLines?: boolean;
+
   showColumnLines?: boolean;
+
   showHeaderRow?: boolean;
+
   freezeHeaderRow?: boolean;
 };
 
 export type ContentPanel = {
   id: string;
+
   title: string;
+
   subtitle?: string;
+
   content?: string;
+
   contentStyle?: ContentPanelContentStyle;
+
   grid?: ContentPanelGrid;
+
   imageUrl?: string;
+
   imageStoragePath?: string;
+
   imageAlt?: string;
-  imagePosition?: "above" | "below" | "left" | "right";
+
+  imagePosition?:
+    | "above"
+    | "below"
+    | "left"
+    | "right";
+
+  /*
+   * Optional navigation metadata.
+   *
+   * Standard mode can use these in tabs/sidebar/cards/etc.
+   * Slideshow mode can use them for slide indicators/navigation.
+   */
   badge?: string;
+
   icon?: string;
+
   featured?: boolean;
 };
 
-export type ContentPanelsVariant = "tabs" | "sidebar" | "cards" | "accordion";
+export type ContentPanelsVariant =
+  | "tabs"
+  | "sidebar"
+  | "cards"
+  | "accordion";
 
 export type ContentPanelsTransition =
   | "none"
@@ -2769,26 +2822,131 @@ export type ContentPanelsTransition =
 
 export type ContentPanelBlock = BaseBlock & {
   type: "content_panel";
+
   data: {
+    /*
+     * ============================================================
+     * STYLE VARIANT
+     * ============================================================
+     */
+
+    styleVariant?:
+      | "standard"
+      | "slideshow";
+
+    /*
+     * ============================================================
+     * SHARED CONTENT
+     * ============================================================
+     */
+
     heading?: string;
     subtitle?: string;
+
     showHeading?: boolean;
     showSubtitle?: boolean;
+
+    /*
+     * Existing Standard Content Panel layout.
+     */
     variant: ContentPanelsVariant;
+
     transition: ContentPanelsTransition;
+
     defaultPanelId?: string;
+
     rememberSelection?: boolean;
+
     autoHeight?: boolean;
+
     fixedHeight?: number;
+
     panels: ContentPanel[];
+
+    /*
+     * ============================================================
+     * SLIDE SHOW
+     * ============================================================
+     */
+
+    slideshowMode?:
+      | "automatic"
+      | "manual";
+
+    /*
+     * Seconds between automatic slides.
+     */
+    slideshowInterval?: number;
+
+    slideshowDirection?:
+      | "left"
+      | "right";
+
+    slideshowLoop?: boolean;
+
+    slideshowShowArrows?: boolean;
+
+    slideshowShowIndicators?: boolean;
+
+    /*
+     * Builder-only editing selection.
+     */
+    editingPanelId?: string;
+
+    /*
+     * ============================================================
+     * TEXT / APPEARANCE
+     * ============================================================
+     */
+
     style?: TextStyle;
+
     headingStyle?: TextStyle;
+
     subtitleStyle?: TextStyle;
-    navigationStyle?: Record<string, any>;
-    panelStyle?: Record<string, any>;
+
+    navigationStyle?: Record<
+      string,
+      any
+    >;
+
+    activeNavigationStyle?: Record<
+      string,
+      any
+    >;
+
+    inactiveNavigationStyle?: Record<
+      string,
+      any
+    >;
+
+    panelStyle?: Record<
+      string,
+      any
+    >;
+
+    slideshowControlStyle?: Record<
+      string,
+      any
+    >;
+
+    slideshowIndicatorStyle?: Record<
+      string,
+      any
+    >;
+
     activeNavigationBackground?: string;
+
     activeNavigationColor?: string;
+
     inactiveNavigationBackground?: string;
+
+    inactiveNavigationColor?: string;
+
+    navigationBackground?: string;
+
+    navigationColor?: string;
+
     panelBackground?: string;
   };
 };
@@ -6552,7 +6710,7 @@ steps: [
     id: makeId("processstep"),
     number: "02",
 
-    icon: "📌",
+    icon: "",
     iconUrl: "",
     iconSize: 28,
 
@@ -8984,120 +9142,387 @@ showState: true,
       },
     },
   };
-  case "content_panel":
-      return {
-        id: makeId("contentpanel"),
-        type: "content_panel",
-        label: "Content Panel",
-        grid: {
-          ...grid,
-          colSpan: 6,
-          rowSpan: 6,
+case "content_panel":
+  return {
+    id: makeId("contentpanel"),
+
+    type: "content_panel",
+
+    label: "Content Panel",
+
+    grid: {
+      ...grid,
+      colSpan: 6,
+      rowSpan: 6,
+    },
+
+    appearance:
+      createDefaultBlockAppearance(),
+
+    data: {
+      /*
+       * ==========================================================
+       * STYLE VARIANT
+       * ==========================================================
+       */
+
+      styleVariant:
+        "standard",
+
+      /*
+       * ==========================================================
+       * SHARED
+       * ==========================================================
+       */
+
+      heading:
+        "Information Hub",
+
+      subtitle:
+        "Explore each section below.",
+
+      showHeading:
+        true,
+
+      showSubtitle:
+        true,
+
+      /*
+       * Standard variant
+       */
+      variant:
+        "tabs",
+
+      transition:
+        "fade",
+
+      rememberSelection:
+        false,
+
+      autoHeight:
+        true,
+
+      fixedHeight:
+        420,
+
+      /*
+       * ==========================================================
+       * SLIDE SHOW
+       * ==========================================================
+       */
+
+      slideshowMode:
+        "manual",
+
+      slideshowInterval:
+        5,
+
+      slideshowDirection:
+        "left",
+
+      slideshowLoop:
+        true,
+
+      slideshowShowArrows:
+        true,
+
+      slideshowShowIndicators:
+        true,
+
+      editingPanelId:
+        "",
+
+      /*
+       * ==========================================================
+       * PANELS / SLIDES
+       * ==========================================================
+       */
+
+      panels: [
+        {
+          id:
+            makeId("panel"),
+
+          title:
+            "Overview",
+
+          subtitle:
+            "Start here",
+
+          content:
+            "Use this panel to introduce your event, guide, menu, resources, or important details.",
+
+          contentStyle:
+            "plain_text",
+
+          grid: {
+            showRowLines:
+              false,
+
+            showColumnLines:
+              false,
+
+            showHeaderRow:
+              true,
+
+            freezeHeaderRow:
+              true,
+
+            columns: [
+              {
+                id:
+                  makeId("col"),
+
+                label:
+                  "Item",
+
+                type:
+                  "text",
+              },
+
+              {
+                id:
+                  makeId("col"),
+
+                label:
+                  "Details",
+
+                type:
+                  "text",
+              },
+            ],
+
+            rows: [
+              {
+                id:
+                  makeId("row"),
+
+                cells: [
+                  {
+                    id:
+                      makeId("cell"),
+
+                    type:
+                      "text",
+
+                    value:
+                      "Example item",
+                  },
+
+                  {
+                    id:
+                      makeId("cell"),
+
+                    type:
+                      "text",
+
+                    value:
+                      "Example details",
+                  },
+                ],
+              },
+            ],
+          },
+
+          imagePosition:
+            "above",
+
+          icon:
+            "",
+
+          badge:
+            "",
         },
-        appearance: createDefaultBlockAppearance(),
-        data: {
-          heading: "Information Hub",
-          subtitle: "Explore each section below.",
-          showHeading: true,
-          showSubtitle: true,
-          variant: "tabs",
-          transition: "fade",
-          rememberSelection: false,
-          autoHeight: true,
-          fixedHeight: 420,
-          panels: [
-{
-  id: makeId("panel"),
-  title: "Overview",
-  subtitle: "Start here",
-  content:
-    "Use this panel to introduce your event, guide, menu, resources, or important details.",
-  contentStyle: "plain_text",
-  grid: {
-    showRowLines: false,
-    showColumnLines: false,
-    showHeaderRow: true,
-    freezeHeaderRow: true,
-    columns: [
-      { id: makeId("col"), label: "Item", type: "text" },
-      { id: makeId("col"), label: "Details", type: "text" },
-    ],
-    rows: [
-      {
-        id: makeId("row"),
-        cells: [
-          { id: makeId("cell"), type: "text", value: "Example item" },
-          { id: makeId("cell"), type: "text", value: "Example details" },
-        ],
-      },
-    ],
-  },
-  imagePosition: "above",
-  icon: "✨",
-  badge: "",
-},
-{
-  id: makeId("panel"),
-  title: "Details",
-  subtitle: "Helpful information",
-  content:
-    "Add schedules, instructions, frequently asked questions, resources, or next steps.",
-  contentStyle: "plain_text",
-  grid: {
-    showRowLines: false,
-    showColumnLines: false,
-    showHeaderRow: true,
-    freezeHeaderRow: true,
-    columns: [
-      { id: makeId("col"), label: "Item", type: "text" },
-      { id: makeId("col"), label: "Details", type: "text" },
-    ],
-    rows: [
-      {
-        id: makeId("row"),
-        cells: [
-          { id: makeId("cell"), type: "text", value: "Example item" },
-          { id: makeId("cell"), type: "text", value: "Example details" },
-        ],
-      },
-    ],
-  },
-  imagePosition: "above",
-  icon: "📌",
-  badge: "",
-},
-          ],
 
-          style: createDefaultTextStyle(),
+        {
+          id:
+            makeId("panel"),
 
-headingStyle: {
-  ...createDefaultTextStyle(),
-  fontSize: 20,
-  bold: false,
-},
+          title:
+            "Details",
 
-          subtitleStyle: {
-            ...createDefaultTextStyle(),
-            fontSize: 14,
-            color: "#6B7280",
+          subtitle:
+            "Helpful information",
+
+          content:
+            "Add schedules, instructions, frequently asked questions, resources, or next steps.",
+
+          contentStyle:
+            "plain_text",
+
+          grid: {
+            showRowLines:
+              false,
+
+            showColumnLines:
+              false,
+
+            showHeaderRow:
+              true,
+
+            freezeHeaderRow:
+              true,
+
+            columns: [
+              {
+                id:
+                  makeId("col"),
+
+                label:
+                  "Item",
+
+                type:
+                  "text",
+              },
+
+              {
+                id:
+                  makeId("col"),
+
+                label:
+                  "Details",
+
+                type:
+                  "text",
+              },
+            ],
+
+            rows: [
+              {
+                id:
+                  makeId("row"),
+
+                cells: [
+                  {
+                    id:
+                      makeId("cell"),
+
+                    type:
+                      "text",
+
+                    value:
+                      "Example item",
+                  },
+
+                  {
+                    id:
+                      makeId("cell"),
+
+                    type:
+                      "text",
+
+                    value:
+                      "Example details",
+                  },
+                ],
+              },
+            ],
           },
 
-          navigationStyle: {
-            ...createDefaultTextStyle(),
-            bold: true,
-          },
+          imagePosition:
+            "above",
 
-          panelStyle: {
-            ...createDefaultTextStyle(),
-          },
+          icon:
+            "",
 
-          activeNavigationBackground: "#dbeafe",
-          activeNavigationColor: "#1d4ed8",
-          inactiveNavigationBackground: "#ffffff",
-          panelBackground: "#f9fafb",
+          badge:
+            "",
         },
-      };
+      ],
 
+      /*
+       * ==========================================================
+       * TEXT / APPEARANCE
+       * ==========================================================
+       */
+
+      style:
+        createDefaultTextStyle(),
+
+      headingStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 20,
+        bold: false,
+      },
+
+      subtitleStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        color: "#6B7280",
+      },
+
+      navigationStyle: {
+        ...createDefaultTextStyle(),
+        bold: true,
+      },
+
+      activeNavigationStyle: {
+        ...createDefaultTextStyle(),
+        bold: true,
+      },
+
+      inactiveNavigationStyle: {
+        ...createDefaultTextStyle(),
+        bold: true,
+      },
+
+      panelStyle: {
+        ...createDefaultTextStyle(),
+      },
+
+      slideshowControlStyle: {
+        backgroundColor:
+          "rgba(17,24,39,0.72)",
+
+        borderColor:
+          "rgba(255,255,255,0.28)",
+
+        borderWidth:
+          1,
+
+        borderRadius:
+          9999,
+
+        color:
+          "#ffffff",
+      },
+
+      slideshowIndicatorStyle: {
+        backgroundColor:
+          "rgba(255,255,255,0.42)",
+
+        activeBackgroundColor:
+          "#ffffff",
+
+        size:
+          8,
+
+        gap:
+          6,
+      },
+
+      activeNavigationBackground:
+        "#dbeafe",
+
+      activeNavigationColor:
+        "#1d4ed8",
+
+      inactiveNavigationBackground:
+        "#ffffff",
+
+      inactiveNavigationColor:
+        "#111827",
+
+      navigationBackground:
+        "#ffffff",
+
+      navigationColor:
+        "#111827",
+
+      panelBackground:
+        "#f9fafb",
+    },
+  };
       case "rich_text":
       return {
         id: makeId("richtext"),
@@ -10526,7 +10951,7 @@ if (block.type === "content_panel") {
             imageAlt: "",
             imagePosition: "above" as const,
             badge: "",
-            icon: "✨",
+            icon: "",
             featured: false,
           },
         ];

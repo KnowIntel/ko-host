@@ -1,6 +1,15 @@
 "use client";
 
-import type { Dispatch, SetStateAction } from "react";
+
+import {
+  useState,
+} from "react";
+
+import type {
+  Dispatch,
+  SetStateAction,
+} from "react";
+
 import type {
   ContentPanelStyleTarget,
   ContentPanelTextTarget,
@@ -46,28 +55,173 @@ contentPanelStyleTarget,
 setContentPanelStyleTarget,
 CATEGORY_BUTTONS,
 }: ContentPanelInspectorProps) {
+
+  const isSlideshow =
+  selectedBlock.data.styleVariant ===
+  "slideshow";
+
+const panels =
+  Array.isArray(
+    selectedBlock.data.panels,
+  )
+    ? selectedBlock.data.panels
+    : [];
+
+const fallbackEditingPanelId =
+  panels[0]?.id ?? "";
+
+const editingPanelId =
+  panels.some(
+    (panel: any) =>
+      panel.id ===
+      selectedBlock.data.editingPanelId,
+  )
+    ? selectedBlock.data.editingPanelId
+    : fallbackEditingPanelId;
+
+const panelsToRender =
+  isSlideshow
+    ? panels
+        .map(
+          (
+            panel: any,
+            panelIndex: number,
+          ) => ({
+            panel,
+            panelIndex,
+          }),
+        )
+        .filter(
+          ({ panel }: any) =>
+            panel.id ===
+            editingPanelId,
+        )
+    : panels.map(
+        (
+          panel: any,
+          panelIndex: number,
+        ) => ({
+          panel,
+          panelIndex,
+        }),
+      );
+
+const [
+  iconSearchByPanel,
+  setIconSearchByPanel,
+] = useState<
+  Record<string, string>
+>({});
+
   return (
     <div id="inspector-content-panel" className={inspectorCardClass()}>
       {/* Content Panel */}
     <div className={inspectorLabelClass()}>Content Panel</div>
 
 <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
-  <div className={inspectorLabelClass()}>Formatting</div>
+  <div className={inspectorLabelClass()}>
+    Formatting
+  </div>
 
   <div className="mt-3">
-    <div className={inspectorLabelClass()}>Text Target</div>
+    <div className={inspectorLabelClass()}>
+      Text Target
+    </div>
+
     <select
       value={contentPanelTextTarget}
       onChange={(e) =>
-        setContentPanelTextTarget(e.target.value as ContentPanelTextTarget)
+        setContentPanelTextTarget(
+          e.target.value as ContentPanelTextTarget,
+        )
       }
       className={inspectorInputClass()}
     >
-      <option value="heading">Heading</option>
-      <option value="subtitle">Subtitle</option>
-      <option value="activeNavigation">Active Navigation</option>
-      <option value="inactiveNavigation">Inactive Navigation</option>
-      <option value="content">Content</option>
+      <option value="heading">
+        Heading
+      </option>
+
+      <option value="subtitle">
+        Subtitle
+      </option>
+
+      <option value="activeNavigation">
+        Active Navigation
+      </option>
+
+      <option value="inactiveNavigation">
+        Inactive Navigation
+      </option>
+
+      <option value="content">
+        Content
+      </option>
+    </select>
+  </div>
+
+  {/* ============================================================ */}
+  {/* STYLE VARIANT */}
+  {/* ============================================================ */}
+
+  <div className="mt-4">
+    <div className={inspectorLabelClass()}>
+      Style Variant
+    </div>
+
+    <select
+      value={
+        selectedBlock.data.styleVariant ??
+        "standard"
+      }
+      onChange={(e) =>
+        updateSelectedBlock(
+          (block: any) => {
+            if (
+              block.type !==
+              "content_panel"
+            ) {
+              return block;
+            }
+
+            const styleVariant =
+              e.target.value as
+                | "standard"
+                | "slideshow";
+
+            return {
+              ...block,
+
+              data: {
+                ...block.data,
+
+                styleVariant,
+
+                ...(styleVariant ===
+                "slideshow"
+                  ? {
+                      editingPanelId:
+                        block.data
+                          .editingPanelId ??
+                        block.data
+                          .panels?.[0]
+                          ?.id ??
+                        "",
+                    }
+                  : {}),
+              },
+            };
+          },
+        )
+      }
+      className={inspectorInputClass()}
+    >
+      <option value="standard">
+        Standard
+      </option>
+
+      <option value="slideshow">
+        Slide Show
+      </option>
     </select>
   </div>
 
@@ -178,144 +332,535 @@ CATEGORY_BUTTONS,
       </label>
     </div>
 
+{!isSlideshow ? (
+  <>
+    {/* ============================================================ */}
+    {/* STANDARD SETTINGS */}
+    {/* ============================================================ */}
+
     <div className="mt-4">
-      <div className={inspectorLabelClass()}>Panel Style</div>
+      <div className={inspectorLabelClass()}>
+        Panel Style
+      </div>
+
       <select
-        value={selectedBlock.data.variant ?? "tabs"}
+        value={
+          selectedBlock.data.variant ??
+          "tabs"
+        }
         onChange={(e) =>
-          updateSelectedBlock((block: any) =>
-            block.type !== "content_panel"
-              ? block
-              : {
-                  ...block,
-                  data: {
-                    ...block.data,
-                    variant: e.target.value as
-                      | "tabs"
-                      | "sidebar"
-                      | "cards"
-                      | "accordion",
+          updateSelectedBlock(
+            (block: any) =>
+              block.type !==
+              "content_panel"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      variant:
+                        e.target.value as
+                          | "tabs"
+                          | "sidebar"
+                          | "cards"
+                          | "accordion",
+                    },
                   },
-                },
           )
         }
         className={inspectorInputClass()}
       >
-        <option value="tabs">Tabs</option>
-        <option value="sidebar">Sidebar</option>
-        <option value="cards">Cards</option>
-        <option value="accordion">Accordion</option>
+        <option value="tabs">
+          Tabs
+        </option>
+
+        <option value="sidebar">
+          Sidebar
+        </option>
+
+        <option value="cards">
+          Cards
+        </option>
+
+        <option value="accordion">
+          Accordion
+        </option>
       </select>
     </div>
 
     <div className="mt-4">
-      <div className={inspectorLabelClass()}>Transition</div>
+      <div className={inspectorLabelClass()}>
+        Transition
+      </div>
+
       <select
-        value={selectedBlock.data.transition ?? "fade"}
+        value={
+          selectedBlock.data.transition ??
+          "fade"
+        }
         onChange={(e) =>
-          updateSelectedBlock((block: any) =>
-            block.type !== "content_panel"
-              ? block
-              : {
-                  ...block,
-                  data: {
-                    ...block.data,
-                    transition: e.target.value as
-                      | "none"
-                      | "fade"
-                      | "slide_left"
-                      | "slide_right"
-                      | "flip"
-                      | "scale",
+          updateSelectedBlock(
+            (block: any) =>
+              block.type !==
+              "content_panel"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      transition:
+                        e.target.value as
+                          | "none"
+                          | "fade"
+                          | "slide_left"
+                          | "slide_right"
+                          | "flip"
+                          | "scale",
+                    },
                   },
-                },
           )
         }
         className={inspectorInputClass()}
       >
-        <option value="none">None</option>
-        <option value="fade">Fade</option>
-        <option value="slide_left">Slide Left</option>
-        <option value="slide_right">Slide Right</option>
-        <option value="flip">Flip</option>
-        <option value="scale">Scale</option>
+        <option value="none">
+          None
+        </option>
+
+        <option value="fade">
+          Fade
+        </option>
+
+        <option value="slide_left">
+          Slide Left
+        </option>
+
+        <option value="slide_right">
+          Slide Right
+        </option>
+
+        <option value="flip">
+          Flip
+        </option>
+
+        <option value="scale">
+          Scale
+        </option>
       </select>
     </div>
 
-    <div className="mt-4 grid grid-cols-2 gap-2">
+    <div className="mt-4">
       <label className="flex items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm">
         <input
           type="checkbox"
-          checked={Boolean(selectedBlock.data.rememberSelection)}
+          checked={Boolean(
+            selectedBlock.data
+              .rememberSelection,
+          )}
           onChange={(e) =>
-            updateSelectedBlock((block: any) =>
-              block.type !== "content_panel"
-                ? block
-                : {
-                    ...block,
-                    data: {
-                      ...block.data,
-                      rememberSelection: e.target.checked,
+            updateSelectedBlock(
+              (block: any) =>
+                block.type !==
+                "content_panel"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        rememberSelection:
+                          e.target.checked,
+                      },
                     },
-                  },
             )
           }
         />
-        Remember
-      </label>
 
-      <label className="flex items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm">
-        <input
-          type="checkbox"
-          checked={selectedBlock.data.autoHeight !== false}
-          onChange={(e) =>
-            updateSelectedBlock((block: any) =>
-              block.type !== "content_panel"
-                ? block
-                : {
-                    ...block,
-                    data: {
-                      ...block.data,
-                      autoHeight: e.target.checked,
-                    },
-                  },
-            )
-          }
-        />
-        Auto Height
+        Remember Selection
       </label>
     </div>
+  </>
+) : (
+  <>
+    {/* ============================================================ */}
+    {/* SLIDE SHOW SETTINGS */}
+    {/* ============================================================ */}
 
-    {selectedBlock.data.autoHeight === false ? (
-      <div className="mt-4">
-        <div className={inspectorLabelClass()}>Fixed Height</div>
-        <input
-          type="number"
-          min={180}
-          max={900}
-          value={selectedBlock.data.fixedHeight ?? 420}
+    <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+      <div className={inspectorLabelClass()}>
+        Slide Show
+      </div>
+
+      <div className="mt-3">
+        <div className={inspectorLabelClass()}>
+          Playback
+        </div>
+
+        <select
+          value={
+            selectedBlock.data
+              .slideshowMode ??
+            "manual"
+          }
           onChange={(e) =>
-            updateSelectedBlock((block: any) =>
-              block.type !== "content_panel"
-                ? block
-                : {
-                    ...block,
-                    data: {
-                      ...block.data,
-                      fixedHeight: Number(e.target.value),
+            updateSelectedBlock(
+              (block: any) =>
+                block.type !==
+                "content_panel"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        slideshowMode:
+                          e.target.value as
+                            | "automatic"
+                            | "manual",
+                      },
                     },
-                  },
             )
           }
           className={inspectorInputClass()}
-        />
+        >
+          <option value="automatic">
+            Automatic
+          </option>
+
+          <option value="manual">
+            Manual
+          </option>
+        </select>
       </div>
-    ) : null}
+
+      {selectedBlock.data
+        .slideshowMode ===
+      "automatic" ? (
+        <div className="mt-3">
+          <div className={inspectorLabelClass()}>
+            Time Between Slides
+          </div>
+
+          <div className="mt-2 flex items-center gap-2">
+            <input
+              type="number"
+              min={1}
+              max={120}
+              step={1}
+              value={
+                selectedBlock.data
+                  .slideshowInterval ??
+                5
+              }
+              onChange={(e) =>
+                updateSelectedBlock(
+                  (block: any) =>
+                    block.type !==
+                    "content_panel"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            slideshowInterval:
+                              Math.max(
+                                1,
+                                Math.min(
+                                  120,
+                                  Number(
+                                    e.target.value,
+                                  ) || 5,
+                                ),
+                              ),
+                          },
+                        },
+                )
+              }
+              className={inspectorInputClass()}
+            />
+
+            <span className="shrink-0 text-xs text-neutral-500">
+              seconds
+            </span>
+          </div>
+        </div>
+      ) : null}
+
+      <div className="mt-3">
+        <div className={inspectorLabelClass()}>
+          Slide Direction
+        </div>
+
+        <select
+          value={
+            selectedBlock.data
+              .slideshowDirection ??
+            "left"
+          }
+          onChange={(e) =>
+            updateSelectedBlock(
+              (block: any) =>
+                block.type !==
+                "content_panel"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        slideshowDirection:
+                          e.target.value as
+                            | "left"
+                            | "right",
+                      },
+                    },
+            )
+          }
+          className={inspectorInputClass()}
+        >
+          <option value="left">
+            Slide Left
+          </option>
+
+          <option value="right">
+            Slide Right
+          </option>
+        </select>
+      </div>
+
+      <div className="mt-3 grid grid-cols-1 gap-2">
+        <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-white px-3 py-3 text-sm">
+          <input
+            type="checkbox"
+            checked={
+              selectedBlock.data
+                .slideshowLoop !==
+              false
+            }
+            onChange={(e) =>
+              updateSelectedBlock(
+                (block: any) =>
+                  block.type !==
+                  "content_panel"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          slideshowLoop:
+                            e.target.checked,
+                        },
+                      },
+              )
+            }
+          />
+
+          Loop Slides
+        </label>
+
+        <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-white px-3 py-3 text-sm">
+          <input
+            type="checkbox"
+            checked={
+              selectedBlock.data
+                .slideshowShowArrows !==
+              false
+            }
+            onChange={(e) =>
+              updateSelectedBlock(
+                (block: any) =>
+                  block.type !==
+                  "content_panel"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          slideshowShowArrows:
+                            e.target.checked,
+                        },
+                      },
+              )
+            }
+          />
+
+          Show Previous / Next Buttons
+        </label>
+
+        <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-white px-3 py-3 text-sm">
+          <input
+            type="checkbox"
+            checked={
+              selectedBlock.data
+                .slideshowShowIndicators !==
+              false
+            }
+            onChange={(e) =>
+              updateSelectedBlock(
+                (block: any) =>
+                  block.type !==
+                  "content_panel"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          slideshowShowIndicators:
+                            e.target.checked,
+                        },
+                      },
+              )
+            }
+          />
+
+          Show Slide Indicators
+        </label>
+      </div>
+    </div>
+
+    {/* ============================================================ */}
+    {/* EDIT SLIDE */}
+    {/* ============================================================ */}
+
+    <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+      <div className={inspectorLabelClass()}>
+        Edit Slide
+      </div>
+
+      <select
+        value={editingPanelId}
+        onChange={(e) =>
+          updateSelectedBlock(
+            (block: any) =>
+              block.type !==
+              "content_panel"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      editingPanelId:
+                        e.target.value,
+                    },
+                  },
+          )
+        }
+        className={inspectorInputClass()}
+      >
+        {panels.map(
+          (
+            panel: any,
+            index: number,
+          ) => (
+            <option
+              key={panel.id}
+              value={panel.id}
+            >
+              {`Slide ${index + 1}${
+                panel.title
+                  ? ` — ${panel.title}`
+                  : ""
+              }`}
+            </option>
+          ),
+        )}
+      </select>
+
+      <div className="mt-2 text-xs text-neutral-500">
+        Select the slide whose content you want to edit below.
+      </div>
+    </div>
+  </>
+)}
+
+{/* ============================================================ */}
+{/* HEIGHT */}
+{/* ============================================================ */}
+
+<div className="mt-4">
+  <label className="flex items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm">
+    <input
+      type="checkbox"
+      checked={
+        selectedBlock.data
+          .autoHeight !==
+        false
+      }
+      onChange={(e) =>
+        updateSelectedBlock(
+          (block: any) =>
+            block.type !==
+            "content_panel"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    autoHeight:
+                      e.target.checked,
+                  },
+                },
+        )
+      }
+    />
+
+    Auto Height
+  </label>
+</div>
+
+{selectedBlock.data
+  .autoHeight === false ? (
+  <div className="mt-4">
+    <div className={inspectorLabelClass()}>
+      Fixed Height
+    </div>
+
+    <input
+      type="number"
+      min={180}
+      max={2000}
+      value={
+        selectedBlock.data
+          .fixedHeight ??
+        420
+      }
+      onChange={(e) =>
+        updateSelectedBlock(
+          (block: any) =>
+            block.type !==
+            "content_panel"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    fixedHeight:
+                      Math.max(
+                        180,
+                        Number(
+                          e.target.value,
+                        ) || 420,
+                      ),
+                  },
+                },
+        )
+      }
+      className={inspectorInputClass()}
+    />
+  </div>
+) : null}
 
     <div className="mt-5 space-y-3">
-      <div className={inspectorLabelClass()}>Panels</div>
+      <div className={inspectorLabelClass()}>
+  {isSlideshow
+    ? `Slides (${panels.length})`
+    : `Panels (${panels.length})`}
+</div>
 
-      {selectedBlock.data.panels.map((panel: any, panelIndex: number) => {
+      {panelsToRender.map(
+  ({
+    panel,
+    panelIndex,
+  }: {
+    panel: any;
+    panelIndex: number;
+  }) => {
         const safeGrid = {
           columns: panel.grid?.columns ?? [
             { id: makeClientId("col"), label: "Item", type: "text" as const },
@@ -342,9 +887,11 @@ CATEGORY_BUTTONS,
             className="rounded-xl border border-neutral-200 bg-neutral-50 p-3"
           >
             <div className="flex items-center justify-between gap-2">
-              <div className="text-xs font-semibold text-neutral-700">
-                Panel {panelIndex + 1}
-              </div>
+<div className="text-xs font-semibold text-neutral-700">
+  {isSlideshow
+    ? `Slide ${panelIndex + 1}`
+    : `Panel ${panelIndex + 1}`}
+</div>
 
               <div className="flex gap-1">
                 <button
@@ -1226,39 +1773,140 @@ CATEGORY_BUTTONS,
 
             <div className="mt-3 grid grid-cols-2 gap-2">
 <div>
-  <div className={inspectorLabelClass()}>Icon</div>
+  <div className={inspectorLabelClass()}>
+    Icon
+  </div>
 
-  <div className="flex gap-2">
+  <input
+    type="search"
+    value={
+      iconSearchByPanel[
+        panel.id
+      ] ?? ""
+    }
+    onChange={(e) =>
+      setIconSearchByPanel(
+        (current) => ({
+          ...current,
+
+          [panel.id]:
+            e.target.value,
+        }),
+      )
+    }
+    className={inspectorInputClass()}
+    placeholder="Search icons..."
+  />
+
+  <div className="mt-2 flex gap-2">
     <select
-      value={panel.icon ?? ""}
+      value={
+        panel.icon ??
+        ""
+      }
       onChange={(e) =>
-        updateSelectedBlock((block: any) =>
-          block.type !== "content_panel"
-            ? block
-            : {
-                ...block,
-                data: {
-                  ...block.data,
-                  panels: block.data.panels.map((item: any) =>
-                    item.id === panel.id
-                      ? { ...item, icon: e.target.value || undefined }
-                      : item,
-                  ),
+        updateSelectedBlock(
+          (block: any) =>
+            block.type !==
+            "content_panel"
+              ? block
+              : {
+                  ...block,
+
+                  data: {
+                    ...block.data,
+
+                    panels:
+                      block.data.panels.map(
+                        (
+                          item: any,
+                        ) =>
+                          item.id ===
+                          panel.id
+                            ? {
+                                ...item,
+
+                                icon:
+                                  e
+                                    .target
+                                    .value ||
+                                  undefined,
+                              }
+                            : item,
+                      ),
+                  },
                 },
-              },
         )
       }
       className={inspectorInputClass()}
     >
-      <option value="">No icon</option>
+      <option value="">
+        No icon
+      </option>
 
-      {CATEGORY_BUTTONS.Icons.filter(
-        (tool: any) => tool.kind === "block" && tool.type === "icon",
-      ).map((tool: any) => (
-        <option key={tool.iconName ?? tool.label} value={tool.iconName ?? ""}>
-          {tool.label}
-        </option>
-      ))}
+      {CATEGORY_BUTTONS.Icons
+        .filter(
+          (tool: any) =>
+            tool.kind ===
+              "block" &&
+            tool.type ===
+              "icon",
+        )
+        .filter(
+          (tool: any) => {
+            const search =
+              (
+                iconSearchByPanel[
+                  panel.id
+                ] ?? ""
+              )
+                .trim()
+                .toLowerCase();
+
+            if (!search) {
+              return true;
+            }
+
+            const label =
+              String(
+                tool.label ??
+                  "",
+              ).toLowerCase();
+
+            const iconName =
+              String(
+                tool.iconName ??
+                  "",
+              ).toLowerCase();
+
+            return (
+              label.includes(
+                search,
+              ) ||
+              iconName.includes(
+                search,
+              )
+            );
+          },
+        )
+        .map(
+          (tool: any) => (
+            <option
+              key={
+                tool.iconName ??
+                tool.label
+              }
+              value={
+                tool.iconName ??
+                ""
+              }
+            >
+              {
+                tool.label
+              }
+            </option>
+          ),
+        )}
     </select>
 
     {panel.icon ? (
@@ -1266,20 +1914,34 @@ CATEGORY_BUTTONS,
         type="button"
         className="h-10 rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-700 hover:bg-neutral-50"
         onClick={() =>
-          updateSelectedBlock((block: any) =>
-            block.type !== "content_panel"
-              ? block
-              : {
-                  ...block,
-                  data: {
-                    ...block.data,
-                    panels: block.data.panels.map((item: any) =>
-                      item.id === panel.id
-                        ? { ...item, icon: undefined }
-                        : item,
-                    ),
+          updateSelectedBlock(
+            (block: any) =>
+              block.type !==
+              "content_panel"
+                ? block
+                : {
+                    ...block,
+
+                    data: {
+                      ...block.data,
+
+                      panels:
+                        block.data.panels.map(
+                          (
+                            item: any,
+                          ) =>
+                            item.id ===
+                            panel.id
+                              ? {
+                                  ...item,
+
+                                  icon:
+                                    undefined,
+                                }
+                              : item,
+                        ),
+                    },
                   },
-                },
           )
         }
         title="Remove icon"
@@ -1496,9 +2158,15 @@ CATEGORY_BUTTONS,
                       ...block.data.panels,
                       {
                         id: makeClientId("panel"),
-                        title: "New Panel",
+                        title:
+  block.data.styleVariant === "slideshow"
+    ? `Slide ${(block.data.panels?.length ?? 0) + 1}`
+    : "New Panel",
                         subtitle: "",
-                        content: "Add your panel content here.",
+                        content:
+  block.data.styleVariant === "slideshow"
+    ? "Add your slide content here."
+    : "Add your panel content here.",
                         contentStyle: "plain_text",
                         grid: {
                           showRowLines: false,
@@ -1536,7 +2204,7 @@ CATEGORY_BUTTONS,
                           ],
                         },
                         imagePosition: "above",
-                        icon: "📌",
+                        icon: "",
                         badge: "",
                       },
                     ],
@@ -1545,7 +2213,9 @@ CATEGORY_BUTTONS,
           )
         }
       >
-        Add Panel
+        {isSlideshow
+  ? "Add Slide"
+  : "Add Panel"}
       </button>
     </div>
     </div>
