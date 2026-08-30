@@ -11993,6 +11993,20 @@ if (block.type === "formula_board") {
   );
 }
 
+if (block.type === "content_panel") {
+  return (
+    <div className="h-full w-full">
+      <BlockRenderer
+        block={block}
+        blocks={draft.blocks}
+        pages={pages}
+        designKey={designKey}
+        isBuilder={true}
+      />
+    </div>
+  );
+}
+
 return (
   <BlockRenderer
     block={block}

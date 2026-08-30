@@ -153,6 +153,7 @@ type FormFieldValueEventDetail = {
 
 type Props = {
   block: MicrositeBlock;
+
   blocks?: MicrositeBlock[];
 
   pages?: Array<{
@@ -163,19 +164,38 @@ type Props = {
   }>;
 
   optionButtonSelections?: Record<string, string[]>;
-  onOptionButtonSelectionChange?: (change: OptionButtonSelectionChange) => void;
+
+  onOptionButtonSelectionChange?: (
+    change: OptionButtonSelectionChange,
+  ) => void;
+
   designKey?: string;
+
   micrositeId?: string | null;
+
   micrositeSlug?: string | null;
+
   serverNow?: number;
+
   previewMode?: boolean;
+
+  isBuilder?: boolean;
+
   cartItems?: CartItem[];
+
   cartSubtotal?: number;
+
   listingQuantities?: Record<string, number>;
-  onChangeListingQuantity?: (listingId: string, nextQuantity: number) => void;
+
+  onChangeListingQuantity?: (
+    listingId: string,
+    nextQuantity: number,
+  ) => void;
+
   onDownloadFrame?: (
     block: Extract<MicrositeBlock, { type: "frame" }>,
   ) => void;
+
   onFocusTimelineEntry?: (
     blockId: string,
     entryId: string,
@@ -32901,6 +32921,7 @@ export default function BlockRenderer({
   micrositeSlug,
   serverNow,
   previewMode = false,
+  isBuilder = false,
   cartItems,
   cartSubtotal,
   listingQuantities,
@@ -33188,14 +33209,15 @@ case "post_board":
       return renderVisitorCounter(block, designKey, micrositeId);
     case "rich_text":
       return renderRichText(block, designKey);
+      
 case "content_panel":
   return (
-<ContentPanelBlock
-  block={block}
-  designKey={designKey}
-  blocks={blocks ?? []}
-  isBuilder={!previewMode}
-  renderOverlayBlock={(overlayBlock) => (
+    <ContentPanelBlock
+      block={block}
+      designKey={designKey}
+      blocks={blocks ?? []}
+      isBuilder={isBuilder}
+      renderOverlayBlock={(overlayBlock) => (
         <BlockRenderer
           block={overlayBlock}
           blocks={blocks}
