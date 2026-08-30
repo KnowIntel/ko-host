@@ -656,7 +656,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
 {
   key: "watch_club",
   title: "Watch Club",
-  description: "Episode schedules, discussions, member updates, and club events.",
+  description: "Episode schedules, discussions, and club events.",
   thumb: "watchclub",
   setupMins: 4,
   demoSlug: "watch-club",
@@ -966,7 +966,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
 {
   key: "sweepstakes",
   title: "Sweepstakes",
-  description: "Promote giveaways, entry details, prizes, and participation rules for a sweepstakes event.",
+  description: "Promote entry details and prizes for a sweepstakes event.",
   thumb: "sweepstakes",
   setupMins: 3,
   demoSlug: "sweepstakes",
@@ -993,7 +993,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     {
     key: "game_day_central",
     title: "Game Day Central",
-    description: "Manage tournaments, schedules, brackets, and team discussions.",
+    description: "Manage schedules, tournaments, and team discussions.",
     thumb: "gamedaycentral",
     setupMins: 2,
     demoSlug: "gameday",
@@ -1047,7 +1047,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
 {
   key: "party_time",
   title: "Party Time",
-  description: "Plan your celebration, share the details, and collect RSVPs in one place.",
+  description: "Plan your celebration and share the details all in one place.",
   thumb: "partytime",
   setupMins: 2,
   demoSlug: "partytime",
@@ -1137,7 +1137,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
   {
   key: "product_showcase",
   title: "Product Showcase",
-  description: "Highlight product features, specifications, and interactive details in a polished presentation.",
+  description: "Highlight product features and specifications in a polished presentation.",
   thumb: "productshowcase",
   setupMins: 2,
   demoSlug: "productshowcase",
@@ -1537,7 +1537,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
 {
   key: "restaurant_menu",
   title: "Menu",
-  description: "Advertise your food selections with menu items, descriptions, and pricing.",
+  description: "Advertise your food selections with items, descriptions, and pricing.",
   thumb: "restaurantmenu",
   setupMins: 3,
   demoSlug: "restaurant",
@@ -1745,7 +1745,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
   key: "newsletter",
   title: "Newsletter",
   description:
-    "Share updates, announcements, stories, highlights, and resources in one polished newsletter.",
+    "Share updates, announcements, highlights, and resources in one polished newsletter.",
   thumb: "newsletters",
   setupMins: 3,
   demoSlug: "newsletter",
@@ -1760,7 +1760,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
   key: "project",
   title: "Project",
   description:
-    "Create a polished project site for school, work, research, presentations, and more.",
+    "Create a polished project site for school, work, and more.",
   thumb: "project",
   setupMins: 3,
   demoSlug: "project",
@@ -1843,7 +1843,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
 {
   key: "mediation",
   title: "Mediation",
-  description: "Organize discussions, agreements, and shared updates in one place.",
+  description: "Organize discussions and shared updates in one place.",
   thumb: "mediation",
   setupMins: 2,
   demoSlug: "mediation",
