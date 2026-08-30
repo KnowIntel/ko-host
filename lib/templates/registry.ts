@@ -893,7 +893,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
   }, */
   {
     key: "school_fundraiser",
-    title: "School Fundraiser",
+    title: "Fundraiser",
     description: "Fundraiser goal, updates, and donation links.",
     thumb: "schoolfundraiser",
     setupMins: 3,
@@ -1536,7 +1536,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
   }, */
 {
   key: "restaurant_menu",
-  title: "Restaurant Menu",
+  title: "Menu",
   description: "Advertise your food selections with menu items, descriptions, and pricing.",
   thumb: "restaurantmenu",
   setupMins: 3,
@@ -1554,7 +1554,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
   }, */
   {
     key: "creator_link_hub",
-    title: "Creator Link Hub",
+    title: "Link Hub",
     description: "One clean page for all your creator links.",
     thumb: "creatorlinkhub",
     setupMins: 2,
@@ -1773,7 +1773,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
 
   {
     key: "guided_tutorial",
-    title: "Guided Tutorial",
+    title: "Tutorial",
     description: "Walk visitors through a process with steps, tips, and resources.",
     thumb: "guidedtutorial",
     setupMins: 3,
@@ -1833,7 +1833,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
 
   {
     key: "enthusiast_networking",
-    title: "Enthusiast Networking",
+    title: "Networking",
     description: "Connect with others who share your interests.",
     thumb: "enthusiastnetworking",
     setupMins: 2,
