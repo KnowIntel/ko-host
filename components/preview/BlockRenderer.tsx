@@ -33190,13 +33190,12 @@ case "post_board":
       return renderRichText(block, designKey);
 case "content_panel":
   return (
-    <ContentPanelBlock
-      block={block}
-      designKey={designKey}
-      blocks={blocks ?? []}
-      renderOverlayBlock={(
-        overlayBlock,
-      ) => (
+<ContentPanelBlock
+  block={block}
+  designKey={designKey}
+  blocks={blocks ?? []}
+  isBuilder={!previewMode}
+  renderOverlayBlock={(overlayBlock) => (
         <BlockRenderer
           block={overlayBlock}
           blocks={blocks}
@@ -33219,7 +33218,7 @@ case "content_panel":
       )}
     />
   );
-  
+
     case "progress_bar":
       return renderProgressBar(block, designKey);
     case "donation":

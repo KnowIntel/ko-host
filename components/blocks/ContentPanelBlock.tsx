@@ -22,6 +22,12 @@ type ContentPanelBlockProps = {
 
   blocks?: MicrositeBlock[];
 
+  /*
+   * True when rendered inside the builder/editor.
+   * In builder mode, editingPanelId controls the visible slide.
+   */
+  isBuilder?: boolean;
+
   renderOverlayBlock?: (
     block: MicrositeBlock,
   ) => React.ReactNode;
@@ -266,6 +272,7 @@ function getBlockAppearanceStyle(
 export default function ContentPanelBlock({
   block,
   blocks = [],
+  isBuilder = false,
   renderOverlayBlock,
 }: ContentPanelBlockProps) {
   const data =
@@ -423,6 +430,7 @@ export default function ContentPanelBlock({
   panelBackground={panelBackground}
   fixedHeight={fixedHeight}
   blocks={blocks}
+  isBuilder={isBuilder}
   renderOverlayBlock={renderOverlayBlock}
 />
     );
@@ -1014,6 +1022,7 @@ function ContentPanelSlideshow({
   panelBackground,
   fixedHeight,
   blocks,
+  isBuilder,
   renderOverlayBlock,
 }: {
   block: ContentPanelBlock;
@@ -1031,6 +1040,8 @@ function ContentPanelSlideshow({
   fixedHeight?: number;
 
   blocks: MicrositeBlock[];
+
+  isBuilder: boolean;
 
   renderOverlayBlock?: (
     block: MicrositeBlock,
@@ -1142,25 +1153,44 @@ function ContentPanelSlideshow({
   /*
    * If the owner changes the default slide, use it.
    */
-  useEffect(() => {
-    const defaultIndex =
-      panels.findIndex(
-        (panel) =>
-          panel.id ===
-          data.defaultPanelId,
-      );
+useEffect(() => {
+  /*
+   * ================================================================
+   * BUILDER SLIDE SYNCHRONIZATION
+   * ================================================================
+   *
+   * While editing, the inspector's Edit Slide selection is the
+   * authoritative visible slide.
+   *
+   * On the public microsite, defaultPanelId remains the initial slide.
+   */
 
-    if (
-      defaultIndex >= 0
-    ) {
-      setActiveIndex(
-        defaultIndex,
-      );
-    }
-  }, [
-    data.defaultPanelId,
-    panels,
-  ]);
+  const requestedPanelId =
+    isBuilder
+      ? data.editingPanelId
+      : data.defaultPanelId;
+
+  const requestedIndex =
+    panels.findIndex(
+      (panel) =>
+        panel.id ===
+        requestedPanelId,
+    );
+
+  if (requestedIndex >= 0) {
+    setActiveIndex(
+      requestedIndex,
+    );
+
+    activeIndexRef.current =
+      requestedIndex;
+  }
+}, [
+  isBuilder,
+  data.editingPanelId,
+  data.defaultPanelId,
+  panels,
+]);
 
   function goToIndex(
     nextIndex: number,
@@ -1251,14 +1281,13 @@ function ContentPanelSlideshow({
    */
 
   useEffect(() => {
-    if (
-      slideshowMode !==
-        "automatic" ||
-      panels.length <=
-        1
-    ) {
-      return;
-    }
+if (
+  isBuilder ||
+  slideshowMode !== "automatic" ||
+  panels.length <= 1
+) {
+  return;
+}
 
     const timer =
       window.setInterval(
@@ -1296,6 +1325,7 @@ function ContentPanelSlideshow({
       );
     };
   }, [
+  isBuilder,
     slideshowMode,
     intervalSeconds,
     slideshowDirection,
