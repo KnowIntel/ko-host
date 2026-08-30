@@ -133,7 +133,7 @@ export type TemplateKey =
   | "course_enrollment"
   | "live_stream_event"
   | "book_club"
-  | "newsletter_signup"
+  // | "newsletter_signup"
   | "moving_sale"
   | "estate_sale_listing"
   | "lost_found_notice"
@@ -343,7 +343,7 @@ function inferFeatures(key: TemplateKey): string[] {
     photo_gallery: ["Gallery", "Highlights", "Share link"],
     stock_trade_thesis: ["Thesis", "Catalysts", "Risk notes"],
     community_poll: ["Poll", "Results", "Updates"],
-    newsletter_signup: ["Signup", "Benefits", "Links"],
+    // newsletter_signup: ["Signup", "Benefits", "Links"],
     focus_group: ["Signup", "Schedule", "Details"],
     chat_room: ["Thread", "Updates", "Links"],
     memory_timeline: ["Milestones", "Gallery", "Notes"],
