@@ -36,11 +36,17 @@ setContentPanelStyleTarget: (target: ContentPanelStyleTarget) => void;
   inspectorTextareaClass: () => string;
 
   toolSetButtonClass: (position?: any) => string;
+
+  removeContentPanelSlide: (
+  contentPanelId: string,
+  slideId: string,
+) => void;
 };
 
 export function ContentPanelInspector({
-  selectedBlock,
-  updateSelectedBlock,
+selectedBlock,
+updateSelectedBlock,
+removeContentPanelSlide,
   makeClientId,
   uploadImageToSelectedBlock,
   inspectorCardClass,
@@ -1003,36 +1009,28 @@ data: {
                   ↓
                 </button>
 
-                <button
-                  type="button"
-                  className={toolSetButtonClass("remove")}
-                  onClick={() =>
-                    updateSelectedBlock((block: any) =>
-                      block.type !== "content_panel"
-                        ? block
-                        : {
-                            ...block,
-                            data: {
-                              ...block.data,
-                              panels:
-                                block.data.panels.length > 1
-                                  ? block.data.panels.filter(
-                                      (item: any) => item.id !== panel.id,
-                                    )
-                                  : block.data.panels,
-                              defaultPanelId:
-                                block.data.defaultPanelId === panel.id
-                                  ? block.data.panels.find(
-                                      (item: any) => item.id !== panel.id,
-                                    )?.id
-                                  : block.data.defaultPanelId,
-                            },
-                          },
-                    )
-                  }
-                >
-                  ×
-                </button>
+<button
+  type="button"
+  className={toolSetButtonClass("remove")}
+  disabled={
+    selectedBlock.data.panels.length <= 1
+  }
+  onClick={() =>
+    removeContentPanelSlide(
+      selectedBlock.id,
+      panel.id,
+    )
+  }
+  title={
+    selectedBlock.data.panels.length <= 1
+      ? "At least one panel or slide is required"
+      : isSlideshow
+        ? "Delete slide"
+        : "Delete panel"
+  }
+>
+  ×
+</button>
               </div>
             </div>
 

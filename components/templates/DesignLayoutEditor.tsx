@@ -2992,13 +2992,20 @@ const activeEditingSlideId =
        * If ownership metadata has become stale, keep the block visible
        * instead of making it impossible for the owner to recover.
        */
-      if (
-        !parent ||
-        parent.type !== "content_panel" ||
-        parent.data.styleVariant !== "slideshow"
-      ) {
-        return true;
-      }
+if (!parent) {
+  /*
+   * Truly orphaned legacy block whose parent no longer exists.
+   * Keep it recoverable on the normal canvas.
+   */
+  return true;
+}
+
+if (
+  parent.type !== "content_panel" ||
+  (parent.data as any).styleVariant !== "slideshow"
+) {
+  return true;
+}
 
 const parentPanels =
   Array.isArray(
@@ -3013,9 +3020,16 @@ const slideStillExists =
       panel.id === slideId,
   );
 
-      if (!slideStillExists) {
-        return true;
-      }
+if (!slideStillExists) {
+  /*
+   * This block still claims ownership by this Content Panel,
+   * but its assigned slide no longer exists.
+   *
+   * Do not let it fall back onto the normal canvas as a
+   * mysterious/orphaned block.
+   */
+  return false;
+}
 
       /*
        * Valid slide-owned block:
@@ -8987,6 +9001,101 @@ function removeCanvasBlock(blockId: string) {
           ),
       ),
   }));
+}
+
+function removeContentPanelSlide(
+  contentPanelId: string,
+  slideId: string,
+) {
+  setDraft((prev) => {
+    const contentPanel = prev.blocks.find(
+      (block) =>
+        block.id === contentPanelId &&
+        block.type === "content_panel",
+    );
+
+    if (
+      !contentPanel ||
+      contentPanel.type !== "content_panel"
+    ) {
+      return prev;
+    }
+
+    const data = contentPanel.data as any;
+
+    const panels = Array.isArray(data.panels)
+      ? data.panels
+      : [];
+
+    // Always keep at least one panel / slide.
+    if (panels.length <= 1) {
+      return prev;
+    }
+
+    const remainingPanels = panels.filter(
+      (panel: any) => panel.id !== slideId,
+    );
+
+    const nextPanelId =
+      remainingPanels[0]?.id ?? "";
+
+    return {
+      ...prev,
+
+      blocks: prev.blocks
+        // Remove every canvas block belonging to the deleted slide.
+        .filter(
+          (block) =>
+            !(
+              block.contentPanelParentId === contentPanelId &&
+              block.contentPanelSlideId === slideId
+            ),
+        )
+        .map((block) => {
+          if (
+            block.id !== contentPanelId ||
+            block.type !== "content_panel"
+          ) {
+            return block;
+          }
+
+          const blockData = block.data as any;
+
+          return {
+            ...block,
+
+            data: {
+              ...blockData,
+
+              panels: remainingPanels,
+
+              editingPanelId:
+                blockData.editingPanelId === slideId
+                  ? nextPanelId
+                  : blockData.editingPanelId,
+
+              defaultPanelId:
+                blockData.defaultPanelId === slideId
+                  ? nextPanelId
+                  : blockData.defaultPanelId,
+            },
+          };
+        }),
+    };
+  });
+
+  setSelectedBlockIds((prev) =>
+    prev.filter((id) => {
+      const block = draft.blocks.find(
+        (candidate) => candidate.id === id,
+      );
+
+      return !(
+        block?.contentPanelParentId === contentPanelId &&
+        block?.contentPanelSlideId === slideId
+      );
+    }),
+  );
 }
 
 function removeAllBlocks() {
@@ -16275,6 +16384,9 @@ selectedBlock?.type === "comparison_table" ? (
     inspectorInputClass={inspectorInputClass}
     inspectorTextareaClass={inspectorTextareaClass}
     toolSetButtonClass={toolSetButtonClass}
+    removeContentPanelSlide={
+  removeContentPanelSlide
+}
   />
 ) : null}
 
