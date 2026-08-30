@@ -1585,27 +1585,27 @@ function getSlideOverlayStyle(
   {/* BLOCKS ATTACHED TO THIS SLIDE */}
   {/* ========================================================== */}
 
-  {renderOverlayBlock
-    ? activeSlideBlocks.map(
-        (slideBlock) => (
-          <div
-            key={slideBlock.id}
-            data-content-panel-overlay-block-id={
-              slideBlock.id
-            }
-            style={getSlideOverlayStyle(
+{!isBuilder && renderOverlayBlock
+  ? activeSlideBlocks.map(
+      (slideBlock) => (
+        <div
+          key={slideBlock.id}
+          data-content-panel-overlay-block-id={
+            slideBlock.id
+          }
+          style={getSlideOverlayStyle(
+            slideBlock,
+          )}
+        >
+          <div className="h-full w-full">
+            {renderOverlayBlock(
               slideBlock,
             )}
-          >
-            <div className="h-full w-full">
-              {renderOverlayBlock(
-                slideBlock,
-              )}
-            </div>
           </div>
-        ),
-      )
-    : null}
+        </div>
+      ),
+    )
+  : null}
 </div>
 
         {/* ======================================================== */}
