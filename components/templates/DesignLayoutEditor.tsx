@@ -2870,10 +2870,188 @@ const currentSiteDisplay = isLiveMicrosite
     [templateKey, designKey],
   );
 
-  const canvasItems = useMemo(
-    () => buildCanvasItems(draft, metadata),
-    [draft, metadata],
+const canvasItems = useMemo(() => {
+  /*
+   * ================================================================
+   * CONTENT PANEL SLIDE EDITING
+   * ================================================================
+   *
+   * Normal blocks always remain visible.
+   *
+   * Blocks attached to a Content Panel slide are visible in the
+   * builder only when:
+   *
+   * 1. Their parent Content Panel still exists.
+   * 2. The parent is using the Slide Show style variant.
+   * 3. That parent panel is currently selected in the builder.
+   * 4. The block belongs to the slide currently selected through
+   *    the Content Panel inspector's "Edit Slide" control.
+   *
+   * Switching Edit Slide therefore switches the overlay blocks that
+   * appear on the builder canvas.
+   * ================================================================
+   */
+
+const selectedBlockForCanvas =
+  selection.type === "block"
+    ? draft.blocks.find(
+        (block) =>
+          block.id === selection.blockId,
+      ) ?? null
+    : null;
+
+/*
+ * ================================================================
+ * ACTIVE CONTENT PANEL / SLIDE
+ * ================================================================
+ *
+ * The active slideshow can come from either:
+ *
+ * 1. Selecting the Content Panel itself, or
+ * 2. Selecting a block that already belongs to one of its slides.
+ *
+ * This prevents a block from disappearing the moment the owner
+ * attaches it to a slide.
+ */
+
+const directlySelectedContentPanel =
+  selectedBlockForCanvas?.type ===
+    "content_panel" &&
+  (selectedBlockForCanvas.data as any)
+    .styleVariant === "slideshow"
+    ? selectedBlockForCanvas
+    : null;
+
+const selectedOwnedParentId =
+  selectedBlockForCanvas?.contentPanelParentId?.trim() ??
+  "";
+
+const parentOfSelectedSlideBlock =
+  selectedOwnedParentId
+    ? draft.blocks.find(
+        (candidate) =>
+          candidate.id ===
+            selectedOwnedParentId &&
+          candidate.type ===
+            "content_panel" &&
+          (candidate.data as any)
+            .styleVariant ===
+            "slideshow",
+      ) ?? null
+    : null;
+
+const selectedContentPanel =
+  directlySelectedContentPanel ??
+  parentOfSelectedSlideBlock ??
+  null;
+
+/*
+ * If an attached child block itself is selected, its slide takes
+ * priority. Otherwise use the Content Panel inspector's Edit Slide.
+ */
+
+const selectedOwnedSlideId =
+  selectedBlockForCanvas?.contentPanelSlideId?.trim() ??
+  "";
+
+const selectedContentPanelData =
+  selectedContentPanel?.data as any;
+
+const activeEditingSlideId =
+  selectedOwnedSlideId ||
+  selectedContentPanelData?.editingPanelId ||
+  selectedContentPanelData?.panels?.[0]?.id ||
+  "";
+
+  const visibleBlocks =
+    draft.blocks.filter((block) => {
+      const parentId =
+        block.contentPanelParentId?.trim() ?? "";
+
+      const slideId =
+        block.contentPanelSlideId?.trim() ?? "";
+
+      /*
+       * Ordinary canvas block.
+       */
+      if (!parentId || !slideId) {
+        return true;
+      }
+
+      /*
+       * Find the referenced parent.
+       */
+      const parent =
+        draft.blocks.find(
+          (candidate) =>
+            candidate.id === parentId &&
+            candidate.type === "content_panel",
+        );
+
+      /*
+       * If ownership metadata has become stale, keep the block visible
+       * instead of making it impossible for the owner to recover.
+       */
+      if (
+        !parent ||
+        parent.type !== "content_panel" ||
+        parent.data.styleVariant !== "slideshow"
+      ) {
+        return true;
+      }
+
+const parentPanels =
+  Array.isArray(
+    (parent.data as any).panels,
+  )
+    ? (parent.data as any).panels
+    : [];
+
+const slideStillExists =
+  parentPanels.some(
+    (panel: any) =>
+      panel.id === slideId,
   );
+
+      if (!slideStillExists) {
+        return true;
+      }
+
+      /*
+       * Valid slide-owned block:
+       * only show it when its parent Content Panel is selected.
+       */
+      if (
+        !selectedContentPanel ||
+        selectedContentPanel.id !== parentId
+      ) {
+        return false;
+      }
+
+      /*
+       * Then only show blocks belonging to the currently edited slide.
+       */
+      return (
+        slideId ===
+        activeEditingSlideId
+      );
+    });
+
+  const draftForCanvas = {
+    ...draft,
+    blocks: visibleBlocks,
+  };
+
+  return buildCanvasItems(
+    draftForCanvas,
+    metadata,
+  );
+}, [
+  draft,
+  metadata,
+  selection,
+]);
+
 
   const selectedBlockFromDraft =
     selection.type === "block"
@@ -8754,36 +8932,308 @@ function cancelRemoveAllBlocks() {
   setRemoveAllModalOpen(false);
 }
 
+function getActiveSlideshowAttachment(
+  draftValue: BuilderDraft,
+) {
+  if (selection.type !== "block") {
+    return null;
+  }
+
+  const selected =
+    draftValue.blocks.find(
+      (block) =>
+        block.id === selection.blockId,
+    ) ?? null;
+
+  if (!selected) {
+    return null;
+  }
+
+  /*
+   * If the selected item is the Content Panel itself,
+   * use its currently edited slide.
+   */
+  if (
+    selected.type === "content_panel" &&
+    (selected.data as any).styleVariant === "slideshow"
+  ) {
+    const selectedData =
+      selected.data as any;
+
+    const slideId =
+      selectedData.editingPanelId ||
+      selectedData.panels?.[0]?.id ||
+      "";
+
+    if (!slideId) return null;
+
+    return {
+      parentId: selected.id,
+      slideId,
+    };
+  }
+
+  /*
+   * If the selected item is already attached to a slide,
+   * preserve that parent/slide as the active editing context.
+   */
+  const parentId =
+    selected.contentPanelParentId?.trim() ?? "";
+
+  const slideId =
+    selected.contentPanelSlideId?.trim() ?? "";
+
+  if (
+    parentId &&
+    slideId
+  ) {
+    return {
+      parentId,
+      slideId,
+    };
+  }
+
+  return null;
+}
+
+function isGridInsideContentPanel(
+  childGrid: {
+    colStart?: number;
+    rowStart?: number;
+    colSpan?: number;
+    rowSpan?: number;
+  },
+  panelGrid: {
+    colStart?: number;
+    rowStart?: number;
+    colSpan?: number;
+    rowSpan?: number;
+  },
+) {
+  const childLeft =
+    childGrid.colStart ?? 1;
+
+  const childTop =
+    childGrid.rowStart ?? 1;
+
+  const childRight =
+    childLeft +
+    (childGrid.colSpan ?? 1);
+
+  const childBottom =
+    childTop +
+    (childGrid.rowSpan ?? 1);
+
+  const panelLeft =
+    panelGrid.colStart ?? 1;
+
+  const panelTop =
+    panelGrid.rowStart ?? 1;
+
+  const panelRight =
+    panelLeft +
+    (panelGrid.colSpan ?? 1);
+
+  const panelBottom =
+    panelTop +
+    (panelGrid.rowSpan ?? 1);
+
+  /*
+   * Attach when the center point of the child lies inside
+   * the Content Panel.
+   */
+  const childCenterX =
+    (childLeft + childRight) / 2;
+
+  const childCenterY =
+    (childTop + childBottom) / 2;
+
+  return (
+    childCenterX >= panelLeft &&
+    childCenterX <= panelRight &&
+    childCenterY >= panelTop &&
+    childCenterY <= panelBottom
+  );
+}
+
 function handleMoveBlock(
   blockId: string,
-  patch: { colStart: number; rowStart: number },
+  patch: {
+    colStart: number;
+    rowStart: number;
+  },
 ) {
   const idsToMove =
-    selectedBlockIds.includes(blockId) && selectedBlockIds.length > 1
+    selectedBlockIds.includes(blockId) &&
+    selectedBlockIds.length > 1
       ? selectedBlockIds
       : [blockId];
 
   setDraft((prev) => {
-    const items = buildCanvasItems(prev, metadata);
-    const anchorItem = items.find((item) => item.id === blockId);
+    const items =
+      buildCanvasItems(
+        prev,
+        metadata,
+      );
 
-    if (!anchorItem?.grid) return prev;
+    const anchorItem =
+      items.find(
+        (item) =>
+          item.id === blockId,
+      );
 
-    const deltaCol = patch.colStart - (anchorItem.grid.colStart ?? 1);
-    const deltaRow = patch.rowStart - (anchorItem.grid.rowStart ?? 1);
+    if (!anchorItem?.grid) {
+      return prev;
+    }
 
-    const moved = idsToMove.reduce((nextItems, id) => {
-      const item = nextItems.find((current) => current.id === id);
+    const deltaCol =
+      patch.colStart -
+      (anchorItem.grid.colStart ??
+        1);
 
-      if (!item?.grid) return nextItems;
+    const deltaRow =
+      patch.rowStart -
+      (anchorItem.grid.rowStart ??
+        1);
 
-      return moveCanvasItemToCell(nextItems, id, {
-        colStart: (item.grid.colStart ?? 1) + deltaCol,
-        rowStart: (item.grid.rowStart ?? 1) + deltaRow,
-      });
-    }, items);
+    const moved =
+      idsToMove.reduce(
+        (
+          nextItems,
+          id,
+        ) => {
+          const item =
+            nextItems.find(
+              (current) =>
+                current.id === id,
+            );
 
-    return applyCanvasItemsToDraft(prev, moved);
+          if (!item?.grid) {
+            return nextItems;
+          }
+
+          return moveCanvasItemToCell(
+            nextItems,
+            id,
+            {
+              colStart:
+                (item.grid.colStart ??
+                  1) +
+                deltaCol,
+
+              rowStart:
+                (item.grid.rowStart ??
+                  1) +
+                deltaRow,
+            },
+          );
+        },
+        items,
+      );
+
+    const positionedDraft =
+      applyCanvasItemsToDraft(
+        prev,
+        moved,
+      );
+
+    /*
+     * ============================================================
+     * AUTO ATTACH / DETACH
+     * ============================================================
+     */
+
+    const activeAttachment =
+      getActiveSlideshowAttachment(
+        positionedDraft,
+      );
+
+    /*
+     * No active slideshow editing context.
+     * Preserve existing ownership.
+     */
+    if (!activeAttachment) {
+      return positionedDraft;
+    }
+
+    const parentPanel =
+      positionedDraft.blocks.find(
+        (candidate) =>
+          candidate.id ===
+            activeAttachment.parentId &&
+          candidate.type ===
+            "content_panel",
+      );
+
+    if (
+      !parentPanel ||
+      !parentPanel.grid
+    ) {
+      return positionedDraft;
+    }
+
+    return {
+      ...positionedDraft,
+
+      blocks:
+        positionedDraft.blocks.map(
+          (block) => {
+            if (
+              !idsToMove.includes(
+                block.id,
+              ) ||
+              block.id ===
+                parentPanel.id
+            ) {
+              return block;
+            }
+
+            const insidePanel =
+              isGridInsideContentPanel(
+                block.grid ?? {},
+                parentPanel.grid ??
+                  {},
+              );
+
+            /*
+             * Inside currently edited slideshow:
+             * attach to active slide.
+             */
+            if (insidePanel) {
+              return {
+                ...block,
+
+                contentPanelParentId:
+                  activeAttachment.parentId,
+
+                contentPanelSlideId:
+                  activeAttachment.slideId,
+              };
+            }
+
+            /*
+             * If this block belonged to this same slideshow and
+             * gets dragged outside it, detach it.
+             */
+            if (
+              block.contentPanelParentId ===
+              activeAttachment.parentId
+            ) {
+              return {
+                ...block,
+
+                contentPanelParentId:
+                  undefined,
+
+                contentPanelSlideId:
+                  undefined,
+              };
+            }
+
+            return block;
+          },
+        ),
+    };
   });
 }
 
@@ -8797,21 +9247,75 @@ function handleResizeBlock(
   },
 ) {
   setDraft((prev) => {
-    const items = buildCanvasItems(prev, metadata);
+    const items =
+      buildCanvasItems(
+        prev,
+        metadata,
+      );
 
-    const resized = items.map((item) =>
-      item.id === blockId
-        ? {
-            ...item,
-            grid: {
-              ...(item.grid ?? {}),
-              ...patch,
-            },
-          }
-        : item,
-    );
+    const resized =
+      items.map((item) =>
+        item.id === blockId
+          ? {
+              ...item,
 
-    return applyCanvasItemsToDraft(prev, resized);
+              grid: {
+                ...(item.grid ?? {}),
+                ...patch,
+              },
+            }
+          : item,
+      );
+
+    const positionedDraft =
+      applyCanvasItemsToDraft(
+        prev,
+        resized,
+      );
+
+    /*
+     * ============================================================
+     * PRESERVE CONTENT PANEL SLIDE OWNERSHIP
+     * ============================================================
+     *
+     * Resizing must never detach a block from its slide.
+     *
+     * Moving a block outside the Content Panel is what detaches it.
+     * Changing width/height should only change its grid dimensions.
+     */
+
+    const originalBlock =
+      prev.blocks.find(
+        (block) =>
+          block.id === blockId,
+      );
+
+    if (
+      !originalBlock?.contentPanelParentId ||
+      !originalBlock?.contentPanelSlideId
+    ) {
+      return positionedDraft;
+    }
+
+    return {
+      ...positionedDraft,
+
+      blocks:
+        positionedDraft.blocks.map(
+          (block) =>
+            block.id === blockId
+              ? {
+                  ...block,
+
+                  contentPanelParentId:
+                    originalBlock.contentPanelParentId,
+
+                  contentPanelSlideId:
+                    originalBlock.contentPanelSlideId,
+                }
+              : block,
+        ),
+    };
   });
 }
 
@@ -8946,149 +9450,385 @@ function handleCreateToolDrop(
     return;
   }
 
-  if (payload.kind === "shape") {
-    let createdShapeId = "";
+if (payload.kind === "shape") {
+  let createdShapeId = "";
 
-    setDraft((prev) => {
-      const nextBlocks = addShapeBlockToDraft(prev.blocks, payload.type);
+  setDraft((prev) => {
+    const nextBlocks =
+      addShapeBlockToDraft(
+        prev.blocks,
+        payload.type,
+      );
 
-      const nextDraft: BuilderDraft = {
-        ...prev,
-        blocks: nextBlocks,
-      };
+    const nextDraft: BuilderDraft = {
+      ...prev,
+      blocks: nextBlocks,
+    };
 
-      const nextItems = buildCanvasItems(nextDraft, metadata);
+    const nextItems =
+      buildCanvasItems(
+        nextDraft,
+        metadata,
+      );
 
-      const createdItem = [...nextItems]
+    const createdItem =
+      [...nextItems]
         .reverse()
         .find(
           (item) =>
             item.type === "shape" &&
-            !prev.blocks.some((block) => block.id === item.id),
+            !prev.blocks.some(
+              (block) =>
+                block.id === item.id,
+            ),
         );
 
-      if (!createdItem) return nextDraft;
+    if (!createdItem) {
+      return nextDraft;
+    }
 
-      createdShapeId = createdItem.id;
+    createdShapeId =
+      createdItem.id;
 
-      const withSize = resizeCanvasItem(nextItems, createdItem.id, {
-        colSpan: patch.colSpan,
-        rowSpan: patch.rowSpan,
-      });
-
-      const withPosition = moveCanvasItemToCell(
-        withSize,
+    const withSize =
+      resizeCanvasItem(
+        nextItems,
         createdItem.id,
         {
-          colStart: patch.colStart,
-          rowStart: patch.rowStart,
+          colSpan:
+            patch.colSpan,
+
+          rowSpan:
+            patch.rowSpan,
         },
       );
 
-      const withFront = bringCanvasItemToFront(
+    const withPosition =
+      moveCanvasItemToCell(
+        withSize,
+        createdItem.id,
+        {
+          colStart:
+            patch.colStart,
+
+          rowStart:
+            patch.rowStart,
+        },
+      );
+
+    const withFront =
+      bringCanvasItemToFront(
         withPosition,
         createdItem.id,
       );
 
-      return applyCanvasItemsToDraft(nextDraft, withFront);
-    });
+    const positionedDraft =
+      applyCanvasItemsToDraft(
+        nextDraft,
+        withFront,
+      );
 
-    window.requestAnimationFrame(() => {
-      if (!createdShapeId) return;
+    /*
+     * ============================================================
+     * AUTO ATTACH NEW SHAPE TO ACTIVE SLIDE
+     * ============================================================
+     */
 
-      setSelectedBlockIds([createdShapeId]);
-      setSelection(selectionFromCanvasBlockId(createdShapeId));
-    });
+    const activeAttachment =
+      getActiveSlideshowAttachment(
+        positionedDraft,
+      );
 
-    return;
-  }
+    if (!activeAttachment) {
+      return positionedDraft;
+    }
 
-  if (payload.kind === "block") {
-    let createdBlockId = "";
+    const parentPanel =
+      positionedDraft.blocks.find(
+        (candidate) =>
+          candidate.id ===
+            activeAttachment.parentId &&
+          candidate.type ===
+            "content_panel",
+      );
 
-    setDraft((prev) => {
-      const nextBlocks = addBlockTypeToDraft(
+    if (
+      !parentPanel ||
+      !parentPanel.grid
+    ) {
+      return positionedDraft;
+    }
+
+    return {
+      ...positionedDraft,
+
+      blocks:
+        positionedDraft.blocks.map(
+          (block) => {
+            if (
+              block.id !==
+              createdItem.id
+            ) {
+              return block;
+            }
+
+            const insidePanel =
+              isGridInsideContentPanel(
+                block.grid ?? {},
+                parentPanel.grid ?? {},
+              );
+
+            if (!insidePanel) {
+              return block;
+            }
+
+            return {
+              ...block,
+
+              contentPanelParentId:
+                activeAttachment.parentId,
+
+              contentPanelSlideId:
+                activeAttachment.slideId,
+            };
+          },
+        ),
+    };
+  });
+
+  window.requestAnimationFrame(
+    () => {
+      if (!createdShapeId) {
+        return;
+      }
+
+      setSelectedBlockIds(
+        [createdShapeId],
+      );
+
+      setSelection(
+        selectionFromCanvasBlockId(
+          createdShapeId,
+        ),
+      );
+    },
+  );
+
+  return;
+}
+
+if (payload.kind === "block") {
+  let createdBlockId = "";
+
+  setDraft((prev) => {
+    const nextBlocks =
+      addBlockTypeToDraft(
         prev.blocks,
         payload.type,
       ).map((block) =>
         block.type === "icon" &&
         !prev.blocks.some(
-          (previousBlock) => previousBlock.id === block.id,
+          (previousBlock) =>
+            previousBlock.id ===
+            block.id,
         )
           ? applyIconDefaults(
               block,
               payload.label,
               payload.iconUrl ??
-                `/media-icons/${payload.iconName ?? "star"}.svg`,
+                `/media-icons/${
+                  payload.iconName ??
+                  "star"
+                }.svg`,
             )
           : block,
       );
 
-      const nextDraft: BuilderDraft = {
-        ...prev,
-        blocks: nextBlocks,
-      };
+    const nextDraft:
+      BuilderDraft = {
+      ...prev,
+      blocks:
+        nextBlocks,
+    };
 
-      const nextItems = buildCanvasItems(nextDraft, metadata);
+    const nextItems =
+      buildCanvasItems(
+        nextDraft,
+        metadata,
+      );
 
-      const createdItem = [...nextItems]
+    const createdItem =
+      [...nextItems]
         .reverse()
         .find(
           (item) =>
-            item.type === payload.type &&
-            !prev.blocks.some((block) => block.id === item.id),
+            item.type ===
+              payload.type &&
+            !prev.blocks.some(
+              (block) =>
+                block.id ===
+                item.id,
+            ),
         );
 
-      if (!createdItem) return nextDraft;
+    if (!createdItem) {
+      return nextDraft;
+    }
 
-      createdBlockId = createdItem.id;
+    createdBlockId =
+      createdItem.id;
 
-      const withSize = resizeCanvasItem(nextItems, createdItem.id, {
-        colSpan: patch.colSpan,
-        rowSpan: patch.rowSpan,
-      });
-
-      const withPosition = moveCanvasItemToCell(
-        withSize,
+    const withSize =
+      resizeCanvasItem(
+        nextItems,
         createdItem.id,
         {
-          colStart: patch.colStart,
-          rowStart: patch.rowStart,
+          colSpan:
+            patch.colSpan,
+
+          rowSpan:
+            patch.rowSpan,
         },
       );
 
-      const withFront = bringCanvasItemToFront(
+    const withPosition =
+      moveCanvasItemToCell(
+        withSize,
+        createdItem.id,
+        {
+          colStart:
+            patch.colStart,
+
+          rowStart:
+            patch.rowStart,
+        },
+      );
+
+    const withFront =
+      bringCanvasItemToFront(
         withPosition,
         createdItem.id,
       );
 
-      const positionedDraft = applyCanvasItemsToDraft(
+    let positionedDraft =
+      applyCanvasItemsToDraft(
         nextDraft,
         withFront,
       );
 
-      return {
-        ...positionedDraft,
-        blocks: positionedDraft.blocks.map((block) =>
-          block.id === createdItem.id && block.type === "icon"
-            ? applyIconDefaults(
-                block,
-                payload.label,
-                payload.iconUrl ??
-                  `/media-icons/${payload.iconName ?? "star"}.svg`,
-              )
-            : block,
+    /*
+     * Preserve Icon defaults.
+     */
+    positionedDraft = {
+      ...positionedDraft,
+
+      blocks:
+        positionedDraft.blocks.map(
+          (block) =>
+            block.id ===
+              createdItem.id &&
+            block.type ===
+              "icon"
+              ? applyIconDefaults(
+                  block,
+                  payload.label,
+                  payload.iconUrl ??
+                    `/media-icons/${
+                      payload.iconName ??
+                      "star"
+                    }.svg`,
+                )
+              : block,
         ),
-      };
-    });
+    };
 
-    window.requestAnimationFrame(() => {
-      if (!createdBlockId) return;
+    /*
+     * ============================================================
+     * AUTO ATTACH NEW BLOCK TO ACTIVE SLIDE
+     * ============================================================
+     */
 
-      setSelectedBlockIds([createdBlockId]);
-      setSelection(selectionFromCanvasBlockId(createdBlockId));
-    });
-  }
+    const activeAttachment =
+      getActiveSlideshowAttachment(
+        positionedDraft,
+      );
+
+    if (!activeAttachment) {
+      return positionedDraft;
+    }
+
+    const parentPanel =
+      positionedDraft.blocks.find(
+        (candidate) =>
+          candidate.id ===
+            activeAttachment.parentId &&
+          candidate.type ===
+            "content_panel",
+      );
+
+    if (
+      !parentPanel ||
+      !parentPanel.grid
+    ) {
+      return positionedDraft;
+    }
+
+    return {
+      ...positionedDraft,
+
+      blocks:
+        positionedDraft.blocks.map(
+          (block) => {
+            if (
+              block.id !==
+              createdItem.id
+            ) {
+              return block;
+            }
+
+            const insidePanel =
+              isGridInsideContentPanel(
+                block.grid ?? {},
+                parentPanel.grid ??
+                  {},
+              );
+
+            if (!insidePanel) {
+              return block;
+            }
+
+            return {
+              ...block,
+
+              contentPanelParentId:
+                activeAttachment.parentId,
+
+              contentPanelSlideId:
+                activeAttachment.slideId,
+            };
+          },
+        ),
+    };
+  });
+
+  window.requestAnimationFrame(
+    () => {
+      if (!createdBlockId) {
+        return;
+      }
+
+      setSelectedBlockIds(
+        [createdBlockId],
+      );
+
+      setSelection(
+        selectionFromCanvasBlockId(
+          createdBlockId,
+        ),
+      );
+    },
+  );
+}
 }
 
 function handleMarqueeSelectMove(rect: {
@@ -14628,6 +15368,270 @@ pageSurfaceStyle={{
       Scrollbars appear only when content exceeds the block's visible area.
     </div>
   </div>
+) : null}
+
+{!isMultiSelection &&
+selectedBlock &&
+selectedBlock.type !== "content_panel" ? (
+  (() => {
+    const slideshowPanels = draft.blocks.filter(
+      (candidate: any) =>
+        candidate.type === "content_panel" &&
+        candidate.data?.styleVariant === "slideshow",
+    );
+
+    const currentParentId =
+      (selectedBlock as any).contentPanelParentId ?? "";
+
+    const currentSlideId =
+      (selectedBlock as any).contentPanelSlideId ?? "";
+
+    const currentParent = slideshowPanels.find(
+      (candidate: any) =>
+        candidate.id === currentParentId,
+    );
+
+const currentParentData =
+  currentParent?.data as any;
+
+const currentSlides =
+  Array.isArray(
+    currentParentData?.panels,
+  )
+    ? currentParentData.panels
+    : [];
+
+    const isAttached =
+      Boolean(
+        currentParentId &&
+        currentSlideId,
+      );
+
+    return (
+      <div className={inspectorCardClass()}>
+        <div className={inspectorLabelClass()}>
+          Content Panel Slide
+        </div>
+
+        <div className="mt-2 text-xs leading-5 text-neutral-500">
+          Attach this block to a specific Slide Show panel so it appears
+          only with that slide and moves with it.
+        </div>
+
+        {slideshowPanels.length === 0 ? (
+          <div className="mt-4 rounded-xl border border-dashed border-neutral-300 bg-neutral-50 px-3 py-4 text-xs text-neutral-500">
+            Add a Content Panel using the Slide Show style variant to
+            attach this block to a slide.
+          </div>
+        ) : (
+          <>
+            {/* ====================================================== */}
+            {/* ATTACH TO SLIDE */}
+            {/* ====================================================== */}
+
+            <label className="mt-4 flex cursor-pointer items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
+              <input
+                type="checkbox"
+                checked={isAttached}
+                onChange={(e) => {
+                  const checked =
+                    e.target.checked;
+
+                  if (!checked) {
+                    updateSelectedBlock(
+                      (block: any) => ({
+                        ...block,
+
+                        contentPanelParentId:
+                          undefined,
+
+                        contentPanelSlideId:
+                          undefined,
+                      }),
+                    );
+
+                    return;
+                  }
+
+                  const firstParent =
+                    slideshowPanels[0];
+
+                  const firstSlide =
+                    Array.isArray(
+                      (firstParent as any)
+                        ?.data?.panels,
+                    )
+                      ? (firstParent as any)
+                          .data.panels[0]
+                      : null;
+
+                  updateSelectedBlock(
+                    (block: any) => ({
+                      ...block,
+
+                      contentPanelParentId:
+                        firstParent?.id ??
+                        undefined,
+
+                      contentPanelSlideId:
+                        firstSlide?.id ??
+                        undefined,
+                    }),
+                  );
+                }}
+              />
+
+              Attach to Slide
+            </label>
+
+            {/* ====================================================== */}
+            {/* CONTENT PANEL */}
+            {/* ====================================================== */}
+
+            {isAttached ? (
+              <>
+                <div className="mt-4">
+                  <div className={inspectorLabelClass()}>
+                    Content Panel
+                  </div>
+
+                  <select
+                    value={currentParentId}
+                    onChange={(e) => {
+                      const nextParentId =
+                        e.target.value;
+
+                      const nextParent =
+                        slideshowPanels.find(
+                          (candidate: any) =>
+                            candidate.id ===
+                            nextParentId,
+                        );
+
+                      const nextSlides =
+                        Array.isArray(
+                          (nextParent as any)
+                            ?.data?.panels,
+                        )
+                          ? (nextParent as any)
+                              .data.panels
+                          : [];
+
+                      updateSelectedBlock(
+                        (block: any) => ({
+                          ...block,
+
+                          contentPanelParentId:
+                            nextParentId ||
+                            undefined,
+
+                          /*
+                           * When the owner changes Content Panel,
+                           * automatically attach to its first slide.
+                           */
+                          contentPanelSlideId:
+                            nextSlides[0]?.id ??
+                            undefined,
+                        }),
+                      );
+                    }}
+                    className={inspectorInputClass()}
+                  >
+                    {slideshowPanels.map(
+                      (panelBlock: any) => (
+                        <option
+                          key={panelBlock.id}
+                          value={panelBlock.id}
+                        >
+                          {panelBlock.data
+                            ?.heading?.trim?.() ||
+                            panelBlock.label ||
+                            "Content Panel"}
+                        </option>
+                      ),
+                    )}
+                  </select>
+                </div>
+
+                {/* ================================================== */}
+                {/* SLIDE */}
+                {/* ================================================== */}
+
+                <div className="mt-4">
+                  <div className={inspectorLabelClass()}>
+                    Slide
+                  </div>
+
+                  <select
+                    value={currentSlideId}
+                    onChange={(e) => {
+                      const nextSlideId =
+                        e.target.value;
+
+                      updateSelectedBlock(
+                        (block: any) => ({
+                          ...block,
+
+                          contentPanelSlideId:
+                            nextSlideId ||
+                            undefined,
+                        }),
+                      );
+                    }}
+                    className={inspectorInputClass()}
+                  >
+                    {currentSlides.map(
+                      (
+                        slide: any,
+                        index: number,
+                      ) => (
+                        <option
+                          key={slide.id}
+                          value={slide.id}
+                        >
+                          {`Slide ${
+                            index + 1
+                          }${
+                            slide.title
+                              ? ` — ${slide.title}`
+                              : ""
+                          }`}
+                        </option>
+                      ),
+                    )}
+                  </select>
+                </div>
+
+                {/* ================================================== */}
+                {/* DETACH */}
+                {/* ================================================== */}
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    updateSelectedBlock(
+                      (block: any) => ({
+                        ...block,
+
+                        contentPanelParentId:
+                          undefined,
+
+                        contentPanelSlideId:
+                          undefined,
+                      }),
+                    )
+                  }
+                  className="mt-4 inline-flex h-9 items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 text-xs font-medium text-neutral-700 transition hover:bg-neutral-50"
+                >
+                  Detach from Slide
+                </button>
+              </>
+            ) : null}
+          </>
+        )}
+      </div>
+    );
+  })()
 ) : null}
 
 {showTextControls ? (

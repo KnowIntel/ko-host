@@ -33188,8 +33188,38 @@ case "post_board":
       return renderVisitorCounter(block, designKey, micrositeId);
     case "rich_text":
       return renderRichText(block, designKey);
-    case "content_panel":
-      return <ContentPanelBlock block={block} designKey={designKey} />;
+case "content_panel":
+  return (
+    <ContentPanelBlock
+      block={block}
+      designKey={designKey}
+      blocks={blocks ?? []}
+      renderOverlayBlock={(
+        overlayBlock,
+      ) => (
+        <BlockRenderer
+          block={overlayBlock}
+          blocks={blocks}
+          pages={pages}
+          designKey={designKey}
+          micrositeId={micrositeId}
+          micrositeSlug={micrositeSlug}
+          serverNow={serverNow}
+          previewMode={previewMode}
+          cartItems={cartItems}
+          cartSubtotal={cartSubtotal}
+          listingQuantities={listingQuantities}
+          onDownloadFrame={
+            onDownloadFrame
+          }
+          onChangeListingQuantity={
+            onChangeListingQuantity
+          }
+        />
+      )}
+    />
+  );
+  
     case "progress_bar":
       return renderProgressBar(block, designKey);
     case "donation":

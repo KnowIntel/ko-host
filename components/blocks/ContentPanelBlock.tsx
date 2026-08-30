@@ -19,6 +19,12 @@ type ContentPanelBlockProps = {
   >;
 
   designKey?: string;
+
+  blocks?: MicrositeBlock[];
+
+  renderOverlayBlock?: (
+    block: MicrositeBlock,
+  ) => React.ReactNode;
 };
 
 type ContentPanelBlock = Extract<
@@ -259,6 +265,8 @@ function getBlockAppearanceStyle(
 
 export default function ContentPanelBlock({
   block,
+  blocks = [],
+  renderOverlayBlock,
 }: ContentPanelBlockProps) {
   const data =
     block.data as any;
@@ -406,25 +414,17 @@ export default function ContentPanelBlock({
 
   if (isSlideshow) {
     return (
-      <ContentPanelSlideshow
-        block={block}
-        panels={panels}
-        headingStyle={
-          headingStyle
-        }
-        subtitleStyle={
-          subtitleStyle
-        }
-        panelStyle={
-          panelStyle
-        }
-        panelBackground={
-          panelBackground
-        }
-        fixedHeight={
-          fixedHeight
-        }
-      />
+<ContentPanelSlideshow
+  block={block}
+  panels={panels}
+  headingStyle={headingStyle}
+  subtitleStyle={subtitleStyle}
+  panelStyle={panelStyle}
+  panelBackground={panelBackground}
+  fixedHeight={fixedHeight}
+  blocks={blocks}
+  renderOverlayBlock={renderOverlayBlock}
+/>
     );
   }
 
@@ -1013,6 +1013,8 @@ function ContentPanelSlideshow({
   panelStyle,
   panelBackground,
   fixedHeight,
+  blocks,
+  renderOverlayBlock,
 }: {
   block: ContentPanelBlock;
 
@@ -1027,6 +1029,12 @@ function ContentPanelSlideshow({
   panelBackground: string;
 
   fixedHeight?: number;
+
+  blocks: MicrositeBlock[];
+
+  renderOverlayBlock?: (
+    block: MicrositeBlock,
+  ) => React.ReactNode;
 }) {
   const data =
     block.data as any;
@@ -1301,6 +1309,84 @@ function ContentPanelSlideshow({
     ] ??
     panels[0];
 
+/*
+ * ================================================================
+ * ACTIVE SLIDE OVERLAY BLOCKS
+ * ================================================================
+ */
+
+const activeSlideBlocks =
+  activePanel
+    ? blocks.filter(
+        (candidate) =>
+          candidate.id !== block.id &&
+          candidate.contentPanelParentId ===
+            block.id &&
+          candidate.contentPanelSlideId ===
+            activePanel.id,
+      )
+    : [];
+
+function getSlideOverlayStyle(
+  childBlock: MicrositeBlock,
+): React.CSSProperties {
+  const parentGrid =
+    block.grid;
+
+  const childGrid =
+    childBlock.grid;
+
+  if (
+    !parentGrid ||
+    !childGrid ||
+    !parentGrid.colSpan ||
+    !parentGrid.rowSpan
+  ) {
+    return {
+      position: "absolute",
+      inset: 0,
+    };
+  }
+
+  const left =
+    ((childGrid.colStart -
+      parentGrid.colStart) /
+      parentGrid.colSpan) *
+    100;
+
+  const top =
+    ((childGrid.rowStart -
+      parentGrid.rowStart) /
+      parentGrid.rowSpan) *
+    100;
+
+  const width =
+    (childGrid.colSpan /
+      parentGrid.colSpan) *
+    100;
+
+  const height =
+    (childGrid.rowSpan /
+      parentGrid.rowSpan) *
+    100;
+
+  return {
+    position: "absolute",
+
+    left: `${left}%`,
+    top: `${top}%`,
+
+    width: `${width}%`,
+    height: `${height}%`,
+
+    zIndex:
+      childGrid.zIndex ??
+      1,
+
+    overflow: "visible",
+  };
+}
+
   const slideAnimationClass =
     transitionDirection ===
     "right"
@@ -1434,37 +1520,63 @@ function ContentPanelSlideshow({
       {/* ========================================================== */}
 
       <div className="relative min-h-0 flex-1 overflow-hidden">
-        <div
-          key={`${activePanel?.id}-${transitionKey}`}
-          className={cx(
-            "absolute inset-0 h-full w-full",
+<div
+  key={`${activePanel?.id}-${transitionKey}`}
+  className={cx(
+    "absolute inset-0 h-full w-full",
 
-            slideAnimationClass,
-          )}
-          style={{
-            backgroundColor:
-              panelBackground,
-          }}
-        >
+    slideAnimationClass,
+  )}
+  style={{
+    backgroundColor:
+      panelBackground,
+  }}
+>
+  {/* ========================================================== */}
+  {/* SLIDE'S OWN CONTENT */}
+  {/* ========================================================== */}
+
+  <div
+    className="absolute inset-0 h-full w-full overflow-y-auto p-4"
+    style={textStyleToCss(
+      panelStyle,
+    )}
+  >
+    {activePanel ? (
+      <PanelContent
+        panel={activePanel}
+        panelStyle={panelStyle}
+        slideshow
+      />
+    ) : null}
+  </div>
+
+  {/* ========================================================== */}
+  {/* BLOCKS ATTACHED TO THIS SLIDE */}
+  {/* ========================================================== */}
+
+  {renderOverlayBlock
+    ? activeSlideBlocks.map(
+        (slideBlock) => (
           <div
-            className="h-full w-full overflow-y-auto p-4"
-            style={textStyleToCss(
-              panelStyle,
+            key={slideBlock.id}
+            data-content-panel-overlay-block-id={
+              slideBlock.id
+            }
+            style={getSlideOverlayStyle(
+              slideBlock,
             )}
           >
-            {activePanel ? (
-              <PanelContent
-                panel={
-                  activePanel
-                }
-                panelStyle={
-                  panelStyle
-                }
-                slideshow
-              />
-            ) : null}
+            <div className="h-full w-full">
+              {renderOverlayBlock(
+                slideBlock,
+              )}
+            </div>
           </div>
-        </div>
+        ),
+      )
+    : null}
+</div>
 
         {/* ======================================================== */}
         {/* MANUAL / OPTIONAL ARROWS */}

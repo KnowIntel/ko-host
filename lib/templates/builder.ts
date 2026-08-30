@@ -376,12 +376,29 @@ export type ImageFade = {
 export type BaseBlock = {
   id: string;
   label: string;
+
   grid?: GridPlacement;
+
   appearance?: BlockAppearance;
+
   showVerticalScrollbar?: boolean;
   showHorizontalScrollbar?: boolean;
-};
 
+  /*
+   * ================================================================
+   * CONTENT PANEL SLIDE OWNERSHIP
+   * ================================================================
+   *
+   * When both values are present, this block belongs to a specific
+   * slide inside a Content Panel slideshow.
+   *
+   * Blocks without these values remain normal canvas blocks.
+   */
+
+  contentPanelParentId?: string;
+
+  contentPanelSlideId?: string;
+};
 /* =========================================
    Block Definitions
    ========================================= */
@@ -3881,7 +3898,7 @@ export type FormulaBoardBlock = {
   data: FormulaBoardBlockData;
 };
 
-export type MicrositeBlock =
+export type MicrositeBlock = (
   | BookmarkBlock
   | PuzzleBlock
   | SpinWheelBlock
@@ -3940,8 +3957,11 @@ export type MicrositeBlock =
   | PopBalloonBlock
   | RegistryBlock
   | CheckoutBlock
-  | CartBlock;
-  
+  | CartBlock
+) & {
+  contentPanelParentId?: string;
+  contentPanelSlideId?: string;
+};
 
 /* =========================================
    Draft Model

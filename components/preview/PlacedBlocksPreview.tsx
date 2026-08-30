@@ -375,28 +375,147 @@ const logicalPageWidth = BASE_PAGE_WIDTH;
 
 const [listingQuantities, setListingQuantities] = useState<Record<string, number>>({});
 
-const blockEntries = useMemo(
-  () =>
-    [...(draft.blocks || [])]
-      .map((block, index) => {
-        const normalizedGrid = normalizeResolvedGrid(block.grid, {
-          colStart: 1,
-          rowStart: index + 1,
-          colSpan: 12,
-          rowSpan: 1,
-          zIndex: index + 1,
-        });
+const blockEntries = useMemo(() => {
+  const blocks =
+    [...(draft.blocks || [])];
 
-        return {
-          block,
-          grid: normalizedGrid,
-          zIndex: normalizedGrid.zIndex ?? index + 1,
-          rowEnd: normalizedGrid.rowStart + normalizedGrid.rowSpan - 1,
-        };
-      })
-      .sort((a, b) => a.zIndex - b.zIndex),
-  [draft.blocks],
-);
+  /*
+   * Build a quick lookup of Content Panel slideshow blocks.
+   *
+   * A block is considered slide-owned only when:
+   * 1. It references a Content Panel parent.
+   * 2. That parent still exists.
+   * 3. The parent is currently a Slide Show.
+   * 4. The referenced slide still exists inside that panel.
+   *
+   * This prevents stale ownership metadata from causing a normal
+   * canvas block to disappear later if a panel/slide is removed.
+   */
+  const contentPanelSlideLookup =
+    new Map<
+      string,
+      Set<string>
+    >();
+
+  blocks.forEach((candidate) => {
+    if (
+      candidate.type !==
+      "content_panel"
+    ) {
+      return;
+    }
+
+    if (
+      candidate.data
+        .styleVariant !==
+      "slideshow"
+    ) {
+      return;
+    }
+
+    const slideIds =
+      new Set(
+        (
+          candidate.data
+            .panels ?? []
+        )
+          .map(
+            (panel) =>
+              panel.id,
+          )
+          .filter(Boolean),
+      );
+
+    contentPanelSlideLookup.set(
+      candidate.id,
+      slideIds,
+    );
+  });
+
+  return blocks
+    .map((block, index) => {
+      const normalizedGrid =
+        normalizeResolvedGrid(
+          block.grid,
+          {
+            colStart: 1,
+            rowStart:
+              index + 1,
+            colSpan: 12,
+            rowSpan: 1,
+            zIndex:
+              index + 1,
+          },
+        );
+
+      const contentPanelParentId =
+        block
+          .contentPanelParentId
+          ?.trim() ??
+        "";
+
+      const contentPanelSlideId =
+        block
+          .contentPanelSlideId
+          ?.trim() ??
+        "";
+
+      const parentSlideIds =
+        contentPanelParentId
+          ? contentPanelSlideLookup.get(
+              contentPanelParentId,
+            )
+          : undefined;
+
+      const isSlideOwned =
+        Boolean(
+          contentPanelParentId &&
+            contentPanelSlideId &&
+            parentSlideIds?.has(
+              contentPanelSlideId,
+            ),
+        );
+
+      return {
+        block,
+
+        grid:
+          normalizedGrid,
+
+        zIndex:
+          normalizedGrid.zIndex ??
+          index + 1,
+
+        rowEnd:
+          normalizedGrid.rowStart +
+          normalizedGrid.rowSpan -
+          1,
+
+        /*
+         * Slide ownership metadata.
+         *
+         * For now this is informational only.
+         * The next step will use it to change where the block renders.
+         */
+        isSlideOwned,
+
+        contentPanelParentId:
+          isSlideOwned
+            ? contentPanelParentId
+            : null,
+
+        contentPanelSlideId:
+          isSlideOwned
+            ? contentPanelSlideId
+            : null,
+      };
+    })
+    .sort(
+      (a, b) =>
+        a.zIndex -
+        b.zIndex,
+    );
+}, [draft.blocks]);
 
 const availableCartItems = useMemo(() => {
   return blockEntries
@@ -544,11 +663,21 @@ const cartSubtotal = useMemo(() => {
 }, [cartItems]);
 
 
-  const contentRowEnd = Math.max(
-    ...textRowEnds,
-    ...blockEntries.map((entry) => entry.rowEnd),
-    1,
-  );
+const contentRowEnd = Math.max(
+  ...textRowEnds,
+
+  ...blockEntries
+    .filter(
+      (entry) =>
+        !entry.isSlideOwned,
+    )
+    .map(
+      (entry) =>
+        entry.rowEnd,
+    ),
+
+  1,
+);
 
 const pageHeight = pageLengthConfig.pageHeight;
 
@@ -720,7 +849,21 @@ return (
           </div>
         ) : null}
 
-{blockEntries.map(({ block, grid }) => {
+{blockEntries.map(
+  ({
+    block,
+    grid,
+    isSlideOwned,
+  }) => {
+    /*
+     * Blocks assigned to a Content Panel slide are no longer
+     * rendered as independent page-level canvas blocks.
+     *
+     * They will be rendered with their owning slide instead.
+     */
+    if (isSlideOwned) {
+      return null;
+    }
 const itemStyle = getItemStyle(grid, logicalPageWidth, logicalRowHeight);
 const showVerticalScrollbar =
   (block as any).showVerticalScrollbar === true;
