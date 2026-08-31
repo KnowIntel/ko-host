@@ -1152,9 +1152,11 @@ function renderLabelBase(
             ? "transparent"
             : block.data.style?.color ?? undefined,
 
-          transform: `translate(${((block.data as any).positionX ?? 50) - 50}%, ${
-            ((block.data as any).positionY ?? 50) - 50
-          }%)`,
+transform: `translate(${((block.data as any).positionX ?? 50) - 50}%, ${
+  ((block.data as any).positionY ?? 50) - 50
+}%) rotate(${Number((block.data as any).rotation ?? 0)}deg)`,
+
+transformOrigin: "center center",
         }}
       >
         {overrideText ?? getLabelText(block)}
@@ -33209,7 +33211,7 @@ case "post_board":
       return renderVisitorCounter(block, designKey, micrositeId);
     case "rich_text":
       return renderRichText(block, designKey);
-      
+
 case "content_panel":
   return (
     <ContentPanelBlock
