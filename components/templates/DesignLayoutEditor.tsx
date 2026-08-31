@@ -3059,24 +3059,41 @@ if (!slideStillExists) {
   return false;
 }
 
-      /*
-       * Valid slide-owned block:
-       * only show it when its parent Content Panel is selected.
-       */
-      if (
-        !selectedContentPanel ||
-        selectedContentPanel.id !== parentId
-      ) {
-        return false;
-      }
+/*
+ * ================================================================
+ * SLIDE-OWNED BLOCK VISIBILITY
+ * ================================================================
+ *
+ * A block attached to a slideshow remains visible even when
+ * the Content Panel itself is not selected.
+ *
+ * Each Content Panel remembers which slide is being edited through
+ * editingPanelId.
+ */
 
-      /*
-       * Then only show blocks belonging to the currently edited slide.
-       */
-      return (
-        slideId ===
-        activeEditingSlideId
-      );
+const parentData =
+  parent.data as any;
+
+const parentEditingSlideId =
+  String(
+    parentData.editingPanelId ||
+      parentData.panels?.[0]?.id ||
+      "",
+  );
+
+/*
+ * If the currently selected block belongs to this same Content Panel,
+ * its own slide remains the active editing context.
+ */
+const effectiveEditingSlideId =
+  selectedContentPanel?.id === parentId &&
+  activeEditingSlideId
+    ? activeEditingSlideId
+    : parentEditingSlideId;
+
+return (
+  slideId === effectiveEditingSlideId
+);
     });
 
   const draftForCanvas = {
