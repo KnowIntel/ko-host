@@ -7746,105 +7746,202 @@ const renderCartesianAxes = () => (
     </>
   );
 
-  const renderVerticalBars = () => {
-    const categoryCount =
-      Math.max(
-        1,
-        chartData.length,
-      );
-
-    const seriesCount =
-      Math.max(
-        1,
-        series.length,
-      );
-
-    const categoryWidth =
-      plotWidth /
-      categoryCount;
-
-    const usableWidth =
-      categoryWidth * 0.72;
-
-    const resolvedGap =
-      Math.min(
-        barGap,
-        usableWidth /
-          Math.max(
-            1,
-            seriesCount * 2,
-          ),
-      );
-
-    const barWidth = Math.max(
-      2,
-      (usableWidth -
-        resolvedGap *
-          (seriesCount - 1)) /
-        seriesCount,
+const renderVerticalBars = () => {
+  const categoryCount =
+    Math.max(
+      1,
+      chartData.length,
     );
 
-    return (
-      <>
-        {renderCartesianGrid()}
-        {renderCartesianAxes()}
-
-{chartData.map(
-  (
-    row: any,
-    index: number,
-  ) => {
-    const x =
-      xForCategory(index);
-
-    return (
-      <g
-        key={
-          row.id ??
-          `x-axis-${index}`
-        }
-      >
-        <line
-          x1={x}
-          x2={x}
-          y1={zeroY}
-          y2={zeroY + 5}
-          stroke={axisColor}
-          strokeWidth={1}
-          vectorEffect="non-scaling-stroke"
-        />
-
-        <text
-          x={x}
-          y={
-            SVG_HEIGHT -
-            plotBottom +
-            38
-          }
-          textAnchor="middle"
-          fill={axisTextColor}
-          fontSize={
-            compactAxisFontSize
-          }
-          fontFamily={
-            axisFontFamily
-          }
-          fontWeight={
-            axisFontWeight
-          }
-        >
-          {truncateText(
-            row.label,
-            getResponsiveXAxisLabelLength(),
-          )}
-        </text>
-      </g>
+  const seriesCount =
+    Math.max(
+      1,
+      series.length,
     );
-  },
-)}
-      </>
+
+  const categoryWidth =
+    plotWidth /
+    categoryCount;
+
+  const usableWidth =
+    categoryWidth * 0.72;
+
+  const resolvedGap =
+    Math.min(
+      barGap,
+      usableWidth /
+        Math.max(
+          1,
+          seriesCount * 2,
+        ),
     );
-  };
+
+  const barWidth = Math.max(
+    2,
+    (usableWidth -
+      resolvedGap *
+        (seriesCount - 1)) /
+      seriesCount,
+  );
+
+  return (
+    <>
+      {renderCartesianGrid()}
+      {renderCartesianAxes()}
+
+      {chartData.map(
+        (
+          row: any,
+          rowIndex: number,
+        ) => {
+          const categoryStart =
+            plotLeft +
+            rowIndex *
+              categoryWidth +
+            (categoryWidth -
+              usableWidth) /
+              2;
+
+          return (
+            <g
+              key={
+                row.id ??
+                `bar-row-${rowIndex}`
+              }
+            >
+              {series.map(
+                (
+                  item: any,
+                  seriesIndex: number,
+                ) => {
+                  const value =
+                    toFiniteNumber(
+                      row[
+                        item.name
+                      ],
+                    );
+
+                  const valueY =
+                    yForValue(
+                      value,
+                    );
+
+                  const y =
+                    Math.min(
+                      zeroY,
+                      valueY,
+                    );
+
+                  const height =
+                    Math.max(
+                      1,
+                      Math.abs(
+                        zeroY -
+                          valueY,
+                      ),
+                    );
+
+                  const x =
+                    categoryStart +
+                    seriesIndex *
+                      (barWidth +
+                        resolvedGap);
+
+                  const color =
+                    getSeriesColor(
+                      item,
+                      seriesIndex,
+                    );
+
+                  return (
+                    <g
+                      key={`${
+                        item.id ??
+                        item.name
+                      }-${rowIndex}`}
+                      className="group/chart-tooltip cursor-pointer"
+                    >
+                      <rect
+                        x={x}
+                        y={y}
+                        width={
+                          barWidth
+                        }
+                        height={
+                          height
+                        }
+                        rx={Math.min(
+                          barRadius,
+                          barWidth /
+                            2,
+                          height /
+                            2,
+                        )}
+                        fill={
+                          color
+                        }
+                      />
+
+                      {data.showTooltip !==
+                      false
+                        ? renderSvgTooltip(
+                            x +
+                              barWidth /
+                                2,
+                            y,
+                            `${row.label} · ${item.name}`,
+                            value,
+                            color,
+                          )
+                        : null}
+
+                      {data.showDataLabels ===
+                      true ? (
+                        <text
+                          x={
+                            x +
+                            barWidth /
+                              2
+                          }
+                          y={
+                            value >=
+                            0
+                              ? y -
+                                7
+                              : y +
+                                height +
+                                14
+                          }
+                          textAnchor="middle"
+                          fill={
+                            dataLabelColor
+                          }
+                          fontSize={
+                            compactDataLabelFontSize
+                          }
+                          fontFamily={
+                            dataLabelFontFamily
+                          }
+                          fontWeight={
+                            dataLabelFontWeight
+                          }
+                        >
+                          {formatValue(
+                            value,
+                          )}
+                        </text>
+                      ) : null}
+                    </g>
+                  );
+                },
+              )}
+            </g>
+          );
+        },
+      )}
+    </>
+  );
+};
 
   const renderHorizontalBars =
     () => {
