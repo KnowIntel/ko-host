@@ -828,6 +828,80 @@ function clearTextFxLetterColors() {
       </div>
     </div>
 
+    <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
+  <div className={inspectorLabelClass()}>
+    Position
+  </div>
+
+  <div className="mt-4">
+    <div className="flex items-center justify-between gap-3">
+      <div className={inspectorLabelClass()}>
+        Horizontal Position
+      </div>
+
+      <div className="text-xs text-neutral-500">
+        {(selectedTextFxBlock.data as any).positionX ?? 50}%
+      </div>
+    </div>
+
+    <input
+      type="range"
+      min={0}
+      max={100}
+      step={1}
+      value={(selectedTextFxBlock.data as any).positionX ?? 50}
+      onChange={(event) =>
+        updateSelectedBlock((block: any) =>
+          block.type !== "text_fx"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  positionX: Number(event.target.value),
+                },
+              },
+        )
+      }
+      className="mt-2 w-full"
+    />
+  </div>
+
+  <div className="mt-5">
+    <div className="flex items-center justify-between gap-3">
+      <div className={inspectorLabelClass()}>
+        Vertical Position
+      </div>
+
+      <div className="text-xs text-neutral-500">
+        {(selectedTextFxBlock.data as any).positionY ?? 50}%
+      </div>
+    </div>
+
+    <input
+      type="range"
+      min={0}
+      max={100}
+      step={1}
+      value={(selectedTextFxBlock.data as any).positionY ?? 50}
+      onChange={(event) =>
+        updateSelectedBlock((block: any) =>
+          block.type !== "text_fx"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  positionY: Number(event.target.value),
+                },
+              },
+        )
+      }
+      className="mt-2 w-full"
+    />
+  </div>
+</div>
+
     <div className={inspectorCardClass()}>
       <div className={inspectorLabelClass()}>TextFX Controls</div>
 

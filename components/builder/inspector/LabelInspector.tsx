@@ -124,6 +124,42 @@ export function LabelInspector({
         </div>
       </div>
 
+<div className="mt-4">
+  <div className={inspectorLabelClass()}>
+    Rotation
+  </div>
+
+  <input
+    type="range"
+    min={-180}
+    max={180}
+    step={1}
+    value={
+      (selectedBlock.data as any).rotation ??
+      0
+    }
+    onChange={(e) =>
+      updateSelectedBlock((block: any) =>
+        block.type !== "label"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...(block.data as any),
+                rotation: Number(e.target.value),
+              },
+            },
+      )
+    }
+    className="mt-2 w-full"
+  />
+
+  <div className="mt-1 text-xs text-neutral-500">
+    {(selectedBlock.data as any).rotation ?? 0}°
+  </div>
+</div>
+
+
       {/* ============================================================ */}
       {/* FADE EDGES */}
       {/* ============================================================ */}
