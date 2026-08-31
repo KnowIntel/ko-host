@@ -928,123 +928,219 @@ export function ChartInspector({
         </div>
       </div>
 
-      {/* Display */}
-      <div className="mt-6">
-        <div
-          className={inspectorLabelClass()}
+{/* Display */}
+<div className="mt-6">
+  <div
+    className={inspectorLabelClass()}
+  >
+    Display
+  </div>
+
+  <div className="mt-3 space-y-2">
+    {[
+      [
+        "showLegend",
+        "Show Legend",
+        true,
+      ],
+      [
+        "showTooltip",
+        "Show Tooltip",
+        true,
+      ],
+      [
+        "showDataLabels",
+        "Show Data Labels",
+        false,
+      ],
+    ].map(
+      ([
+        key,
+        label,
+        defaultValue,
+      ]) => (
+        <label
+          key={String(key)}
+          className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm"
         >
-          Display
-        </div>
+          <input
+            type="checkbox"
+            checked={
+              data[
+                key as string
+              ] ??
+              defaultValue
+            }
+            onChange={(e) =>
+              updateData({
+                [key as string]:
+                  e.target.checked,
+              })
+            }
+          />
 
-        <div className="mt-3 space-y-2">
-          {[
-            [
-              "showLegend",
-              "Show Legend",
-              true,
-            ],
-            [
-              "showTooltip",
-              "Show Tooltip",
-              true,
-            ],
-            [
-              "showDataLabels",
-              "Show Data Labels",
-              false,
-            ],
-          ].map(
-            ([
-              key,
-              label,
-              defaultValue,
-            ]) => (
-              <label
-                key={String(key)}
-                className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm"
-              >
-                <input
-                  type="checkbox"
-                  checked={
-                    data[key as string] ??
-                    defaultValue
-                  }
-                  onChange={(e) =>
-                    updateData({
-                      [key as string]:
-                        e.target
-                          .checked,
-                    })
-                  }
-                />
+          {label}
+        </label>
+      ),
+    )}
 
-                {label}
-              </label>
-            ),
-          )}
+    {usesAxes ? (
+      <>
+        <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm">
+          <input
+            type="checkbox"
+            checked={
+              data.showGrid !==
+              false
+            }
+            onChange={(e) =>
+              updateData({
+                showGrid:
+                  e.target.checked,
+              })
+            }
+          />
 
-          {usesAxes ? (
-            <>
-              <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm">
-                <input
-                  type="checkbox"
-                  checked={
-                    data.showGrid !==
-                    false
-                  }
-                  onChange={(e) =>
-                    updateData({
-                      showGrid:
-                        e.target
-                          .checked,
-                    })
-                  }
-                />
+          Show Grid
+        </label>
 
-                Show Grid
-              </label>
+        <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm">
+          <input
+            type="checkbox"
+            checked={
+              data.showXAxis !==
+              false
+            }
+            onChange={(e) =>
+              updateData({
+                showXAxis:
+                  e.target.checked,
+              })
+            }
+          />
 
-              <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm">
-                <input
-                  type="checkbox"
-                  checked={
-                    data.showXAxis !==
-                    false
-                  }
-                  onChange={(e) =>
-                    updateData({
-                      showXAxis:
-                        e.target
-                          .checked,
-                    })
-                  }
-                />
+          Show X Axis
+        </label>
 
-                Show X Axis
-              </label>
+        <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm">
+          <input
+            type="checkbox"
+            checked={
+              data.showYAxis !==
+              false
+            }
+            onChange={(e) =>
+              updateData({
+                showYAxis:
+                  e.target.checked,
+              })
+            }
+          />
 
-              <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm">
-                <input
-                  type="checkbox"
-                  checked={
-                    data.showYAxis !==
-                    false
-                  }
-                  onChange={(e) =>
-                    updateData({
-                      showYAxis:
-                        e.target
-                          .checked,
-                    })
-                  }
-                />
+          Show Y Axis
+        </label>
+      </>
+    ) : null}
+  </div>
 
-                Show Y Axis
-              </label>
-            </>
-          ) : null}
-        </div>
+  {/* Horizontal Stretch */}
+  <div className="mt-5">
+    <div className="flex items-center justify-between gap-3">
+      <div
+        className={inspectorLabelClass()}
+      >
+        Horizontal Stretch
       </div>
+
+      <div className="text-xs font-medium text-neutral-500">
+        {Math.round(
+          Number(
+            data.horizontalStretch ??
+              1,
+          ) * 100,
+        )}
+        %
+      </div>
+    </div>
+
+    <input
+      type="range"
+      min={60}
+      max={180}
+      step={5}
+      value={Math.round(
+        Number(
+          data.horizontalStretch ??
+            1,
+        ) * 100,
+      )}
+      onChange={(e) =>
+        updateData({
+          horizontalStretch:
+            Number(
+              e.target.value,
+            ) / 100,
+        })
+      }
+      className="mt-2 w-full"
+    />
+
+    <div className="mt-1 flex justify-between text-[10px] text-neutral-400">
+      <span>60%</span>
+      <span>100%</span>
+      <span>180%</span>
+    </div>
+  </div>
+
+  {/* Vertical Stretch */}
+  <div className="mt-5">
+    <div className="flex items-center justify-between gap-3">
+      <div
+        className={inspectorLabelClass()}
+      >
+        Vertical Stretch
+      </div>
+
+      <div className="text-xs font-medium text-neutral-500">
+        {Math.round(
+          Number(
+            data.verticalStretch ??
+              1,
+          ) * 100,
+        )}
+        %
+      </div>
+    </div>
+
+    <input
+      type="range"
+      min={60}
+      max={180}
+      step={5}
+      value={Math.round(
+        Number(
+          data.verticalStretch ??
+            1,
+        ) * 100,
+      )}
+      onChange={(e) =>
+        updateData({
+          verticalStretch:
+            Number(
+              e.target.value,
+            ) / 100,
+        })
+      }
+      className="mt-2 w-full"
+    />
+
+    <div className="mt-1 flex justify-between text-[10px] text-neutral-400">
+      <span>60%</span>
+      <span>100%</span>
+      <span>180%</span>
+    </div>
+  </div>
+</div>
 
       {/* Legend */}
       {data.showLegend !== false ? (

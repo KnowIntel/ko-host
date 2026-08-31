@@ -6641,6 +6641,22 @@ function renderChart(
     7,
   );
 
+  const horizontalStretch =
+  clampNumber(
+    data.horizontalStretch,
+    0.6,
+    1.8,
+    1,
+  );
+
+const verticalStretch =
+  clampNumber(
+    data.verticalStretch,
+    0.6,
+    1.8,
+    1,
+  );
+
   const fallbackColors = [
     "#2563EB",
     "#7C3AED",
@@ -6847,12 +6863,12 @@ const compactDataLabelFontSize =
       ? 22
       : 28;
 
-  const plotBottom =
-    data.showXAxis === false
-      ? 24
-      : isCompactChart
-        ? 58
-        : 64;
+const plotBottom =
+  data.showXAxis === false
+    ? 24
+    : isCompactChart
+      ? 68
+      : 76;
 
   const plotWidth = Math.max(
     1,
@@ -9173,20 +9189,28 @@ const color =
         renderLineOrArea(false);
     }
 
-    return (
-      <svg
-        viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`}
-        preserveAspectRatio="xMidYMid meet"
-        className="block h-full w-full"
-        role="img"
-        aria-label={
-          data.heading ||
-          "Chart"
-        }
-      >
-        {chartContents}
-      </svg>
-    );
+return (
+  <svg
+    viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`}
+    preserveAspectRatio="xMidYMid meet"
+    className="block h-full w-full overflow-visible"
+    role="img"
+    aria-label={
+      data.heading ||
+      "Chart"
+    }
+  >
+    <g
+      transform={[
+        `translate(${SVG_WIDTH / 2} ${SVG_HEIGHT / 2})`,
+        `scale(${horizontalStretch} ${verticalStretch})`,
+        `translate(${-SVG_WIDTH / 2} ${-SVG_HEIGHT / 2})`,
+      ].join(" ")}
+    >
+      {chartContents}
+    </g>
+  </svg>
+);
   };
 
 const renderLegend = () => {
