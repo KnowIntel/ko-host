@@ -7448,7 +7448,7 @@ data.xAxisLabel ? (
       plotLeft +
       plotWidth / 2
     }
-    y={SVG_HEIGHT - 2}
+    y={SVG_HEIGHT - 6}
     textAnchor="middle"
     fill={axisLabelColor}
     fontSize={
