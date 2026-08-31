@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { currentUser } from "@clerk/nextjs/server";
 import { Resend } from "resend";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 
@@ -63,6 +64,62 @@ export async function POST(
   req: Request,
 ) {
   try {
+/*
+ * ------------------------------------------------
+ * AUTHENTICATION
+ * ------------------------------------------------
+ *
+ * Help & Feedback is available only to authenticated
+ * Ko-Host account holders.
+ *
+ * This check is server-side and cannot be bypassed by
+ * calling the API directly.
+ */
+
+const user =
+  await currentUser();
+
+if (!user) {
+  return NextResponse.json(
+    {
+      error:
+        "You must be signed in to your Ko-Host account to send a Help & Feedback request.",
+    },
+    {
+      status: 401,
+    },
+  );
+}
+
+const accountEmail =
+  user.primaryEmailAddress?.emailAddress
+    ?.trim()
+    .toLowerCase() ??
+  "";
+
+if (!accountEmail) {
+  return NextResponse.json(
+    {
+      error:
+        "Your Ko-Host account does not have a valid email address.",
+    },
+    {
+      status: 400,
+    },
+  );
+}
+
+const accountName =
+  user.fullName?.trim() ||
+  [
+    user.firstName,
+    user.lastName,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .trim() ||
+  "Ko-Host Customer";
+
     const body =
       await req.json();
 
@@ -73,17 +130,15 @@ export async function POST(
         .trim()
         .toLowerCase();
 
-    const name =
-      String(
-        body.name ?? "",
-      ).trim();
+/*
+ * Name and email come from the authenticated
+ * Ko-Host account, never from untrusted form input.
+ */
+const name =
+  accountName;
 
-    const email =
-      String(
-        body.email ?? "",
-      )
-        .trim()
-        .toLowerCase();
+const email =
+  accountEmail;
 
     const subject =
       String(
@@ -118,47 +173,6 @@ export async function POST(
         {
           error:
             "Please select a valid request type.",
-        },
-        {
-          status: 400,
-        },
-      );
-    }
-
-    if (!name) {
-      return NextResponse.json(
-        {
-          error:
-            "Please enter your name.",
-        },
-        {
-          status: 400,
-        },
-      );
-    }
-
-    if (!email) {
-      return NextResponse.json(
-        {
-          error:
-            "Please enter your email address.",
-        },
-        {
-          status: 400,
-        },
-      );
-    }
-
-    const looksLikeEmail =
-      /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
-        email,
-      );
-
-    if (!looksLikeEmail) {
-      return NextResponse.json(
-        {
-          error:
-            "Please enter a valid email address.",
         },
         {
           status: 400,
@@ -508,4 +522,4 @@ function escapeHtml(
       "'",
       "&#39;",
     );
-}
+} 

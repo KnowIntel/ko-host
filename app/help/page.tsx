@@ -1,6 +1,12 @@
 "use client";
 
 import Link from "next/link";
+
+import {
+  SignInButton,
+  useUser,
+} from "@clerk/nextjs";
+
 import {
   useEffect,
   useState,
@@ -63,6 +69,27 @@ const REQUEST_TYPES = [
 ];
 
 export default function HelpFeedbackPage() {
+  const {
+  isLoaded: isUserLoaded,
+  isSignedIn,
+  user,
+} = useUser();
+
+const accountEmail =
+  user?.primaryEmailAddress?.emailAddress ??
+  "";
+
+const accountName =
+  user?.fullName?.trim() ||
+  [
+    user?.firstName,
+    user?.lastName,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .trim() ||
+  "Ko-Host Customer";
+
   const [
     status,
     setStatus,
@@ -128,13 +155,27 @@ export default function HelpFeedbackPage() {
     }
   }, []);
 
-  async function handleSubmit(
-    event: React.FormEvent<HTMLFormElement>,
-  ) {
-    event.preventDefault();
+async function handleSubmit(
+  event: React.FormEvent<HTMLFormElement>,
+) {
+  event.preventDefault();
 
-    const form =
-      event.currentTarget;
+  if (
+    !isUserLoaded ||
+    !isSignedIn ||
+    !user
+  ) {
+    setStatus("error");
+
+    setErrorMessage(
+      "You must be signed in to your Ko-Host account to send a Help & Feedback request.",
+    );
+
+    return;
+  }
+
+  const form =
+    event.currentTarget;
 
     setStatus(
       "sending",
@@ -162,19 +203,11 @@ export default function HelpFeedbackPage() {
             ) ?? "",
           ),
 
-        name:
-          String(
-            formData.get(
-              "name",
-            ) ?? "",
-          ),
+name:
+  accountName,
 
-        email:
-          String(
-            formData.get(
-              "email",
-            ) ?? "",
-          ),
+email:
+  accountEmail,
 
         subject:
           String(
@@ -421,24 +454,45 @@ export default function HelpFeedbackPage() {
                 </select>
               </div>
 
-              {/* NAME / EMAIL */}
+{/* ACCOUNT NAME / EMAIL */}
 
-              <div className="grid gap-4 sm:grid-cols-2">
-                <input
-                  name="name"
-                  required
-                  placeholder="Name"
-                  className="h-12 rounded-2xl border border-neutral-200 px-4 text-sm outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-500/30"
-                />
+<div className="grid gap-4 sm:grid-cols-2">
+  <div>
+    <div className="mb-2 text-xs font-black uppercase tracking-[0.14em] text-neutral-500">
+      Account Name
+    </div>
 
-                <input
-                  name="email"
-                  type="email"
-                  required
-                  placeholder="Email"
-                  className="h-12 rounded-2xl border border-neutral-200 px-4 text-sm outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-500/30"
-                />
-              </div>
+    <input
+      type="text"
+      value={
+        isSignedIn
+          ? accountName
+          : ""
+      }
+      readOnly
+      tabIndex={-1}
+      className="h-12 w-full cursor-default rounded-2xl border border-neutral-200 bg-neutral-100 px-4 text-sm text-neutral-600 outline-none"
+    />
+  </div>
+
+  <div>
+    <div className="mb-2 text-xs font-black uppercase tracking-[0.14em] text-neutral-500">
+      Account Email
+    </div>
+
+    <input
+      type="email"
+      value={
+        isSignedIn
+          ? accountEmail
+          : ""
+      }
+      readOnly
+      tabIndex={-1}
+      className="h-12 w-full cursor-default rounded-2xl border border-neutral-200 bg-neutral-100 px-4 text-sm text-neutral-600 outline-none"
+    />
+  </div>
+</div>
 
               {/* SUBJECT */}
 
@@ -483,19 +537,47 @@ export default function HelpFeedbackPage() {
 
               {/* SUBMIT */}
 
-              <button
-                type="submit"
-                disabled={
-                  status ===
-                  "sending"
-                }
-                className="mt-2 h-12 rounded-full bg-neutral-950 px-6 text-sm font-black text-white transition hover:-translate-y-0.5 hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {status ===
-                "sending"
-                  ? "Sending..."
-                  : "Send Message"}
-              </button>
+{!isUserLoaded ? (
+  <button
+    type="button"
+    disabled
+    className="mt-2 h-12 rounded-full bg-neutral-950 px-6 text-sm font-black text-white opacity-60"
+  >
+    Loading Account...
+  </button>
+) : !isSignedIn ? (
+  <div className="mt-2 rounded-2xl border border-blue-200 bg-blue-50 p-4">
+    <div className="text-sm font-semibold text-blue-950">
+      Sign in required
+    </div>
+
+    <div className="mt-1 text-xs leading-5 text-blue-800/80">
+      Help & Feedback requests can only be sent from a Ko-Host account.
+    </div>
+
+    <SignInButton mode="modal">
+      <button
+        type="button"
+        className="mt-3 h-11 rounded-full bg-neutral-950 px-6 text-sm font-black text-white transition hover:bg-neutral-800"
+      >
+        Sign In to Ko-Host
+      </button>
+    </SignInButton>
+  </div>
+) : (
+  <button
+    type="submit"
+    disabled={
+      status === "sending" ||
+      !accountEmail
+    }
+    className="mt-2 h-12 rounded-full bg-neutral-950 px-6 text-sm font-black text-white transition hover:-translate-y-0.5 hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-60"
+  >
+    {status === "sending"
+      ? "Sending..."
+      : "Send Message"}
+  </button>
+)}
 
               {/* SUCCESS */}
 
@@ -555,4 +637,4 @@ export default function HelpFeedbackPage() {
       </section>
     </main>
   );
-}
+} 
