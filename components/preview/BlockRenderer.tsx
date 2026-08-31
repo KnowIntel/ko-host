@@ -7440,34 +7440,34 @@ const renderCartesianAxes = () => (
           },
         )}
 
-        {data.showXAxisLabel ===
-          true &&
-        data.xAxisLabel ? (
-          <text
-            x={
-              plotLeft +
-              plotWidth / 2
-            }
-            y={SVG_HEIGHT - 8}
-            textAnchor="middle"
-            fill={axisLabelColor}
-            fontSize={
-              axisLabelFontSize
-            }
-            fontFamily={
-              (axisLabelStyle as any)
-                .fontFamily
-            }
-            fontWeight={
-              (axisLabelStyle as any)
-                .fontWeight
-            }
-          >
-            {escapeSvgText(
-              data.xAxisLabel,
-            )}
-          </text>
-        ) : null}
+{data.showXAxisLabel ===
+  true &&
+data.xAxisLabel ? (
+  <text
+    x={
+      plotLeft +
+      plotWidth / 2
+    }
+    y={SVG_HEIGHT - 2}
+    textAnchor="middle"
+    fill={axisLabelColor}
+    fontSize={
+      axisLabelFontSize
+    }
+    fontFamily={
+      (axisLabelStyle as any)
+        .fontFamily
+    }
+    fontWeight={
+      (axisLabelStyle as any)
+        .fontWeight
+    }
+  >
+    {escapeSvgText(
+      data.xAxisLabel,
+    )}
+  </text>
+) : null}
       </g>
     ) : null}
 
