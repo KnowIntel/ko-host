@@ -6735,51 +6735,77 @@ function renderChart(
     (axisStyle as any).color ??
     axisColor;
 
-  const axisFontSize =
-    typeof (axisStyle as any)
-      .fontSize === "number"
-      ? Math.max(
-          8,
-          (axisStyle as any)
-            .fontSize,
-        )
-      : 11;
+const getRenderedFontSize = (
+  style: React.CSSProperties,
+  fallback: number,
+) => {
+  const rawFontSize =
+    style.fontSize;
 
-  const axisFontFamily =
-    (axisStyle as any).fontFamily;
+  if (
+    typeof rawFontSize === "number" &&
+    Number.isFinite(rawFontSize)
+  ) {
+    return Math.max(
+      1,
+      rawFontSize,
+    );
+  }
 
-  const axisFontWeight =
-    (axisStyle as any).fontWeight;
+  if (
+    typeof rawFontSize === "string"
+  ) {
+    const parsed =
+      Number.parseFloat(
+        rawFontSize,
+      );
 
-  const axisLabelColor =
-    (axisLabelStyle as any)
-      .color ??
-    axisColor;
+    if (
+      Number.isFinite(parsed)
+    ) {
+      return Math.max(
+        1,
+        parsed,
+      );
+    }
+  }
 
-  const axisLabelFontSize =
-    typeof (axisLabelStyle as any)
-      .fontSize === "number"
-      ? Math.max(
-          8,
-          (axisLabelStyle as any)
-            .fontSize,
-        )
-      : 12;
+  return fallback;
+};
 
-  const dataLabelColor =
-    (dataLabelStyle as any)
-      .color ??
-    "#374151";
+const axisFontSize =
+  getRenderedFontSize(
+    axisStyle,
+    11,
+  );
 
-  const dataLabelFontSize =
-    typeof (dataLabelStyle as any)
-      .fontSize === "number"
-      ? Math.max(
-          8,
-          (dataLabelStyle as any)
-            .fontSize,
-        )
-      : 10;
+const axisFontFamily =
+  (axisStyle as any).fontFamily;
+
+const axisFontWeight =
+  (axisStyle as any).fontWeight;
+
+const axisLabelColor =
+  (axisLabelStyle as any)
+    .color ??
+  axisColor;
+
+const axisLabelFontSize =
+  getRenderedFontSize(
+    axisLabelStyle,
+    12,
+  );
+
+const dataLabelColor =
+  (dataLabelStyle as any)
+    .color ??
+  "#374151";
+
+const dataLabelFontSize =
+  getRenderedFontSize(
+    dataLabelStyle,
+    10,
+  );
 
   const dataLabelFontFamily =
     (dataLabelStyle as any)
@@ -6793,21 +6819,11 @@ function renderChart(
     chartData.length >= 6 ||
     series.length >= 4;
 
-  const compactAxisFontSize =
-    isCompactChart
-      ? Math.max(
-          8,
-          axisFontSize - 2,
-        )
-      : axisFontSize;
+const compactAxisFontSize =
+  axisFontSize;
 
-  const compactDataLabelFontSize =
-    isCompactChart
-      ? Math.max(
-          8,
-          dataLabelFontSize - 1,
-        )
-      : dataLabelFontSize;
+const compactDataLabelFontSize =
+  dataLabelFontSize;
 
   /*
    * Slightly tighter plot margins for dense
