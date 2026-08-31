@@ -7440,17 +7440,14 @@ const renderCartesianAxes = () => (
           },
         )}
 
-        {data.showXAxisLabel ===
-          true &&
+        {data.showXAxisLabel === true &&
         data.xAxisLabel ? (
           <text
             x={
               plotLeft +
               plotWidth / 2
             }
-            y={
-              SVG_HEIGHT - 6
-            }
+            y={SVG_HEIGHT - 8}
             textAnchor="middle"
             fill={axisLabelColor}
             fontSize={
@@ -7479,7 +7476,10 @@ const renderCartesianAxes = () => (
           x1={plotLeft}
           x2={plotLeft}
           y1={plotTop}
-          y2={plotTop + plotHeight}
+          y2={
+            plotTop +
+            plotHeight
+          }
           stroke={axisColor}
           strokeWidth={1}
           vectorEffect="non-scaling-stroke"
@@ -7494,7 +7494,9 @@ const renderCartesianAxes = () => (
               key={`y-axis-${index}`}
             >
               <line
-                x1={plotLeft - 5}
+                x1={
+                  plotLeft - 5
+                }
                 x2={plotLeft}
                 y1={tick.y}
                 y2={tick.y}
@@ -7504,7 +7506,9 @@ const renderCartesianAxes = () => (
               />
 
               <text
-                x={plotLeft - 10}
+                x={
+                  plotLeft - 10
+                }
                 y={tick.y + 4}
                 textAnchor="end"
                 fill={axisTextColor}
@@ -7526,8 +7530,7 @@ const renderCartesianAxes = () => (
           ),
         )}
 
-        {data.showYAxisLabel ===
-          true &&
+        {data.showYAxisLabel === true &&
         data.yAxisLabel ? (
           <text
             x={16}
