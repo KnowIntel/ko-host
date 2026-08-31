@@ -11911,9 +11911,11 @@ if (block.type === "label") {
           WebkitBackgroundClip: hasTexture ? "text" : undefined,
           color: hasTexture ? "transparent" : block.data.style?.color || undefined,
           WebkitTextFillColor: hasTexture ? "transparent" : block.data.style?.color || undefined,
-          transform: `translate(${((block.data as any).positionX ?? 50) - 50}%, ${
-            ((block.data as any).positionY ?? 50) - 50
-          }%)`,
+transform: `translate(${((block.data as any).positionX ?? 50) - 50}%, ${
+  ((block.data as any).positionY ?? 50) - 50
+}%) rotate(${Number((block.data as any).rotation ?? 0)}deg)`,
+
+transformOrigin: "center center",
         }}
       />
     </div>
