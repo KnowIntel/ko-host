@@ -21071,22 +21071,27 @@ style={
               const disabled = Boolean(option.disabled);
 
               if (variant === "radio" || variant === "toggle") {
-                const control =
-                  variant === "radio" ? (
-                    <span
-                      className="pointer-events-none flex h-5 w-5 shrink-0 items-center justify-center rounded-full border"
-                      style={{
-                        borderColor: selected ? selectedBorderColor : undefined,
-                      }}
-                    >
-                      {selected ? (
-                        <span
-                          className="h-2.5 w-2.5 rounded-full"
-                          style={{ backgroundColor: selectedBorderColor }}
-                        />
-                      ) : null}
-                    </span>
-                  ) : (
+const control =
+  variant === "radio" ? (
+    <span
+      className="pointer-events-none flex h-5 w-5 shrink-0 items-center justify-center rounded-full border"
+      style={{
+        borderColor:
+          (optionLabelStyle.color as string | undefined) ??
+          "#111827",
+      }}
+    >
+      {selected ? (
+        <span
+          className="h-2.5 w-2.5 rounded-full"
+          style={{
+            backgroundColor:
+              selectedBorderColor,
+          }}
+        />
+      ) : null}
+    </span>
+  ) : (
                     <span
                       className="pointer-events-none relative h-6 w-11 shrink-0 rounded-full border transition"
                       style={{
