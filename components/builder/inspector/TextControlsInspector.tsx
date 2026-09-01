@@ -906,27 +906,45 @@ function clearTextFxLetterColors() {
       <div className={inspectorLabelClass()}>TextFX Controls</div>
 
             <div className="mt-4 grid grid-cols-1 gap-4">
-              <div>
-                <div className={inspectorLabelClass()}>Curve</div>
+<div>
+  <div className="flex items-center justify-between gap-3">
+    <div className={inspectorLabelClass()}>
+      Curve
+    </div>
 
-                <input
-                  type="number"
-                  min={0}
-                  max={100}
-                  value={
-                    (selectedTextFxBlock.data.fx as any)?.intensity ?? 0
-                  }
-                  onChange={(event) =>
-                    updateTextFx({
-                      intensity: Math.max(
-                        0,
-                        Math.min(100, Number(event.target.value) || 0),
-                      ),
-                    })
-                  }
-                  className={inspectorInputClass()}
-                />
-              </div>
+    <div className="text-xs font-medium text-neutral-500">
+      {(selectedTextFxBlock.data.fx as any)?.intensity ?? 0}%
+    </div>
+  </div>
+
+  <input
+    type="range"
+    min={0}
+    max={100}
+    step={1}
+    value={
+      (selectedTextFxBlock.data.fx as any)?.intensity ?? 0
+    }
+    onChange={(event) =>
+      updateTextFx({
+        intensity: Math.max(
+          0,
+          Math.min(
+            100,
+            Number(event.target.value) || 0,
+          ),
+        ),
+      })
+    }
+    className="mt-2 w-full"
+  />
+
+  <div className="mt-1 flex justify-between text-[10px] text-neutral-400">
+    <span>0%</span>
+    <span>50%</span>
+    <span>100%</span>
+  </div>
+</div>
 
               <div>
                 <div className={inspectorLabelClass()}>Transform Style</div>
@@ -1000,50 +1018,95 @@ onChange={(e) => {
                 </div>
               </div>
 
-              <div>
-                <div className={inspectorLabelClass()}>Rotate</div>
+<div>
+  <div className="flex items-center justify-between gap-3">
+    <div className={inspectorLabelClass()}>
+      Rotate
+    </div>
 
-                <input
-                  type="number"
-                  min={-180}
-                  max={180}
-                  value={
-                    (selectedTextFxBlock.data.fx as any)?.rotation ?? 0
-                  }
-                  onChange={(event) =>
-                    updateTextFx({
-                      rotation: Math.max(
-                        -180,
-                        Math.min(180, Number(event.target.value) || 0),
-                      ),
-                    })
-                  }
-                  className={inspectorInputClass()}
-                />
-              </div>
+    <div className="text-xs font-medium text-neutral-500">
+      {Math.round(
+        Number(
+          (selectedTextFxBlock.data.fx as any)?.rotation ?? 0,
+        ),
+      )}
+      °
+    </div>
+  </div>
 
-              <div>
-                <div className={inspectorLabelClass()}>Opacity (%)</div>
+  <input
+    type="range"
+    min={-180}
+    max={180}
+    step={1}
+    value={
+      (selectedTextFxBlock.data.fx as any)?.rotation ?? 0
+    }
+    onChange={(event) =>
+      updateTextFx({
+        rotation: Math.max(
+          -180,
+          Math.min(
+            180,
+            Number(event.target.value) || 0,
+          ),
+        ),
+      })
+    }
+    className="mt-2 w-full"
+  />
 
-                <input
-                  type="number"
-                  min={0}
-                  max={100}
-                  value={Math.round(
-                    ((selectedTextFxBlock.data.fx as any)?.opacity ?? 1) * 100,
-                  )}
-                  onChange={(event) =>
-                    updateTextFx({
-                      opacity:
-                        Math.max(
-                          0,
-                          Math.min(100, Number(event.target.value) || 0),
-                        ) / 100,
-                    })
-                  }
-                  className={inspectorInputClass()}
-                />
-              </div>
+  <div className="mt-1 flex justify-between text-[10px] text-neutral-400">
+    <span>-180°</span>
+    <span>0°</span>
+    <span>180°</span>
+  </div>
+</div>
+<div>
+  <div className="flex items-center justify-between gap-3">
+    <div className={inspectorLabelClass()}>
+      Opacity
+    </div>
+
+    <div className="text-xs font-medium text-neutral-500">
+      {Math.round(
+        ((selectedTextFxBlock.data.fx as any)?.opacity ?? 1) *
+          100,
+      )}
+      %
+    </div>
+  </div>
+
+  <input
+    type="range"
+    min={0}
+    max={100}
+    step={1}
+    value={Math.round(
+      ((selectedTextFxBlock.data.fx as any)?.opacity ?? 1) *
+        100,
+    )}
+    onChange={(event) =>
+      updateTextFx({
+        opacity:
+          Math.max(
+            0,
+            Math.min(
+              100,
+              Number(event.target.value),
+            ),
+          ) / 100,
+      })
+    }
+    className="mt-2 w-full"
+  />
+
+  <div className="mt-1 flex justify-between text-[10px] text-neutral-400">
+    <span>0%</span>
+    <span>50%</span>
+    <span>100%</span>
+  </div>
+</div>
 
 <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
   <div className={inspectorLabelClass()}>Character Stretch</div>
