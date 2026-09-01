@@ -21132,42 +21132,25 @@ const control =
     toggleOption(option.id);
   }}
   className={[
-    "pointer-events-auto flex items-center gap-3 rounded-xl px-3 py-2 text-left transition",
+    "pointer-events-auto flex items-center gap-3 px-3 py-2 text-left transition",
     "disabled:cursor-not-allowed disabled:opacity-50",
 
-    /*
-     * Force the field border completely off when the
-     * Field Border control is set to 0.
-     *
-     * The ! classes intentionally override any global
-     * button/border styling elsewhere in the builder.
-     */
-    resolvedFieldBorderWidth <= 0
-      ? "!border-0 !border-none !outline-none !ring-0"
-      : "border-solid",
+    resolvedFieldBorderWidth > 0
+      ? "border-solid"
+      : "border-0",
   ].join(" ")}
   style={{
     ...optionTextStyle,
 
-    appearance: "none",
-    WebkitAppearance: "none",
-
-    outline: "none",
-    boxShadow: "none",
-
-    border:
-      resolvedFieldBorderWidth > 0
-        ? `${resolvedFieldBorderWidth}px solid ${
-            selected
-              ? selectedBorderColor
-              : fieldBorderColor
-          }`
-        : "none",
+    borderRadius:
+      fieldBorderRadius !== undefined
+        ? `${Number(fieldBorderRadius) || 0}px`
+        : undefined,
 
     borderWidth:
       resolvedFieldBorderWidth > 0
         ? `${resolvedFieldBorderWidth}px`
-        : "0px",
+        : 0,
 
     borderStyle:
       resolvedFieldBorderWidth > 0
@@ -21179,10 +21162,11 @@ const control =
         ? selected
           ? selectedBorderColor
           : fieldBorderColor
-        : "transparent",
+        : undefined,
 
-    outlineWidth: 0,
-    outlineStyle: "none",
+    outline: "none",
+    boxShadow: "none",
+    backgroundImage: "none",
   }}
   aria-pressed={selected}
   data-option-id={option.id}
