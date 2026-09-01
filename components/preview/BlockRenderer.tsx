@@ -21111,20 +21111,34 @@ const control =
                   );
 
                 return (
-                  <button
-                    key={option.id}
-                    type="button"
-                    disabled={disabled}
-                    onMouseDown={(e) => e.stopPropagation()}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleOption(option.id);
-                    }}
-                    className="pointer-events-auto flex items-center gap-3 rounded-xl border px-3 py-2 text-left transition disabled:cursor-not-allowed disabled:opacity-50"
-                    style={{
-                      ...optionTextStyle,
-                      borderColor: selected ? selectedBorderColor : undefined,
-                    }}
+<button
+  key={option.id}
+  type="button"
+  disabled={disabled}
+  onMouseDown={(e) => e.stopPropagation()}
+  onClick={(e) => {
+    e.stopPropagation();
+    toggleOption(option.id);
+  }}
+  className="pointer-events-auto flex items-center gap-3 rounded-xl px-3 py-2 text-left transition disabled:cursor-not-allowed disabled:opacity-50"
+  style={{
+    ...optionTextStyle,
+
+    borderWidth:
+      Number(fieldBorderWidth) || 0,
+
+    borderStyle:
+      Number(fieldBorderWidth) > 0
+        ? "solid"
+        : "none",
+
+    borderColor:
+      Number(fieldBorderWidth) > 0
+        ? selected
+          ? selectedBorderColor
+          : fieldBorderColor
+        : "transparent",
+  }}
                     aria-pressed={selected}
                     data-option-id={option.id}
                     data-option-label={option.label}
