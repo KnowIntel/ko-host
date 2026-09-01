@@ -20917,18 +20917,27 @@ const placeholderColor =
   (data.placeholderColor as string | undefined) ??
   "rgb(186, 186, 186)";
 
+const resolvedFieldBorderWidth =
+  Math.max(
+    0,
+    Number(fieldBorderWidth) || 0,
+  );
+
 const optionTextStyle = {
   ...optionLabelStyle,
+
   ...(fieldBackgroundColor !== undefined
     ? {
-backgroundColor: fieldBackgroundColor,
+        backgroundColor:
+          fieldBackgroundColor,
       }
     : {}),
-  borderColor: fieldBorderColor,
-  borderWidth: Number(fieldBorderWidth) || 0,
-  borderStyle: Number(fieldBorderWidth) > 0 ? "solid" : "none",
+
   ...(fieldBorderRadius !== undefined
-    ? { borderRadius: Number(fieldBorderRadius) || 0 }
+    ? {
+        borderRadius:
+          Number(fieldBorderRadius) || 0,
+      }
     : {}),
 };
 
@@ -21115,38 +21124,55 @@ const control =
   key={option.id}
   type="button"
   disabled={disabled}
-  onMouseDown={(e) => e.stopPropagation()}
+  onMouseDown={(e) =>
+    e.stopPropagation()
+  }
   onClick={(e) => {
     e.stopPropagation();
     toggleOption(option.id);
   }}
   className="pointer-events-auto flex items-center gap-3 rounded-xl px-3 py-2 text-left transition disabled:cursor-not-allowed disabled:opacity-50"
-style={{
-  ...optionTextStyle,
+  style={{
+    ...optionTextStyle,
 
-  ...(Number(fieldBorderWidth) > 0
-    ? {
-        border: `${Number(fieldBorderWidth)}px solid ${
-          selected
-            ? selectedBorderColor
-            : fieldBorderColor
-        }`,
-      }
-    : {
-        border: "none",
-        borderWidth: 0,
-        borderStyle: "none",
-        borderColor: "transparent",
-      }),
+    appearance: "none",
+    WebkitAppearance: "none",
 
-  boxShadow: "none",
-}}
-                    aria-pressed={selected}
-                    data-option-id={option.id}
-                    data-option-label={option.label}
-                    data-option-value={option.value ?? option.id}
-                    {...sharedDataAttrs}
-                  >
+    outline: "none",
+    boxShadow: "none",
+
+    border:
+      resolvedFieldBorderWidth > 0
+        ? `${resolvedFieldBorderWidth}px solid ${
+            selected
+              ? selectedBorderColor
+              : fieldBorderColor
+          }`
+        : "0 solid transparent",
+
+    borderWidth:
+      resolvedFieldBorderWidth,
+
+    borderStyle:
+      resolvedFieldBorderWidth > 0
+        ? "solid"
+        : "none",
+
+    borderColor:
+      resolvedFieldBorderWidth > 0
+        ? selected
+          ? selectedBorderColor
+          : fieldBorderColor
+        : "transparent",
+  }}
+  aria-pressed={selected}
+  data-option-id={option.id}
+  data-option-label={option.label}
+  data-option-value={
+    option.value ?? option.id
+  }
+  {...sharedDataAttrs}
+>
                     {data.labelPosition === "left" ? (
                       <>
                         <span
