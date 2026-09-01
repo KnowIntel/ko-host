@@ -1745,7 +1745,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
   key: "newsletter",
   title: "Newsletter",
   description:
-    "Share updates, announcements, highlights, and resources in one polished newsletter.",
+    "Share updates and announcements in one polished newsletter.",
   thumb: "newsletters",
   setupMins: 3,
   demoSlug: "newsletter",
