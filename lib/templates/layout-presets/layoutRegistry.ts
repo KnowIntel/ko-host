@@ -41,6 +41,7 @@ import mediationLayouts from "./templates/mediation";
 import groupLayouts from "./templates/group_trip";
 import merchantLayouts from "./templates/merchant_drop";
 import surveysLayouts from "./templates/surveys";
+import projectLayouts from "./templates/project";
 
 
 
@@ -87,6 +88,7 @@ const registry: Record<string, TemplateLayoutRegistry> = {
   local_classified_ad: localClassifiedLayouts,
   merchant_drop: merchantLayouts,
   surveys: surveysLayouts,
+  project: projectLayouts,
 
   
 };
