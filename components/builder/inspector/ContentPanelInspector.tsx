@@ -276,6 +276,60 @@ const [
       />
     </div>
 
+    
+    {/* ============================================================ */}
+    {/* EDIT SLIDE */}
+    {/* ============================================================ */}
+
+    <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+      <div className={inspectorLabelClass()}>
+        Edit Slide
+      </div>
+
+      <select
+        value={editingPanelId}
+        onChange={(e) =>
+          updateSelectedBlock(
+            (block: any) =>
+              block.type !==
+              "content_panel"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      editingPanelId:
+                        e.target.value,
+                    },
+                  },
+          )
+        }
+        className={inspectorInputClass()}
+      >
+        {panels.map(
+          (
+            panel: any,
+            index: number,
+          ) => (
+            <option
+              key={panel.id}
+              value={panel.id}
+            >
+              {`Slide ${index + 1}${
+                panel.title
+                  ? ` — ${panel.title}`
+                  : ""
+              }`}
+            </option>
+          ),
+        )}
+      </select>
+
+      <div className="mt-2 text-xs text-neutral-500">
+        Select the slide whose content you want to edit below.
+      </div>
+    </div>
+
     <div className="mt-4 grid grid-cols-2 gap-2">
       <label className="flex items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm">
         <input
@@ -702,58 +756,6 @@ const [
       </div>
     </div>
 
-    {/* ============================================================ */}
-    {/* EDIT SLIDE */}
-    {/* ============================================================ */}
-
-    <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
-      <div className={inspectorLabelClass()}>
-        Edit Slide
-      </div>
-
-      <select
-        value={editingPanelId}
-        onChange={(e) =>
-          updateSelectedBlock(
-            (block: any) =>
-              block.type !==
-              "content_panel"
-                ? block
-                : {
-                    ...block,
-                    data: {
-                      ...block.data,
-                      editingPanelId:
-                        e.target.value,
-                    },
-                  },
-          )
-        }
-        className={inspectorInputClass()}
-      >
-        {panels.map(
-          (
-            panel: any,
-            index: number,
-          ) => (
-            <option
-              key={panel.id}
-              value={panel.id}
-            >
-              {`Slide ${index + 1}${
-                panel.title
-                  ? ` — ${panel.title}`
-                  : ""
-              }`}
-            </option>
-          ),
-        )}
-      </select>
-
-      <div className="mt-2 text-xs text-neutral-500">
-        Select the slide whose content you want to edit below.
-      </div>
-    </div>
   </>
 )}
 
