@@ -21124,14 +21124,28 @@ const control =
   key={option.id}
   type="button"
   disabled={disabled}
-  onMouseDown={(e) =>
-    e.stopPropagation()
-  }
+  onMouseDown={(e) => {
+    e.stopPropagation();
+  }}
   onClick={(e) => {
     e.stopPropagation();
     toggleOption(option.id);
   }}
-  className="pointer-events-auto flex items-center gap-3 rounded-xl px-3 py-2 text-left transition disabled:cursor-not-allowed disabled:opacity-50"
+  className={[
+    "pointer-events-auto flex items-center gap-3 rounded-xl px-3 py-2 text-left transition",
+    "disabled:cursor-not-allowed disabled:opacity-50",
+
+    /*
+     * Force the field border completely off when the
+     * Field Border control is set to 0.
+     *
+     * The ! classes intentionally override any global
+     * button/border styling elsewhere in the builder.
+     */
+    resolvedFieldBorderWidth <= 0
+      ? "!border-0 !border-none !outline-none !ring-0"
+      : "border-solid",
+  ].join(" ")}
   style={{
     ...optionTextStyle,
 
@@ -21148,10 +21162,12 @@ const control =
               ? selectedBorderColor
               : fieldBorderColor
           }`
-        : "0 solid transparent",
+        : "none",
 
     borderWidth:
-      resolvedFieldBorderWidth,
+      resolvedFieldBorderWidth > 0
+        ? `${resolvedFieldBorderWidth}px`
+        : "0px",
 
     borderStyle:
       resolvedFieldBorderWidth > 0
@@ -21164,6 +21180,9 @@ const control =
           ? selectedBorderColor
           : fieldBorderColor
         : "transparent",
+
+    outlineWidth: 0,
+    outlineStyle: "none",
   }}
   aria-pressed={selected}
   data-option-id={option.id}
