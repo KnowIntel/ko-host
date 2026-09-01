@@ -21121,24 +21121,26 @@ const control =
     toggleOption(option.id);
   }}
   className="pointer-events-auto flex items-center gap-3 rounded-xl px-3 py-2 text-left transition disabled:cursor-not-allowed disabled:opacity-50"
-  style={{
-    ...optionTextStyle,
+style={{
+  ...optionTextStyle,
 
-    borderWidth:
-      Number(fieldBorderWidth) || 0,
+  ...(Number(fieldBorderWidth) > 0
+    ? {
+        border: `${Number(fieldBorderWidth)}px solid ${
+          selected
+            ? selectedBorderColor
+            : fieldBorderColor
+        }`,
+      }
+    : {
+        border: "none",
+        borderWidth: 0,
+        borderStyle: "none",
+        borderColor: "transparent",
+      }),
 
-    borderStyle:
-      Number(fieldBorderWidth) > 0
-        ? "solid"
-        : "none",
-
-    borderColor:
-      Number(fieldBorderWidth) > 0
-        ? selected
-          ? selectedBorderColor
-          : fieldBorderColor
-        : "transparent",
-  }}
+  boxShadow: "none",
+}}
                     aria-pressed={selected}
                     data-option-id={option.id}
                     data-option-label={option.label}
