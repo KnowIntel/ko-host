@@ -694,7 +694,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
   },
 {
   key: "surveys",
-  title: "Surveys",
+  title: "Survey",
   description: "Questions, feedback, insights.",
   thumb: "surveys",
   setupMins: 2,
