@@ -20901,28 +20901,34 @@ const fieldBorderColor =
   data.buttonBorderColor ??
   "#d4d4d4";
 
-const fieldBorderWidth =
-  fieldStyle.borderWidth ??
-  data.fieldBorderWidth ??
-  data.buttonBorderWidth ??
-  1;
+const resolvedFieldBorderWidth =
+  Math.max(
+    0,
+    Number(
+      fieldStyle.borderWidth ??
+        data.fieldBorderWidth ??
+        0,
+    ) || 0,
+  );
 
 const fieldBorderRadius =
   fieldStyle.borderRadius ??
   data.fieldBorderRadius ??
-  data.buttonBorderRadius;
+  data.buttonBorderRadius ??
+  0;
 
 const placeholderColor =
   (placeholderStyle.color as string | undefined) ??
   (data.placeholderColor as string | undefined) ??
   "rgb(186, 186, 186)";
 
-const resolvedFieldBorderWidth =
-  Math.max(
-    0,
-    Number(fieldBorderWidth) || 0,
-  );
-
+/*
+ * Text/background styling only.
+ *
+ * IMPORTANT:
+ * Do not put Field border properties in this object.
+ * Radio/Toggle rows control their own border explicitly below.
+ */
 const optionTextStyle = {
   ...optionLabelStyle,
 
@@ -20933,12 +20939,8 @@ const optionTextStyle = {
       }
     : {}),
 
-  ...(fieldBorderRadius !== undefined
-    ? {
-        borderRadius:
-          Number(fieldBorderRadius) || 0,
-      }
-    : {}),
+  borderRadius:
+    Number(fieldBorderRadius) || 0,
 };
 
     const selectedBorderColor = data.selectedBorderColor ?? "#f59e0b";
@@ -21131,42 +21133,53 @@ const control =
     e.stopPropagation();
     toggleOption(option.id);
   }}
-  className={[
-    "pointer-events-auto flex items-center gap-3 px-3 py-2 text-left transition",
-    "disabled:cursor-not-allowed disabled:opacity-50",
-
-    resolvedFieldBorderWidth > 0
-      ? "border-solid"
-      : "border-0",
-  ].join(" ")}
+  className="pointer-events-auto flex items-center gap-3 px-3 py-2 text-left transition disabled:cursor-not-allowed disabled:opacity-50"
   style={{
     ...optionTextStyle,
 
-    borderRadius:
-      fieldBorderRadius !== undefined
-        ? `${Number(fieldBorderRadius) || 0}px`
-        : undefined,
+    /*
+     * FIELD BORDER
+     *
+     * The top-toolbar Field Border slider is authoritative.
+     * 0 means absolutely no rectangular border around the option.
+     */
+    border:
+      resolvedFieldBorderWidth === 0
+        ? "none"
+        : `${resolvedFieldBorderWidth}px solid ${
+            selected
+              ? selectedBorderColor
+              : fieldBorderColor
+          }`,
 
     borderWidth:
-      resolvedFieldBorderWidth > 0
-        ? `${resolvedFieldBorderWidth}px`
-        : 0,
+      resolvedFieldBorderWidth === 0
+        ? 0
+        : resolvedFieldBorderWidth,
 
     borderStyle:
-      resolvedFieldBorderWidth > 0
-        ? "solid"
-        : "none",
+      resolvedFieldBorderWidth === 0
+        ? "none"
+        : "solid",
 
     borderColor:
-      resolvedFieldBorderWidth > 0
-        ? selected
+      resolvedFieldBorderWidth === 0
+        ? "transparent"
+        : selected
           ? selectedBorderColor
-          : fieldBorderColor
-        : undefined,
+          : fieldBorderColor,
 
-    outline: "none",
-    boxShadow: "none",
-    backgroundImage: "none",
+    outline:
+      "none",
+
+    boxShadow:
+      "none",
+
+    WebkitAppearance:
+      "none",
+
+    appearance:
+      "none",
   }}
   aria-pressed={selected}
   data-option-id={option.id}
