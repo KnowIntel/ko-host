@@ -246,6 +246,164 @@ export function ButtonInspector({
         </div>
       ) : null}
 
+                   {/* ============================================================ */}
+      {/* LINK TO */}
+      {/* ============================================================ */}
+
+      <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+        <div
+          className={
+            inspectorLabelClass()
+          }
+        >
+          Link To
+        </div>
+
+        <select
+          value={
+            data.linkType ??
+            "url"
+          }
+          onChange={(e) =>
+            patchButtonData({
+              linkType:
+                e.target.value as
+                  | "url"
+                  | "page"
+                  | "bookmark",
+            })
+          }
+          className={
+            inspectorInputClass()
+          }
+        >
+          <option value="url">
+            Web Address
+          </option>
+
+          <option value="page">
+            Site Page
+          </option>
+
+          <option value="bookmark">
+            Bookmark
+          </option>
+        </select>
+      </div>
+
+      {/* ============================================================ */}
+      {/* BUTTON LINK */}
+      {/* ============================================================ */}
+
+      <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+        <div
+          className={
+            inspectorLabelClass()
+          }
+        >
+          Button Link
+        </div>
+
+        {(
+          data.linkType ??
+          "url"
+        ) === "url" ? (
+          <input
+            type="text"
+            value={
+              data.buttonUrl ??
+              ""
+            }
+            onChange={(e) =>
+              patchButtonData({
+                buttonUrl:
+                  e.target.value,
+              })
+            }
+            placeholder="https://example.com"
+            className={
+              inspectorInputClass()
+            }
+          />
+        ) : null}
+
+        {data.linkType ===
+        "page" ? (
+          <div className="mt-3">
+            <div
+              className={
+                inspectorLabelClass()
+              }
+            >
+              Page ID / URL
+            </div>
+
+            <input
+              type="text"
+              value={
+                data.pageId ??
+                ""
+              }
+              onChange={(e) =>
+                patchButtonData({
+                  pageId:
+                    e.target.value,
+
+                  buttonUrl:
+                    e.target.value,
+                })
+              }
+              placeholder="/about"
+              className={
+                inspectorInputClass()
+              }
+            />
+          </div>
+        ) : null}
+
+        {data.linkType ===
+        "bookmark" ? (
+          <div className="mt-3">
+            <div
+              className={
+                inspectorLabelClass()
+              }
+            >
+              Bookmark
+            </div>
+
+            <input
+              type="text"
+              value={
+                data.bookmarkName ??
+                ""
+              }
+              onChange={(e) => {
+                const bookmarkName =
+                  e.target.value;
+
+                patchButtonData({
+                  bookmarkName,
+
+                  buttonUrl:
+                    bookmarkName
+                      ? bookmarkName.startsWith(
+                          "#",
+                        )
+                        ? bookmarkName
+                        : `#${bookmarkName}`
+                      : "",
+                });
+              }}
+              placeholder="section-name"
+              className={
+                inspectorInputClass()
+              }
+            />
+          </div>
+        ) : null}
+      </div>
+
       {/* ============================================================ */}
       {/* MEDIA TYPE */}
       {/* ============================================================ */}
@@ -764,164 +922,6 @@ export function ButtonInspector({
        * beneath this section in DesignLayoutEditor until
        * we move those into this inspector in the next wiring pass.
        */}
-
-             {/* ============================================================ */}
-      {/* LINK TO */}
-      {/* ============================================================ */}
-
-      <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
-        <div
-          className={
-            inspectorLabelClass()
-          }
-        >
-          Link To
-        </div>
-
-        <select
-          value={
-            data.linkType ??
-            "url"
-          }
-          onChange={(e) =>
-            patchButtonData({
-              linkType:
-                e.target.value as
-                  | "url"
-                  | "page"
-                  | "bookmark",
-            })
-          }
-          className={
-            inspectorInputClass()
-          }
-        >
-          <option value="url">
-            Web Address
-          </option>
-
-          <option value="page">
-            Site Page
-          </option>
-
-          <option value="bookmark">
-            Bookmark
-          </option>
-        </select>
-      </div>
-
-      {/* ============================================================ */}
-      {/* BUTTON LINK */}
-      {/* ============================================================ */}
-
-      <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
-        <div
-          className={
-            inspectorLabelClass()
-          }
-        >
-          Button Link
-        </div>
-
-        {(
-          data.linkType ??
-          "url"
-        ) === "url" ? (
-          <input
-            type="text"
-            value={
-              data.buttonUrl ??
-              ""
-            }
-            onChange={(e) =>
-              patchButtonData({
-                buttonUrl:
-                  e.target.value,
-              })
-            }
-            placeholder="https://example.com"
-            className={
-              inspectorInputClass()
-            }
-          />
-        ) : null}
-
-        {data.linkType ===
-        "page" ? (
-          <div className="mt-3">
-            <div
-              className={
-                inspectorLabelClass()
-              }
-            >
-              Page ID / URL
-            </div>
-
-            <input
-              type="text"
-              value={
-                data.pageId ??
-                ""
-              }
-              onChange={(e) =>
-                patchButtonData({
-                  pageId:
-                    e.target.value,
-
-                  buttonUrl:
-                    e.target.value,
-                })
-              }
-              placeholder="/about"
-              className={
-                inspectorInputClass()
-              }
-            />
-          </div>
-        ) : null}
-
-        {data.linkType ===
-        "bookmark" ? (
-          <div className="mt-3">
-            <div
-              className={
-                inspectorLabelClass()
-              }
-            >
-              Bookmark
-            </div>
-
-            <input
-              type="text"
-              value={
-                data.bookmarkName ??
-                ""
-              }
-              onChange={(e) => {
-                const bookmarkName =
-                  e.target.value;
-
-                patchButtonData({
-                  bookmarkName,
-
-                  buttonUrl:
-                    bookmarkName
-                      ? bookmarkName.startsWith(
-                          "#",
-                        )
-                        ? bookmarkName
-                        : `#${bookmarkName}`
-                      : "",
-                });
-              }}
-              placeholder="section-name"
-              className={
-                inspectorInputClass()
-              }
-            />
-          </div>
-        ) : null}
-      </div>
 
     </div>
   );
