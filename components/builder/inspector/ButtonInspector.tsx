@@ -535,30 +535,6 @@ export function ButtonInspector({
   </button>
 ) : null}
 
-<div className="mt-4">
-  <div
-    className={
-      inspectorLabelClass()
-    }
-  >
-    Icon Color
-  </div>
-
-  <input
-    type="color"
-    value={
-      data.buttonIconColor ??
-      "#111111"
-    }
-    onChange={(e) =>
-      patchButtonData({
-        buttonIconColor:
-          e.target.value,
-      })
-    }
-    className="mt-2 h-10 w-full rounded-xl border border-neutral-300 bg-white"
-  />
-</div>
 
                         {/* ====================================================== */}
             {/* ICON COLOR */}
