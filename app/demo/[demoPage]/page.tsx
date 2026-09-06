@@ -324,7 +324,12 @@ const DEMO_PAGES: Record<
     "You opened the WhatsApp page. In a real crowdfunding campaign, this could make it easy to share the fundraiser directly with friends, family, groups, and that one person who somehow knows absolutely everybody.",
 },
 
-
+"crowdfunding-campaign-updates": {
+  title: "Demo Campaign Updates",
+  eyebrow: "Crowdfunding Campaign Demo",
+  message:
+    "You opened the campaign updates page. In a real crowdfunding microsite, this could share fundraising milestones, project progress, important announcements, supporter shout-outs, and the exciting moment everyone realizes the goal might actually happen.",
+},
 
 
 
