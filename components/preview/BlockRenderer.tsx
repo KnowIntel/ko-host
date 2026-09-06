@@ -26124,14 +26124,18 @@ function renderDonation(
       ? data.donationOptions.filter(
           (item: any) =>
             item &&
-            typeof item.amount === "number" &&
-            Number.isFinite(item.amount) &&
+            typeof item.amount ===
+              "number" &&
+            Number.isFinite(
+              item.amount,
+            ) &&
             item.amount > 0,
         )
       : [];
 
   const isConfigured =
-    donationOptions.length > 0;
+    donationOptions.length >
+    0;
 
   const [
     donationError,
@@ -26151,9 +26155,9 @@ function renderDonation(
   const [
     previewDonationAmount,
     setPreviewDonationAmount,
-  ] = useState<number | null>(
-    null,
-  );
+  ] = useState<
+    number | null
+  >(null);
 
   const [
     previewDonationLabel,
@@ -26161,7 +26165,8 @@ function renderDonation(
   ] = useState("");
 
   const buttonStyle =
-    data.buttonStyle ?? {};
+    data.buttonStyle ??
+    {};
 
   const showCustomAmount =
     data.allowCustomAmount !==
@@ -26325,10 +26330,9 @@ function renderDonation(
     optionLabel?: string,
   ) {
     /*
-     * No live microsite ID means we are inside the builder/preview.
-     *
-     * Allow the owner to test the interaction without creating
-     * a real Stripe checkout session.
+     * Builder / preview:
+     * demonstrate the interaction without creating
+     * an actual payment session.
      */
     if (!micrositeId) {
       setPreviewDonationAmount(
@@ -26463,9 +26467,6 @@ function renderDonation(
 
           marginRight:
             `-${buttonSpacing / 2}px`,
-
-          rowGap:
-            `${buttonSpacing}px`,
         }}
       >
         {donationOptions.map(
@@ -26504,7 +26505,7 @@ function renderDonation(
                     label,
                   )
                 }
-                className="inline-flex min-h-11 items-center justify-center px-5 py-2 transition hover:opacity-90"
+                className="inline-flex min-h-11 items-center justify-center rounded-xl px-5 py-2"
                 style={
                   buttonBaseStyle
                 }
@@ -26523,7 +26524,7 @@ function renderDonation(
                 true,
               )
             }
-            className="inline-flex min-h-11 items-center justify-center px-5 py-2 transition hover:opacity-90"
+            className="inline-flex min-h-11 items-center justify-center rounded-xl px-5 py-2"
             style={
               buttonBaseStyle
             }
@@ -26618,12 +26619,6 @@ function renderDonation(
         )
       : 0;
 
-  /*
-   * ================================================================
-   * PROFESSIONAL APPEARANCE
-   * ================================================================
-   */
-
   const progressTrackStyle =
     data.progressTrackStyle ??
     {};
@@ -26707,12 +26702,6 @@ function renderDonation(
     };
   }
 
-  /*
-   * ================================================================
-   * RENDER
-   * ================================================================
-   */
-
   return (
     <>
       <Surface
@@ -26724,62 +26713,62 @@ function renderDonation(
       >
         {styleVariant ===
         "professional" ? (
-          <div className="w-full p-4">
+          <div className="flex h-full w-full flex-col p-4">
             {/* ====================================================== */}
-            {/* CAMPAIGN HEADER */}
+            {/* 1. TITLE */}
             {/* ====================================================== */}
 
-            <div className="max-w-[720px]">
-              {/* TITLE */}
-
-              <div
-                style={getContainerTextStyle(
-                  data.titleStyle ??
-                    data.style,
-                  designKey,
-                )}
-              >
-                {data.heading ||
-                  "Our Goal"}
-              </div>
-
-              {/* GOAL AMOUNT */}
-
-              <div
-                className="mt-1"
-                style={getContainerTextStyle(
-                  data.goalAmountStyle ??
-                    data.style,
-                  designKey,
-                )}
-              >
-                $
-                {formatDonationAmount(
-                  goalAmount,
-                  showGoalAmountDecimals,
-                )}
-              </div>
-
-              {/* DESCRIPTION */}
-
-              {data.description ? (
-                <div
-                  className="mt-2 max-w-[560px]"
-                  style={getContainerTextStyle(
-                    data.descriptionStyle ??
-                      data.style,
-                    designKey,
-                  )}
-                >
-                  {
-                    data.description
-                  }
-                </div>
-              ) : null}
+            <div
+              style={getContainerTextStyle(
+                data.titleStyle ??
+                  data.style,
+                designKey,
+              )}
+            >
+              {data.heading ||
+                "Our Goal"}
             </div>
 
             {/* ====================================================== */}
-            {/* GOAL PROGRESS */}
+            {/* 2. TOTAL GOAL AMOUNT */}
+            {/* ====================================================== */}
+
+            <div
+              className="mt-1"
+              style={getContainerTextStyle(
+                data.goalAmountStyle ??
+                  data.style,
+                designKey,
+              )}
+            >
+              $
+              {formatDonationAmount(
+                goalAmount,
+                showGoalAmountDecimals,
+              )}
+            </div>
+
+            {/* ====================================================== */}
+            {/* 3. DESCRIPTION */}
+            {/* ====================================================== */}
+
+            {data.description ? (
+              <div
+                className="mt-2"
+                style={getContainerTextStyle(
+                  data.descriptionStyle ??
+                    data.style,
+                  designKey,
+                )}
+              >
+                {
+                  data.description
+                }
+              </div>
+            ) : null}
+
+            {/* ====================================================== */}
+            {/* 4. GOAL PROGRESS */}
             {/* ====================================================== */}
 
             <div
@@ -26800,7 +26789,7 @@ function renderDonation(
 
                 borderColor:
                   progressTrackStyle.borderColor ??
-                  "#ef7d70",
+                  "#e5e7eb",
 
                 borderWidth:
                   `${Math.max(
@@ -26873,7 +26862,7 @@ function renderDonation(
             </div>
 
             {/* ====================================================== */}
-            {/* RAISED STATUS */}
+            {/* 5. RAISED AMOUNT */}
             {/* ====================================================== */}
 
             <div className="mt-4">
@@ -26892,7 +26881,7 @@ function renderDonation(
               </div>
 
               <div
-                className="mt-1"
+                className="mt-1 text-sm opacity-70"
                 style={getContainerTextStyle(
                   data.raisedAmountDescriptorStyle ??
                     data.descriptionStyle ??
@@ -26913,26 +26902,23 @@ function renderDonation(
             </div>
 
             {/* ====================================================== */}
-            {/* IMPACT STATS */}
+            {/* 6–8. IMPACT STATS */}
             {/* ====================================================== */}
 
             <div
               className="mt-6 grid grid-cols-3"
               style={{
                 gap:
-                  `${Math.max(
-                    0,
-                    Number(
-                      metricCardStyle.gap ??
-                        16,
-                    ),
+                  `${Number(
+                    metricCardStyle.gap ??
+                      16,
                   )}px`,
               }}
             >
               {/* DONORS */}
 
               <div
-                className="flex min-w-0 flex-col items-center justify-start text-center"
+                className="text-center"
                 style={
                   metricCardAppearance()
                 }
@@ -26954,7 +26940,6 @@ function renderDonation(
                 </div>
 
                 <div
-                  className="mt-0.5"
                   style={getContainerTextStyle(
                     data.donorLabelStyle ??
                       data.style,
@@ -26969,7 +26954,7 @@ function renderDonation(
               {/* GOAL PERCENTAGE */}
 
               <div
-                className="flex min-w-0 flex-col items-center justify-start text-center"
+                className="text-center"
                 style={
                   metricCardAppearance()
                 }
@@ -26994,7 +26979,6 @@ function renderDonation(
                 </div>
 
                 <div
-                  className="mt-0.5"
                   style={getContainerTextStyle(
                     data.percentageLabelStyle ??
                       data.style,
@@ -27009,7 +26993,7 @@ function renderDonation(
               {/* DAYS LEFT */}
 
               <div
-                className="flex min-w-0 flex-col items-center justify-start text-center"
+                className="text-center"
                 style={
                   metricCardAppearance()
                 }
@@ -27031,7 +27015,6 @@ function renderDonation(
                 </div>
 
                 <div
-                  className="mt-0.5"
                   style={getContainerTextStyle(
                     data.daysLabelStyle ??
                       data.style,
@@ -27045,10 +27028,10 @@ function renderDonation(
             </div>
 
             {/* ====================================================== */}
-            {/* DONATION ACTIONS */}
+            {/* DONATION BUTTONS */}
             {/* ====================================================== */}
 
-            <div className="mt-6 border-t border-black/5 pt-5">
+            <div className="mt-6">
               {
                 donationButtons
               }
@@ -27096,7 +27079,7 @@ function renderDonation(
       </Surface>
 
       {/* ============================================================ */}
-      {/* CUSTOM DONATION AMOUNT */}
+      {/* CUSTOM DONATION MODAL */}
       {/* ============================================================ */}
 
       <AppModal
@@ -27140,7 +27123,7 @@ function renderDonation(
       </AppModal>
 
       {/* ============================================================ */}
-      {/* DONATION PREVIEW */}
+      {/* PREVIEW DONATION MODAL */}
       {/* ============================================================ */}
 
       <AppModal
@@ -27184,14 +27167,13 @@ function renderDonation(
 
           <div className="mt-5 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm leading-6 text-neutral-600">
             This is a preview.
-            No payment will be
-            processed.
+            No payment will be processed.
           </div>
         </div>
       </AppModal>
 
       {/* ============================================================ */}
-      {/* CHECKOUT ERROR */}
+      {/* ERROR MODAL */}
       {/* ============================================================ */}
 
       <AppModal
