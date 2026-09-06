@@ -765,120 +765,243 @@ onChange={(e) => {
 
             {/* DEADLINE */}
 
-<div className="mt-3">
-  <div className={inspectorLabelClass()}>
-    Campaign Deadline
-  </div>
+            <div className="mt-3">
+              <div
+                className={
+                  inspectorLabelClass()
+                }
+              >
+                Campaign Deadline
+              </div>
 
-  <input
-    type="date"
-    value={
-      data.deadline ??
-      ""
-    }
-    onChange={(e) =>
-      patchDonationData({
-        deadline:
-          e.target.value,
-      })
-    }
-    className={inspectorInputClass()}
-  />
+              <input
+                type="date"
+                value={
+                  data.deadline ??
+                  ""
+                }
+                onChange={(e) =>
+                  patchDonationData({
+                    deadline:
+                      e.target.value,
+                  })
+                }
+                className={
+                  inspectorInputClass()
+                }
+              />
 
-  <p className="mt-2 text-xs leading-5 text-neutral-500">
-    Days Left is calculated automatically. Once the deadline passes, the value
-    stays at 0 instead of becoming negative.
-  </p>
-</div>
+              <p className="mt-2 text-xs leading-5 text-neutral-500">
+                Days Left is calculated automatically. Once the deadline passes,
+                the value stays at 0 instead of becoming negative.
+              </p>
+            </div>
           </div>
 
-{/* ======================================================== */}
-{/* PROFESSIONAL LAYOUT */}
-{/* ======================================================== */}
+          {/* ======================================================== */}
+          {/* PROFESSIONAL LAYOUT */}
+          {/* ======================================================== */}
 
-<div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
-  <div className={inspectorLabelClass()}>
-    Professional Layout
-  </div>
+          <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+            <div
+              className={
+                inspectorLabelClass()
+              }
+            >
+              Professional Layout
+            </div>
 
-  <div className="mt-4">
-    <div className="flex items-center justify-between gap-3">
-      <div className={inspectorLabelClass()}>
-        Progress Bar Height
-      </div>
+            {/* PROGRESS BAR HEIGHT */}
 
-      <div className="text-xs text-neutral-500">
-        {Number(
-          data.progressTrackStyle?.height ??
-            20,
-        )}
-        px
-      </div>
-    </div>
+            <div className="mt-4">
+              <div className="flex items-center justify-between gap-3">
+                <div
+                  className={
+                    inspectorLabelClass()
+                  }
+                >
+                  Progress Bar Height
+                </div>
 
-    <input
-      type="range"
-      min={4}
-      max={60}
-      step={1}
-      value={Number(
-        data.progressTrackStyle?.height ??
-          20,
-      )}
-      onChange={(e) =>
-        patchDonationData({
-          progressTrackStyle: {
-            ...(data.progressTrackStyle ??
-              {}),
+                <div className="text-xs text-neutral-500">
+                  {Number(
+                    data.progressTrackStyle?.height ??
+                      20,
+                  )}
+                  px
+                </div>
+              </div>
 
-            height:
-              Number(
-                e.target.value,
-              ),
-          },
-        })
-      }
-      className="mt-2 w-full"
-    />
-  </div>
+              <input
+                type="range"
+                min={4}
+                max={60}
+                step={1}
+                value={
+                  Number(
+                    data.progressTrackStyle?.height ??
+                      20,
+                  )
+                }
+                onChange={(e) =>
+                  patchDonationData({
+                    progressTrackStyle: {
+                      ...(data.progressTrackStyle ??
+                        {}),
 
-Impact Card Spacing
+                      height:
+                        Number(
+                          e.target.value,
+                        ),
+                    },
+                  })
+                }
+                className="mt-2 w-full"
+              />
+            </div>
 
-      <div className="text-xs text-neutral-500">
-        {Number(
-          data.metricCardStyle?.padding ??
-            10,
-        )}
-        px
-      </div>
-    </div>
+            {/* IMPACT CARD SPACING */}
 
-    <input
-      type="range"
-      min={0}
-      max={48}
-      step={1}
-      value={Number(
-        data.metricCardStyle?.padding ??
-          10,
-      )}
-      onChange={(e) =>
-        patchDonationData({
-          metricCardStyle: {
-            ...(data.metricCardStyle ??
-              {}),
+            <div className="mt-4">
+              <div className="flex items-center justify-between gap-3">
+                <div
+                  className={
+                    inspectorLabelClass()
+                  }
+                >
+                  Impact Card Spacing
+                </div>
 
-            padding:
-              Number(
-                e.target.value,
-              ),
-          },
-        })
-      }
-      className="mt-2 w-full"
-    />
-  </div>
-</div>
+                <div className="text-xs text-neutral-500">
+                  {Number(
+                    data.metricCardStyle?.gap ??
+                      16,
+                  )}
+                  px
+                </div>
+              </div>
+
+              <input
+                type="range"
+                min={0}
+                max={48}
+                step={1}
+                value={
+                  Number(
+                    data.metricCardStyle?.gap ??
+                      16,
+                  )
+                }
+                onChange={(e) =>
+                  patchDonationData({
+                    metricCardStyle: {
+                      ...(data.metricCardStyle ??
+                        {}),
+
+                      gap:
+                        Number(
+                          e.target.value,
+                        ),
+                    },
+                  })
+                }
+                className="mt-2 w-full"
+              />
+            </div>
+
+            {/* DONATION BUTTON SPACING */}
+
+            <div className="mt-4">
+              <div className="flex items-center justify-between gap-3">
+                <div
+                  className={
+                    inspectorLabelClass()
+                  }
+                >
+                  Donation Button Spacing
+                </div>
+
+                <div className="text-xs text-neutral-500">
+                  {Number(
+                    data.buttonSpacing ??
+                      8,
+                  )}
+                  px
+                </div>
+              </div>
+
+              <input
+                type="range"
+                min={0}
+                max={64}
+                step={1}
+                value={
+                  Number(
+                    data.buttonSpacing ??
+                      8,
+                  )
+                }
+                onChange={(e) =>
+                  patchDonationData({
+                    buttonSpacing:
+                      Number(
+                        e.target.value,
+                      ),
+                  })
+                }
+                className="mt-2 w-full"
+              />
+            </div>
+
+            {/* IMPACT CARD PADDING */}
+
+            <div className="mt-4">
+              <div className="flex items-center justify-between gap-3">
+                <div
+                  className={
+                    inspectorLabelClass()
+                  }
+                >
+                  Impact Card Padding
+                </div>
+
+                <div className="text-xs text-neutral-500">
+                  {Number(
+                    data.metricCardStyle?.padding ??
+                      10,
+                  )}
+                  px
+                </div>
+              </div>
+
+              <input
+                type="range"
+                min={0}
+                max={48}
+                step={1}
+                value={
+                  Number(
+                    data.metricCardStyle?.padding ??
+                      10,
+                  )
+                }
+                onChange={(e) =>
+                  patchDonationData({
+                    metricCardStyle: {
+                      ...(data.metricCardStyle ??
+                        {}),
+
+                      padding:
+                        Number(
+                          e.target.value,
+                        ),
+                    },
+                  })
+                }
+                className="mt-2 w-full"
+              />
+            </div>
+          </div>
 
 
           {/* ======================================================== */}
