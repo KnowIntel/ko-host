@@ -26124,18 +26124,14 @@ function renderDonation(
       ? data.donationOptions.filter(
           (item: any) =>
             item &&
-            typeof item.amount ===
-              "number" &&
-            Number.isFinite(
-              item.amount,
-            ) &&
+            typeof item.amount === "number" &&
+            Number.isFinite(item.amount) &&
             item.amount > 0,
         )
       : [];
 
   const isConfigured =
-    donationOptions.length >
-    0;
+    donationOptions.length > 0;
 
   const [
     donationError,
@@ -26152,9 +26148,20 @@ function renderDonation(
     setCustomAmountValue,
   ] = useState("");
 
+  const [
+    previewDonationAmount,
+    setPreviewDonationAmount,
+  ] = useState<number | null>(
+    null,
+  );
+
+  const [
+    previewDonationLabel,
+    setPreviewDonationLabel,
+  ] = useState("");
+
   const buttonStyle =
-    data.buttonStyle ??
-    {};
+    data.buttonStyle ?? {};
 
   const showCustomAmount =
     data.allowCustomAmount !==
@@ -26173,98 +26180,167 @@ function renderDonation(
       ),
     );
 
-const buttonBorderWidth =
-  Math.max(
-    0,
-    Number(
-      buttonStyle.borderWidth ??
-        0,
-    ),
-  );
-
-const buttonBaseStyle:
-  React.CSSProperties = {
-  marginLeft:
-    `${buttonSpacing / 2}px`,
-
-  marginRight:
-    `${buttonSpacing / 2}px`,
-
-  backgroundColor:
-    buttonStyle.backgroundColor ??
-    (isLightDesign(
-      designKey,
-    )
-      ? "#171717"
-      : "#ffffff"),
-
-  color:
-    buttonStyle.color ??
-    (isLightDesign(
-      designKey,
-    )
-      ? "#ffffff"
-      : "#171717"),
-
-  fontFamily:
-    buttonStyle.fontFamily ??
-    data.style?.fontFamily,
-
-  fontSize:
-    typeof buttonStyle.fontSize ===
-    "number"
-      ? `${buttonStyle.fontSize}px`
-      : undefined,
-
-  fontWeight:
-    buttonStyle.bold
-      ? 700
-      : 600,
-
-  fontStyle:
-    buttonStyle.italic
-      ? "italic"
-      : undefined,
-
-  textDecoration:
-    [
-      buttonStyle.underline
-        ? "underline"
-        : "",
-
-      buttonStyle.strike
-        ? "line-through"
-        : "",
-    ]
-      .filter(Boolean)
-      .join(" ") ||
-    undefined,
-
-  border:
-    buttonBorderWidth > 0
-      ? `${buttonBorderWidth}px solid ${
-          buttonStyle.borderColor ??
-          "#171717"
-        }`
-      : "none",
-
-  borderRadius:
-    `${Math.max(
+  const buttonBorderWidth =
+    Math.max(
       0,
       Number(
-        buttonStyle.borderRadius ??
-          12,
+        buttonStyle.borderWidth ??
+          0,
       ),
-    )}px`,
-};
+    );
+
+  /*
+   * ================================================================
+   * MONEY FORMATTING
+   * ================================================================
+   */
+
+  function formatDonationAmount(
+    amount: number,
+    showDecimals: boolean,
+  ) {
+    return new Intl.NumberFormat(
+      "en-US",
+      {
+        minimumFractionDigits:
+          showDecimals
+            ? 2
+            : 0,
+
+        maximumFractionDigits:
+          showDecimals
+            ? 2
+            : 0,
+      },
+    ).format(
+      Math.max(
+        0,
+        Number(amount) || 0,
+      ),
+    );
+  }
+
+  const showGoalAmountDecimals =
+    data.showGoalAmountDecimals ??
+    false;
+
+  const showRaisedAmountDecimals =
+    data.showRaisedAmountDecimals ??
+    true;
+
+  const showRaisedStatusGoalDecimals =
+    data.showRaisedStatusGoalDecimals ??
+    false;
+
+  /*
+   * ================================================================
+   * BUTTON STYLE
+   * ================================================================
+   */
+
+  const buttonBaseStyle:
+    React.CSSProperties = {
+    marginLeft:
+      `${buttonSpacing / 2}px`,
+
+    marginRight:
+      `${buttonSpacing / 2}px`,
+
+    backgroundColor:
+      buttonStyle.backgroundColor ??
+      (isLightDesign(
+        designKey,
+      )
+        ? "#171717"
+        : "#ffffff"),
+
+    color:
+      buttonStyle.color ??
+      (isLightDesign(
+        designKey,
+      )
+        ? "#ffffff"
+        : "#171717"),
+
+    fontFamily:
+      buttonStyle.fontFamily ??
+      data.style?.fontFamily,
+
+    fontSize:
+      typeof buttonStyle.fontSize ===
+      "number"
+        ? `${buttonStyle.fontSize}px`
+        : undefined,
+
+    fontWeight:
+      buttonStyle.bold
+        ? 700
+        : 600,
+
+    fontStyle:
+      buttonStyle.italic
+        ? "italic"
+        : undefined,
+
+    textDecoration:
+      [
+        buttonStyle.underline
+          ? "underline"
+          : "",
+
+        buttonStyle.strike
+          ? "line-through"
+          : "",
+      ]
+        .filter(Boolean)
+        .join(" ") ||
+      undefined,
+
+    border:
+      buttonBorderWidth > 0
+        ? `${buttonBorderWidth}px solid ${
+            buttonStyle.borderColor ??
+            "#171717"
+          }`
+        : "none",
+
+    borderRadius:
+      `${Math.max(
+        0,
+        Number(
+          buttonStyle.borderRadius ??
+            12,
+        ),
+      )}px`,
+  };
+
+  /*
+   * ================================================================
+   * CHECKOUT / PREVIEW
+   * ================================================================
+   */
 
   async function handleDonationCheckout(
     amount: number,
     optionLabel?: string,
   ) {
+    /*
+     * No live microsite ID means we are inside the builder/preview.
+     *
+     * Allow the owner to test the interaction without creating
+     * a real Stripe checkout session.
+     */
     if (!micrositeId) {
-      setDonationError(
-        "Donation checkout only works on a live microsite right now.",
+      setPreviewDonationAmount(
+        amount,
+      );
+
+      setPreviewDonationLabel(
+        optionLabel ||
+          `Donation $${formatDonationAmount(
+            amount,
+            true,
+          )}`,
       );
 
       return;
@@ -26286,13 +26362,17 @@ const buttonBaseStyle:
             body:
               JSON.stringify({
                 micrositeId,
+
                 blockId:
                   block.id,
+
                 amount,
+
                 label:
                   optionLabel ||
-                  `Donation $${formatCurrency(
+                  `Donation $${formatDonationAmount(
                     amount,
+                    true,
                   )}`,
               }),
           },
@@ -26383,6 +26463,9 @@ const buttonBaseStyle:
 
           marginRight:
             `-${buttonSpacing / 2}px`,
+
+          rowGap:
+            `${buttonSpacing}px`,
         }}
       >
         {donationOptions.map(
@@ -26403,8 +26486,9 @@ const buttonBaseStyle:
                 .trim()
                 .length > 0
                 ? option.label.trim()
-                : `$${formatCurrency(
+                : `$${formatDonationAmount(
                     amount,
+                    false,
                   )}`;
 
             return (
@@ -26420,17 +26504,9 @@ const buttonBaseStyle:
                     label,
                   )
                 }
-                disabled={
-                  !micrositeId
-                }
-                className="inline-flex min-h-11 items-center justify-center rounded-xl px-5 py-2 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex min-h-11 items-center justify-center px-5 py-2 transition hover:opacity-90"
                 style={
                   buttonBaseStyle
-                }
-                title={
-                  !micrositeId
-                    ? "Donation checkout only works on live microsites right now."
-                    : undefined
                 }
               >
                 {label}
@@ -26447,17 +26523,9 @@ const buttonBaseStyle:
                 true,
               )
             }
-            disabled={
-              !micrositeId
-            }
-            className="inline-flex min-h-11 items-center justify-center rounded-xl px-5 py-2 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex min-h-11 items-center justify-center px-5 py-2 transition hover:opacity-90"
             style={
               buttonBaseStyle
-            }
-            title={
-              !micrositeId
-                ? "Donation checkout only works on live microsites right now."
-                : undefined
             }
           >
             {
@@ -26526,29 +26594,35 @@ const buttonBaseStyle:
       ),
     );
 
-const deadlineTimestamp =
-  data.deadline
-    ? new Date(
-        `${data.deadline}T23:59:59`,
-      ).getTime()
-    : null;
+  const deadlineTimestamp =
+    data.deadline
+      ? new Date(
+          `${data.deadline}T23:59:59`,
+        ).getTime()
+      : null;
 
-const daysLeft =
-  deadlineTimestamp !== null &&
-  Number.isFinite(
-    deadlineTimestamp,
-  )
-    ? Math.max(
-        0,
-        Math.ceil(
-          (
-            deadlineTimestamp -
-            Date.now()
-          ) /
-            86400000,
-        ),
-      )
-    : 0;
+  const daysLeft =
+    deadlineTimestamp !== null &&
+    Number.isFinite(
+      deadlineTimestamp,
+    )
+      ? Math.max(
+          0,
+          Math.ceil(
+            (
+              deadlineTimestamp -
+              Date.now()
+            ) /
+              86400000,
+          ),
+        )
+      : 0;
+
+  /*
+   * ================================================================
+   * PROFESSIONAL APPEARANCE
+   * ================================================================
+   */
 
   const progressTrackStyle =
     data.progressTrackStyle ??
@@ -26580,58 +26654,64 @@ const daysLeft =
     );
   }
 
-function metricCardAppearance():
-  React.CSSProperties {
-  const borderWidth =
-    Math.max(
-      0,
-      Number(
-        metricCardStyle.borderWidth ??
+  function metricCardAppearance():
+    React.CSSProperties {
+    const borderWidth =
+      Math.max(
+        0,
+        Number(
+          metricCardStyle.borderWidth ??
+            0,
+        ),
+      );
+
+    return {
+      padding:
+        `${Math.max(
           0,
-      ),
-    );
+          Number(
+            metricCardStyle.padding ??
+              10,
+          ),
+        )}px`,
 
-  return {
-    padding:
-      `${Math.max(
-        0,
-        Number(
-          metricCardStyle.padding ??
-            10,
-        ),
-      )}px`,
+      backgroundColor:
+        metricCardStyle.backgroundColor ??
+        "transparent",
 
-    backgroundColor:
-      metricCardStyle.backgroundColor ??
-      "transparent",
+      borderColor:
+        borderWidth > 0
+          ? metricCardStyle.borderColor ??
+            "#e5e7eb"
+          : "transparent",
 
-    borderColor:
-      borderWidth > 0
-        ? metricCardStyle.borderColor ??
-          "#e5e7eb"
-        : "transparent",
+      borderWidth:
+        `${borderWidth}px`,
 
-    borderWidth:
-      `${borderWidth}px`,
+      borderStyle:
+        borderWidth > 0
+          ? "solid"
+          : "none",
 
-    borderStyle:
-      borderWidth > 0
-        ? "solid"
-        : "none",
+      borderRadius:
+        `${Math.max(
+          0,
+          Number(
+            metricCardStyle.borderRadius ??
+              16,
+          ),
+        )}px`,
 
-    borderRadius:
-      `${Math.max(
-        0,
-        Number(
-          metricCardStyle.borderRadius ??
-            16,
-        ),
-      )}px`,
+      boxSizing:
+        "border-box",
+    };
+  }
 
-    boxSizing:
-      "border-box",
-  };
-}
+  /*
+   * ================================================================
+   * RENDER
+   * ================================================================
+   */
 
   return (
     <>
@@ -26644,209 +26724,215 @@ function metricCardAppearance():
       >
         {styleVariant ===
         "professional" ? (
-          <div className="flex h-full w-full flex-col p-4">
+          <div className="w-full p-4">
             {/* ====================================================== */}
-            {/* 1. TITLE */}
-            {/* ====================================================== */}
-
-            <div
-              style={getContainerTextStyle(
-                data.titleStyle ??
-                  data.style,
-                designKey,
-              )}
-            >
-              {data.heading ||
-                "Our Goal"}
-            </div>
-
-            {/* ====================================================== */}
-            {/* 2. TOTAL GOAL AMOUNT */}
+            {/* CAMPAIGN HEADER */}
             {/* ====================================================== */}
 
-            <div
-              className="mt-1"
-              style={getContainerTextStyle(
-                data.goalAmountStyle ??
-                  data.style,
-                designKey,
-              )}
-            >
-              $
-              {formatCurrency(
-                goalAmount,
-              )}
-            </div>
+            <div className="max-w-[720px]">
+              {/* TITLE */}
 
-            {/* ====================================================== */}
-            {/* 3. DESCRIPTION */}
-            {/* ====================================================== */}
-
-            {data.description ? (
               <div
-                className="mt-2"
                 style={getContainerTextStyle(
-                  data.descriptionStyle ??
+                  data.titleStyle ??
                     data.style,
                   designKey,
                 )}
               >
-                {
-                  data.description
-                }
+                {data.heading ||
+                  "Our Goal"}
               </div>
-            ) : null}
 
-{/* ====================================================== */}
-{/* 4. GOAL PROGRESS */}
-{/* ====================================================== */}
+              {/* GOAL AMOUNT */}
 
-<div
-  className="relative mt-5 w-full overflow-hidden"
-  style={{
-    height:
-      `${Math.max(
-        4,
-        Number(
-          progressTrackStyle.height ??
-            20,
-        ),
-      )}px`,
+              <div
+                className="mt-1"
+                style={getContainerTextStyle(
+                  data.goalAmountStyle ??
+                    data.style,
+                  designKey,
+                )}
+              >
+                $
+                {formatDonationAmount(
+                  goalAmount,
+                  showGoalAmountDecimals,
+                )}
+              </div>
 
-    backgroundColor:
-      progressTrackStyle.backgroundColor ??
-      "#ffffff",
+              {/* DESCRIPTION */}
 
-    borderColor:
-      progressTrackStyle.borderColor ??
-      "#e5e7eb",
-
-    borderWidth:
-      `${Math.max(
-        0,
-        Number(
-          progressTrackStyle.borderWidth ??
-            1,
-        ),
-      )}px`,
-
-    borderStyle:
-      Number(
-        progressTrackStyle.borderWidth ??
-          1,
-      ) > 0
-        ? "solid"
-        : "none",
-
-    borderRadius:
-      `${Math.max(
-        0,
-        Number(
-          progressTrackStyle.borderRadius ??
-            999,
-        ),
-      )}px`,
-  }}
->
-  <div
-    className="h-full"
-    style={{
-      width:
-        `${goalPercentage}%`,
-
-      backgroundColor:
-        progressFillStyle.backgroundColor ??
-        "#e96c6c",
-
-      borderRadius:
-        `${Math.max(
-          0,
-          Number(
-            progressFillStyle.borderRadius ??
-              999,
-          ),
-        )}px`,
-
-      borderColor:
-        progressFillStyle.borderColor ??
-        "transparent",
-
-      borderWidth:
-        `${Math.max(
-          0,
-          Number(
-            progressFillStyle.borderWidth ??
-              0,
-          ),
-        )}px`,
-
-      borderStyle:
-        Number(
-          progressFillStyle.borderWidth ??
-            0,
-        ) > 0
-          ? "solid"
-          : "none",
-    }}
-  />
-</div>
+              {data.description ? (
+                <div
+                  className="mt-2 max-w-[560px]"
+                  style={getContainerTextStyle(
+                    data.descriptionStyle ??
+                      data.style,
+                    designKey,
+                  )}
+                >
+                  {
+                    data.description
+                  }
+                </div>
+              ) : null}
+            </div>
 
             {/* ====================================================== */}
-            {/* 5. RAISED AMOUNT */}
+            {/* GOAL PROGRESS */}
             {/* ====================================================== */}
 
-<div className="mt-4">
-  <div
-    style={getContainerTextStyle(
-      data.raisedAmountStyle ??
-        data.style,
-      designKey,
-    )}
-  >
-    $
-    {formatCurrency(
-      raisedAmount,
-    )}
-  </div>
+            <div
+              className="relative mt-5 w-full overflow-hidden"
+              style={{
+                height:
+                  `${Math.max(
+                    4,
+                    Number(
+                      progressTrackStyle.height ??
+                        20,
+                    ),
+                  )}px`,
 
-  <div
-    className="mt-1 text-sm opacity-70"
-    style={getContainerTextStyle(
-      data.raisedAmountDescriptorStyle ??
-        data.descriptionStyle ??
-        data.style,
-      designKey,
-    )}
-  >
-    {data.raisedAmountDescriptor ??
-      "raised of"}{" "}
-    $
-    {formatCurrency(
-      goalAmount,
-    )}{" "}
-    {data.goalDescriptor ??
-      "goal"}
-  </div>
-</div>
+                backgroundColor:
+                  progressTrackStyle.backgroundColor ??
+                  "#ffffff",
+
+                borderColor:
+                  progressTrackStyle.borderColor ??
+                  "#ef7d70",
+
+                borderWidth:
+                  `${Math.max(
+                    0,
+                    Number(
+                      progressTrackStyle.borderWidth ??
+                        1,
+                    ),
+                  )}px`,
+
+                borderStyle:
+                  Number(
+                    progressTrackStyle.borderWidth ??
+                      1,
+                  ) > 0
+                    ? "solid"
+                    : "none",
+
+                borderRadius:
+                  `${Math.max(
+                    0,
+                    Number(
+                      progressTrackStyle.borderRadius ??
+                        999,
+                    ),
+                  )}px`,
+              }}
+            >
+              <div
+                className="h-full"
+                style={{
+                  width:
+                    `${goalPercentage}%`,
+
+                  backgroundColor:
+                    progressFillStyle.backgroundColor ??
+                    "#e96c6c",
+
+                  borderRadius:
+                    `${Math.max(
+                      0,
+                      Number(
+                        progressFillStyle.borderRadius ??
+                          999,
+                      ),
+                    )}px`,
+
+                  borderColor:
+                    progressFillStyle.borderColor ??
+                    "transparent",
+
+                  borderWidth:
+                    `${Math.max(
+                      0,
+                      Number(
+                        progressFillStyle.borderWidth ??
+                          0,
+                      ),
+                    )}px`,
+
+                  borderStyle:
+                    Number(
+                      progressFillStyle.borderWidth ??
+                        0,
+                    ) > 0
+                      ? "solid"
+                      : "none",
+                }}
+              />
+            </div>
 
             {/* ====================================================== */}
-            {/* 6–8. IMPACT STATS */}
+            {/* RAISED STATUS */}
+            {/* ====================================================== */}
+
+            <div className="mt-4">
+              <div
+                style={getContainerTextStyle(
+                  data.raisedAmountStyle ??
+                    data.style,
+                  designKey,
+                )}
+              >
+                $
+                {formatDonationAmount(
+                  raisedAmount,
+                  showRaisedAmountDecimals,
+                )}
+              </div>
+
+              <div
+                className="mt-1"
+                style={getContainerTextStyle(
+                  data.raisedAmountDescriptorStyle ??
+                    data.descriptionStyle ??
+                    data.style,
+                  designKey,
+                )}
+              >
+                {data.raisedAmountDescriptor ??
+                  "raised of"}{" "}
+                $
+                {formatDonationAmount(
+                  goalAmount,
+                  showRaisedStatusGoalDecimals,
+                )}{" "}
+                {data.goalDescriptor ??
+                  "goal"}
+              </div>
+            </div>
+
+            {/* ====================================================== */}
+            {/* IMPACT STATS */}
             {/* ====================================================== */}
 
             <div
               className="mt-6 grid grid-cols-3"
               style={{
                 gap:
-                  `${Number(
-                    metricCardStyle.gap ??
-                      16,
+                  `${Math.max(
+                    0,
+                    Number(
+                      metricCardStyle.gap ??
+                        16,
+                    ),
                   )}px`,
               }}
             >
               {/* DONORS */}
 
               <div
-                className="text-center"
+                className="flex min-w-0 flex-col items-center justify-start text-center"
                 style={
                   metricCardAppearance()
                 }
@@ -26868,6 +26954,7 @@ function metricCardAppearance():
                 </div>
 
                 <div
+                  className="mt-0.5"
                   style={getContainerTextStyle(
                     data.donorLabelStyle ??
                       data.style,
@@ -26882,7 +26969,7 @@ function metricCardAppearance():
               {/* GOAL PERCENTAGE */}
 
               <div
-                className="text-center"
+                className="flex min-w-0 flex-col items-center justify-start text-center"
                 style={
                   metricCardAppearance()
                 }
@@ -26907,6 +26994,7 @@ function metricCardAppearance():
                 </div>
 
                 <div
+                  className="mt-0.5"
                   style={getContainerTextStyle(
                     data.percentageLabelStyle ??
                       data.style,
@@ -26921,7 +27009,7 @@ function metricCardAppearance():
               {/* DAYS LEFT */}
 
               <div
-                className="text-center"
+                className="flex min-w-0 flex-col items-center justify-start text-center"
                 style={
                   metricCardAppearance()
                 }
@@ -26943,6 +27031,7 @@ function metricCardAppearance():
                 </div>
 
                 <div
+                  className="mt-0.5"
                   style={getContainerTextStyle(
                     data.daysLabelStyle ??
                       data.style,
@@ -26956,10 +27045,10 @@ function metricCardAppearance():
             </div>
 
             {/* ====================================================== */}
-            {/* DONATION BUTTONS */}
+            {/* DONATION ACTIONS */}
             {/* ====================================================== */}
 
-            <div className="mt-6">
+            <div className="mt-6 border-t border-black/5 pt-5">
               {
                 donationButtons
               }
@@ -26970,8 +27059,6 @@ function metricCardAppearance():
            * ==========================================================
            * STANDARD
            * ==========================================================
-           *
-           * Preserves the original Donation appearance and behavior.
            */
           <>
             <div
@@ -27009,7 +27096,7 @@ function metricCardAppearance():
       </Surface>
 
       {/* ============================================================ */}
-      {/* CUSTOM DONATION MODAL */}
+      {/* CUSTOM DONATION AMOUNT */}
       {/* ============================================================ */}
 
       <AppModal
@@ -27053,7 +27140,58 @@ function metricCardAppearance():
       </AppModal>
 
       {/* ============================================================ */}
-      {/* ERROR MODAL */}
+      {/* DONATION PREVIEW */}
+      {/* ============================================================ */}
+
+      <AppModal
+        open={
+          previewDonationAmount !==
+          null
+        }
+        title="Donation Preview"
+        cancelText="Close"
+        onCancel={() => {
+          setPreviewDonationAmount(
+            null,
+          );
+
+          setPreviewDonationLabel(
+            "",
+          );
+        }}
+      >
+        <div className="text-center">
+          <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">
+            Selected Donation
+          </div>
+
+          <div className="mt-3 text-3xl font-black text-neutral-950">
+            $
+            {formatDonationAmount(
+              previewDonationAmount ??
+                0,
+              true,
+            )}
+          </div>
+
+          {previewDonationLabel ? (
+            <div className="mt-2 text-sm font-medium text-neutral-700">
+              {
+                previewDonationLabel
+              }
+            </div>
+          ) : null}
+
+          <div className="mt-5 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm leading-6 text-neutral-600">
+            This is a preview.
+            No payment will be
+            processed.
+          </div>
+        </div>
+      </AppModal>
+
+      {/* ============================================================ */}
+      {/* CHECKOUT ERROR */}
       {/* ============================================================ */}
 
       <AppModal
