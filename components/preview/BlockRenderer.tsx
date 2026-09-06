@@ -26168,6 +26168,17 @@ function renderDonation(
     data.buttonStyle ??
     {};
 
+const buttonGroupAlignment =
+  buttonStyle.align ??
+  "left";
+
+const buttonGroupJustifyContent =
+  buttonGroupAlignment === "center"
+    ? "center"
+    : buttonGroupAlignment === "right"
+      ? "flex-end"
+      : "flex-start";
+
   const showCustomAmount =
     data.allowCustomAmount !==
     false;
@@ -26459,16 +26470,19 @@ function renderDonation(
   const donationButtons =
     isConfigured ||
     showCustomAmount ? (
-      <div
-        className="flex flex-row flex-wrap items-center"
-        style={{
-          marginLeft:
-            `-${buttonSpacing / 2}px`,
+<div
+  className="flex w-full flex-row flex-wrap items-center"
+  style={{
+    marginLeft:
+      `-${buttonSpacing / 2}px`,
 
-          marginRight:
-            `-${buttonSpacing / 2}px`,
-        }}
-      >
+    marginRight:
+      `-${buttonSpacing / 2}px`,
+
+    justifyContent:
+      buttonGroupJustifyContent,
+  }}
+>
         {donationOptions.map(
           (
             option: any,

@@ -6306,15 +6306,35 @@ if ((selectedBlockFromDraft as any)?.type === "option_button") {
 }
 
 if (selectedBlock?.type === "donation") {
-  updateSelectedBlock((block) =>
-    block.type !== "donation"
-      ? block
-      : applyDonationTextStylePatch(
-          block,
-          donationTextTarget,
-          patch,
-        ),
-  );
+  updateSelectedBlock((block) => {
+    if (block.type !== "donation") {
+      return block;
+    }
+
+    /*
+     * When Style Target = Donation Buttons,
+     * the top-toolbar alignment control positions
+     * the entire button group.
+     */
+    if (
+      donationStyleTarget === "button" &&
+      patch.align !== undefined
+    ) {
+      return applyDonationStylePatch(
+        block,
+        "button",
+        {
+          align: patch.align,
+        },
+      );
+    }
+
+    return applyDonationTextStylePatch(
+      block,
+      donationTextTarget,
+      patch,
+    );
+  });
 
   return;
 }
