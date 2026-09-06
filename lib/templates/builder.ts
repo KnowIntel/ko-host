@@ -700,17 +700,15 @@ export type CtaBlock = BaseBlock & {
      * ================================================================
      */
 
-    buttonMediaType?:
-      | "image"
-      | "icon";
+buttonImageUrl?: string;
+buttonIconUrl?: string;
+buttonIconColor?: string;
 
-    buttonImageUrl?: string;
-    buttonIconUrl?: string;
+buttonMediaType?:
+  | "image"
+  | "icon";
 
-    /*
-     * Shared media-size control for image or icon.
-     */
-    buttonImageSize?: number;
+buttonImageSize?: number;
 
     buttonPaddingY?: number;
     buttonPaddingX?: number;
@@ -5557,26 +5555,15 @@ case "cta":
        * ================================================================
        */
 
-      buttonMediaType:
-        "image",
+buttonImageUrl: "",
+buttonIconUrl: "",
+buttonIconColor: "#111111",
+buttonMediaType: "image",
 
-      buttonImageUrl:
-        "",
-
-      buttonIconUrl:
-        "",
-
-      buttonImageSize:
-        20,
-
-      buttonPaddingY:
-        8,
-
-      buttonPaddingX:
-        20,
-
-      buttonImagePlacement:
-        "before",
+buttonImageSize: 20,
+buttonPaddingY: 8,
+buttonPaddingX: 20,
+buttonImagePlacement: "before",
 
       /*
        * ================================================================
@@ -5592,7 +5579,7 @@ case "cta":
     },
   };
 
-  
+
       case "countdown":
       return {
         id: makeId("countdown"),

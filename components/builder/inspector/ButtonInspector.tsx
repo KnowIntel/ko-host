@@ -520,20 +520,74 @@ export function ButtonInspector({
               found
             </div>
 
-            {data.buttonIconUrl ? (
-              <button
-                type="button"
-                onClick={() =>
+{data.buttonIconUrl ? (
+  <button
+    type="button"
+    onClick={() =>
+      patchButtonData({
+        buttonIconUrl:
+          "",
+      })
+    }
+    className="mt-3 inline-flex h-9 items-center justify-center rounded-lg border border-red-200 bg-red-50 px-3 text-xs font-medium text-red-700 hover:bg-red-100"
+  >
+    Remove Icon
+  </button>
+) : null}
+
+<div className="mt-4">
+  <div
+    className={
+      inspectorLabelClass()
+    }
+  >
+    Icon Color
+  </div>
+
+  <input
+    type="color"
+    value={
+      data.buttonIconColor ??
+      "#111111"
+    }
+    onChange={(e) =>
+      patchButtonData({
+        buttonIconColor:
+          e.target.value,
+      })
+    }
+    className="mt-2 h-10 w-full rounded-xl border border-neutral-300 bg-white"
+  />
+</div>
+
+                        {/* ====================================================== */}
+            {/* ICON COLOR */}
+            {/* ====================================================== */}
+
+            <div className="mt-4">
+              <div
+                className={
+                  inspectorLabelClass()
+                }
+              >
+                Icon Color
+              </div>
+
+              <input
+                type="color"
+                value={
+                  data.buttonIconColor ??
+                  "#111111"
+                }
+                onChange={(e) =>
                   patchButtonData({
-                    buttonIconUrl:
-                      "",
+                    buttonIconColor:
+                      e.target.value,
                   })
                 }
-                className="mt-3 inline-flex h-9 items-center justify-center rounded-lg border border-red-200 bg-red-50 px-3 text-xs font-medium text-red-700 hover:bg-red-100"
-              >
-                Remove Icon
-              </button>
-            ) : null}
+                className="mt-2 h-10 w-full rounded-xl border border-neutral-300 bg-white"
+              />
+            </div>
           </>
         ) : null}
 
@@ -892,7 +946,7 @@ export function ButtonInspector({
           </div>
         ) : null}
       </div>
-      
+
     </div>
   );
 }

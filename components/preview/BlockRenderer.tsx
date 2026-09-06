@@ -3240,79 +3240,108 @@ function renderCta(
   }>,
 ) {
 function CtaButtonLive() {
-  const [submitted, setSubmitted] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] =
+    useState(false);
 
-    const appearance = getAppearanceStyle(block);
+  const [submitting, setSubmitting] =
+    useState(false);
 
-    const style = getContainerTextStyle(
+  const appearance =
+    getAppearanceStyle(
+      block,
+    );
+
+  const style =
+    getContainerTextStyle(
       block.data.style,
       designKey,
     );
 
-const buttonStyleType =
-  ((block.data as any).styleType as
-    | "solid"
-    | "outline"
-    | "soft"
-    | "media_circle"
-    | undefined) ??
-  "solid";
+  const buttonStyleType =
+    ((block.data as any).styleType as
+      | "solid"
+      | "outline"
+      | "soft"
+      | "media_circle"
+      | undefined) ??
+    "solid";
 
-const buttonMediaType =
-  ((block.data as any).buttonMediaType as
-    | "image"
-    | "icon"
-    | undefined) ??
-  "image";
+  const buttonMediaType =
+    ((block.data as any).buttonMediaType as
+      | "image"
+      | "icon"
+      | undefined) ??
+    "image";
 
-const buttonMediaUrl =
-  buttonMediaType === "icon"
-    ? String(
-        (block.data as any)
-          .buttonIconUrl ??
-          "",
-      )
-    : String(
-        block.data
-          .buttonImageUrl ??
-          "",
-      );
+  const buttonMediaUrl =
+    buttonMediaType === "icon"
+      ? String(
+          (block.data as any)
+            .buttonIconUrl ??
+            "",
+        )
+      : String(
+          block.data
+            .buttonImageUrl ??
+            "",
+        );
 
-const isMediaCircle =
-  buttonStyleType ===
-  "media_circle";
+  const buttonIconColor =
+    String(
+      (block.data as any)
+        .buttonIconColor ??
+        "#111111",
+    );
 
-    const submittedText =
-      ((block.data as any).submittedText as
-        | string
-        | undefined) || "Submitted";
+  const isMediaCircle =
+    buttonStyleType ===
+    "media_circle";
 
-    const justifyContent =
-      block.data.style?.align === "left"
-        ? "flex-start"
-        : block.data.style?.align === "right"
-          ? "flex-end"
-          : "center";
+  const submittedText =
+    ((block.data as any).submittedText as
+      | string
+      | undefined) ||
+    "Submitted";
 
-    const solidStyle: React.CSSProperties = {
-      background: submitted
+  const justifyContent =
+    block.data.style?.align ===
+    "left"
+      ? "flex-start"
+      : block.data.style?.align ===
+          "right"
+        ? "flex-end"
+        : "center";
+
+  const solidStyle:
+    React.CSSProperties = {
+    background:
+      submitted
         ? "#16a34a"
         : appearance.backgroundColor &&
-            appearance.backgroundColor !== "transparent"
+            appearance.backgroundColor !==
+              "transparent"
           ? appearance.backgroundColor
           : "#111827",
 
-      color: style.color || "#ffffff",
+    color:
+      style.color ||
+      "#ffffff",
 
-      borderColor: submitted
+    borderColor:
+      submitted
         ? "#16a34a"
-        : appearance.borderColor || "transparent",
+        : appearance.borderColor ||
+          "transparent",
 
-      borderWidth: appearance.borderWidth,
-      borderStyle: appearance.borderStyle,
-      borderRadius: appearance.borderRadius,
-    };
+    borderWidth:
+      appearance.borderWidth,
+
+    borderStyle:
+      appearance.borderStyle,
+
+    borderRadius:
+      appearance.borderRadius,
+  };
 
     const outlineStyle: React.CSSProperties = {
       background: submitted
@@ -4149,10 +4178,59 @@ if (
   {/* MEDIA BEFORE / ABOVE */}
   {/* ============================================================ */}
 
-  {!isMediaCircle &&
-  buttonMediaUrl &&
-  buttonImagePlacement !==
-    "after" ? (
+{!isMediaCircle &&
+buttonMediaUrl &&
+buttonImagePlacement !==
+  "after" ? (
+  buttonMediaType ===
+  "icon" ? (
+    <span
+      aria-hidden="true"
+      className="block shrink-0"
+      style={{
+        width:
+          `${
+            (block.data as any)
+              .buttonImageSize ??
+            20
+          }px`,
+
+        height:
+          `${
+            (block.data as any)
+              .buttonImageSize ??
+            20
+          }px`,
+
+        backgroundColor:
+          buttonIconColor,
+
+        WebkitMaskImage:
+          `url("${buttonMediaUrl}")`,
+
+        maskImage:
+          `url("${buttonMediaUrl}")`,
+
+        WebkitMaskRepeat:
+          "no-repeat",
+
+        maskRepeat:
+          "no-repeat",
+
+        WebkitMaskPosition:
+          "center",
+
+        maskPosition:
+          "center",
+
+        WebkitMaskSize:
+          "contain",
+
+        maskSize:
+          "contain",
+      }}
+    />
+  ) : (
     <img
       src={
         buttonMediaUrl
@@ -4175,14 +4253,64 @@ if (
       }}
       className="shrink-0 object-contain"
     />
-  ) : null}
+  )
+) : null}
 
   {/* ============================================================ */}
   {/* MEDIA CIRCLE */}
   {/* ============================================================ */}
 
-  {isMediaCircle &&
-  buttonMediaUrl ? (
+{isMediaCircle &&
+buttonMediaUrl ? (
+  buttonMediaType ===
+  "icon" ? (
+    <span
+      aria-hidden="true"
+      className="block shrink-0"
+      style={{
+        width:
+          `${
+            (block.data as any)
+              .buttonImageSize ??
+            20
+          }px`,
+
+        height:
+          `${
+            (block.data as any)
+              .buttonImageSize ??
+            20
+          }px`,
+
+        backgroundColor:
+          buttonIconColor,
+
+        WebkitMaskImage:
+          `url("${buttonMediaUrl}")`,
+
+        maskImage:
+          `url("${buttonMediaUrl}")`,
+
+        WebkitMaskRepeat:
+          "no-repeat",
+
+        maskRepeat:
+          "no-repeat",
+
+        WebkitMaskPosition:
+          "center",
+
+        maskPosition:
+          "center",
+
+        WebkitMaskSize:
+          "contain",
+
+        maskSize:
+          "contain",
+      }}
+    />
+  ) : (
     <img
       src={
         buttonMediaUrl
@@ -4205,7 +4333,8 @@ if (
       }}
       className="shrink-0 object-contain"
     />
-  ) : null}
+  )
+) : null}
 
   {/* ============================================================ */}
   {/* BUTTON TEXT */}
@@ -4227,10 +4356,59 @@ if (
   {/* MEDIA AFTER */}
   {/* ============================================================ */}
 
-  {!isMediaCircle &&
-  buttonMediaUrl &&
-  buttonImagePlacement ===
-    "after" ? (
+{!isMediaCircle &&
+buttonMediaUrl &&
+buttonImagePlacement ===
+  "after" ? (
+  buttonMediaType ===
+  "icon" ? (
+    <span
+      aria-hidden="true"
+      className="block shrink-0"
+      style={{
+        width:
+          `${
+            (block.data as any)
+              .buttonImageSize ??
+            20
+          }px`,
+
+        height:
+          `${
+            (block.data as any)
+              .buttonImageSize ??
+            20
+          }px`,
+
+        backgroundColor:
+          buttonIconColor,
+
+        WebkitMaskImage:
+          `url("${buttonMediaUrl}")`,
+
+        maskImage:
+          `url("${buttonMediaUrl}")`,
+
+        WebkitMaskRepeat:
+          "no-repeat",
+
+        maskRepeat:
+          "no-repeat",
+
+        WebkitMaskPosition:
+          "center",
+
+        maskPosition:
+          "center",
+
+        WebkitMaskSize:
+          "contain",
+
+        maskSize:
+          "contain",
+      }}
+    />
+  ) : (
     <img
       src={
         buttonMediaUrl
@@ -4253,7 +4431,8 @@ if (
       }}
       className="shrink-0 object-contain"
     />
-  ) : null}
+  )
+) : null}
 </button>
         </div>
       </div>
