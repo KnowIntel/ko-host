@@ -842,52 +842,7 @@ onChange={(e) => {
     />
   </div>
 
-  <div className="mt-4">
-    <div className="flex items-center justify-between gap-3">
-      <div className={inspectorLabelClass()}>
-        Impact Card Spacing
-      </div>
-
-      <div className="text-xs text-neutral-500">
-        {Number(
-          data.metricCardStyle?.gap ??
-            16,
-        )}
-        px
-      </div>
-    </div>
-
-    <input
-      type="range"
-      min={0}
-      max={48}
-      step={1}
-      value={Number(
-        data.metricCardStyle?.gap ??
-          16,
-      )}
-      onChange={(e) =>
-        patchDonationData({
-          metricCardStyle: {
-            ...(data.metricCardStyle ??
-              {}),
-
-            gap:
-              Number(
-                e.target.value,
-              ),
-          },
-        })
-      }
-      className="mt-2 w-full"
-    />
-  </div>
-
-  <div className="mt-4">
-    <div className="flex items-center justify-between gap-3">
-      <div className={inspectorLabelClass()}>
-        Impact Card Padding
-      </div>
+Impact Card Spacing
 
       <div className="text-xs text-neutral-500">
         {Number(
