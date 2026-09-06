@@ -555,6 +555,24 @@ onChange={(e) => {
                   inspectorInputClass()
                 }
               />
+
+              <label className="mt-3 flex items-center gap-2 text-sm font-medium text-neutral-800">
+                <input
+                  type="checkbox"
+                  checked={
+                    data.showGoalAmountDecimals ??
+                    false
+                  }
+                  onChange={(e) =>
+                    patchDonationData({
+                      showGoalAmountDecimals:
+                        e.target.checked,
+                    })
+                  }
+                />
+
+                Show decimal places
+              </label>
             </div>
 
             {/* RAISED */}
@@ -594,33 +612,93 @@ onChange={(e) => {
                   inspectorInputClass()
                 }
               />
+
+              <label className="mt-3 flex items-center gap-2 text-sm font-medium text-neutral-800">
+                <input
+                  type="checkbox"
+                  checked={
+                    data.showRaisedAmountDecimals ??
+                    true
+                  }
+                  onChange={(e) =>
+                    patchDonationData({
+                      showRaisedAmountDecimals:
+                        e.target.checked,
+                    })
+                  }
+                />
+
+                Show decimal places
+              </label>
             </div>
 
-<div className="mt-3">
-  <div className={inspectorLabelClass()}>
-    Raised Amount Descriptor
-  </div>
+            {/* RAISED AMOUNT STATUS */}
 
-  <input
-    type="text"
-    value={
-      data.raisedAmountDescriptor ??
-      "raised of"
-    }
-    onChange={(e) =>
-      patchDonationData({
-        raisedAmountDescriptor:
-          e.target.value,
-      })
-    }
-    className={inspectorInputClass()}
-    placeholder="raised of"
-  />
+            <div className="mt-3">
+              <div className={inspectorLabelClass()}>
+                Raised Amount Descriptor
+              </div>
 
-  <p className="mt-2 text-xs leading-5 text-neutral-500">
-    Example: $146,785 raised of $250,000 goal
-  </p>
-</div>
+              <input
+                type="text"
+                value={
+                  data.raisedAmountDescriptor ??
+                  "raised of"
+                }
+                onChange={(e) =>
+                  patchDonationData({
+                    raisedAmountDescriptor:
+                      e.target.value,
+                  })
+                }
+                className={inspectorInputClass()}
+                placeholder="raised of"
+              />
+
+              <p className="mt-2 text-xs leading-5 text-neutral-500">
+                Example: $146,785.00 raised of $250,000 goal
+              </p>
+            </div>
+
+            <div className="mt-3">
+              <div className={inspectorLabelClass()}>
+                Goal Descriptor
+              </div>
+
+              <input
+                type="text"
+                value={
+                  data.goalDescriptor ??
+                  "goal"
+                }
+                onChange={(e) =>
+                  patchDonationData({
+                    goalDescriptor:
+                      e.target.value,
+                  })
+                }
+                className={inspectorInputClass()}
+                placeholder="goal"
+              />
+
+              <label className="mt-3 flex items-center gap-2 text-sm font-medium text-neutral-800">
+                <input
+                  type="checkbox"
+                  checked={
+                    data.showRaisedStatusGoalDecimals ??
+                    false
+                  }
+                  onChange={(e) =>
+                    patchDonationData({
+                      showRaisedStatusGoalDecimals:
+                        e.target.checked,
+                    })
+                  }
+                />
+
+                Show goal decimal places in status
+              </label>
+            </div>
 
 <div className="mt-3">
   <div className={inspectorLabelClass()}>

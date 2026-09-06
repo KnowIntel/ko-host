@@ -2085,12 +2085,16 @@ export type DonationBlock = BaseBlock & {
        PROFESSIONAL
        ========================================= */
 
-    goalAmount?: number;
-    raisedAmount?: number;
+goalAmount?: number;
+raisedAmount?: number;
 
-    raisedAmountDescriptor?: string;
-    goalDescriptor?: string;
-    raisedAmountDescriptorStyle?: TextStyle;
+showGoalAmountDecimals?: boolean;
+showRaisedAmountDecimals?: boolean;
+showRaisedStatusGoalDecimals?: boolean;
+
+raisedAmountDescriptor?: string;
+goalDescriptor?: string;
+raisedAmountDescriptorStyle?: TextStyle;
     donorCount?: number;
 
     deadline?: string;
@@ -9760,6 +9764,10 @@ case "donation":
 
       description:
         "",
+
+showGoalAmountDecimals: false,
+showRaisedAmountDecimals: true,
+showRaisedStatusGoalDecimals: false,
 
 goalAmount:
   250000,
