@@ -847,7 +847,7 @@ return (
               </div>
             </div>
           </div>
-        ) : null}
+        ) : null} 
 
 {blockEntries.map(
   ({

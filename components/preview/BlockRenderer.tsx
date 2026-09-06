@@ -4442,6 +4442,7 @@ buttonImagePlacement ===
   return <CtaButtonLive />;
 }
 
+
 function renderCountdown(
   block: Extract<MicrositeBlock, { type: "countdown" }>,
   designKey?: string,

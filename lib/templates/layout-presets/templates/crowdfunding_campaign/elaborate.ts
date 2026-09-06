@@ -7,5 +7,5 @@ export default createLayoutPreset({
   description: "Detailed layout with story, rewards, and support options",
   thumbnail: "/designs/design-cards/design-card_crowdfunding_elaborate.webp",
 
-  recommended: true,
+  recommended: false,
 });

@@ -18111,6 +18111,7 @@ selectedBlock?.type === "donation" ? (
     setGalleryTextTarget={setGalleryTextTarget}
   />
 ) : null}
+
                 
 {!isMultiSelection &&
 selectedBlock?.type === "cta" ? (
