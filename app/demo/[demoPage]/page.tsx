@@ -331,7 +331,12 @@ const DEMO_PAGES: Record<
     "You opened the campaign updates page. In a real crowdfunding microsite, this could share fundraising milestones, project progress, important announcements, supporter shout-outs, and the exciting moment everyone realizes the goal might actually happen.",
 },
 
-
+"crowdfunding-campaign-email": {
+  title: "Demo Email",
+  eyebrow: "Crowdfunding Campaign Demo",
+  message:
+    "You opened the email page. In a real crowdfunding microsite, this could help supporters contact the campaign organizer, ask questions, request more information, offer assistance, or send the wonderfully rare message that begins with, ‘I’d like to help.’",
+},
 
 
 

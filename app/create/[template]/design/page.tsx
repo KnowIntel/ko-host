@@ -78,6 +78,8 @@ const draftPageCountByTemplateDesignKey: Record<string, number> = {
   "product_launch:simplistic": 1,
 
   "crowdfunding_campaign:elaborate": 1,
+  "crowdfunding_campaign:heart": 1,
+
 
   "resume_profile:prime": 1,
 
