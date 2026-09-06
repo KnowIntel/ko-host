@@ -2053,12 +2053,25 @@ export type ProgressBarBlock = BaseBlock & {
   };
 };
 
+export type DonationStyleVariant =
+  | "standard"
+  | "professional";
+
 export type DonationBlock = BaseBlock & {
   type: "donation";
+
   data: {
+    styleVariant?: DonationStyleVariant;
+
+    /* =========================================
+       STANDARD + SHARED CONTENT
+       ========================================= */
+
     heading?: string;
     description?: string;
+
     buttonSpacing?: number;
+
     allowCustomAmount?: boolean;
     customAmountLabel?: string;
 
@@ -2067,8 +2080,78 @@ export type DonationBlock = BaseBlock & {
       label?: string;
       amount: number;
     }>;
-    
+
+    /* =========================================
+       PROFESSIONAL
+       ========================================= */
+
+    goalAmount?: number;
+    raisedAmount?: number;
+
+    raisedAmountDescriptor?: string;
+    goalDescriptor?: string;
+    raisedAmountDescriptorStyle?: TextStyle;
+    donorCount?: number;
+
+    deadline?: string;
+
+    donorLabel?: string;
+    percentageLabel?: string;
+    daysLeftLabel?: string;
+
+    donorIcon?: string;
+    percentageIcon?: string;
+    daysLeftIcon?: string;
+
+    /* =========================================
+       TEXT STYLES
+       ========================================= */
+
     style?: TextStyle;
+
+    titleStyle?: TextStyle;
+    goalAmountStyle?: TextStyle;
+    descriptionStyle?: TextStyle;
+    raisedAmountStyle?: TextStyle;
+
+    donorValueStyle?: TextStyle;
+    donorLabelStyle?: TextStyle;
+
+    percentageValueStyle?: TextStyle;
+    percentageLabelStyle?: TextStyle;
+
+    daysValueStyle?: TextStyle;
+    daysLabelStyle?: TextStyle;
+
+    buttonStyle?: TextStyle & {
+      backgroundColor?: string;
+    };
+
+    /* =========================================
+       APPEARANCE STYLES
+       ========================================= */
+
+    progressTrackStyle?: {
+      backgroundColor?: string;
+      borderColor?: string;
+      borderWidth?: number;
+      borderRadius?: number;
+      height?: number;
+    };
+
+    progressFillStyle?: {
+      backgroundColor?: string;
+      borderRadius?: number;
+    };
+
+    metricCardStyle?: {
+      backgroundColor?: string;
+      borderColor?: string;
+      borderWidth?: number;
+      borderRadius?: number;
+      gap?: number;
+      padding?: number;
+    };
   };
 };
 
@@ -9654,26 +9737,239 @@ data: {
 case "donation":
   return {
     id: makeId("donation"),
+
     type: "donation",
+
     label: "Donation",
+
     grid: {
       ...grid,
-      rowSpan: 3,
+      colSpan: 7,
+      rowSpan: 7,
     },
-    appearance: createDefaultBlockAppearance(),
-data: {
-  heading: "Support This Cause",
-  description: "",
-  donationOptions: [
-    { id: makeId("donationopt"), label: "$10", amount: 10 },
-    { id: makeId("donationopt"), label: "$25", amount: 25 },
-    { id: makeId("donationopt"), label: "$50", amount: 50 },
-  ],
-  allowCustomAmount: true,
-  customAmountLabel: "Custom Amount",
-  style: createDefaultTextStyle(),
-  buttonSpacing: 8,
+
+    appearance:
+      createDefaultBlockAppearance(),
+
+    data: {
+      styleVariant:
+        "standard",
+
+      heading:
+        "Support This Cause",
+
+      description:
+        "",
+
+goalAmount:
+  250000,
+
+raisedAmount:
+  146785,
+
+raisedAmountDescriptor:
+  "raised of",
+
+goalDescriptor:
+  "goal",
+
+donorCount:
+  856,
+
+      deadline:
+        "",
+
+      donorLabel:
+        "Donors",
+
+      percentageLabel:
+        "of Goal",
+
+      daysLeftLabel:
+        "Days Left",
+
+      donorIcon:
+        "/media-icons/user-male-approved-valid.svg",
+
+      percentageIcon:
+        "/media-icons/heart.svg",
+
+      daysLeftIcon:
+        "/media-icons/calendar.svg",
+
+      donationOptions: [
+        {
+          id:
+            makeId(
+              "donationopt",
+            ),
+
+          label:
+            "$10",
+
+          amount:
+            10,
+        },
+
+        {
+          id:
+            makeId(
+              "donationopt",
+            ),
+
+          label:
+            "$25",
+
+          amount:
+            25,
+        },
+
+        {
+          id:
+            makeId(
+              "donationopt",
+            ),
+
+          label:
+            "$50",
+
+          amount:
+            50,
+        },
+      ],
+
+      allowCustomAmount:
+        true,
+
+      customAmountLabel:
+        "Custom Amount",
+
+      buttonSpacing:
+        8,
+
+      style:
+        createDefaultTextStyle(),
+
+      titleStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 30,
+        bold: true,
+      },
+
+      goalAmountStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 46,
+        bold: true,
+      },
+
+      descriptionStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 17,
+      },
+
+raisedAmountStyle: {
+  ...createDefaultTextStyle(),
+  fontSize: 28,
+  bold: true,
 },
+
+raisedAmountDescriptorStyle: {
+  ...createDefaultTextStyle(),
+  fontSize: 14,
+},
+
+      donorValueStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 22,
+        bold: true,
+        align: "center",
+      },
+
+      donorLabelStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 13,
+        align: "center",
+      },
+
+      percentageValueStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 22,
+        bold: true,
+        align: "center",
+      },
+
+      percentageLabelStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 13,
+        align: "center",
+      },
+
+      daysValueStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 22,
+        bold: true,
+        align: "center",
+      },
+
+      daysLabelStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 13,
+        align: "center",
+      },
+
+      buttonStyle: {
+        ...createDefaultTextStyle(),
+        color: "#ffffff",
+        backgroundColor:
+          "#171717",
+        bold: true,
+      },
+
+      progressTrackStyle: {
+        backgroundColor:
+          "#ffffff",
+
+        borderColor:
+          "#ef7d70",
+
+        borderWidth:
+          1,
+
+        borderRadius:
+          999,
+
+        height:
+          20,
+      },
+
+      progressFillStyle: {
+        backgroundColor:
+          "#e96c6c",
+
+        borderRadius:
+          999,
+      },
+
+      metricCardStyle: {
+        backgroundColor:
+          "transparent",
+
+        borderColor:
+          "#e5e7eb",
+
+        borderWidth:
+          0,
+
+        borderRadius:
+          16,
+
+        gap:
+          16,
+
+        padding:
+          10,
+      },
+    },
   };
 
     case "link_hub":

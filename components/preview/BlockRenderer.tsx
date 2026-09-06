@@ -26103,227 +26103,978 @@ const blockStyle = data.style ?? {};
 }
 
 function renderDonation(
-  block: Extract<MicrositeBlock, { type: "donation" }>,
+  block: Extract<
+    MicrositeBlock,
+    { type: "donation" }
+  >,
   designKey?: string,
   micrositeId?: string | null,
 ) {
-  const donationOptions = Array.isArray(block.data.donationOptions)
-    ? block.data.donationOptions.filter(
-        (item) =>
-          item &&
-          typeof item.amount === "number" &&
-          Number.isFinite(item.amount) &&
-          item.amount > 0,
-      )
-    : [];
+  const data =
+    block.data as any;
 
-  const isConfigured = donationOptions.length > 0;
-  const [donationError, setDonationError] = useState("");
-  const [customAmountOpen, setCustomAmountOpen] = useState(false);
-  const [customAmountValue, setCustomAmountValue] = useState("");
+  const styleVariant =
+    data.styleVariant ??
+    "standard";
 
-  const buttonStyle = (block.data as any).buttonStyle ?? {};
-  const showCustomAmount = (block.data as any).allowCustomAmount !== false;
+  const donationOptions =
+    Array.isArray(
+      data.donationOptions,
+    )
+      ? data.donationOptions.filter(
+          (item: any) =>
+            item &&
+            typeof item.amount ===
+              "number" &&
+            Number.isFinite(
+              item.amount,
+            ) &&
+            item.amount > 0,
+        )
+      : [];
+
+  const isConfigured =
+    donationOptions.length >
+    0;
+
+  const [
+    donationError,
+    setDonationError,
+  ] = useState("");
+
+  const [
+    customAmountOpen,
+    setCustomAmountOpen,
+  ] = useState(false);
+
+  const [
+    customAmountValue,
+    setCustomAmountValue,
+  ] = useState("");
+
+  const buttonStyle =
+    data.buttonStyle ??
+    {};
+
+  const showCustomAmount =
+    data.allowCustomAmount !==
+    false;
+
   const customAmountLabel =
-    (block.data as any).customAmountLabel || "Custom Amount";
+    data.customAmountLabel ||
+    "Custom Amount";
 
-  const buttonBaseStyle = {
-    marginLeft: `${Math.max(0, Number(block.data.buttonSpacing ?? 8)) / 2}px`,
-    marginRight: `${Math.max(0, Number(block.data.buttonSpacing ?? 8)) / 2}px`,
-    backgroundColor:
-      buttonStyle.backgroundColor ??
-      (isLightDesign(designKey) ? "#171717" : "#ffffff"),
-    color:
-      buttonStyle.color ?? (isLightDesign(designKey) ? "#ffffff" : "#171717"),
-    fontFamily: buttonStyle.fontFamily ?? block.data.style?.fontFamily,
-    fontSize:
-      typeof buttonStyle.fontSize === "number"
-        ? `${buttonStyle.fontSize}px`
-        : undefined,
-    fontWeight: buttonStyle.bold ? 700 : 600,
-    fontStyle: buttonStyle.italic ? "italic" : undefined,
-    textDecoration:
-      [
-        buttonStyle.underline ? "underline" : "",
-        buttonStyle.strike ? "line-through" : "",
-      ]
-        .filter(Boolean)
-        .join(" ") || undefined,
-  };
+  const buttonSpacing =
+    Math.max(
+      0,
+      Number(
+        data.buttonSpacing ??
+          8,
+      ),
+    );
 
-  async function handleDonationCheckout(amount: number, optionLabel?: string) {
+const buttonBorderWidth =
+  Math.max(
+    0,
+    Number(
+      buttonStyle.borderWidth ??
+        0,
+    ),
+  );
+
+const buttonBaseStyle:
+  React.CSSProperties = {
+  marginLeft:
+    `${buttonSpacing / 2}px`,
+
+  marginRight:
+    `${buttonSpacing / 2}px`,
+
+  backgroundColor:
+    buttonStyle.backgroundColor ??
+    (isLightDesign(
+      designKey,
+    )
+      ? "#171717"
+      : "#ffffff"),
+
+  color:
+    buttonStyle.color ??
+    (isLightDesign(
+      designKey,
+    )
+      ? "#ffffff"
+      : "#171717"),
+
+  fontFamily:
+    buttonStyle.fontFamily ??
+    data.style?.fontFamily,
+
+  fontSize:
+    typeof buttonStyle.fontSize ===
+    "number"
+      ? `${buttonStyle.fontSize}px`
+      : undefined,
+
+  fontWeight:
+    buttonStyle.bold
+      ? 700
+      : 600,
+
+  fontStyle:
+    buttonStyle.italic
+      ? "italic"
+      : undefined,
+
+  textDecoration:
+    [
+      buttonStyle.underline
+        ? "underline"
+        : "",
+
+      buttonStyle.strike
+        ? "line-through"
+        : "",
+    ]
+      .filter(Boolean)
+      .join(" ") ||
+    undefined,
+
+  border:
+    buttonBorderWidth > 0
+      ? `${buttonBorderWidth}px solid ${
+          buttonStyle.borderColor ??
+          "#171717"
+        }`
+      : "none",
+
+  borderRadius:
+    `${Math.max(
+      0,
+      Number(
+        buttonStyle.borderRadius ??
+          12,
+      ),
+    )}px`,
+};
+
+  async function handleDonationCheckout(
+    amount: number,
+    optionLabel?: string,
+  ) {
     if (!micrositeId) {
       setDonationError(
         "Donation checkout only works on a live microsite right now.",
       );
+
       return;
     }
 
     try {
-      const res = await fetch("/api/checkout/create-donation-session", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          micrositeId,
-          blockId: block.id,
-          amount,
-          label: optionLabel || `Donation $${formatCurrency(amount)}`,
-        }),
-      });
+      const res =
+        await fetch(
+          "/api/checkout/create-donation-session",
+          {
+            method:
+              "POST",
 
-      const json = await res.json();
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+
+            body:
+              JSON.stringify({
+                micrositeId,
+                blockId:
+                  block.id,
+                amount,
+                label:
+                  optionLabel ||
+                  `Donation $${formatCurrency(
+                    amount,
+                  )}`,
+              }),
+          },
+        );
+
+      const json =
+        await res.json();
 
       if (!res.ok) {
-        console.error("Donation checkout failed:", json);
-        setDonationError(json.error || "Donation checkout failed");
+        console.error(
+          "Donation checkout failed:",
+          json,
+        );
+
+        setDonationError(
+          json.error ||
+            "Donation checkout failed",
+        );
+
         return;
       }
 
       if (json.url) {
-        window.location.href = json.url;
+        window.location.href =
+          json.url;
+
         return;
       }
 
-      setDonationError("No checkout URL returned.");
-    } catch (err) {
-      console.error("Donation checkout error:", err);
-      setDonationError("Something went wrong");
+      setDonationError(
+        "No checkout URL returned.",
+      );
+    } catch (error) {
+      console.error(
+        "Donation checkout error:",
+        error,
+      );
+
+      setDonationError(
+        "Something went wrong",
+      );
     }
   }
 
   function handleCustomAmountContinue() {
-    const amount = Number(customAmountValue);
+    const amount =
+      Number(
+        customAmountValue,
+      );
 
-    if (!Number.isFinite(amount) || amount <= 0) {
-      setDonationError("Enter a valid donation amount.");
+    if (
+      !Number.isFinite(
+        amount,
+      ) ||
+      amount <= 0
+    ) {
+      setDonationError(
+        "Enter a valid donation amount.",
+      );
+
       return;
     }
 
-    setCustomAmountOpen(false);
-    void handleDonationCheckout(amount, "Custom Donation");
+    setCustomAmountOpen(
+      false,
+    );
+
+    void handleDonationCheckout(
+      amount,
+      "Custom Donation",
+    );
   }
 
-  return (
-    <>
-      <Surface block={block} designKey={designKey} className="">
-        <div
-          className="text-base font-semibold"
-          style={getContainerTextStyle(block.data.style, designKey)}
-        >
-          {block.data.heading || "Support This Cause"}
-        </div>
+  /*
+   * ================================================================
+   * SHARED DONATION BUTTONS
+   * ================================================================
+   */
 
-        {block.data.description ? (
-          <div
-            className="mt-2 text-sm"
-            style={getContainerTextStyle(block.data.style, designKey)}
-          >
-            {block.data.description}
-          </div>
-        ) : null}
+  const donationButtons =
+    isConfigured ||
+    showCustomAmount ? (
+      <div
+        className="flex flex-row flex-wrap items-center"
+        style={{
+          marginLeft:
+            `-${buttonSpacing / 2}px`,
 
-        {isConfigured || showCustomAmount ? (
-          <div
-            className="mt-4 flex flex-row flex-wrap items-center"
-            style={{
-              marginLeft: `-${
-                Math.max(0, Number(block.data.buttonSpacing ?? 8)) / 2
-              }px`,
-              marginRight: `-${
-                Math.max(0, Number(block.data.buttonSpacing ?? 8)) / 2
-              }px`,
-            }}
-          >
-            {donationOptions.map((option, index) => {
-              const amount = Number(option.amount || 0);
-              const label =
-                typeof option.label === "string" &&
-                option.label.trim().length > 0
-                  ? option.label.trim()
-                  : `$${formatCurrency(amount)}`;
-
-              return (
-                <button
-                  key={option.id || `donation-option-${index}`}
-                  type="button"
-                  onClick={() => void handleDonationCheckout(amount, label)}
-                  disabled={!micrositeId}
-                  className="inline-flex min-h-11 items-center justify-center rounded-xl px-5 py-2 disabled:cursor-not-allowed disabled:opacity-60"
-                  style={buttonBaseStyle}
-                  title={
-                    !micrositeId
-                      ? "Donation checkout only works on live microsites right now."
-                      : undefined
-                  }
-                >
-                  {label}
-                </button>
+          marginRight:
+            `-${buttonSpacing / 2}px`,
+        }}
+      >
+        {donationOptions.map(
+          (
+            option: any,
+            index: number,
+          ) => {
+            const amount =
+              Number(
+                option.amount ||
+                  0,
               );
-            })}
 
-            {showCustomAmount ? (
+            const label =
+              typeof option.label ===
+                "string" &&
+              option.label
+                .trim()
+                .length > 0
+                ? option.label.trim()
+                : `$${formatCurrency(
+                    amount,
+                  )}`;
+
+            return (
               <button
+                key={
+                  option.id ||
+                  `donation-option-${index}`
+                }
                 type="button"
-                onClick={() => setCustomAmountOpen(true)}
-                disabled={!micrositeId}
+                onClick={() =>
+                  void handleDonationCheckout(
+                    amount,
+                    label,
+                  )
+                }
+                disabled={
+                  !micrositeId
+                }
                 className="inline-flex min-h-11 items-center justify-center rounded-xl px-5 py-2 disabled:cursor-not-allowed disabled:opacity-60"
-                style={buttonBaseStyle}
+                style={
+                  buttonBaseStyle
+                }
                 title={
                   !micrositeId
                     ? "Donation checkout only works on live microsites right now."
                     : undefined
                 }
               >
-                {customAmountLabel}
+                {label}
               </button>
+            );
+          },
+        )}
+
+        {showCustomAmount ? (
+          <button
+            type="button"
+            onClick={() =>
+              setCustomAmountOpen(
+                true,
+              )
+            }
+            disabled={
+              !micrositeId
+            }
+            className="inline-flex min-h-11 items-center justify-center rounded-xl px-5 py-2 disabled:cursor-not-allowed disabled:opacity-60"
+            style={
+              buttonBaseStyle
+            }
+            title={
+              !micrositeId
+                ? "Donation checkout only works on live microsites right now."
+                : undefined
+            }
+          >
+            {
+              customAmountLabel
+            }
+          </button>
+        ) : null}
+      </div>
+    ) : (
+      <div className="rounded-xl border border-dashed border-neutral-300 px-4 py-6 text-sm text-neutral-500">
+        Add fixed donation
+        options in the builder.
+      </div>
+    );
+
+  /*
+   * ================================================================
+   * PROFESSIONAL CALCULATIONS
+   * ================================================================
+   */
+
+  const goalAmount =
+    Math.max(
+      0,
+      Number(
+        data.goalAmount ??
+          0,
+      ),
+    );
+
+  const raisedAmount =
+    Math.max(
+      0,
+      Number(
+        data.raisedAmount ??
+          0,
+      ),
+    );
+
+  const goalPercentage =
+    goalAmount > 0
+      ? Math.min(
+          100,
+          Math.max(
+            0,
+            (raisedAmount /
+              goalAmount) *
+              100,
+          ),
+        )
+      : 0;
+
+  const roundedGoalPercentage =
+    Math.round(
+      goalPercentage,
+    );
+
+  const donorCount =
+    Math.max(
+      0,
+      Math.floor(
+        Number(
+          data.donorCount ??
+            0,
+        ),
+      ),
+    );
+
+const deadlineTimestamp =
+  data.deadline
+    ? new Date(
+        `${data.deadline}T23:59:59`,
+      ).getTime()
+    : null;
+
+const daysLeft =
+  deadlineTimestamp !== null &&
+  Number.isFinite(
+    deadlineTimestamp,
+  )
+    ? Math.max(
+        0,
+        Math.ceil(
+          (
+            deadlineTimestamp -
+            Date.now()
+          ) /
+            86400000,
+        ),
+      )
+    : 0;
+
+  const progressTrackStyle =
+    data.progressTrackStyle ??
+    {};
+
+  const progressFillStyle =
+    data.progressFillStyle ??
+    {};
+
+  const metricCardStyle =
+    data.metricCardStyle ??
+    {};
+
+  function renderMetricIcon(
+    iconUrl:
+      string | undefined,
+    alt: string,
+  ) {
+    if (!iconUrl) {
+      return null;
+    }
+
+    return (
+      <img
+        src={iconUrl}
+        alt={alt}
+        className="mx-auto h-9 w-9 object-contain"
+      />
+    );
+  }
+
+function metricCardAppearance():
+  React.CSSProperties {
+  const borderWidth =
+    Math.max(
+      0,
+      Number(
+        metricCardStyle.borderWidth ??
+          0,
+      ),
+    );
+
+  return {
+    padding:
+      `${Math.max(
+        0,
+        Number(
+          metricCardStyle.padding ??
+            10,
+        ),
+      )}px`,
+
+    backgroundColor:
+      metricCardStyle.backgroundColor ??
+      "transparent",
+
+    borderColor:
+      borderWidth > 0
+        ? metricCardStyle.borderColor ??
+          "#e5e7eb"
+        : "transparent",
+
+    borderWidth:
+      `${borderWidth}px`,
+
+    borderStyle:
+      borderWidth > 0
+        ? "solid"
+        : "none",
+
+    borderRadius:
+      `${Math.max(
+        0,
+        Number(
+          metricCardStyle.borderRadius ??
+            16,
+        ),
+      )}px`,
+
+    boxSizing:
+      "border-box",
+  };
+}
+
+  return (
+    <>
+      <Surface
+        block={block}
+        designKey={
+          designKey
+        }
+        className=""
+      >
+        {styleVariant ===
+        "professional" ? (
+          <div className="flex h-full w-full flex-col p-4">
+            {/* ====================================================== */}
+            {/* 1. TITLE */}
+            {/* ====================================================== */}
+
+            <div
+              style={getContainerTextStyle(
+                data.titleStyle ??
+                  data.style,
+                designKey,
+              )}
+            >
+              {data.heading ||
+                "Our Goal"}
+            </div>
+
+            {/* ====================================================== */}
+            {/* 2. TOTAL GOAL AMOUNT */}
+            {/* ====================================================== */}
+
+            <div
+              className="mt-1"
+              style={getContainerTextStyle(
+                data.goalAmountStyle ??
+                  data.style,
+                designKey,
+              )}
+            >
+              $
+              {formatCurrency(
+                goalAmount,
+              )}
+            </div>
+
+            {/* ====================================================== */}
+            {/* 3. DESCRIPTION */}
+            {/* ====================================================== */}
+
+            {data.description ? (
+              <div
+                className="mt-2"
+                style={getContainerTextStyle(
+                  data.descriptionStyle ??
+                    data.style,
+                  designKey,
+                )}
+              >
+                {
+                  data.description
+                }
+              </div>
             ) : null}
+
+{/* ====================================================== */}
+{/* 4. GOAL PROGRESS */}
+{/* ====================================================== */}
+
+<div
+  className="relative mt-5 w-full overflow-hidden"
+  style={{
+    height:
+      `${Math.max(
+        4,
+        Number(
+          progressTrackStyle.height ??
+            20,
+        ),
+      )}px`,
+
+    backgroundColor:
+      progressTrackStyle.backgroundColor ??
+      "#ffffff",
+
+    borderColor:
+      progressTrackStyle.borderColor ??
+      "#e5e7eb",
+
+    borderWidth:
+      `${Math.max(
+        0,
+        Number(
+          progressTrackStyle.borderWidth ??
+            1,
+        ),
+      )}px`,
+
+    borderStyle:
+      Number(
+        progressTrackStyle.borderWidth ??
+          1,
+      ) > 0
+        ? "solid"
+        : "none",
+
+    borderRadius:
+      `${Math.max(
+        0,
+        Number(
+          progressTrackStyle.borderRadius ??
+            999,
+        ),
+      )}px`,
+  }}
+>
+  <div
+    className="h-full"
+    style={{
+      width:
+        `${goalPercentage}%`,
+
+      backgroundColor:
+        progressFillStyle.backgroundColor ??
+        "#e96c6c",
+
+      borderRadius:
+        `${Math.max(
+          0,
+          Number(
+            progressFillStyle.borderRadius ??
+              999,
+          ),
+        )}px`,
+
+      borderColor:
+        progressFillStyle.borderColor ??
+        "transparent",
+
+      borderWidth:
+        `${Math.max(
+          0,
+          Number(
+            progressFillStyle.borderWidth ??
+              0,
+          ),
+        )}px`,
+
+      borderStyle:
+        Number(
+          progressFillStyle.borderWidth ??
+            0,
+        ) > 0
+          ? "solid"
+          : "none",
+    }}
+  />
+</div>
+
+            {/* ====================================================== */}
+            {/* 5. RAISED AMOUNT */}
+            {/* ====================================================== */}
+
+<div className="mt-4">
+  <div
+    style={getContainerTextStyle(
+      data.raisedAmountStyle ??
+        data.style,
+      designKey,
+    )}
+  >
+    $
+    {formatCurrency(
+      raisedAmount,
+    )}
+  </div>
+
+  <div
+    className="mt-1 text-sm opacity-70"
+    style={getContainerTextStyle(
+      data.raisedAmountDescriptorStyle ??
+        data.descriptionStyle ??
+        data.style,
+      designKey,
+    )}
+  >
+    {data.raisedAmountDescriptor ??
+      "raised of"}{" "}
+    $
+    {formatCurrency(
+      goalAmount,
+    )}{" "}
+    {data.goalDescriptor ??
+      "goal"}
+  </div>
+</div>
+
+            {/* ====================================================== */}
+            {/* 6–8. IMPACT STATS */}
+            {/* ====================================================== */}
+
+            <div
+              className="mt-6 grid grid-cols-3"
+              style={{
+                gap:
+                  `${Number(
+                    metricCardStyle.gap ??
+                      16,
+                  )}px`,
+              }}
+            >
+              {/* DONORS */}
+
+              <div
+                className="text-center"
+                style={
+                  metricCardAppearance()
+                }
+              >
+                {renderMetricIcon(
+                  data.donorIcon,
+                  "Donors",
+                )}
+
+                <div
+                  className="mt-2"
+                  style={getContainerTextStyle(
+                    data.donorValueStyle ??
+                      data.style,
+                    designKey,
+                  )}
+                >
+                  {donorCount}
+                </div>
+
+                <div
+                  style={getContainerTextStyle(
+                    data.donorLabelStyle ??
+                      data.style,
+                    designKey,
+                  )}
+                >
+                  {data.donorLabel ||
+                    "Donors"}
+                </div>
+              </div>
+
+              {/* GOAL PERCENTAGE */}
+
+              <div
+                className="text-center"
+                style={
+                  metricCardAppearance()
+                }
+              >
+                {renderMetricIcon(
+                  data.percentageIcon,
+                  "Goal Percentage",
+                )}
+
+                <div
+                  className="mt-2"
+                  style={getContainerTextStyle(
+                    data.percentageValueStyle ??
+                      data.style,
+                    designKey,
+                  )}
+                >
+                  {
+                    roundedGoalPercentage
+                  }
+                  %
+                </div>
+
+                <div
+                  style={getContainerTextStyle(
+                    data.percentageLabelStyle ??
+                      data.style,
+                    designKey,
+                  )}
+                >
+                  {data.percentageLabel ||
+                    "of Goal"}
+                </div>
+              </div>
+
+              {/* DAYS LEFT */}
+
+              <div
+                className="text-center"
+                style={
+                  metricCardAppearance()
+                }
+              >
+                {renderMetricIcon(
+                  data.daysLeftIcon,
+                  "Days Left",
+                )}
+
+                <div
+                  className="mt-2"
+                  style={getContainerTextStyle(
+                    data.daysValueStyle ??
+                      data.style,
+                    designKey,
+                  )}
+                >
+                  {daysLeft}
+                </div>
+
+                <div
+                  style={getContainerTextStyle(
+                    data.daysLabelStyle ??
+                      data.style,
+                    designKey,
+                  )}
+                >
+                  {data.daysLeftLabel ||
+                    "Days Left"}
+                </div>
+              </div>
+            </div>
+
+            {/* ====================================================== */}
+            {/* DONATION BUTTONS */}
+            {/* ====================================================== */}
+
+            <div className="mt-6">
+              {
+                donationButtons
+              }
+            </div>
           </div>
         ) : (
-          <div
-            className={[
-              "mt-4 rounded-xl border border-dashed px-4 py-6 text-sm",
-              "border-neutral-300 text-neutral-500",
-            ].join(" ")}
-          >
-            Add fixed donation options in the builder.
-          </div>
+          /*
+           * ==========================================================
+           * STANDARD
+           * ==========================================================
+           *
+           * Preserves the original Donation appearance and behavior.
+           */
+          <>
+            <div
+              className="text-base font-semibold"
+              style={getContainerTextStyle(
+                data.style,
+                designKey,
+              )}
+            >
+              {data.heading ||
+                "Support This Cause"}
+            </div>
+
+            {data.description ? (
+              <div
+                className="mt-2 text-sm"
+                style={getContainerTextStyle(
+                  data.style,
+                  designKey,
+                )}
+              >
+                {
+                  data.description
+                }
+              </div>
+            ) : null}
+
+            <div className="mt-4">
+              {
+                donationButtons
+              }
+            </div>
+          </>
         )}
       </Surface>
 
+      {/* ============================================================ */}
+      {/* CUSTOM DONATION MODAL */}
+      {/* ============================================================ */}
+
       <AppModal
-        open={customAmountOpen}
+        open={
+          customAmountOpen
+        }
         title="Custom Donation"
         description="Enter the amount you would like to donate."
         confirmText="Continue"
         cancelText="Cancel"
-        onConfirm={handleCustomAmountContinue}
-        onCancel={() => setCustomAmountOpen(false)}
+        onConfirm={
+          handleCustomAmountContinue
+        }
+        onCancel={() =>
+          setCustomAmountOpen(
+            false,
+          )
+        }
       >
         <div className="mt-4">
           <label className="text-sm font-medium text-neutral-700">
             Donation Amount
           </label>
+
           <input
             type="number"
             min="1"
             step="0.01"
-            value={customAmountValue}
-            onChange={(e) => setCustomAmountValue(e.target.value)}
+            value={
+              customAmountValue
+            }
+            onChange={(e) =>
+              setCustomAmountValue(
+                e.target.value,
+              )
+            }
             className="mt-2 w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-900"
             placeholder="25.00"
           />
         </div>
       </AppModal>
 
+      {/* ============================================================ */}
+      {/* ERROR MODAL */}
+      {/* ============================================================ */}
+
       <AppModal
-        open={Boolean(donationError)}
+        open={
+          Boolean(
+            donationError,
+          )
+        }
         title="Checkout Error"
         cancelText="OK"
-        onCancel={() => setDonationError("")}
+        onCancel={() =>
+          setDonationError(
+            "",
+          )
+        }
       >
-        <p className="text-sm text-neutral-700">{donationError}</p>
+        <p className="text-sm text-neutral-700">
+          {
+            donationError
+          }
+        </p>
       </AppModal>
     </>
   );

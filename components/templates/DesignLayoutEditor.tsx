@@ -77,6 +77,14 @@ import {
 } from "@/components/builder/formatting/imageFormatting";
 
 import {
+  applyDonationStylePatch,
+  applyDonationTextStylePatch,
+  getDonationTextStyle,
+  type DonationStyleTarget,
+  type DonationTextTarget,
+} from "@/components/builder/formatting/donationFormatting";
+
+import {
   applyChartStylePatch,
   applyChartTextStylePatch,
   getChartTextStyle,
@@ -2531,13 +2539,13 @@ const [processFlowStyleTarget, setProcessFlowStyleTarget] =
   useState<ProcessFlowStyleTarget>("card");
 
 const [
-statisticCardsTextTarget,
-setStatisticCardsTextTarget,
+  statisticCardsTextTarget,
+  setStatisticCardsTextTarget,
 ] = useState<StatisticCardsTextTarget>("heading");
 
 const [
-statisticCardsStyleTarget,
-setStatisticCardsStyleTarget,
+  statisticCardsStyleTarget,
+  setStatisticCardsStyleTarget,
 ] = useState<StatisticCardsStyleTarget>("card");
 
 const [
@@ -2554,6 +2562,11 @@ const [
   comparisonTableTextTarget,
   setComparisonTableTextTarget,
 ] = useState<ComparisonTableTextTarget>("heading");
+
+const [
+  comparisonTableStyleTarget,
+  setComparisonTableStyleTarget,
+] = useState<ComparisonTableStyleTarget>("header");
 
 const [
   dataPyramidTextTarget,
@@ -2588,21 +2601,34 @@ const [
 const [
   interactiveHotspotsTextTarget,
   setInteractiveHotspotsTextTarget,
-] = useState<InteractiveHotspotsTextTarget>(
-  "heading",
-);
+] = useState<InteractiveHotspotsTextTarget>("heading");
 
 const [
   interactiveHotspotsStyleTarget,
   setInteractiveHotspotsStyleTarget,
-] = useState<InteractiveHotspotsStyleTarget>(
-  "canvas",
-);
+] = useState<InteractiveHotspotsStyleTarget>("canvas");
+
+/*
+ * ================================================================
+ * DONATION
+ * ================================================================
+ */
 
 const [
-  comparisonTableStyleTarget,
-  setComparisonTableStyleTarget,
-] = useState<ComparisonTableStyleTarget>("header");
+  donationTextTarget,
+  setDonationTextTarget,
+] = useState<DonationTextTarget>("title");
+
+const [
+  donationStyleTarget,
+  setDonationStyleTarget,
+] = useState<DonationStyleTarget>("block");
+
+/*
+ * ================================================================
+ * REMAINING BLOCK TARGETS
+ * ================================================================
+ */
 
 const [formulaBoardTextTarget, setFormulaBoardTextTarget] =
   useState<FormulaBoardTextTarget>("heading");
@@ -2761,8 +2787,6 @@ const [canvasZoom, setCanvasZoom] = useState(() => {
   const bottomBarRef = useRef<HTMLDivElement | null>(null);
   const [blockGuideOpen, setBlockGuideOpen] = useState(false);
   const toolMenuRef = useRef<HTMLDivElement | null>(null);
-const [donationStyleTarget, setDonationStyleTarget] =
-  useState<"background" | "buttons">("background");
 
 const [postBoardStyleTarget, setPostBoardStyleTarget] = useState<
   | "block"
@@ -3488,11 +3512,10 @@ const selectedStyle =
     : ((selectedBlockFromDraft.data.style ?? {}) as TextStyle)
 
 : selectedBlockFromDraft?.type === "donation"
-        ? donationStyleTarget === "buttons"
-          ? (((selectedBlockFromDraft.data as any).buttonStyle ??
-              (selectedBlockFromDraft.data as any).style ??
-              {}) as TextStyle)
-          : (((selectedBlockFromDraft.data as any).style ?? {}) as TextStyle)
+  ? (getDonationTextStyle(
+      selectedBlockFromDraft,
+      donationTextTarget,
+    ) as TextStyle)
           : selectedBlockFromDraft?.type === "tournament_display"
   ? tournamentDisplayStyleTarget === "tournamentName"
     ? ((selectedBlockFromDraft.data as any).tournamentNameStyle ?? {})
@@ -5000,19 +5023,40 @@ function resolveMediaLogoFromUrl(url: string) {
 }
 
 function applyTextColor(value: string) {
-  if (
-    selectedBlock?.type === "donation" &&
-    donationStyleTarget === "buttons"
-  ) {
+  if (selectedBlock?.type === "donation") {
     updateSelectedBlock((block) =>
       block.type !== "donation"
+        ? block
+        : applyDonationTextStylePatch(
+            block,
+            donationTextTarget,
+            {
+              color: value,
+            },
+          ),
+    );
+
+    pushRecentColor(value);
+    return;
+  }
+
+  if (selectedBlock?.type === "gallery") {
+    const targetStyleKey =
+      galleryTextTarget === "description"
+        ? "descriptionStyle"
+        : galleryTextTarget === "metadata"
+          ? "metadataStyle"
+          : "titleStyle";
+
+    updateSelectedBlock((block) =>
+      block.type !== "gallery"
         ? block
         : {
             ...block,
             data: {
               ...block.data,
-              buttonStyle: {
-                ...(((block.data as any).buttonStyle ?? {})),
+              [targetStyleKey]: {
+                ...((block.data as any)[targetStyleKey] ?? {}),
                 color: value,
               },
             },
@@ -5023,34 +5067,10 @@ function applyTextColor(value: string) {
     return;
   }
 
-if (selectedBlock?.type === "gallery") {
-  const targetStyleKey =
-    galleryTextTarget === "description"
-      ? "descriptionStyle"
-      : galleryTextTarget === "metadata"
-        ? "metadataStyle"
-        : "titleStyle";
+  applyStylePatch({
+    color: value,
+  });
 
-  updateSelectedBlock((block) =>
-    block.type !== "gallery"
-      ? block
-      : {
-          ...block,
-          data: {
-            ...block.data,
-            [targetStyleKey]: {
-              ...((block.data as any)[targetStyleKey] ?? {}),
-              color: value,
-            },
-          },
-        },
-  );
-
-  pushRecentColor(value);
-  return;
-}
-
-  applyStylePatch({ color: value });
   pushRecentColor(value);
 }
 
@@ -5355,35 +5375,22 @@ if (selectedBlock?.type === "poll") {
     return;
   }
 
-  if (selectedBlock?.type === "donation") {
-    updateSelectedBlock((block) => {
-      if (block.type !== "donation") return block;
-
-      if (donationStyleTarget === "buttons") {
-        return {
-          ...block,
-          data: {
-            ...block.data,
-            buttonStyle: {
-              ...((block.data as any).buttonStyle ?? {}),
-              backgroundColor: value,
-            },
+if (selectedBlock?.type === "donation") {
+  updateSelectedBlock((block) =>
+    block.type !== "donation"
+      ? block
+      : applyDonationStylePatch(
+          block,
+          donationStyleTarget,
+          {
+            backgroundColor: value,
           },
-        };
-      }
+        ),
+  );
 
-      return {
-        ...block,
-        appearance: {
-          ...block.appearance,
-          backgroundColor: value,
-        },
-      };
-    });
-
-    pushRecentColor(value);
-    return;
-  }
+  pushRecentColor(value);
+  return;
+}
 
   if (selectedBlock?.type === "progress_bar") {
     updateSelectedBlock((block) => {
@@ -6299,38 +6306,16 @@ if ((selectedBlockFromDraft as any)?.type === "option_button") {
 }
 
 if (selectedBlock?.type === "donation") {
-  setDraft((prev) => ({
-    ...prev,
-    blocks: prev.blocks.map((block) => {
-      if (block.id !== selectedBlock.id || block.type !== "donation") {
-        return block;
-      }
+  updateSelectedBlock((block) =>
+    block.type !== "donation"
+      ? block
+      : applyDonationTextStylePatch(
+          block,
+          donationTextTarget,
+          patch,
+        ),
+  );
 
-      if (donationStyleTarget === "buttons") {
-        return {
-          ...block,
-          data: {
-            ...block.data,
-            buttonStyle: {
-              ...(((block.data as any).buttonStyle ?? {})),
-              ...patch,
-            },
-          },
-        };
-      }
-
-      return {
-        ...block,
-        data: {
-          ...block.data,
-          style: {
-            ...(block.data.style ?? {}),
-            ...patch,
-          },
-        },
-      };
-    }),
-  }));
   return;
 }
 
@@ -7265,6 +7250,20 @@ if (selectedBlock?.type === "option_button") {
       optionButtonStyleTarget,
       patch,
     ),
+  );
+
+  return;
+}
+
+if (selectedBlock?.type === "donation") {
+  updateSelectedBlock((block) =>
+    block.type !== "donation"
+      ? block
+      : applyDonationStylePatch(
+          block,
+          donationStyleTarget,
+          patch,
+        ),
   );
 
   return;
@@ -12470,113 +12469,13 @@ if (block.type === "progress_bar") {
 
 // Donation render block
 if (block.type === "donation") {
-  const donationOptions = Array.isArray(block.data.donationOptions)
-    ? block.data.donationOptions.filter(
-        (item) =>
-          item &&
-          typeof item.amount === "number" &&
-          Number.isFinite(item.amount) &&
-          item.amount > 0,
-      )
-    : [];
-
-  const donationButtonSpacing = Math.max(
-    0,
-    Number(block.data.buttonSpacing ?? 8),
-  );
-
   return (
-    <div
-      className="h-full w-full rounded-xl p-4"
-      style={{
-        backgroundColor:
-          block.appearance?.backgroundColor &&
-          block.appearance.backgroundColor !== "transparent"
-            ? block.appearance.backgroundColor
-            : "transparent",
-        borderColor: block.appearance?.borderColor || undefined,
-        borderWidth:
-          typeof block.appearance?.borderWidth === "number"
-            ? `${block.appearance.borderWidth}px`
-            : undefined,
-        borderStyle:
-          typeof block.appearance?.borderWidth === "number" &&
-          block.appearance.borderWidth > 0
-            ? "solid"
-            : undefined,
-        borderRadius:
-          typeof block.appearance?.borderRadius === "number"
-            ? `${block.appearance.borderRadius}px`
-            : undefined,
-      }}
-    >
-      <div
-        className="text-base font-semibold text-neutral-900"
-        style={getInlineTextStyle(block.data.style)}
-      >
-        {block.data.heading || "Support This Cause"}
-      </div>
-
-      {block.data.description ? (
-        <div
-          className="mt-2 text-sm text-neutral-600"
-          style={getInlineTextStyle(block.data.style)}
-        >
-          {block.data.description}
-        </div>
-      ) : null}
-
-      {donationOptions.length ? (
-        <div
-          className="mt-4 flex flex-wrap"
-          style={{
-            marginLeft: `-${donationButtonSpacing / 2}px`,
-            marginRight: `-${donationButtonSpacing / 2}px`,
-          }}
-        >
-          {donationOptions.map((option, index) => {
-            const amount = Number(option.amount || 0);
-            const label =
-              typeof option.label === "string" && option.label.trim().length > 0
-                ? option.label.trim()
-                : `$${formatCurrency(amount)}`;
-
-            const buttonStyle = ((block.data as any).buttonStyle ?? {}) as any;
-            const donationTextStyle = ((block.data as any).style ?? {}) as any;
-
-            return (
-              <button
-                key={option.id || `donation-option-${index}`}
-                type="button"
-                className="inline-flex min-h-10 items-center justify-center rounded-xl px-4 py-2"
-                style={{
-                  marginLeft: `${donationButtonSpacing / 2}px`,
-                  marginRight: `${donationButtonSpacing / 2}px`,
-                  backgroundColor: buttonStyle.backgroundColor ?? "#171717",
-                  color: buttonStyle.color ?? "#ffffff",
-                  fontFamily:
-                    buttonStyle.fontFamily ?? donationTextStyle.fontFamily,
-                  fontSize:
-                    typeof buttonStyle.fontSize === "number"
-                      ? `${buttonStyle.fontSize}px`
-                      : undefined,
-                  fontWeight: buttonStyle.bold ? 700 : 500,
-                }}
-                onClick={(e) => e.stopPropagation()}
-              >
-                {label}
-              </button>
-            );
-          })}
-        </div>
-      ) : (
-        <div
-          className="mt-4 rounded-xl border border-dashed border-neutral-300 bg-neutral-50 px-4 py-6 text-sm text-neutral-500"
-          style={getInlineTextStyle(block.data.style)}
-        >
-          Add donation buttons.
-        </div>
-      )}
+    <div className="h-full w-full">
+      <BlockRenderer
+        block={block}
+        blocks={draft.blocks}
+        designKey={designKey}
+      />
     </div>
   );
 }
@@ -14454,26 +14353,6 @@ const idsToExpand =
           </div>
         </>
       ) : null}
-
-
-{selectedBlock?.type === "donation" ? (
-  <>
-    <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
-
-    <select
-      value={donationStyleTarget}
-      onChange={(e) =>
-        setDonationStyleTarget(e.target.value as "background" | "buttons")
-      }
-      className={topBarFieldClass("w-[130px]")}
-      title="Donation styling target"
-    >
-      <option value="background">Background</option>
-      <option value="buttons">Buttons</option>
-    </select>
-  </>
-) : null}
-
 
       {showTypographyControls ? (
         <>
@@ -17720,15 +17599,56 @@ selectedBlock?.type === "content_panel" ? (
 />
 ) : null}
 
-{!isMultiSelection && selectedBlock?.type === "donation" ? (
+{!isMultiSelection &&
+selectedBlock?.type === "donation" ? (
   <DonationInspector
-    selectedBlock={selectedBlock}
-    updateSelectedBlock={updateSelectedBlock}
-    makeClientId={makeClientId}
-    inspectorCardClass={inspectorCardClass}
-    inspectorLabelClass={inspectorLabelClass}
-    inspectorInputClass={inspectorInputClass}
-    inspectorTextareaClass={inspectorTextareaClass}
+    selectedBlock={
+      selectedBlock
+    }
+
+    updateSelectedBlock={
+      updateSelectedBlock
+    }
+
+    makeClientId={
+      makeClientId
+    }
+
+    CATEGORY_BUTTONS={
+      CATEGORY_BUTTONS
+    }
+
+    donationTextTarget={
+      donationTextTarget
+    }
+
+    setDonationTextTarget={
+      setDonationTextTarget
+    }
+
+    donationStyleTarget={
+      donationStyleTarget
+    }
+
+    setDonationStyleTarget={
+      setDonationStyleTarget
+    }
+
+    inspectorCardClass={
+      inspectorCardClass
+    }
+
+    inspectorLabelClass={
+      inspectorLabelClass
+    }
+
+    inspectorInputClass={
+      inspectorInputClass
+    }
+
+    inspectorTextareaClass={
+      inspectorTextareaClass
+    }
   />
 ) : null}
 
