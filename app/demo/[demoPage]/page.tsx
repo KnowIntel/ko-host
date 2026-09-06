@@ -296,7 +296,33 @@ const DEMO_PAGES: Record<
     "You opened the Google page. In a real service microsite, this could direct visitors to business listings, customer reviews, contact information, operating hours, directions, and the place where everyone suddenly becomes a professional critic.",
 },
 
+"crowdfunding-campaign-story": {
+  title: "Demo Campaign Story",
+  eyebrow: "Crowdfunding Campaign Demo",
+  message:
+    "You opened the campaign story page. In a real crowdfunding microsite, this could explain the mission, introduce the people behind it, show exactly what the funds will support, and make a compelling case for why this idea deserves a little help becoming reality.",
+},
 
+"crowdfunding-campaign-instagram": {
+  title: "Demo Instagram",
+  eyebrow: "Crowdfunding Campaign Demo",
+  message:
+    "You opened the Instagram page. In a real campaign, this could connect supporters to progress updates, behind-the-scenes moments, milestone celebrations, and visual proof that their contributions are helping turn an idea into something real.",
+},
+
+"crowdfunding-campaign-facebook": {
+  title: "Demo Facebook",
+  eyebrow: "Crowdfunding Campaign Demo",
+  message:
+    "You opened the Facebook page. Normally this could share campaign updates, community discussions, supporter stories, fundraising milestones, and the post your aunt will enthusiastically share with seventeen people you have never met.",
+},
+
+"crowdfunding-campaign-whatsapp": {
+  title: "Demo WhatsApp",
+  eyebrow: "Crowdfunding Campaign Demo",
+  message:
+    "You opened the WhatsApp page. In a real crowdfunding campaign, this could make it easy to share the fundraiser directly with friends, family, groups, and that one person who somehow knows absolutely everybody.",
+},
 
 
 
