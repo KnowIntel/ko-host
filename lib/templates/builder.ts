@@ -694,7 +694,22 @@ export type CtaBlock = BaseBlock & {
 
     bookmarkName?: string;
 
+    /*
+     * ================================================================
+     * BUTTON MEDIA
+     * ================================================================
+     */
+
+    buttonMediaType?:
+      | "image"
+      | "icon";
+
     buttonImageUrl?: string;
+    buttonIconUrl?: string;
+
+    /*
+     * Shared media-size control for image or icon.
+     */
     buttonImageSize?: number;
 
     buttonPaddingY?: number;
@@ -707,10 +722,17 @@ export type CtaBlock = BaseBlock & {
 
     style?: TextStyle;
 
+    /*
+     * ================================================================
+     * BUTTON STYLE
+     * ================================================================
+     */
+
     styleType?:
       | "solid"
       | "outline"
-      | "soft";
+      | "soft"
+      | "media_circle";
   };
 };
 
@@ -5500,32 +5522,77 @@ case "links":
 case "cta":
   return {
     id: makeId("cta"),
+
     type: "cta",
+
     label: "Button",
+
     grid,
-    appearance: createDefaultBlockAppearance(),
+
+    appearance:
+      createDefaultBlockAppearance(),
 
     data: {
       heading: "",
       body: "",
 
-      buttonText: "Learn More",
-      buttonUrl: "#",
+      buttonText:
+        "Learn More",
 
-      linkType: "url",
-      pageId: "",
-      bookmarkName: "",
+      buttonUrl:
+        "#",
 
-      buttonImageUrl: "",
-      buttonImageSize: 20,
-      buttonPaddingY: 8,
-      buttonPaddingX: 20,
-      buttonImagePlacement: "before",
+      linkType:
+        "url",
 
-      style: createDefaultTextStyle(),
+      pageId:
+        "",
+
+      bookmarkName:
+        "",
+
+      /*
+       * ================================================================
+       * BUTTON MEDIA
+       * ================================================================
+       */
+
+      buttonMediaType:
+        "image",
+
+      buttonImageUrl:
+        "",
+
+      buttonIconUrl:
+        "",
+
+      buttonImageSize:
+        20,
+
+      buttonPaddingY:
+        8,
+
+      buttonPaddingX:
+        20,
+
+      buttonImagePlacement:
+        "before",
+
+      /*
+       * ================================================================
+       * BUTTON STYLE
+       * ================================================================
+       */
+
+      styleType:
+        "solid",
+
+      style:
+        createDefaultTextStyle(),
     },
   };
 
+  
       case "countdown":
       return {
         id: makeId("countdown"),

@@ -3250,12 +3250,38 @@ function CtaButtonLive() {
       designKey,
     );
 
-    const buttonStyleType =
-      ((block.data as any).styleType as
-        | "solid"
-        | "outline"
-        | "soft"
-        | undefined) ?? "solid";
+const buttonStyleType =
+  ((block.data as any).styleType as
+    | "solid"
+    | "outline"
+    | "soft"
+    | "media_circle"
+    | undefined) ??
+  "solid";
+
+const buttonMediaType =
+  ((block.data as any).buttonMediaType as
+    | "image"
+    | "icon"
+    | undefined) ??
+  "image";
+
+const buttonMediaUrl =
+  buttonMediaType === "icon"
+    ? String(
+        (block.data as any)
+          .buttonIconUrl ??
+          "",
+      )
+    : String(
+        block.data
+          .buttonImageUrl ??
+          "",
+      );
+
+const isMediaCircle =
+  buttonStyleType ===
+  "media_circle";
 
     const submittedText =
       ((block.data as any).submittedText as
@@ -3334,12 +3360,28 @@ function CtaButtonLive() {
       borderRadius: appearance.borderRadius,
     };
 
-    const variantStyle =
-      buttonStyleType === "outline"
-        ? outlineStyle
-        : buttonStyleType === "soft"
-          ? softStyle
-          : solidStyle;
+const mediaCircleStyle:
+  React.CSSProperties = {
+  ...solidStyle,
+
+  borderRadius:
+    "9999px",
+
+  aspectRatio:
+    "1 / 1",
+};
+
+const variantStyle =
+  buttonStyleType ===
+  "outline"
+    ? outlineStyle
+    : buttonStyleType ===
+        "soft"
+      ? softStyle
+      : buttonStyleType ===
+          "media_circle"
+        ? mediaCircleStyle
+        : solidStyle;
 
     function resolveCtaDestination() {
       const linkType:
@@ -3995,126 +4037,224 @@ if (
               "center",
           }}
         >
-          <button
-            type="button"
-            onClick={
-              handleLinkedFieldSubmit
-            }
-            disabled={
-              submitting
-            }
-            className={[
-              "inline-flex cursor-pointer items-center justify-center transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-70",
+<button
+  type="button"
+  onClick={
+    handleLinkedFieldSubmit
+  }
+  disabled={
+    submitting
+  }
+  className={[
+    "inline-flex cursor-pointer items-center justify-center overflow-visible transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-70",
 
-              buttonImagePlacement ===
-              "above"
-                ? "flex-col gap-2"
-                : "flex-row gap-2",
-            ].join(" ")}
-            style={{
-              ...style,
-              ...variantStyle,
+    !isMediaCircle &&
+    buttonImagePlacement ===
+      "above"
+      ? "flex-col gap-2"
+      : !isMediaCircle
+        ? "flex-row gap-2"
+        : "flex-none",
+  ].join(" ")}
+  style={{
+    ...style,
+    ...variantStyle,
 
-              transform:
-                `translate(${posX - 50}%, ${posY - 50}%)`,
+    transform:
+      `translate(${posX - 50}%, ${posY - 50}%)`,
 
-              paddingTop:
-                `${
-                  (block.data as any)
-                    .buttonPaddingY ??
-                  8
-                }px`,
+    ...(!isMediaCircle
+      ? {
+          paddingTop:
+            `${
+              (block.data as any)
+                .buttonPaddingY ??
+              8
+            }px`,
 
-              paddingBottom:
-                `${
-                  (block.data as any)
-                    .buttonPaddingY ??
-                  8
-                }px`,
+          paddingBottom:
+            `${
+              (block.data as any)
+                .buttonPaddingY ??
+              8
+            }px`,
 
-              paddingLeft:
-                `${
-                  (block.data as any)
-                    .buttonPaddingX ??
-                  20
-                }px`,
+          paddingLeft:
+            `${
+              (block.data as any)
+                .buttonPaddingX ??
+              20
+            }px`,
 
-              paddingRight:
-                `${
-                  (block.data as any)
-                    .buttonPaddingX ??
-                  20
-                }px`,
-            }}
-          >
-            {block.data
-              .buttonImageUrl &&
-            buttonImagePlacement !==
-              "after" ? (
-              <img
-                src={
-                  block.data
-                    .buttonImageUrl
-                }
-                alt=""
-                style={{
-                  width:
-                    `${
-                      (block.data as any)
-                        .buttonImageSize ??
-                      20
-                    }px`,
+          paddingRight:
+            `${
+              (block.data as any)
+                .buttonPaddingX ??
+              20
+            }px`,
+        }
+      : (() => {
+          const mediaSize =
+            Math.max(
+              8,
+              Number(
+                (block.data as any)
+                  .buttonImageSize ??
+                  20,
+              ),
+            );
 
-                  height:
-                    `${
-                      (block.data as any)
-                        .buttonImageSize ??
-                      20
-                    }px`,
-                }}
-                className="shrink-0 object-cover"
-              />
-            ) : null}
+          const mediaPadding =
+            Math.max(
+              0,
+              Number(
+                (block.data as any)
+                  .buttonPaddingX ??
+                  20,
+              ),
+              Number(
+                (block.data as any)
+                  .buttonPaddingY ??
+                  8,
+              ),
+            );
 
-            <span>
-              {submitted
-                ? submittedText
-                : submitting
-                  ? "Submitting..."
-                  : block.data
-                      .buttonText ||
-                    "Button"}
-            </span>
+          const diameter =
+            mediaSize +
+            mediaPadding * 2;
 
-            {block.data
-              .buttonImageUrl &&
-            buttonImagePlacement ===
-              "after" ? (
-              <img
-                src={
-                  block.data
-                    .buttonImageUrl
-                }
-                alt=""
-                style={{
-                  width:
-                    `${
-                      (block.data as any)
-                        .buttonImageSize ??
-                      20
-                    }px`,
+          return {
+            width:
+              `${diameter}px`,
 
-                  height:
-                    `${
-                      (block.data as any)
-                        .buttonImageSize ??
-                      20
-                    }px`,
-                }}
-                className="shrink-0 object-cover"
-              />
-            ) : null}
-          </button>
+            height:
+              `${diameter}px`,
+
+            minWidth:
+              `${diameter}px`,
+
+            minHeight:
+              `${diameter}px`,
+
+            padding:
+              `${mediaPadding}px`,
+
+            borderRadius:
+              "9999px",
+          };
+        })()),
+  }}
+>
+  {/* ============================================================ */}
+  {/* MEDIA BEFORE / ABOVE */}
+  {/* ============================================================ */}
+
+  {!isMediaCircle &&
+  buttonMediaUrl &&
+  buttonImagePlacement !==
+    "after" ? (
+    <img
+      src={
+        buttonMediaUrl
+      }
+      alt=""
+      style={{
+        width:
+          `${
+            (block.data as any)
+              .buttonImageSize ??
+            20
+          }px`,
+
+        height:
+          `${
+            (block.data as any)
+              .buttonImageSize ??
+            20
+          }px`,
+      }}
+      className="shrink-0 object-contain"
+    />
+  ) : null}
+
+  {/* ============================================================ */}
+  {/* MEDIA CIRCLE */}
+  {/* ============================================================ */}
+
+  {isMediaCircle &&
+  buttonMediaUrl ? (
+    <img
+      src={
+        buttonMediaUrl
+      }
+      alt=""
+      style={{
+        width:
+          `${
+            (block.data as any)
+              .buttonImageSize ??
+            20
+          }px`,
+
+        height:
+          `${
+            (block.data as any)
+              .buttonImageSize ??
+            20
+          }px`,
+      }}
+      className="shrink-0 object-contain"
+    />
+  ) : null}
+
+  {/* ============================================================ */}
+  {/* BUTTON TEXT */}
+  {/* ============================================================ */}
+
+  {!isMediaCircle ? (
+    <span>
+      {submitted
+        ? submittedText
+        : submitting
+          ? "Submitting..."
+          : block.data
+              .buttonText ||
+            "Button"}
+    </span>
+  ) : null}
+
+  {/* ============================================================ */}
+  {/* MEDIA AFTER */}
+  {/* ============================================================ */}
+
+  {!isMediaCircle &&
+  buttonMediaUrl &&
+  buttonImagePlacement ===
+    "after" ? (
+    <img
+      src={
+        buttonMediaUrl
+      }
+      alt=""
+      style={{
+        width:
+          `${
+            (block.data as any)
+              .buttonImageSize ??
+            20
+          }px`,
+
+        height:
+          `${
+            (block.data as any)
+              .buttonImageSize ??
+            20
+          }px`,
+      }}
+      className="shrink-0 object-contain"
+    />
+  ) : null}
+</button>
         </div>
       </div>
     );
