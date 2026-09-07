@@ -908,6 +908,8 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Dollar Sign Circle", type: "icon", iconName: "dollar-sign-circle" },
     { kind: "block", label: "Check Square", type: "icon", iconName: "check-square" },
     { kind: "block", label: "Check", type: "icon", iconName: "check" },
+    { kind: "block", label: "Deselect Uncheck All", type: "icon", iconName: "deselect-uncheck-all" },
+    { kind: "block", label: "Select Check All", type: "icon", iconName: "select-check-all" },
     { kind: "block", label: "Check Circle", type: "icon", iconName: "check-circle" },
     { kind: "block", label: "Check Circle Solid", type: "icon", iconName: "check-circle-solid" },
     { kind: "block", label: "Shield Check Plain", type: "icon", iconName: "shield-check-plain" },
@@ -1291,6 +1293,7 @@ function formatCurrency(value: number) {
     maximumFractionDigits: 2,
   });
 }
+
 
 function cloneDraft<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
