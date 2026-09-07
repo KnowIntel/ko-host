@@ -22621,10 +22621,14 @@ function renderTextFx(
    * is removed.
    */
 
-  const distressThreshold =
-    0.92 -
-    (distressAmount / 100) *
-      0.52;
+const distressThreshold =
+  distressStyle === "chipped"
+    ? 0.78 -
+      (distressAmount / 100) *
+        0.46
+    : 0.92 -
+      (distressAmount / 100) *
+        0.52;
 
   const distressScaleProgress =
     distressScale / 100;
@@ -22646,44 +22650,44 @@ function renderTextFx(
    * general rough distressed surface
    */
 
-  const distressFrequencyX =
-    distressStyle === "scratched"
-      ? 0.008 +
+const distressFrequencyX =
+  distressStyle === "scratched"
+    ? 0.008 +
+      distressScaleProgress *
+        0.012
+    : distressStyle === "brush"
+      ? 0.012 +
         distressScaleProgress *
-          0.012
-      : distressStyle === "brush"
-        ? 0.012 +
+          0.025
+      : distressStyle === "chipped"
+        ? 0.004 +
           distressScaleProgress *
-            0.025
-        : distressStyle === "chipped"
-          ? 0.018 +
-            distressScaleProgress *
-              0.04
-          : 0.02 +
-            distressScaleProgress *
-              0.055;
+            0.014
+        : 0.02 +
+          distressScaleProgress *
+            0.055;
 
-  const distressFrequencyY =
-    distressStyle === "scratched"
-      ? 0.18 +
+const distressFrequencyY =
+  distressStyle === "scratched"
+    ? 0.18 +
+      distressScaleProgress *
+        0.32
+    : distressStyle === "brush"
+      ? 0.045 +
         distressScaleProgress *
-          0.32
-      : distressStyle === "brush"
-        ? 0.045 +
+          0.08
+      : distressStyle === "chipped"
+        ? 0.004 +
           distressScaleProgress *
-            0.08
-        : distressStyle === "chipped"
-          ? 0.025 +
-            distressScaleProgress *
-              0.05
-          : distressFrequencyX;
+            0.014
+        : distressFrequencyX;
 
-  const distressOctaves =
-    distressStyle === "chipped"
-      ? 2
-      : distressStyle === "scratched"
-        ? 1
-        : 3;
+const distressOctaves =
+  distressStyle === "chipped"
+    ? 1
+    : distressStyle === "scratched"
+      ? 1
+      : 3;
 
   const distressSlope = 18;
 
