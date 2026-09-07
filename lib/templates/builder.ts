@@ -2163,8 +2163,6 @@ buttonAlign?:
   | "center"
   | "right";
 
-maxAttempts?: number;
-
       maxAttempts?: number;
 
       revealAnswerAfterAttempts?: boolean;

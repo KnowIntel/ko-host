@@ -601,11 +601,11 @@ const answerCharacters: string[] =
   <div className="mt-2 grid grid-cols-3 gap-2">
     <button
       type="button"
-      onClick={() =>
-        updateData({
-          buttonAlign: "left",
-        })
-      }
+onClick={() =>
+  patchLetterFillData({
+    buttonAlign: "left",
+  })
+}
       className={[
         "rounded-lg border px-3 py-2 text-sm font-medium transition",
 
@@ -619,11 +619,11 @@ const answerCharacters: string[] =
 
     <button
       type="button"
-      onClick={() =>
-        updateData({
-          buttonAlign: "center",
-        })
-      }
+onClick={() =>
+  patchLetterFillData({
+    buttonAlign: "center",
+  })
+}
       className={[
         "rounded-lg border px-3 py-2 text-sm font-medium transition",
 
@@ -637,11 +637,11 @@ const answerCharacters: string[] =
 
     <button
       type="button"
-      onClick={() =>
-        updateData({
-          buttonAlign: "right",
-        })
-      }
+onClick={() =>
+  patchLetterFillData({
+    buttonAlign: "right",
+  })
+}
       className={[
         "rounded-lg border px-3 py-2 text-sm font-medium transition",
 
