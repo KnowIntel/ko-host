@@ -1244,6 +1244,496 @@ onChange={(e) => {
   </div>
 </div>
 
+{/* ============================================================ */}
+{/* DISTRESS / GRUNGE */}
+{/* ============================================================ */}
+
+<div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
+  <div className="flex items-center justify-between gap-3">
+    <div>
+      <div className={inspectorLabelClass()}>
+        Distress
+      </div>
+
+      <div className="mt-1 text-xs text-neutral-500">
+        Add worn, scratched, brushed, or chipped damage to the text.
+      </div>
+    </div>
+
+    <label className="flex items-center gap-2 text-sm font-medium text-neutral-800">
+      <input
+        type="checkbox"
+        checked={
+          (selectedTextFxBlock.data.fx as any)
+            ?.distressEnabled === true
+        }
+        onChange={(event) =>
+          updateTextFx(
+            {
+              distressEnabled:
+                event.target.checked,
+            } as any,
+          )
+        }
+      />
+
+      Enabled
+    </label>
+  </div>
+
+  {(selectedTextFxBlock.data.fx as any)
+    ?.distressEnabled === true ? (
+    <>
+      {/* ======================================================== */}
+      {/* STYLE */}
+      {/* ======================================================== */}
+
+      <div className="mt-4">
+        <div className={inspectorLabelClass()}>
+          Distress Style
+        </div>
+
+        <select
+          value={
+            (selectedTextFxBlock.data.fx as any)
+              ?.distressStyle ??
+            "grunge"
+          }
+          onChange={(event) =>
+            updateTextFx(
+              {
+                distressStyle:
+                  event.target.value,
+              } as any,
+            )
+          }
+          className={inspectorInputClass()}
+        >
+          <option value="grunge">
+            Grunge
+          </option>
+
+          <option value="brush">
+            Brush
+          </option>
+
+          <option value="scratched">
+            Scratched
+          </option>
+
+          <option value="chipped">
+            Chipped
+          </option>
+        </select>
+
+        <div className="mt-2 text-xs text-neutral-500">
+          {(() => {
+            const distressStyle =
+              (selectedTextFxBlock.data.fx as any)
+                ?.distressStyle ??
+              "grunge";
+
+            if (
+              distressStyle ===
+              "brush"
+            ) {
+              return "Longer, painterly damage similar to distressed brush lettering.";
+            }
+
+            if (
+              distressStyle ===
+              "scratched"
+            ) {
+              return "Narrow streaks and scratches cut through the letterforms.";
+            }
+
+            if (
+              distressStyle ===
+              "chipped"
+            ) {
+              return "Larger irregular pieces are removed for a weathered, chipped look.";
+            }
+
+            return "General rough surface damage for a worn, distressed appearance.";
+          })()}
+        </div>
+      </div>
+
+      {/* ======================================================== */}
+      {/* AMOUNT */}
+      {/* ======================================================== */}
+
+      <div className="mt-5">
+        <div className="flex items-center justify-between gap-3">
+          <div className={inspectorLabelClass()}>
+            Damage Amount
+          </div>
+
+          <div className="text-xs font-medium text-neutral-500">
+            {Math.round(
+              Number(
+                (selectedTextFxBlock.data.fx as any)
+                  ?.distressAmount ??
+                  35,
+              ),
+            )}
+            %
+          </div>
+        </div>
+
+        <input
+          type="range"
+          min={0}
+          max={100}
+          step={1}
+          value={
+            (selectedTextFxBlock.data.fx as any)
+              ?.distressAmount ??
+            35
+          }
+          onChange={(event) =>
+            updateTextFx(
+              {
+                distressAmount:
+                  Math.max(
+                    0,
+                    Math.min(
+                      100,
+                      Number(
+                        event.target
+                          .value,
+                      ) || 0,
+                    ),
+                  ),
+              } as any,
+            )
+          }
+          className="mt-2 w-full"
+        />
+
+        <div className="mt-1 flex justify-between text-[10px] text-neutral-400">
+          <span>Light</span>
+          <span>Medium</span>
+          <span>Heavy</span>
+        </div>
+      </div>
+
+      {/* ======================================================== */}
+      {/* SCALE */}
+      {/* ======================================================== */}
+
+      <div className="mt-5">
+        <div className="flex items-center justify-between gap-3">
+          <div className={inspectorLabelClass()}>
+            Damage Scale
+          </div>
+
+          <div className="text-xs font-medium text-neutral-500">
+            {Math.round(
+              Number(
+                (selectedTextFxBlock.data.fx as any)
+                  ?.distressScale ??
+                  45,
+              ),
+            )}
+            %
+          </div>
+        </div>
+
+        <input
+          type="range"
+          min={1}
+          max={100}
+          step={1}
+          value={
+            (selectedTextFxBlock.data.fx as any)
+              ?.distressScale ??
+            45
+          }
+          onChange={(event) =>
+            updateTextFx(
+              {
+                distressScale:
+                  Math.max(
+                    1,
+                    Math.min(
+                      100,
+                      Number(
+                        event.target
+                          .value,
+                      ) || 1,
+                    ),
+                  ),
+              } as any,
+            )
+          }
+          className="mt-2 w-full"
+        />
+
+        <div className="mt-1 flex justify-between text-[10px] text-neutral-400">
+          <span>Fine</span>
+          <span>Medium</span>
+          <span>Coarse</span>
+        </div>
+      </div>
+
+      {/* ======================================================== */}
+      {/* PATTERN / SEED */}
+      {/* ======================================================== */}
+
+      <div className="mt-5 rounded-xl border border-neutral-200 bg-white p-3">
+        <div className="flex items-center justify-between gap-4">
+          <div className="min-w-0">
+            <div className={inspectorLabelClass()}>
+              Damage Pattern
+            </div>
+
+            <div className="mt-1 text-xs text-neutral-500">
+              Change the pattern without changing the style or intensity.
+            </div>
+          </div>
+
+          <div className="shrink-0 text-xs font-medium text-neutral-500">
+            #
+            {Math.round(
+              Number(
+                (selectedTextFxBlock.data.fx as any)
+                  ?.distressSeed ??
+                  17,
+              ),
+            )}
+          </div>
+        </div>
+
+        <div className="mt-3 flex gap-2">
+          <input
+            type="number"
+            min={1}
+            max={9999}
+            step={1}
+            value={
+              (selectedTextFxBlock.data.fx as any)
+                ?.distressSeed ??
+              17
+            }
+            onChange={(event) =>
+              updateTextFx(
+                {
+                  distressSeed:
+                    Math.max(
+                      1,
+                      Math.min(
+                        9999,
+                        Math.round(
+                          Number(
+                            event.target
+                              .value,
+                          ) || 1,
+                        ),
+                      ),
+                    ),
+                } as any,
+              )
+            }
+            className={inspectorInputClass()}
+          />
+
+          <button
+            type="button"
+            onClick={() => {
+              const currentSeed =
+                Math.max(
+                  1,
+                  Math.min(
+                    9999,
+                    Math.round(
+                      Number(
+                        (
+                          selectedTextFxBlock
+                            .data
+                            .fx as any
+                        )
+                          ?.distressSeed ??
+                          17,
+                      ),
+                    ),
+                  ),
+                );
+
+              const nextSeed =
+                currentSeed >= 9999
+                  ? 1
+                  : currentSeed +
+                    137;
+
+              updateTextFx(
+                {
+                  distressSeed:
+                    nextSeed,
+                } as any,
+              );
+            }}
+            className="inline-flex h-10 shrink-0 items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 text-xs font-medium text-neutral-700 hover:bg-neutral-100"
+          >
+            New Pattern
+          </button>
+        </div>
+      </div>
+
+      {/* ======================================================== */}
+      {/* QUICK PRESETS */}
+      {/* ======================================================== */}
+
+      <div className="mt-5">
+        <div className={inspectorLabelClass()}>
+          Quick Presets
+        </div>
+
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={() =>
+              updateTextFx(
+                {
+                  distressEnabled:
+                    true,
+
+                  distressStyle:
+                    "brush",
+
+                  distressAmount:
+                    42,
+
+                  distressScale:
+                    58,
+
+                  distressSeed:
+                    17,
+                } as any,
+              )
+            }
+            className="rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs font-medium text-neutral-700 hover:bg-neutral-100"
+          >
+            Racing Brush
+          </button>
+
+          <button
+            type="button"
+            onClick={() =>
+              updateTextFx(
+                {
+                  distressEnabled:
+                    true,
+
+                  distressStyle:
+                    "grunge",
+
+                  distressAmount:
+                    32,
+
+                  distressScale:
+                    42,
+
+                  distressSeed:
+                    29,
+                } as any,
+              )
+            }
+            className="rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs font-medium text-neutral-700 hover:bg-neutral-100"
+          >
+            Vintage Grunge
+          </button>
+
+          <button
+            type="button"
+            onClick={() =>
+              updateTextFx(
+                {
+                  distressEnabled:
+                    true,
+
+                  distressStyle:
+                    "scratched",
+
+                  distressAmount:
+                    38,
+
+                  distressScale:
+                    52,
+
+                  distressSeed:
+                    41,
+                } as any,
+              )
+            }
+            className="rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs font-medium text-neutral-700 hover:bg-neutral-100"
+          >
+            Scratched
+          </button>
+
+          <button
+            type="button"
+            onClick={() =>
+              updateTextFx(
+                {
+                  distressEnabled:
+                    true,
+
+                  distressStyle:
+                    "chipped",
+
+                  distressAmount:
+                    45,
+
+                  distressScale:
+                    62,
+
+                  distressSeed:
+                    73,
+                } as any,
+              )
+            }
+            className="rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs font-medium text-neutral-700 hover:bg-neutral-100"
+          >
+            Heavy Chipped
+          </button>
+        </div>
+      </div>
+
+      {/* ======================================================== */}
+      {/* RESET */}
+      {/* ======================================================== */}
+
+      <button
+        type="button"
+        onClick={() =>
+          updateTextFx(
+            {
+              distressEnabled:
+                false,
+
+              distressStyle:
+                "grunge",
+
+              distressAmount:
+                35,
+
+              distressScale:
+                45,
+
+              distressSeed:
+                17,
+            } as any,
+          )
+        }
+        className="mt-4 inline-flex h-9 items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 text-xs font-medium text-neutral-700 hover:bg-neutral-100"
+      >
+        Remove Distress
+      </button>
+    </>
+  ) : null}
+</div>
+
               <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
                 <label className="flex items-center gap-3 text-sm font-medium text-neutral-800">
                   <input

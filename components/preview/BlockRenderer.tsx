@@ -22414,6 +22414,27 @@ function renderTextFx(
 
   /*
    * ================================================================
+   * SAFE BLOCK ID
+   * ================================================================
+   *
+   * Used by SVG definitions so every TextFX block gets
+   * its own unique paths, patterns, and filters.
+   */
+
+  const safeBlockId =
+    String(block.id)
+      .toLowerCase()
+      .replace(
+        /[^a-z0-9_-]+/g,
+        "-",
+      )
+      .replace(
+        /^-+|-+$/g,
+        "",
+      ) || "textfx";
+
+  /*
+   * ================================================================
    * TEXTURE
    * ================================================================
    */
@@ -22512,14 +22533,14 @@ function renderTextFx(
   );
 
   const letterScaleY = Math.max(
-  0.5,
-  Math.min(
-    2,
-    Number(
-      fx.letterScaleY ?? 1,
+    0.5,
+    Math.min(
+      2,
+      Number(
+        fx.letterScaleY ?? 1,
+      ),
     ),
-  ),
-);
+  );
 
   const transformStyle = String(
     fx.transformStyle ?? "normal",
@@ -22537,6 +22558,141 @@ function renderTextFx(
 
   const transformMultiplier =
     transformStrength / 100;
+
+  /*
+   * ================================================================
+   * DISTRESS / GRUNGE
+   * ================================================================
+   *
+   * Distress does not depend on a special font.
+   *
+   * Instead, an SVG filter generates a procedural alpha texture
+   * and removes parts of the rendered glyphs.
+   *
+   * This means fonts such as Bebas Neue, Anton, Oswald, etc.
+   * can all receive the same worn / chipped / brushed treatment.
+   */
+
+  const distressEnabled =
+    fx.distressEnabled === true;
+
+  const distressAmount = Math.max(
+    0,
+    Math.min(
+      100,
+      Number(
+        fx.distressAmount ?? 35,
+      ),
+    ),
+  );
+
+  const distressScale = Math.max(
+    1,
+    Math.min(
+      100,
+      Number(
+        fx.distressScale ?? 45,
+      ),
+    ),
+  );
+
+  const distressStyle = String(
+    fx.distressStyle ?? "grunge",
+  ) as
+    | "grunge"
+    | "brush"
+    | "scratched"
+    | "chipped";
+
+  const distressSeed = Math.max(
+    1,
+    Math.min(
+      9999,
+      Math.round(
+        Number(
+          fx.distressSeed ?? 17,
+        ),
+      ),
+    ),
+  );
+
+  /*
+   * Higher distressAmount means more of the glyph
+   * is removed.
+   */
+
+  const distressThreshold =
+    0.92 -
+    (distressAmount / 100) *
+      0.52;
+
+  const distressScaleProgress =
+    distressScale / 100;
+
+  /*
+   * Different X/Y frequencies create different damage
+   * personalities.
+   *
+   * scratched:
+   * long, narrow horizontal/vertical cuts
+   *
+   * brush:
+   * elongated painterly erosion
+   *
+   * chipped:
+   * larger irregular missing chunks
+   *
+   * grunge:
+   * general rough distressed surface
+   */
+
+  const distressFrequencyX =
+    distressStyle === "scratched"
+      ? 0.008 +
+        distressScaleProgress *
+          0.012
+      : distressStyle === "brush"
+        ? 0.012 +
+          distressScaleProgress *
+            0.025
+        : distressStyle === "chipped"
+          ? 0.018 +
+            distressScaleProgress *
+              0.04
+          : 0.02 +
+            distressScaleProgress *
+              0.055;
+
+  const distressFrequencyY =
+    distressStyle === "scratched"
+      ? 0.18 +
+        distressScaleProgress *
+          0.32
+      : distressStyle === "brush"
+        ? 0.045 +
+          distressScaleProgress *
+            0.08
+        : distressStyle === "chipped"
+          ? 0.025 +
+            distressScaleProgress *
+              0.05
+          : distressFrequencyX;
+
+  const distressOctaves =
+    distressStyle === "chipped"
+      ? 2
+      : distressStyle === "scratched"
+        ? 1
+        : 3;
+
+  const distressSlope = 18;
+
+  const distressIntercept =
+    -distressThreshold *
+    distressSlope;
+
+  const distressFilterId =
+    `textfx-distress-${safeBlockId}`;
 
   /*
    * ================================================================
@@ -22661,11 +22817,16 @@ function renderTextFx(
       : undefined;
 
   /*
+   * ================================================================
+   * LETTER COLOR INDEXING
+   * ================================================================
+   *
    * Determine the starting color index for each line.
    *
    * Newlines are excluded from the count, so adding a
    * line break does not consume a saved character color.
    */
+
   const lineColorOffsets =
     lineCharacters.reduce<number[]>(
       (
@@ -22725,6 +22886,128 @@ function renderTextFx(
 
   /*
    * ================================================================
+   * DISTRESS FILTER DEFINITION
+   * ================================================================
+   *
+   * Shared by straight and curved TextFX.
+   */
+
+  function renderDistressFilterDefinition() {
+    if (!distressEnabled) {
+      return null;
+    }
+
+    return (
+      <filter
+        id={distressFilterId}
+        x="-20%"
+        y="-20%"
+        width="140%"
+        height="140%"
+        colorInterpolationFilters="sRGB"
+      >
+        {/*
+         * Generate irregular procedural texture.
+         */}
+        <feTurbulence
+          type={
+            distressStyle === "chipped"
+              ? "turbulence"
+              : "fractalNoise"
+          }
+          baseFrequency={
+            `${distressFrequencyX} ${distressFrequencyY}`
+          }
+          numOctaves={
+            distressOctaves
+          }
+          seed={
+            distressSeed
+          }
+          stitchTiles="stitch"
+          result="distressNoise"
+        />
+
+        {/*
+         * Convert generated luminance into alpha.
+         */}
+        <feColorMatrix
+          in="distressNoise"
+          type="luminanceToAlpha"
+          result="distressAlpha"
+        />
+
+        {/*
+         * Force the soft noise into harder damaged areas.
+         */}
+        <feComponentTransfer
+          in="distressAlpha"
+          result="distressThresholded"
+        >
+          <feFuncA
+            type="linear"
+            slope={
+              distressSlope
+            }
+            intercept={
+              distressIntercept
+            }
+          />
+        </feComponentTransfer>
+
+        {/*
+         * Subtract the damaged areas from the glyph.
+         */}
+        <feComposite
+          in="SourceGraphic"
+          in2="distressThresholded"
+          operator="out"
+          result="distressedText"
+        />
+
+        {/*
+         * Constrain everything back to the source glyph.
+         */}
+        <feComposite
+          in="distressedText"
+          in2="SourceGraphic"
+          operator="in"
+        />
+      </filter>
+    );
+  }
+
+  /*
+   * Hidden SVG definitions are necessary when the
+   * rendered TextFX is ordinary HTML rather than SVG.
+   */
+
+  function renderHtmlDistressDefinitions() {
+    if (!distressEnabled) {
+      return null;
+    }
+
+    return (
+      <svg
+        width="0"
+        height="0"
+        aria-hidden="true"
+        focusable="false"
+        style={{
+          position: "absolute",
+          overflow: "hidden",
+          pointerEvents: "none",
+        }}
+      >
+        <defs>
+          {renderDistressFilterDefinition()}
+        </defs>
+      </svg>
+    );
+  }
+
+  /*
+   * ================================================================
    * STRAIGHT TEXT
    * ================================================================
    *
@@ -22735,269 +23018,393 @@ function renderTextFx(
    * When texture is enabled, no individual character may
    * repaint itself with a solid color. The image is painted
    * on the text container and clipped through the glyphs.
-   * ================================================================
    */
 
-if (mode === "straight" || intensity === 0) {
-  const textAlign = (block.data.style?.align ?? "center") as
-    | "left"
-    | "center"
-    | "right";
+  if (
+    mode === "straight" ||
+    intensity === 0
+  ) {
+    const textAlign =
+      (
+        block.data.style?.align ??
+        "center"
+      ) as
+        | "left"
+        | "center"
+        | "right";
 
-  const alignItems =
-    textAlign === "left"
-      ? "flex-start"
-      : textAlign === "right"
-        ? "flex-end"
-        : "center";
+    const alignItems =
+      textAlign === "left"
+        ? "flex-start"
+        : textAlign === "right"
+          ? "flex-end"
+          : "center";
 
-  /*
-   * ================================================================
-   * TEXTURED STRAIGHT TEXT
-   * ================================================================
-   *
-   * IMPORTANT:
-   * Do NOT split textured text into individual character spans.
-   *
-   * background-clip:text must be applied directly to the element
-   * containing the actual text glyphs. Rendering each character as
-   * an independently transformed inline-block fragments the clipping
-   * layer and causes the distorted/broken texture effect.
-   */
+    /*
+     * ==============================================================
+     * TEXTURED STRAIGHT TEXT
+     * ==============================================================
+     *
+     * Do NOT split textured text into individual spans.
+     *
+     * background-clip:text must be applied directly to
+     * the element containing the actual text glyphs.
+     */
 
-  if (hasTexture && textureImageUrl) {
-    return (
-      <div
-        className="flex h-full w-full p-2"
-        style={{
-          ...getAppearanceStyle(block),
-          alignItems: "center",
-          justifyContent: "center",
-          transform: `translate(${translateX}%, ${translateY}%)`,
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems,
-            width: "100%",
-            textAlign,
+    if (
+      hasTexture &&
+      textureImageUrl
+    ) {
+      return (
+        <>
+          {renderHtmlDistressDefinitions()}
 
-            transform: `rotate(${rotation}deg) scaleX(${letterScaleX}) scaleY(${letterScaleY})`,
-            transformOrigin: "center center",
+          <div
+            className="flex h-full w-full p-2"
+            style={{
+              ...getAppearanceStyle(
+                block,
+              ),
 
-            opacity,
+              alignItems:
+                "center",
 
-            fontFamily: style.fontFamily,
-            fontSize: style.fontSize,
-            fontWeight: style.fontWeight,
-            fontStyle: style.fontStyle,
-            textDecoration: style.textDecoration,
-            letterSpacing: style.letterSpacing,
-            lineHeight: style.lineHeight ?? 1.2,
+              justifyContent:
+                "center",
 
-            textShadow,
-
-            WebkitTextStroke: outlineEnabled
-              ? `${outlineWidth}px ${outlineColor}`
-              : undefined,
-
-            paintOrder: outlineEnabled
-              ? "stroke fill"
-              : undefined,
-          }}
-        >
-          {lines.map((line, lineIndex) => (
+              transform:
+                `translate(${translateX}%, ${translateY}%)`,
+            }}
+          >
             <div
-              key={`${block.id}-textured-line-${lineIndex}`}
               style={{
-                display: "block",
+                display: "flex",
 
-                minHeight: `${fontSize * 1.2}px`,
+                flexDirection:
+                  "column",
 
-                whiteSpace: "pre",
+                alignItems,
 
-                /*
-                 * The texture is painted directly on the
-                 * element containing this line's glyphs.
-                 */
-                backgroundImage: `url("${textureImageUrl}")`,
+                width:
+                  "100%",
 
-                backgroundRepeat: "no-repeat",
+                textAlign,
 
-                backgroundPosition:
-                  `${texturePositionX}% ${texturePositionY}%`,
+                transform:
+                  `rotate(${rotation}deg) scaleX(${letterScaleX}) scaleY(${letterScaleY})`,
 
-                backgroundSize:
-                  `${textureScale}%`,
+                transformOrigin:
+                  "center center",
 
-                backgroundClip: "text",
+                opacity,
 
-                WebkitBackgroundClip: "text",
+                fontFamily:
+                  style.fontFamily,
 
-                color: "transparent",
+                fontSize:
+                  style.fontSize,
 
-                WebkitTextFillColor: "transparent",
+                fontWeight:
+                  style.fontWeight,
+
+                fontStyle:
+                  style.fontStyle,
+
+                textDecoration:
+                  style.textDecoration,
+
+                letterSpacing:
+                  style.letterSpacing,
+
+                lineHeight:
+                  style.lineHeight ??
+                  1.2,
+
+                textShadow,
+
+                filter:
+                  distressEnabled
+                    ? `url(#${distressFilterId})`
+                    : undefined,
+
+                WebkitTextStroke:
+                  outlineEnabled
+                    ? `${outlineWidth}px ${outlineColor}`
+                    : undefined,
+
+                paintOrder:
+                  outlineEnabled
+                    ? "stroke fill"
+                    : undefined,
               }}
             >
-              {line.length
-                ? line
-                : "\u00A0"}
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
+              {lines.map(
+                (
+                  line,
+                  lineIndex,
+                ) => (
+                  <div
+                    key={`${block.id}-textured-line-${lineIndex}`}
+                    style={{
+                      display:
+                        "block",
 
-  /*
-   * ================================================================
-   * NORMAL STRAIGHT TEXT
-   * ================================================================
-   *
-   * No texture is active, so preserve TextFX's existing
-   * per-character colors and transform effects.
-   */
+                      minHeight:
+                        `${fontSize * 1.2}px`,
 
-  return (
-    <div
-      className="flex h-full w-full p-2"
-      style={{
-        ...getAppearanceStyle(block),
-        alignItems: "center",
-        justifyContent: "center",
-        transform: `translate(${translateX}%, ${translateY}%)`,
-      }}
-    >
-      <div
-        style={{
-          ...style,
+                      whiteSpace:
+                        "pre",
 
-          display: "flex",
-          flexDirection: "column",
-          alignItems,
-          width: "100%",
-          textAlign,
+                      /*
+                       * Texture is painted directly
+                       * through this line's glyphs.
+                       */
+                      backgroundImage:
+                        `url("${textureImageUrl}")`,
 
-          transform: `rotate(${rotation}deg) scaleX(${letterScaleX}) scaleY(${letterScaleY})`,
-          transformOrigin: "center center",
+                      backgroundRepeat:
+                        "no-repeat",
 
-          opacity,
+                      backgroundPosition:
+                        `${texturePositionX}% ${texturePositionY}%`,
 
-          textShadow,
+                      backgroundSize:
+                        `${textureScale}%`,
 
-          WebkitTextStroke: outlineEnabled
-            ? `${outlineWidth}px ${outlineColor}`
-            : undefined,
+                      backgroundClip:
+                        "text",
 
-          paintOrder: outlineEnabled
-            ? "stroke fill"
-            : undefined,
+                      WebkitBackgroundClip:
+                        "text",
 
-          lineHeight:
-            style.lineHeight ?? 1.2,
-        }}
-      >
-        {lineCharacters.map(
-          (characters, lineIndex) => (
-            <div
-              key={`${block.id}-straight-line-${lineIndex}`}
-              style={{
-                display: "block",
-                minHeight: `${fontSize * 1.2}px`,
-                whiteSpace: "pre",
-              }}
-            >
-              {characters.length ? (
-                characters.map(
-                  (
-                    character,
-                    characterIndex,
-                  ) => {
-                    const verticalOffset =
-                      transformStyle === "wave"
-                        ? Math.sin(
-                            characterIndex * 0.9,
-                          ) *
-                          6 *
-                          transformMultiplier
-                        : transformStyle === "rise"
-                          ? -characterIndex *
-                            1.5 *
-                            transformMultiplier
-                          : transformStyle === "dipLetters"
-                            ? characterIndex *
-                              1.5 *
-                              transformMultiplier
-                            : transformStyle === "stagger"
-                              ? (
-                                  characterIndex % 2 === 0
-                                    ? -5
-                                    : 5
-                                ) *
-                                transformMultiplier
-                              : transformStyle === "bounce"
-                                ? (
-                                    characterIndex % 2 === 0
-                                      ? -7
-                                      : 0
-                                  ) *
-                                  transformMultiplier
-                                : 0;
+                      color:
+                        "transparent",
 
-                    const characterRotation =
-                      transformStyle === "tiltLeft"
-                        ? -8 *
-                          transformMultiplier
-                        : transformStyle === "tiltRight"
-                          ? 8 *
-                            transformMultiplier
-                          : 0;
-
-                    return (
-                      <span
-                        key={`${block.id}-straight-${lineIndex}-${characterIndex}`}
-                        style={{
-                          display: "inline-block",
-
-                          color:
-                            getCharacterColor(
-                              lineIndex,
-                              characterIndex,
-                            ),
-
-                          transform:
-                            `translateY(${verticalOffset}px) rotate(${characterRotation}deg)`,
-
-                          transformOrigin:
-                            "center center",
-
-                          whiteSpace:
-                            character === " "
-                              ? "pre"
-                              : undefined,
-                        }}
-                      >
-                        {character === " "
-                          ? "\u00A0"
-                          : character}
-                      </span>
-                    );
-                  },
-                )
-              ) : (
-                <span aria-hidden="true">
-                  &nbsp;
-                </span>
+                      WebkitTextFillColor:
+                        "transparent",
+                    }}
+                  >
+                    {line.length
+                      ? line
+                      : "\u00A0"}
+                  </div>
+                ),
               )}
             </div>
-          ),
-        )}
-      </div>
-    </div>
-  );
-}
+          </div>
+        </>
+      );
+    }
+
+    /*
+     * ==============================================================
+     * NORMAL STRAIGHT TEXT
+     * ==============================================================
+     *
+     * No texture is active, so preserve TextFX's existing
+     * per-character colors and transform effects.
+     */
+
+    return (
+      <>
+        {renderHtmlDistressDefinitions()}
+
+        <div
+          className="flex h-full w-full p-2"
+          style={{
+            ...getAppearanceStyle(
+              block,
+            ),
+
+            alignItems:
+              "center",
+
+            justifyContent:
+              "center",
+
+            transform:
+              `translate(${translateX}%, ${translateY}%)`,
+          }}
+        >
+          <div
+            style={{
+              ...style,
+
+              display:
+                "flex",
+
+              flexDirection:
+                "column",
+
+              alignItems,
+
+              width:
+                "100%",
+
+              textAlign,
+
+              transform:
+                `rotate(${rotation}deg) scaleX(${letterScaleX}) scaleY(${letterScaleY})`,
+
+              transformOrigin:
+                "center center",
+
+              opacity,
+
+              textShadow,
+
+              filter:
+                distressEnabled
+                  ? `url(#${distressFilterId})`
+                  : undefined,
+
+              WebkitTextStroke:
+                outlineEnabled
+                  ? `${outlineWidth}px ${outlineColor}`
+                  : undefined,
+
+              paintOrder:
+                outlineEnabled
+                  ? "stroke fill"
+                  : undefined,
+
+              lineHeight:
+                style.lineHeight ??
+                1.2,
+            }}
+          >
+            {lineCharacters.map(
+              (
+                characters,
+                lineIndex,
+              ) => (
+                <div
+                  key={`${block.id}-straight-line-${lineIndex}`}
+                  style={{
+                    display:
+                      "block",
+
+                    minHeight:
+                      `${fontSize * 1.2}px`,
+
+                    whiteSpace:
+                      "pre",
+                  }}
+                >
+                  {characters.length ? (
+                    characters.map(
+                      (
+                        character,
+                        characterIndex,
+                      ) => {
+                        const verticalOffset =
+                          transformStyle ===
+                          "wave"
+                            ? Math.sin(
+                                characterIndex *
+                                  0.9,
+                              ) *
+                              6 *
+                              transformMultiplier
+
+                            : transformStyle ===
+                                "rise"
+                              ? -characterIndex *
+                                1.5 *
+                                transformMultiplier
+
+                              : transformStyle ===
+                                  "dipLetters"
+                                ? characterIndex *
+                                  1.5 *
+                                  transformMultiplier
+
+                                : transformStyle ===
+                                    "stagger"
+                                  ? (
+                                      characterIndex %
+                                        2 ===
+                                      0
+                                        ? -5
+                                        : 5
+                                    ) *
+                                    transformMultiplier
+
+                                  : transformStyle ===
+                                      "bounce"
+                                    ? (
+                                        characterIndex %
+                                          2 ===
+                                        0
+                                          ? -7
+                                          : 0
+                                      ) *
+                                      transformMultiplier
+
+                                    : 0;
+
+                        const characterRotation =
+                          transformStyle ===
+                          "tiltLeft"
+                            ? -8 *
+                              transformMultiplier
+
+                            : transformStyle ===
+                                "tiltRight"
+                              ? 8 *
+                                transformMultiplier
+
+                              : 0;
+
+                        return (
+                          <span
+                            key={`${block.id}-straight-${lineIndex}-${characterIndex}`}
+                            style={{
+                              display:
+                                "inline-block",
+
+                              color:
+                                getCharacterColor(
+                                  lineIndex,
+                                  characterIndex,
+                                ),
+
+                              transform:
+                                `translateY(${verticalOffset}px) rotate(${characterRotation}deg)`,
+
+                              transformOrigin:
+                                "center center",
+
+                              whiteSpace:
+                                character ===
+                                " "
+                                  ? "pre"
+                                  : undefined,
+                            }}
+                          >
+                            {character ===
+                            " "
+                              ? "\u00A0"
+                              : character}
+                          </span>
+                        );
+                      },
+                    )
+                  ) : (
+                    <span
+                      aria-hidden="true"
+                    >
+                      &nbsp;
+                    </span>
+                  )}
+                </div>
+              ),
+            )}
+          </div>
+        </div>
+      </>
+    );
+  }
 
   /*
    * ================================================================
@@ -23021,6 +23428,7 @@ if (mode === "straight" || intensity === 0) {
    * Keep the base height stable while allowing extra
    * room for additional lines.
    */
+
   const canvasHeight =
     800 +
     Math.max(
@@ -23038,6 +23446,7 @@ if (mode === "straight" || intensity === 0) {
   /*
    * Curve strength changes radius only.
    */
+
   const maximumRadius =
     canvasWidth * 3;
 
@@ -23049,39 +23458,32 @@ if (mode === "straight" || intensity === 0) {
 
   const radius =
     maximumRadius -
-    (maximumRadius -
-      minimumRadius) *
+    (
+      maximumRadius -
+      minimumRadius
+    ) *
       curveProgress;
-
-  const safeBlockId =
-    String(
-      block.id,
-    )
-      .toLowerCase()
-      .replace(
-        /[^a-z0-9_-]+/g,
-        "-",
-      )
-      .replace(
-        /^-+|-+$/g,
-        "",
-      );
 
   const texturePatternId =
     `textfx-texture-${safeBlockId}`;
 
-const textScaleTransform =
-  letterScaleX === 1 &&
-  letterScaleY === 1
-    ? undefined
-    : `translate(${centerX} ${centerY}) scale(${letterScaleX} ${letterScaleY}) translate(${-centerX} ${-centerY})`;
+  const textScaleTransform =
+    letterScaleX === 1 &&
+    letterScaleY === 1
+      ? undefined
+      : `translate(${centerX} ${centerY}) scale(${letterScaleX} ${letterScaleY}) translate(${-centerX} ${-centerY})`;
 
   /*
-   * Center multiple lines vertically around the same midpoint.
+   * Center multiple lines vertically around
+   * the same midpoint.
    */
+
   const firstLineOffset =
     -(
-      (lines.length - 1) *
+      (
+        lines.length -
+        1
+      ) *
       lineSpacing
     ) /
     2;
@@ -23101,7 +23503,9 @@ const textScaleTransform =
       <svg
         width="100%"
         height="100%"
-        viewBox={`0 0 ${canvasWidth} ${canvasHeight}`}
+        viewBox={
+          `0 0 ${canvasWidth} ${canvasHeight}`
+        }
         preserveAspectRatio="xMidYMid meet"
         style={{
           transform:
@@ -23118,13 +23522,22 @@ const textScaleTransform =
       >
         <defs>
           {/*
-           * ============================================================
+           * ==========================================================
+           * DISTRESS FILTER
+           * ==========================================================
+           */}
+
+          {renderDistressFilterDefinition()}
+
+          {/*
+           * ==========================================================
            * TEXTURE PATTERN
-           * ============================================================
+           * ==========================================================
            *
            * SVG text cannot use CSS background-clip:text reliably.
-           * The imported texture therefore becomes an SVG pattern and
-           * that pattern is used as the glyph fill.
+           *
+           * The imported texture therefore becomes an SVG
+           * pattern and that pattern is used as the glyph fill.
            */}
 
           {hasTexture &&
@@ -23148,26 +23561,38 @@ const textScaleTransform =
                   textureImageUrl
                 }
                 x={
-                  ((texturePositionX -
-                    50) /
-                    100) *
+                  (
+                    (
+                      texturePositionX -
+                      50
+                    ) /
+                    100
+                  ) *
                   canvasWidth
                 }
                 y={
-                  ((texturePositionY -
-                    50) /
-                    100) *
+                  (
+                    (
+                      texturePositionY -
+                      50
+                    ) /
+                    100
+                  ) *
                   canvasHeight
                 }
                 width={
                   canvasWidth *
-                  (100 /
-                    textureScale)
+                  (
+                    100 /
+                    textureScale
+                  )
                 }
                 height={
                   canvasHeight *
-                  (100 /
-                    textureScale)
+                  (
+                    100 /
+                    textureScale
+                  )
                 }
                 preserveAspectRatio="xMidYMid slice"
               />
@@ -23175,9 +23600,9 @@ const textScaleTransform =
           ) : null}
 
           {/*
-           * ============================================================
+           * ==========================================================
            * CURVE PATHS
-           * ============================================================
+           * ==========================================================
            */}
 
           {lineCharacters.map(
@@ -23269,6 +23694,7 @@ const textScaleTransform =
               /*
                * ARCH
                */
+
               if (
                 mode === "arch"
               ) {
@@ -23290,6 +23716,7 @@ const textScaleTransform =
               /*
                * DIP
                */
+
               if (
                 mode === "dip"
               ) {
@@ -23311,6 +23738,7 @@ const textScaleTransform =
               /*
                * CIRCLE
                */
+
               if (
                 mode ===
                 "circle"
@@ -23345,8 +23773,10 @@ const textScaleTransform =
                     curveProgress;
 
                 /*
-                 * Multiple circle lines use concentric paths.
+                 * Multiple circle lines use
+                 * concentric paths.
                  */
+
                 const centeredLineIndex =
                   lineIndex -
                   (
@@ -23395,9 +23825,9 @@ const textScaleTransform =
         </defs>
 
         {/*
-         * ================================================================
+         * ==============================================================
          * CURVED GLYPHS
-         * ================================================================
+         * ==============================================================
          */}
 
         {lineCharacters.map(
@@ -23406,9 +23836,10 @@ const textScaleTransform =
             lineIndex,
           ) => {
             /*
-             * Empty curved lines retain their path definition
-             * but render no glyphs.
+             * Empty curved lines retain their path
+             * definition but render no glyphs.
              */
+
             if (
               !characters.length
             ) {
@@ -23417,6 +23848,20 @@ const textScaleTransform =
 
             const pathId =
               `textfx-path-${safeBlockId}-${mode}-${lineIndex}`;
+
+            const curvedFilter =
+              [
+                distressEnabled
+                  ? `url(#${distressFilterId})`
+                  : "",
+
+                shadowEnabled
+                  ? `drop-shadow(${shadowOffsetX}px ${shadowOffsetY}px ${shadowBlur}px ${shadowColor})`
+                  : "",
+              ]
+                .filter(Boolean)
+                .join(" ") ||
+              undefined;
 
             return (
               <text
@@ -23448,14 +23893,12 @@ const textScaleTransform =
                     ? "stroke fill"
                     : undefined
                 }
-transform={
-  textScaleTransform
-}
+                transform={
+                  textScaleTransform
+                }
                 style={{
                   filter:
-                    shadowEnabled
-                      ? `drop-shadow(${shadowOffsetX}px ${shadowOffsetY}px ${shadowBlur}px ${shadowColor})`
-                      : undefined,
+                    curvedFilter,
                 }}
               >
                 <textPath
