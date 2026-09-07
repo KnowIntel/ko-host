@@ -986,16 +986,19 @@ export type RsvpBlock = BaseBlock & {
     guestMin?: number;
     guestMax?: number;
 
-contactLabel?: string;
-firstNamePlaceholder?: string;
-lastNamePlaceholder?: string;
-emailPlaceholder?: string;
-addressPlaceholder?: string;
+    contactLabel?: string;
 
-nameDisplay?: boolean;
-lastNameDisplay?: boolean;
-emailDisplay?: boolean;
-addressDisplay?: boolean;
+    contactDetailsDisplay?: boolean;
+
+    firstNamePlaceholder?: string;
+    lastNamePlaceholder?: string;
+    emailPlaceholder?: string;
+    addressPlaceholder?: string;
+
+    nameDisplay?: boolean;
+    lastNameDisplay?: boolean;
+    emailDisplay?: boolean;
+    addressDisplay?: boolean;
 
     attendingLabel?: string;
     attendingOptions?: string[];

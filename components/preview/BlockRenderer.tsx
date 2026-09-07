@@ -17989,35 +17989,37 @@ lineHeight: optionTextStyle.lineHeight,
 {(() => {
   const rendered: React.ReactNode[] = [];
 
-  /*
-   * Heading always belongs at the top of the RSVP form,
-   * regardless of elementOrder.
-   */
-  if (!hidden.has("heading")) {
-    rendered.push(
-      renderElement(
-        "heading",
-      ),
-    );
-  }
+/*
+ * Heading always belongs at the top of the RSVP form,
+ * regardless of elementOrder.
+ */
+if (!hidden.has("heading")) {
+  rendered.push(
+    renderElement("heading"),
+  );
+}
 
-  /*
-   * Image follows the heading when enabled.
-   */
-  if (
-    !hidden.has("image") &&
-    block.data.imageUrl
-  ) {
-    rendered.push(
-      renderElement(
-        "image",
-      ),
-    );
-  }
+/*
+ * Image follows the heading when enabled.
+ */
+if (
+  !hidden.has("image") &&
+  block.data.imageUrl
+) {
+  rendered.push(
+    renderElement("image"),
+  );
+}
 
+/*
+ * Contact Details master visibility.
+ *
+ * If contactDetailsDisplay is false, the entire contact section
+ * is hidden regardless of the individual Name / Email / Address
+ * field settings.
+ */
 const showContactSection =
-  block.data
-    .contactDetailsDisplay !==
+  block.data.contactDetailsDisplay !==
     false &&
   (
     block.data.nameDisplay !==
@@ -18028,39 +18030,56 @@ const showContactSection =
       false
   );
 
-  if (showContactSection) {
-    rendered.push(
-      <div
-        key="contact-details-card"
-        className={`space-y-4 ${sectionClass()}`}
-        style={sectionStyle}
-      >
-                {renderElement("nameLabel")}
+if (showContactSection) {
+  rendered.push(
+    <div
+      key="contact-details-card"
+      className={`space-y-4 ${sectionClass()}`}
+      style={sectionStyle}
+    >
+      {renderElement(
+        "nameLabel",
+      )}
 
-                {block.data.nameDisplay !== false ? (
-                  <div
-  className={[
-    "grid grid-cols-1 gap-3",
-    block.data.lastNameDisplay === false
-      ? "sm:grid-cols-1"
-      : "sm:grid-cols-2",
-  ].join(" ")}
->
-                    {renderElement("firstName")}
-                    {renderElement("lastName")}
-                  </div>
-                ) : null}
+      {block.data.nameDisplay !==
+      false ? (
+        <div
+          className={[
+            "grid grid-cols-1 gap-3",
 
-                {block.data.emailDisplay !== false
-                  ? renderElement("email")
-                  : null}
+            block.data
+              .lastNameDisplay ===
+            false
+              ? "sm:grid-cols-1"
+              : "sm:grid-cols-2",
+          ].join(" ")}
+        >
+          {renderElement(
+            "firstName",
+          )}
 
-                {block.data.addressDisplay !== false
-                  ? renderElement("address")
-                  : null}
-              </div>,
-            );
-          }
+          {renderElement(
+            "lastName",
+          )}
+        </div>
+      ) : null}
+
+      {block.data.emailDisplay !==
+      false
+        ? renderElement(
+            "email",
+          )
+        : null}
+
+      {block.data.addressDisplay !==
+      false
+        ? renderElement(
+            "address",
+          )
+        : null}
+    </div>,
+  );
+}
 
           order.forEach((key) => {
 if (
