@@ -1264,16 +1264,14 @@ onChange={(e) => {
       <input
         type="checkbox"
         checked={
-          (selectedTextFxBlock.data.fx as any)
+          selectedTextFxBlock.data.fx
             ?.distressEnabled === true
         }
         onChange={(event) =>
-          updateTextFx(
-            {
-              distressEnabled:
-                event.target.checked,
-            } as any,
-          )
+          updateTextFx({
+            distressEnabled:
+              event.target.checked,
+          })
         }
       />
 
@@ -1281,7 +1279,7 @@ onChange={(e) => {
     </label>
   </div>
 
-  {(selectedTextFxBlock.data.fx as any)
+  {selectedTextFxBlock.data.fx
     ?.distressEnabled === true ? (
     <>
       {/* ======================================================== */}
@@ -1295,17 +1293,19 @@ onChange={(e) => {
 
         <select
           value={
-            (selectedTextFxBlock.data.fx as any)
+            selectedTextFxBlock.data.fx
               ?.distressStyle ??
             "grunge"
           }
           onChange={(event) =>
-            updateTextFx(
-              {
-                distressStyle:
-                  event.target.value,
-              } as any,
-            )
+            updateTextFx({
+              distressStyle:
+                event.target.value as
+                  | "grunge"
+                  | "brush"
+                  | "scratched"
+                  | "chipped",
+            })
           }
           className={inspectorInputClass()}
         >
@@ -1329,7 +1329,7 @@ onChange={(e) => {
         <div className="mt-2 text-xs text-neutral-500">
           {(() => {
             const distressStyle =
-              (selectedTextFxBlock.data.fx as any)
+              selectedTextFxBlock.data.fx
                 ?.distressStyle ??
               "grunge";
 
@@ -1372,7 +1372,7 @@ onChange={(e) => {
           <div className="text-xs font-medium text-neutral-500">
             {Math.round(
               Number(
-                (selectedTextFxBlock.data.fx as any)
+                selectedTextFxBlock.data.fx
                   ?.distressAmount ??
                   35,
               ),
@@ -1387,26 +1387,23 @@ onChange={(e) => {
           max={100}
           step={1}
           value={
-            (selectedTextFxBlock.data.fx as any)
+            selectedTextFxBlock.data.fx
               ?.distressAmount ??
             35
           }
           onChange={(event) =>
-            updateTextFx(
-              {
-                distressAmount:
-                  Math.max(
-                    0,
-                    Math.min(
-                      100,
-                      Number(
-                        event.target
-                          .value,
-                      ) || 0,
-                    ),
+            updateTextFx({
+              distressAmount:
+                Math.max(
+                  0,
+                  Math.min(
+                    100,
+                    Number(
+                      event.target.value,
+                    ) || 0,
                   ),
-              } as any,
-            )
+                ),
+            })
           }
           className="mt-2 w-full"
         />
@@ -1431,7 +1428,7 @@ onChange={(e) => {
           <div className="text-xs font-medium text-neutral-500">
             {Math.round(
               Number(
-                (selectedTextFxBlock.data.fx as any)
+                selectedTextFxBlock.data.fx
                   ?.distressScale ??
                   45,
               ),
@@ -1446,26 +1443,23 @@ onChange={(e) => {
           max={100}
           step={1}
           value={
-            (selectedTextFxBlock.data.fx as any)
+            selectedTextFxBlock.data.fx
               ?.distressScale ??
             45
           }
           onChange={(event) =>
-            updateTextFx(
-              {
-                distressScale:
-                  Math.max(
-                    1,
-                    Math.min(
-                      100,
-                      Number(
-                        event.target
-                          .value,
-                      ) || 1,
-                    ),
+            updateTextFx({
+              distressScale:
+                Math.max(
+                  1,
+                  Math.min(
+                    100,
+                    Number(
+                      event.target.value,
+                    ) || 1,
                   ),
-              } as any,
-            )
+                ),
+            })
           }
           className="mt-2 w-full"
         />
@@ -1497,7 +1491,7 @@ onChange={(e) => {
             #
             {Math.round(
               Number(
-                (selectedTextFxBlock.data.fx as any)
+                selectedTextFxBlock.data.fx
                   ?.distressSeed ??
                   17,
               ),
@@ -1512,28 +1506,25 @@ onChange={(e) => {
             max={9999}
             step={1}
             value={
-              (selectedTextFxBlock.data.fx as any)
+              selectedTextFxBlock.data.fx
                 ?.distressSeed ??
               17
             }
             onChange={(event) =>
-              updateTextFx(
-                {
-                  distressSeed:
-                    Math.max(
-                      1,
-                      Math.min(
-                        9999,
-                        Math.round(
-                          Number(
-                            event.target
-                              .value,
-                          ) || 1,
-                        ),
+              updateTextFx({
+                distressSeed:
+                  Math.max(
+                    1,
+                    Math.min(
+                      9999,
+                      Math.round(
+                        Number(
+                          event.target.value,
+                        ) || 1,
                       ),
                     ),
-                } as any,
-              )
+                  ),
+              })
             }
             className={inspectorInputClass()}
           />
@@ -1548,11 +1539,8 @@ onChange={(e) => {
                     9999,
                     Math.round(
                       Number(
-                        (
-                          selectedTextFxBlock
-                            .data
-                            .fx as any
-                        )
+                        selectedTextFxBlock
+                          .data.fx
                           ?.distressSeed ??
                           17,
                       ),
@@ -1563,15 +1551,15 @@ onChange={(e) => {
               const nextSeed =
                 currentSeed >= 9999
                   ? 1
-                  : currentSeed +
-                    137;
+                  : Math.min(
+                      9999,
+                      currentSeed + 137,
+                    );
 
-              updateTextFx(
-                {
-                  distressSeed:
-                    nextSeed,
-                } as any,
-              );
+              updateTextFx({
+                distressSeed:
+                  nextSeed,
+              });
             }}
             className="inline-flex h-10 shrink-0 items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 text-xs font-medium text-neutral-700 hover:bg-neutral-100"
           >
@@ -1593,24 +1581,18 @@ onChange={(e) => {
           <button
             type="button"
             onClick={() =>
-              updateTextFx(
-                {
-                  distressEnabled:
-                    true,
-
-                  distressStyle:
-                    "brush",
-
-                  distressAmount:
-                    42,
-
-                  distressScale:
-                    58,
-
-                  distressSeed:
-                    17,
-                } as any,
-              )
+              updateTextFx({
+                distressEnabled:
+                  true,
+                distressStyle:
+                  "brush",
+                distressAmount:
+                  42,
+                distressScale:
+                  58,
+                distressSeed:
+                  17,
+              })
             }
             className="rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs font-medium text-neutral-700 hover:bg-neutral-100"
           >
@@ -1620,24 +1602,18 @@ onChange={(e) => {
           <button
             type="button"
             onClick={() =>
-              updateTextFx(
-                {
-                  distressEnabled:
-                    true,
-
-                  distressStyle:
-                    "grunge",
-
-                  distressAmount:
-                    32,
-
-                  distressScale:
-                    42,
-
-                  distressSeed:
-                    29,
-                } as any,
-              )
+              updateTextFx({
+                distressEnabled:
+                  true,
+                distressStyle:
+                  "grunge",
+                distressAmount:
+                  32,
+                distressScale:
+                  42,
+                distressSeed:
+                  29,
+              })
             }
             className="rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs font-medium text-neutral-700 hover:bg-neutral-100"
           >
@@ -1647,24 +1623,18 @@ onChange={(e) => {
           <button
             type="button"
             onClick={() =>
-              updateTextFx(
-                {
-                  distressEnabled:
-                    true,
-
-                  distressStyle:
-                    "scratched",
-
-                  distressAmount:
-                    38,
-
-                  distressScale:
-                    52,
-
-                  distressSeed:
-                    41,
-                } as any,
-              )
+              updateTextFx({
+                distressEnabled:
+                  true,
+                distressStyle:
+                  "scratched",
+                distressAmount:
+                  38,
+                distressScale:
+                  52,
+                distressSeed:
+                  41,
+              })
             }
             className="rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs font-medium text-neutral-700 hover:bg-neutral-100"
           >
@@ -1674,24 +1644,18 @@ onChange={(e) => {
           <button
             type="button"
             onClick={() =>
-              updateTextFx(
-                {
-                  distressEnabled:
-                    true,
-
-                  distressStyle:
-                    "chipped",
-
-                  distressAmount:
-                    45,
-
-                  distressScale:
-                    62,
-
-                  distressSeed:
-                    73,
-                } as any,
-              )
+              updateTextFx({
+                distressEnabled:
+                  true,
+                distressStyle:
+                  "chipped",
+                distressAmount:
+                  58,
+                distressScale:
+                  72,
+                distressSeed:
+                  73,
+              })
             }
             className="rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs font-medium text-neutral-700 hover:bg-neutral-100"
           >
@@ -1707,24 +1671,18 @@ onChange={(e) => {
       <button
         type="button"
         onClick={() =>
-          updateTextFx(
-            {
-              distressEnabled:
-                false,
-
-              distressStyle:
-                "grunge",
-
-              distressAmount:
-                35,
-
-              distressScale:
-                45,
-
-              distressSeed:
-                17,
-            } as any,
-          )
+          updateTextFx({
+            distressEnabled:
+              false,
+            distressStyle:
+              "grunge",
+            distressAmount:
+              35,
+            distressScale:
+              45,
+            distressSeed:
+              17,
+          })
         }
         className="mt-4 inline-flex h-9 items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 text-xs font-medium text-neutral-700 hover:bg-neutral-100"
       >

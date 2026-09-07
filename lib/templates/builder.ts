@@ -562,6 +562,7 @@ export type LabelBlock = BaseBlock & {
 
 export type TextFxBlock = BaseBlock & {
   type: "text_fx";
+
   data: {
     text: string;
 
@@ -571,7 +572,12 @@ export type TextFxBlock = BaseBlock & {
     style?: TextStyle;
 
     fx?: {
-      mode?: "straight" | "arch" | "dip" | "circle";
+      mode?:
+        | "straight"
+        | "arch"
+        | "dip"
+        | "circle";
+
       intensity?: number;
       rotation?: number;
       opacity?: number;
@@ -587,17 +593,39 @@ export type TextFxBlock = BaseBlock & {
         | "bounce";
 
       transformStrength?: number;
+
       letterScaleX?: number;
       letterScaleY?: number;
 
       letterColors?: string[];
 
+      /*
+       * DISTRESS / GRUNGE
+       */
+      distressEnabled?: boolean;
+
+      distressStyle?:
+        | "grunge"
+        | "brush"
+        | "scratched"
+        | "chipped";
+
+      distressAmount?: number;
+      distressScale?: number;
+      distressSeed?: number;
+
+      /*
+       * SHADOW
+       */
       shadowEnabled?: boolean;
       shadowColor?: string;
       shadowOffsetX?: number;
       shadowOffsetY?: number;
       shadowBlur?: number;
 
+      /*
+       * OUTLINE
+       */
       outlineEnabled?: boolean;
       outlineColor?: string;
       outlineWidth?: number;
@@ -5220,17 +5248,33 @@ case "text_fx":
 
         transformStyle: "normal",
         transformStrength: 100,
+
         letterScaleX: 1,
         letterScaleY: 1,
 
         letterColors: [],
 
+        /*
+         * DISTRESS
+         */
+        distressEnabled: false,
+        distressStyle: "grunge",
+        distressAmount: 35,
+        distressScale: 45,
+        distressSeed: 17,
+
+        /*
+         * SHADOW
+         */
         shadowEnabled: false,
         shadowColor: "#000000",
         shadowOffsetX: 2,
         shadowOffsetY: 2,
         shadowBlur: 4,
 
+        /*
+         * OUTLINE
+         */
         outlineEnabled: false,
         outlineColor: "#000000",
         outlineWidth: 2,
@@ -5244,7 +5288,8 @@ case "text_fx":
       borderRadius: 0,
     },
   };
-    case "image":
+  
+  case "image":
       return {
         id: makeId("image"),
         type: "image",
