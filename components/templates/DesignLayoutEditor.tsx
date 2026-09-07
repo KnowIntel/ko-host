@@ -2216,6 +2216,7 @@ function getToolIconPath(tool: (typeof CATEGORY_BUTTONS)[BottomCategory][number]
   if (tool.label === "TextFX") return "/menu-icons/block-text-fx.svg";
   if (tool.label === "Rich Text") return "/menu-icons/block-rich-text.svg";
   if (tool.label === "Spreadsheet") return "/menu-icons/block-spreadsheet.svg";
+  if (tool.label === "Letter Fill") return "/menu-icons/block-letter-fill.svg";
 
   if (tool.label === "Image") return "/menu-icons/block-image.svg";
   if (tool.label === "Video") return "/menu-icons/block-video.svg";
@@ -2267,7 +2268,7 @@ function getToolIconPath(tool: (typeof CATEGORY_BUTTONS)[BottomCategory][number]
   if (tool.label === "Data Pyramid") return "/menu-icons/block-pyramid.svg";
   if (tool.label === "Circular Hub") return "/menu-icons/block-circular-hub.svg";
   if (tool.label === "Story Cards") return "/menu-icons/block-story-cards.svg";
-  if (tool.label === "Interactive Hotspots") return "/menu-icons/block-iinteractive-hot-spots.svg";
+  if (tool.label === "Interactive Hotspots") return "/menu-icons/block-interactive-hot-spots.svg";
   if (tool.label === "Formula Board") return "/menu-icons/block-formula-board.svg";
 
   if (tool.label === "Registry") return "/menu-icons/block-registry.svg";
