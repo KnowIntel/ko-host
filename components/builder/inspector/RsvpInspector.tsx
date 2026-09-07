@@ -304,19 +304,30 @@ export function RsvpInspector({
     <input
       type="checkbox"
       checked={selectedBlock.data.nameDisplay !== false}
-      onChange={(e) =>
-        updateSelectedBlock((block: any) =>
-          block.type !== "rsvp"
-            ? block
-            : {
-                ...block,
-                data: {
-                  ...block.data,
-                  nameDisplay: e.target.checked,
-                },
-              },
-        )
-      }
+onChange={(e) =>
+  updateSelectedBlock((block: any) =>
+    block.type !== "rsvp"
+      ? block
+      : {
+          ...block,
+          data: {
+            ...block.data,
+
+            nameDisplay:
+              e.target.checked,
+
+            lastNameDisplay:
+              e.target.checked,
+
+            emailDisplay:
+              e.target.checked,
+
+            addressDisplay:
+              e.target.checked,
+          },
+        },
+  )
+}
     />
     Display contact details section
   </label>
@@ -358,7 +369,11 @@ export function RsvpInspector({
 
         <input
           type="checkbox"
-          checked={selectedBlock.data.nameDisplay !== false}
+          checked={
+  selectedBlock.data.nameDisplay !== false ||
+  selectedBlock.data.emailDisplay !== false ||
+  selectedBlock.data.addressDisplay !== false
+}
           onChange={(e) =>
             updateSelectedBlock((block: any) =>
               block.type !== "rsvp"

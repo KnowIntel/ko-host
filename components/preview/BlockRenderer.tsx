@@ -16816,7 +16816,9 @@ const styleVariant = block.data.styleVariant ?? "standard";
   const guestMin = Math.max(0, block.data.guestMin ?? 0);
   const guestMax = Math.max(guestMin, block.data.guestMax ?? 1);
 
-  const attendingLabel = block.data.attendingLabel || "Are you attending?";
+  const attendingLabel =
+  block.data.attendingLabel ??
+  "";
   const attendingOptions = (block.data.attendingOptions?.length
   ? block.data.attendingOptions
   : ["Yes", "No"]
@@ -16833,7 +16835,9 @@ if (!attendingOptions.length) {
     block.data.attendingDefaultValue || attendingOptions[0] || "Yes";
   const showAttendingInForm = attendingDisplay && !hidden.has("attending");
 
-  const mealLabel = block.data.mealLabel || "Meal Selection";
+  const mealLabel =
+  block.data.mealLabel ??
+  "";
   const mealOptions = (block.data.mealOptions?.length
   ? block.data.mealOptions
   : ["Chicken", "Salmon"]
@@ -16852,7 +16856,9 @@ if (!mealOptions.length) {
     : mealOptions[0] || "Chicken";
   const showMealInForm = mealDisplay && !hidden.has("meal");
 
-  const guestLabel = block.data.guestLabel || "Guest";
+  const guestLabel =
+  block.data.guestLabel ??
+  "";
   const guestOptions = (block.data.guestOptions?.length
   ? block.data.guestOptions
   : ["Yes", "No"]
@@ -16872,23 +16878,34 @@ if (!guestOptions.length) {
     !hidden.has("guestCount") &&
     !hidden.has("guestName");
 
-  const commentsLabel = block.data.commentsLabel || "Additional Comments";
-  const commentsPlaceholder =
-    block.data.commentsPlaceholder || "Share any notes, song requests, or details.";
+  const commentsLabel =
+  block.data.commentsLabel ??
+  "";
+const commentsPlaceholder =
+  block.data.commentsPlaceholder ??
+  "";
   const commentsDisplay = block.data.commentsDisplay !== false;
   const commentsDefaultValue = block.data.commentsDefaultValue || "";
   const showCommentsInForm = commentsDisplay && !hidden.has("comments");
 
 const helperText =
-  block.data.helperText || "Please let us know if you’ll be joining us.";
-const replyByText = block.data.replyByText || "Reply by May 12";
+  block.data.helperText ??
+  "";
+const replyByText =
+  block.data.replyByText ??
+  "";
 const replyByDisplay = block.data.replyByDisplay !== false;
 const confirmationTitle =
-  block.data.confirmationTitle || "Thank you — your RSVP has been received.";
-const confirmationMessage =
-  block.data.confirmationMessage || "We’re excited to celebrate with you.";
+  block.data.confirmationTitle ??
+  "";
 
-const submitButtonText = block.data.submitButtonText || "Submit RSVP →";
+const confirmationMessage =
+  block.data.confirmationMessage ??
+  "";
+
+const submitButtonText =
+  block.data.submitButtonText ??
+  "";
 const buttonLayout = block.data.buttonLayout ?? "full";
 const buttonShape = block.data.buttonShape ?? "rounded";
 const buttonVariant = block.data.buttonVariant ?? "solid";
@@ -17554,11 +17571,11 @@ function renderChoiceSection(
   onChange: (value: string) => void,
 ) {
   return (
-    <div
-      key={key}
-      className={sectionClass()}
-      style={sectionStyle}
-    >
+<div
+  key={key}
+  className={`pointer-events-auto relative z-30 ${sectionClass()}`}
+  style={sectionStyle}
+>
       <div
         className="mb-3 text-sm font-semibold"
         style={sectionLabelStyle}
@@ -17567,7 +17584,7 @@ function renderChoiceSection(
       </div>
 
       {useChoiceCards ? (
-        <div className="relative z-10 grid grid-cols-1 gap-2 sm:grid-cols-2">
+        <div className="pointer-events-auto relative z-40 grid grid-cols-1 gap-2 sm:grid-cols-2">
 {options.map((option) => {
   const selected = value === option;
 
@@ -17631,7 +17648,7 @@ const resolvedButtonStyle =
       key={`${key}-${option}`}
       type="button"
       onClick={() => onChange(option)}
-      className="flex min-h-[46px] w-full items-center px-4 py-3 text-sm font-medium transition duration-200"
+      className="pointer-events-auto relative z-50 flex min-h-[46px] w-full items-center px-4 py-3 text-sm font-medium transition duration-200"
       style={{
         ...resolvedButtonStyle,
         color:
@@ -17753,7 +17770,7 @@ const resolvedButtonStyle =
   className="text-2xl font-semibold tracking-tight"
   style={headingStyle}
 >
-  {block.data.heading || "RSVP"}
+  {block.data.heading ?? ""}
 </div>
 {helperText ? (
   <div
@@ -17950,15 +17967,15 @@ lineHeight: optionTextStyle.lineHeight,
     `}
   </style>
 ) : null}
-  <form
-        onSubmit={handleSubmit}
-className={[
-  "mx-auto flex h-full w-full max-w-xl flex-col gap-4 overflow-y-auto border p-6 sm:p-8",
-  block.appearance?.backgroundColor === "transparent"
-    ? "border-transparent bg-transparent shadow-none"
-    : variantClassMap[styleVariant] ?? variantClassMap.standard,
-].join(" ")}
-      >
+<form
+  onSubmit={handleSubmit}
+  className={[
+    "pointer-events-auto relative z-20 mx-auto flex h-full w-full max-w-xl flex-col gap-4 overflow-y-auto border p-6 sm:p-8",
+    block.appearance?.backgroundColor === "transparent"
+      ? "border-transparent bg-transparent shadow-none"
+      : variantClassMap[styleVariant] ?? variantClassMap.standard,
+  ].join(" ")}
+>
         <input
           type="text"
           tabIndex={-1}
@@ -17969,21 +17986,47 @@ className={[
           aria-hidden="true"
         />
 
-        {(() => {
-          const rendered: React.ReactNode[] = [];
+{(() => {
+  const rendered: React.ReactNode[] = [];
 
-          const showContactSection =
-            block.data.nameDisplay !== false ||
-            block.data.emailDisplay !== false ||
-            block.data.addressDisplay !== false;
+  /*
+   * Heading always belongs at the top of the RSVP form,
+   * regardless of elementOrder.
+   */
+  if (!hidden.has("heading")) {
+    rendered.push(
+      renderElement(
+        "heading",
+      ),
+    );
+  }
 
-          if (showContactSection) {
-            rendered.push(
-<div
-  key="contact-details-card"
-  className={`space-y-4 ${sectionClass()}`}
-  style={sectionStyle}
->
+  /*
+   * Image follows the heading when enabled.
+   */
+  if (
+    !hidden.has("image") &&
+    block.data.imageUrl
+  ) {
+    rendered.push(
+      renderElement(
+        "image",
+      ),
+    );
+  }
+
+  const showContactSection =
+    block.data.nameDisplay !== false ||
+    block.data.emailDisplay !== false ||
+    block.data.addressDisplay !== false;
+
+  if (showContactSection) {
+    rendered.push(
+      <div
+        key="contact-details-card"
+        className={`space-y-4 ${sectionClass()}`}
+        style={sectionStyle}
+      >
                 {renderElement("nameLabel")}
 
                 {block.data.nameDisplay !== false ? (
@@ -18012,15 +18055,17 @@ className={[
           }
 
           order.forEach((key) => {
-            if (
-              key === "nameLabel" ||
-              key === "firstName" ||
-              key === "lastName" ||
-              key === "email" ||
-              key === "address"
-            ) {
-              return;
-            }
+if (
+  key === "heading" ||
+  key === "image" ||
+  key === "nameLabel" ||
+  key === "firstName" ||
+  key === "lastName" ||
+  key === "email" ||
+  key === "address"
+) {
+  return;
+}
 
             if (hidden.has(key as any)) return;
 
@@ -18073,7 +18118,7 @@ className={[
       className="text-base font-semibold"
       style={confirmationTitleStyle}
     >
-      {confirmationTitle || "Thank you!"}
+      {confirmationTitle}
     </div>
 
     <div
