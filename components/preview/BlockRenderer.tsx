@@ -18015,10 +18015,18 @@ lineHeight: optionTextStyle.lineHeight,
     );
   }
 
-  const showContactSection =
-    block.data.nameDisplay !== false ||
-    block.data.emailDisplay !== false ||
-    block.data.addressDisplay !== false;
+const showContactSection =
+  block.data
+    .contactDetailsDisplay !==
+    false &&
+  (
+    block.data.nameDisplay !==
+      false ||
+    block.data.emailDisplay !==
+      false ||
+    block.data.addressDisplay !==
+      false
+  );
 
   if (showContactSection) {
     rendered.push(

@@ -329,7 +329,35 @@ onChange={(e) =>
   )
 }
     />
-    Display contact details section
+    <label className="mt-3 flex items-center gap-3 text-sm text-neutral-800">
+  <input
+    type="checkbox"
+    checked={
+      selectedBlock.data
+        .contactDetailsDisplay !==
+      false
+    }
+    onChange={(e) =>
+      updateSelectedBlock(
+        (block: any) =>
+          block.type !== "rsvp"
+            ? block
+            : {
+                ...block,
+
+                data: {
+                  ...block.data,
+
+                  contactDetailsDisplay:
+                    e.target.checked,
+                },
+              },
+      )
+    }
+  />
+
+  Display contact details section
+</label>
   </label>
 
   <div className="mt-4">

@@ -783,8 +783,17 @@ return (
     willChange: "transform",
   }}
 >
-        {showTitle ? (
-          <div style={getItemStyle(titleGrid, logicalPageWidth, logicalRowHeight)}>
+{showTitle ? (
+  <div
+    style={{
+      ...getItemStyle(
+        titleGrid,
+        logicalPageWidth,
+        logicalRowHeight,
+      ),
+      pointerEvents: "none",
+    }}
+  >
             <div
               className="h-full w-full p-3"
               style={getPageTextBoxStyle(typedDraft, "title")}
@@ -794,14 +803,17 @@ return (
           </div>
         ) : null}
 
-        {showSubtitle ? (
-          <div
-            style={getItemStyle(
-              subtitleGrid,
-              logicalPageWidth,
-              logicalRowHeight,
-            )}
-          >
+{showSubtitle ? (
+  <div
+    style={{
+      ...getItemStyle(
+        subtitleGrid,
+        logicalPageWidth,
+        logicalRowHeight,
+      ),
+      pointerEvents: "none",
+    }}
+  >
             <div
               className="h-full w-full p-3"
               style={getPageTextBoxStyle(typedDraft, "subtitle")}
@@ -813,14 +825,17 @@ return (
           </div>
         ) : null}
 
-        {showSubtext ? (
-          <div
-            style={getItemStyle(
-              subtextGrid,
-              logicalPageWidth,
-              logicalRowHeight,
-            )}
-          >
+{showSubtext ? (
+  <div
+    style={{
+      ...getItemStyle(
+        subtextGrid,
+        logicalPageWidth,
+        logicalRowHeight,
+      ),
+      pointerEvents: "none",
+    }}
+  >
             <div
               className="h-full w-full p-3"
               style={getPageTextBoxStyle(typedDraft, "subtext")}
@@ -830,14 +845,17 @@ return (
           </div>
         ) : null}
 
-        {showDescription ? (
-          <div
-            style={getItemStyle(
-              descriptionGrid,
-              logicalPageWidth,
-              logicalRowHeight,
-            )}
-          >
+{showDescription ? (
+  <div
+    style={{
+      ...getItemStyle(
+        descriptionGrid,
+        logicalPageWidth,
+        logicalRowHeight,
+      ),
+      pointerEvents: "none",
+    }}
+  >
             <div
               className="h-full w-full p-3"
               style={getPageTextBoxStyle(typedDraft, "description")}
