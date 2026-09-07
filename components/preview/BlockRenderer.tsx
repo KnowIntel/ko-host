@@ -5647,7 +5647,7 @@ const cardWidth =
     }
 
     return (
-      <div className="hidden min-w-8 flex-1 items-center sm:flex">
+      <div className="flex min-w-8 flex-1 items-center">
         <div
           className="h-0 w-full border-t"
           style={{
@@ -6020,7 +6020,7 @@ const cardWidth =
           </div>
         ) : (
           <div
-            className="flex flex-col sm:flex-row sm:items-stretch"
+            className="flex flex-row items-stretch overflow-x-auto"
             style={{
               columnGap:
                 `${horizontalGap}px`,
@@ -6041,18 +6041,24 @@ const cardWidth =
                   }
                   className="contents"
                 >
-<div
-  className="min-w-0 shrink-0"
-  style={{
-    width: `${cardWidth}px`,
-    maxWidth: "100%",
-  }}
->
-  {renderStepCard(
-    step,
-    index,
-  )}
-</div>
+                  <div
+                    className="min-w-0 shrink-0"
+                    style={{
+                      width:
+                        `${cardWidth}px`,
+
+                      flexBasis:
+                        `${cardWidth}px`,
+
+                      maxWidth:
+                        `${cardWidth}px`,
+                    }}
+                  >
+                    {renderStepCard(
+                      step,
+                      index,
+                    )}
+                  </div>
 
                   {renderConnector(
                     index,

@@ -788,9 +788,9 @@ const getFilteredStepIcons = (
   {step.iconUrl ? (
     <button
       type="button"
-      className={`${toolSetButtonClass(
-        "remove",
-      )} mt-2`}
+className={`${toolSetButtonClass(
+  "remove",
+)} mt-2 h-auto min-h-9 w-auto max-w-full whitespace-nowrap px-3 py-2`}
       onClick={() =>
         updateSelectedBlock(
           (block: any) =>
