@@ -2150,13 +2150,20 @@ export type LetterFillBlock =
       validationMode?:
         LetterFillValidationMode;
 
-      showCheckButton?: boolean;
+showCheckButton?: boolean;
 
-      checkButtonText?: string;
+checkButtonText?: string;
 
-      showResetButton?: boolean;
+showResetButton?: boolean;
 
-      resetButtonText?: string;
+resetButtonText?: string;
+
+buttonAlign?:
+  | "left"
+  | "center"
+  | "right";
+
+maxAttempts?: number;
 
       maxAttempts?: number;
 

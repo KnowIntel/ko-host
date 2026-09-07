@@ -593,6 +593,68 @@ const answerCharacters: string[] =
           Answer Checking
         </div>
 
+        <div className="mt-3">
+  <div className={inspectorLabelClass()}>
+    Button Alignment
+  </div>
+
+  <div className="mt-2 grid grid-cols-3 gap-2">
+    <button
+      type="button"
+      onClick={() =>
+        updateData({
+          buttonAlign: "left",
+        })
+      }
+      className={[
+        "rounded-lg border px-3 py-2 text-sm font-medium transition",
+
+        (data.buttonAlign ?? "left") === "left"
+          ? "border-neutral-900 bg-neutral-900 text-white"
+          : "border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-50",
+      ].join(" ")}
+    >
+      Left
+    </button>
+
+    <button
+      type="button"
+      onClick={() =>
+        updateData({
+          buttonAlign: "center",
+        })
+      }
+      className={[
+        "rounded-lg border px-3 py-2 text-sm font-medium transition",
+
+        data.buttonAlign === "center"
+          ? "border-neutral-900 bg-neutral-900 text-white"
+          : "border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-50",
+      ].join(" ")}
+    >
+      Center
+    </button>
+
+    <button
+      type="button"
+      onClick={() =>
+        updateData({
+          buttonAlign: "right",
+        })
+      }
+      className={[
+        "rounded-lg border px-3 py-2 text-sm font-medium transition",
+
+        data.buttonAlign === "right"
+          ? "border-neutral-900 bg-neutral-900 text-white"
+          : "border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-50",
+      ].join(" ")}
+    >
+      Right
+    </button>
+  </div>
+</div>
+
         {/* VALIDATION MODE */}
 
         <div className="mt-3">

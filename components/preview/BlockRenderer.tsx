@@ -7331,7 +7331,17 @@ const answerCharacters: string[] =
               false) &&
           editableEntries.length >
             0 ? (
-            <div className="mt-5 flex flex-wrap gap-2">
+            <div
+  className="mt-5 flex w-full flex-wrap gap-2"
+  style={{
+    justifyContent:
+      data.buttonAlign === "center"
+        ? "center"
+        : data.buttonAlign === "right"
+          ? "flex-end"
+          : "flex-start",
+  }}
+>
               {data.showCheckButton !==
                 false &&
               validationMode ===
