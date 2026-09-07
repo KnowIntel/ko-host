@@ -16899,9 +16899,17 @@ const useChoiceCards = block.data.useChoiceCards ?? true;
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [address, setAddress] = useState("");
-  const [isAttending, setIsAttending] = useState(
-    attendingDefaultValue === attendingOptions[0],
-  );
+const [
+  attendingChoice,
+  setAttendingChoice,
+] = useState(
+  attendingOptions.includes(
+    attendingDefaultValue,
+  )
+    ? attendingDefaultValue
+    : attendingOptions[0] ??
+        "Yes",
+);
   const [mealChoice, setMealChoice] = useState(mealDefaultValue);
   const [bringingGuest, setBringingGuest] = useState(
     guestDefaultValue === guestOptions[0],
@@ -16916,71 +16924,344 @@ const useChoiceCards = block.data.useChoiceCards ?? true;
   const [submitState, setSubmitState] = useState<"idle" | "success" | "error">("idle");
   const [submitMessage, setSubmitMessage] = useState("");
 
-const attendingYesValue = attendingOptions[0] ?? "Yes";
-const attendingNoValue = attendingOptions[1] ?? "No";
-const guestYesValue = guestOptions[0] ?? "Yes";
-const guestNoValue = guestOptions[1] ?? "No";
+const attendingYesValue =
+  attendingOptions[0] ??
+  "Yes";
 
-const isCurrentlyAttending = showAttendingInForm
-  ? isAttending
-  : attendingDefaultValue === attendingYesValue;
+const guestYesValue =
+  guestOptions[0] ??
+  "Yes";
+
+const guestNoValue =
+  guestOptions[1] ??
+  "No";
+
+const isCurrentlyAttending =
+  showAttendingInForm
+    ? attendingChoice ===
+      attendingYesValue
+    : attendingDefaultValue ===
+      attendingYesValue;
 
 const isCurrentlyBringingGuest = showGuestInForm
   ? bringingGuest
   : guestDefaultValue === guestYesValue;
 
-  const variantClassMap: Record<string, string> = {
-    standard:
-      "border-neutral-200 bg-white text-neutral-900 shadow-[0_18px_60px_rgba(15,23,42,0.10)]",
-    elegant_wedding:
-      "border-[#e6dcc8] bg-[#fffaf0] text-[#30291f] shadow-[0_24px_70px_rgba(120,97,60,0.14)]",
-    modern_minimal:
-      "border-neutral-200 bg-white text-neutral-950 shadow-sm",
-    glassmorphism:
-      "border-white/35 bg-white/45 text-neutral-950 shadow-[0_24px_80px_rgba(15,23,42,0.18)] backdrop-blur-xl",
-    luxury_black:
-      "border-[#bfa46a]/50 bg-[#11100d] text-[#fff8e8] shadow-[0_24px_80px_rgba(0,0,0,0.35)]",
-    editorial_magazine:
-      "border-neutral-900 bg-white text-neutral-950 shadow-[10px_10px_0_rgba(0,0,0,0.10)]",
-    floral_invitation:
-      "border-pink-100 bg-[#fff7f5] text-[#3f2a2a] shadow-[0_20px_60px_rgba(190,120,130,0.16)]",
-    bold_event:
-      "border-transparent bg-gradient-to-br from-fuchsia-600 via-rose-500 to-orange-400 text-white shadow-[0_24px_80px_rgba(225,29,72,0.30)]",
-    luxury_invitation:
-      "border-[#d8c08d] bg-[#fbf6ea] text-[#2d2418] shadow-[0_24px_80px_rgba(122,89,38,0.16)]",
-    soft_pastel:
-      "border-pink-100 bg-gradient-to-br from-pink-50 via-violet-50 to-sky-50 text-neutral-900 shadow-[0_24px_70px_rgba(147,113,160,0.16)]",
-    dark_neon:
-      "border-cyan-300/60 bg-[#080b16] text-white shadow-[0_0_45px_rgba(34,211,238,0.22)]",
-    ticket_style:
-      "border-dashed border-neutral-300 bg-white text-neutral-950 shadow-[0_20px_60px_rgba(15,23,42,0.12)]",
-    timeline_rsvp:
-      "border-neutral-200 bg-white text-neutral-950 shadow-[0_20px_60px_rgba(15,23,42,0.12)]",
-    split_layout:
-      "border-neutral-200 bg-white text-neutral-950 shadow-[0_24px_70px_rgba(15,23,42,0.14)]",
-    floating_panels:
-      "border-white bg-neutral-50 text-neutral-950 shadow-[0_28px_90px_rgba(15,23,42,0.18)]",
-    formal_banquet:
-      "border-[#c7a76c]/60 bg-[#111827] text-[#fff8e8] shadow-[0_24px_80px_rgba(15,23,42,0.35)]",
-  };
+const variantClassMap:
+  Record<string, string> = {
+  /*
+   * Classic elevated card.
+   */
+  standard:
+    "rounded-[24px] border-neutral-200 bg-white text-neutral-900 shadow-[0_18px_60px_rgba(15,23,42,0.10)]",
 
-  const darkVariant =
-    styleVariant === "luxury_black" ||
-    styleVariant === "dark_neon" ||
-    styleVariant === "formal_banquet" ||
-    styleVariant === "bold_event";
+  /*
+   * Warm invitation paper with a softer,
+   * more traditional wedding treatment.
+   */
+  elegant_wedding:
+    "rounded-[36px] border-[#d9c9a8] bg-[#fffaf0] text-[#30291f] shadow-[0_28px_80px_rgba(120,97,60,0.16)]",
 
-  function sectionClass() {
-    return darkVariant
-      ? "rounded-2xl border border-white/15 bg-white/10 p-4"
-      : "rounded-2xl border border-black/10 bg-white/70 p-4";
+  /*
+   * Nearly flat and architectural.
+   */
+  modern_minimal:
+    "rounded-none border-neutral-300 bg-white text-neutral-950 shadow-none",
+
+  /*
+   * Frosted translucent panel.
+   */
+  glassmorphism:
+    "rounded-[32px] border-white/50 bg-white/40 text-neutral-950 shadow-[0_30px_90px_rgba(15,23,42,0.22)] backdrop-blur-2xl",
+
+  /*
+   * Hard-edged print/editorial treatment.
+   */
+  editorial_magazine:
+    "rounded-none border-2 border-neutral-950 bg-white text-neutral-950 shadow-[12px_12px_0_rgba(0,0,0,0.14)]",
+
+  /*
+   * Loud event / celebration treatment.
+   */
+  bold_event:
+    "rounded-[32px] border-transparent bg-gradient-to-br from-fuchsia-600 via-rose-500 to-orange-400 text-white shadow-[0_28px_90px_rgba(225,29,72,0.34)]",
+
+  /*
+   * High-contrast dark / electric treatment.
+   */
+  dark_neon:
+    "rounded-[28px] border-2 border-cyan-300/70 bg-[#080b16] text-white shadow-[0_0_50px_rgba(34,211,238,0.28)]",
+
+  /*
+   * Event-ticket treatment.
+   */
+  ticket_style:
+    "rounded-[18px] border-2 border-dashed border-neutral-400 bg-[#fffdf7] text-neutral-950 shadow-[0_18px_45px_rgba(15,23,42,0.10)]",
+};
+
+const darkVariant =
+  styleVariant ===
+    "dark_neon" ||
+  styleVariant ===
+    "bold_event";
+
+function sectionClass() {
+  switch (
+    styleVariant
+  ) {
+    case "elegant_wedding":
+      return [
+        "rounded-[28px]",
+        "border",
+        "border-[#ddcfb4]",
+        "bg-[#fffdf7]",
+        "p-5",
+        "shadow-[0_8px_24px_rgba(120,97,60,0.08)]",
+      ].join(" ");
+
+    case "modern_minimal":
+      return [
+        "rounded-none",
+        "border-0",
+        "border-b",
+        "border-neutral-300",
+        "bg-transparent",
+        "px-0",
+        "py-5",
+      ].join(" ");
+
+    case "glassmorphism":
+      return [
+        "rounded-[24px]",
+        "border",
+        "border-white/45",
+        "bg-white/25",
+        "p-5",
+        "shadow-[0_12px_32px_rgba(15,23,42,0.08)]",
+        "backdrop-blur-xl",
+      ].join(" ");
+
+    case "editorial_magazine":
+      return [
+        "rounded-none",
+        "border-2",
+        "border-neutral-950",
+        "bg-white",
+        "p-4",
+        "shadow-[5px_5px_0_rgba(0,0,0,0.10)]",
+      ].join(" ");
+
+    case "bold_event":
+      return [
+        "rounded-[24px]",
+        "border",
+        "border-white/30",
+        "bg-black/10",
+        "p-5",
+        "shadow-[0_12px_30px_rgba(0,0,0,0.10)]",
+      ].join(" ");
+
+    case "dark_neon":
+      return [
+        "rounded-[22px]",
+        "border",
+        "border-cyan-300/35",
+        "bg-cyan-300/[0.06]",
+        "p-5",
+        "shadow-[inset_0_0_24px_rgba(34,211,238,0.05)]",
+      ].join(" ");
+
+    case "ticket_style":
+      return [
+        "rounded-[14px]",
+        "border",
+        "border-dashed",
+        "border-neutral-400",
+        "bg-[#fffef9]",
+        "p-4",
+      ].join(" ");
+
+    default:
+      return [
+        "rounded-2xl",
+        "border",
+        "border-black/10",
+        "bg-white/70",
+        "p-4",
+      ].join(" ");
   }
+}
 
-  function inputClass() {
-    return darkVariant
-      ? "relative z-10 block min-h-[50px] w-full rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm text-white outline-none placeholder:text-white/45 focus:border-white/45"
-      : "relative z-10 block min-h-[50px] w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-900 outline-none placeholder:text-neutral-400 focus:border-neutral-400";
+function inputClass() {
+  switch (
+    styleVariant
+  ) {
+    case "elegant_wedding":
+      return [
+        "relative",
+        "z-10",
+        "block",
+        "min-h-[50px]",
+        "w-full",
+        "rounded-[18px]",
+        "border",
+        "border-[#ddcfb4]",
+        "bg-[#fffef9]",
+        "px-4",
+        "py-3",
+        "text-sm",
+        "text-[#30291f]",
+        "outline-none",
+        "placeholder:text-[#8d806d]",
+        "focus:border-[#9d8254]",
+      ].join(" ");
+
+    case "modern_minimal":
+      return [
+        "relative",
+        "z-10",
+        "block",
+        "min-h-[50px]",
+        "w-full",
+        "rounded-none",
+        "border-0",
+        "border-b",
+        "border-neutral-400",
+        "bg-transparent",
+        "px-0",
+        "py-3",
+        "text-sm",
+        "text-neutral-950",
+        "outline-none",
+        "placeholder:text-neutral-400",
+        "focus:border-neutral-950",
+      ].join(" ");
+
+    case "glassmorphism":
+      return [
+        "relative",
+        "z-10",
+        "block",
+        "min-h-[50px]",
+        "w-full",
+        "rounded-[18px]",
+        "border",
+        "border-white/55",
+        "bg-white/35",
+        "px-4",
+        "py-3",
+        "text-sm",
+        "text-neutral-950",
+        "outline-none",
+        "backdrop-blur-md",
+        "placeholder:text-neutral-500",
+        "focus:border-white",
+      ].join(" ");
+
+    case "editorial_magazine":
+      return [
+        "relative",
+        "z-10",
+        "block",
+        "min-h-[50px]",
+        "w-full",
+        "rounded-none",
+        "border-2",
+        "border-neutral-950",
+        "bg-white",
+        "px-4",
+        "py-3",
+        "text-sm",
+        "text-neutral-950",
+        "outline-none",
+        "placeholder:text-neutral-500",
+        "focus:bg-neutral-50",
+      ].join(" ");
+
+    case "bold_event":
+      return [
+        "relative",
+        "z-10",
+        "block",
+        "min-h-[50px]",
+        "w-full",
+        "rounded-[18px]",
+        "border",
+        "border-white/35",
+        "bg-white/15",
+        "px-4",
+        "py-3",
+        "text-sm",
+        "text-white",
+        "outline-none",
+        "placeholder:text-white/60",
+        "focus:bg-white/20",
+        "focus:border-white/70",
+      ].join(" ");
+
+    case "dark_neon":
+      return [
+        "relative",
+        "z-10",
+        "block",
+        "min-h-[50px]",
+        "w-full",
+        "rounded-[16px]",
+        "border",
+        "border-cyan-300/35",
+        "bg-cyan-300/[0.05]",
+        "px-4",
+        "py-3",
+        "text-sm",
+        "text-white",
+        "outline-none",
+        "placeholder:text-cyan-100/45",
+        "focus:border-cyan-300",
+        "focus:shadow-[0_0_18px_rgba(34,211,238,0.15)]",
+      ].join(" ");
+
+    case "ticket_style":
+      return [
+        "relative",
+        "z-10",
+        "block",
+        "min-h-[50px]",
+        "w-full",
+        "rounded-[10px]",
+        "border",
+        "border-dashed",
+        "border-neutral-400",
+        "bg-white",
+        "px-4",
+        "py-3",
+        "text-sm",
+        "text-neutral-950",
+        "outline-none",
+        "placeholder:text-neutral-400",
+        "focus:border-neutral-800",
+      ].join(" ");
+
+    default:
+      return [
+        "relative",
+        "z-10",
+        "block",
+        "min-h-[50px]",
+        "w-full",
+        "rounded-2xl",
+        "border",
+        "border-neutral-200",
+        "bg-white",
+        "px-4",
+        "py-3",
+        "text-sm",
+        "text-neutral-900",
+        "outline-none",
+        "placeholder:text-neutral-400",
+        "focus:border-neutral-400",
+      ].join(" ");
   }
+}
 
   function getFrameClass(shape: string) {
     if (shape === "square") return "rounded-2xl";
@@ -17097,7 +17378,14 @@ setSubmitMessage(`${confirmationTitle} ${confirmationMessage}`.trim());
       setLastName("");
       setEmail("");
       setAddress("");
-      setIsAttending(attendingDefaultValue === attendingOptions[0]);
+      setAttendingChoice(
+  attendingOptions.includes(
+    attendingDefaultValue,
+  )
+    ? attendingDefaultValue
+    : attendingOptions[0] ??
+        "Yes",
+);
       setMealChoice(mealDefaultValue);
 setBringingGuest(guestDefaultValue === guestYesValue);
 setGuestCount(guestDefaultValue === guestYesValue ? Math.max(guestMin, 1) : 0);
@@ -17268,7 +17556,7 @@ function renderChoiceSection(
   return (
     <div
       key={key}
-      className="rounded-2xl border p-4"
+      className={sectionClass()}
       style={sectionStyle}
     >
       <div
@@ -17283,9 +17571,46 @@ function renderChoiceSection(
 {options.map((option) => {
   const selected = value === option;
 
-  const resolvedButtonStyle = selected
-    ? buttonSelectionStyle
-    : buttonDefaultStyle;
+const resolvedButtonStyle =
+  selected
+    ? {
+        backgroundColor:
+          darkVariant
+            ? "rgba(255,255,255,0.18)"
+            : "#111827",
+
+        borderColor:
+          darkVariant
+            ? "rgba(255,255,255,0.75)"
+            : "#111827",
+
+        borderWidth: 1,
+        borderStyle:
+          "solid",
+
+        borderRadius: 14,
+
+        ...buttonSelectionStyle,
+      }
+    : {
+        backgroundColor:
+          darkVariant
+            ? "rgba(255,255,255,0.06)"
+            : "#ffffff",
+
+        borderColor:
+          darkVariant
+            ? "rgba(255,255,255,0.18)"
+            : "#e5e7eb",
+
+        borderWidth: 1,
+        borderStyle:
+          "solid",
+
+        borderRadius: 14,
+
+        ...buttonDefaultStyle,
+      };
 
   const optionAlignment =
     optionTextStyle.textAlign === "right"
@@ -17309,7 +17634,15 @@ function renderChoiceSection(
       className="flex min-h-[46px] w-full items-center px-4 py-3 text-sm font-medium transition duration-200"
       style={{
         ...resolvedButtonStyle,
-        color: optionTextStyle.color,
+        color:
+  optionTextStyle.color ??
+  (selected
+    ? darkVariant
+      ? "#ffffff"
+      : "#ffffff"
+    : darkVariant
+      ? "#ffffff"
+      : "#171717"),
         fontFamily: optionTextStyle.fontFamily,
         fontSize: optionTextStyle.fontSize,
         fontWeight: optionTextStyle.fontWeight,
@@ -17356,7 +17689,7 @@ function renderChoiceSection(
     return (
       <div
   key="guestCount"
-  className="rounded-2xl border p-4"
+  className={sectionClass()}
   style={sectionStyle}
 >
         <div className="mb-3 text-sm font-semibold" style={sectionLabelStyle}>
@@ -17498,16 +17831,18 @@ case "lastName":
           setAddress,
         );
 
-      case "attending":
-        if (!showAttendingInForm) return null;
+case "attending":
+  if (!showAttendingInForm) {
+    return null;
+  }
 
-        return renderChoiceSection(
-          "attending",
-          attendingLabel,
-          attendingOptions,
-isAttending ? attendingYesValue : attendingNoValue,
-(next) => setIsAttending(next === attendingYesValue),
-        );
+  return renderChoiceSection(
+    "attending",
+    attendingLabel,
+    attendingOptions,
+    attendingChoice,
+    setAttendingChoice,
+  );
 
       case "meal":
         if (!showMealInForm || !isCurrentlyAttending) return null;
@@ -17577,7 +17912,7 @@ lineHeight: optionTextStyle.lineHeight,
         return (
           <div
   key="comments"
-  className="rounded-2xl border p-4"
+  className={sectionClass()}
   style={sectionStyle}
 >
             <div
@@ -17618,7 +17953,7 @@ lineHeight: optionTextStyle.lineHeight,
   <form
         onSubmit={handleSubmit}
 className={[
-  "mx-auto flex h-full w-full max-w-xl flex-col gap-4 overflow-y-auto rounded-[24px] border p-6 sm:p-8",
+  "mx-auto flex h-full w-full max-w-xl flex-col gap-4 overflow-y-auto border p-6 sm:p-8",
   block.appearance?.backgroundColor === "transparent"
     ? "border-transparent bg-transparent shadow-none"
     : variantClassMap[styleVariant] ?? variantClassMap.standard,
@@ -17646,7 +17981,7 @@ className={[
             rendered.push(
 <div
   key="contact-details-card"
-  className="space-y-4 rounded-[28px] border p-5"
+  className={`space-y-4 ${sectionClass()}`}
   style={sectionStyle}
 >
                 {renderElement("nameLabel")}

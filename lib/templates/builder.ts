@@ -949,23 +949,15 @@ export type RsvpElementKey =
   | "guestName"
   | "comments";
 
-  export type RsvpStyleVariant =
+export type RsvpStyleVariant =
   | "standard"
   | "elegant_wedding"
   | "modern_minimal"
   | "glassmorphism"
-  | "luxury_black"
   | "editorial_magazine"
-  | "floral_invitation"
   | "bold_event"
-  | "luxury_invitation"
-  | "soft_pastel"
   | "dark_neon"
-  | "ticket_style"
-  | "timeline_rsvp"
-  | "split_layout"
-  | "floating_panels"
-  | "formal_banquet";
+  | "ticket_style";
 
 export type RsvpElementStyleMap = Partial<
   Record<

@@ -97,22 +97,37 @@ export function RsvpInspector({
         }
         className={inspectorInputClass()}
       >
-        <option value="standard">Standard</option>
-        <option value="elegant_wedding">Elegant Wedding</option>
-        <option value="modern_minimal">Modern Minimal</option>
-        <option value="glassmorphism">Glassmorphism</option>
-        <option value="luxury_black">Luxury Black</option>
-        <option value="editorial_magazine">Editorial Magazine</option>
-        <option value="floral_invitation">Floral Invitation</option>
-        <option value="bold_event">Bold Event</option>
-        <option value="luxury_invitation">Luxury Invitation</option>
-        <option value="soft_pastel">Soft Pastel</option>
-        <option value="dark_neon">Dark Neon</option>
-        <option value="ticket_style">Ticket Style</option>
-        <option value="timeline_rsvp">Timeline RSVP</option>
-        <option value="split_layout">Split Layout</option>
-        <option value="floating_panels">Floating Panels</option>
-        <option value="formal_banquet">Formal Banquet</option>
+<option value="standard">
+  Standard
+</option>
+
+<option value="elegant_wedding">
+  Elegant Wedding
+</option>
+
+<option value="modern_minimal">
+  Modern Minimal
+</option>
+
+<option value="glassmorphism">
+  Glassmorphism
+</option>
+
+<option value="editorial_magazine">
+  Editorial Magazine
+</option>
+
+<option value="bold_event">
+  Bold Event
+</option>
+
+<option value="dark_neon">
+  Dark Neon
+</option>
+
+<option value="ticket_style">
+  Ticket Style
+</option>
       </select>
     </div>
 
