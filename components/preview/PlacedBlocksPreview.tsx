@@ -884,10 +884,12 @@ return (
     }
 const itemStyle = getItemStyle(grid, logicalPageWidth, logicalRowHeight);
 const showVerticalScrollbar =
-  (block as any).showVerticalScrollbar === true;
+  (block as any).showVerticalScrollbar === true ||
+  (block.data as any)?.showVerticalScrollbar === true;
 
 const showHorizontalScrollbar =
-  (block as any).showHorizontalScrollbar === true;
+  (block as any).showHorizontalScrollbar === true ||
+  (block.data as any)?.showHorizontalScrollbar === true;
 
 const isScrollableBlock =
   block.type === "calendar_event" ||
@@ -1027,11 +1029,16 @@ zIndex:
     maxHeight: "100%",
     width: "100%",
     maxWidth: "100%",
-    overflowX: showHorizontalScrollbar ? "auto" : "hidden",
-    overflowY:
-      showVerticalScrollbar || block.type === "calendar_event"
-        ? "auto"
-        : "hidden",
+overflowX:
+  showHorizontalScrollbar
+    ? "scroll"
+    : "hidden",
+
+overflowY:
+  showVerticalScrollbar ||
+  block.type === "calendar_event"
+    ? "scroll"
+    : "hidden",
     WebkitOverflowScrolling: "touch",
     overscrollBehavior: "auto",
     ...(showVerticalScrollbar || showHorizontalScrollbar
