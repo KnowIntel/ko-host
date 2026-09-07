@@ -58,6 +58,7 @@ import {
   CartInspector,
   LinksInspector,
   ProcessFlowInspector,
+  LetterFillInspector,
   StatisticCardsInspector,
   ChartInspector,
   ComparisonTableInspector,
@@ -160,15 +161,24 @@ import {
 } from "@/components/builder/formatting/formulaBoardFormatting";
 
 import {
-  applyProcessFlowStylePatch,
-  applyProcessFlowTextStylePatch,
   getProcessFlowTextStyle,
+  applyProcessFlowTextStylePatch,
+  applyProcessFlowStylePatch,
+  type ProcessFlowTextTarget,
+  type ProcessFlowStyleTarget,
 } from "@/components/builder/formatting/processFlowFormatting";
 
 import type {
-  ProcessFlowTextTarget,
-  ProcessFlowStyleTarget,
-} from "@/components/builder/formatting/processFlowFormatting";
+  LetterFillTextTarget,
+  LetterFillStyleTarget,
+} from "@/components/builder/formatting/letterFillFormatting";
+
+import {
+  getLetterFillTextStyle,
+  applyLetterFillTextStylePatch,
+  applyLetterFillStylePatch,
+} from "@/components/builder/formatting/letterFillFormatting";
+
 
 import {
   applyStatisticCardsStylePatch,
@@ -726,13 +736,43 @@ const CATEGORY_BUTTONS: Record<
     | { kind: "block"; label: "Input Field"; type: "form_field"; iconName?: string; icon?: string }
   >
 > = {
-  Text: [
-{ kind: "page", label: "Title", type: "title" },
-{ kind: "block", label: "Label", type: "label" },
-{ kind: "block", label: "TextFX", type: "text_fx" },
-{ kind: "block", label: "Rich Text", type: "rich_text" },
-{ kind: "block", label: "Spreadsheet", type: "spreadsheet" },
-  ],
+Text: [
+  {
+    kind: "page",
+    label: "Title",
+    type: "title",
+  },
+
+  {
+    kind: "block",
+    label: "Label",
+    type: "label",
+  },
+
+  {
+    kind: "block",
+    label: "TextFX",
+    type: "text_fx",
+  },
+
+  {
+    kind: "block",
+    label: "Rich Text",
+    type: "rich_text",
+  },
+
+  {
+    kind: "block",
+    label: "Letter Fill",
+    type: "letter_fill",
+  },
+
+  {
+    kind: "block",
+    label: "Spreadsheet",
+    type: "spreadsheet",
+  },
+],
   Media: [
     { kind: "block", label: "Image", type: "image" },
     { kind: "block", label: "Video", type: "video" },
@@ -2542,6 +2582,12 @@ const [processFlowTextTarget, setProcessFlowTextTarget] =
 const [processFlowStyleTarget, setProcessFlowStyleTarget] =
   useState<ProcessFlowStyleTarget>("card");
 
+const [letterFillTextTarget, setLetterFillTextTarget] =
+  useState<LetterFillTextTarget>("heading");
+
+const [letterFillStyleTarget, setLetterFillStyleTarget] =
+  useState<LetterFillStyleTarget>("cell");
+
 const [
   statisticCardsTextTarget,
   setStatisticCardsTextTarget,
@@ -3391,6 +3437,11 @@ const selectedStyle =
       selectedBlockFromDraft,
       processFlowTextTarget,
     ) as TextStyle)
+: selectedBlockFromDraft?.type === "letter_fill"
+  ? (getLetterFillTextStyle(
+      selectedBlockFromDraft,
+      letterFillTextTarget,
+    ) as TextStyle)
 : selectedBlockFromDraft?.type === "statistic_cards"
   ? (getStatisticCardsTextStyle(
       selectedBlockFromDraft,
@@ -3833,15 +3884,16 @@ const showTextControls =
   selectedBlock?.type === "schedule_agenda" ||
   selectedBlock?.type === "calendar_event" ||
   selectedBlock?.type === "map_location" ||
-selectedBlock?.type === "process_flow" ||
-selectedBlock?.type === "statistic_cards" ||
-selectedBlock?.type === "chart" ||
-selectedBlock?.type === "comparison_table" ||
-selectedBlock?.type === "data_pyramid" ||
-selectedBlock?.type === "circular_hub" ||
-selectedBlock?.type === "story_cards" ||
-selectedBlock?.type === "interactive_hotspots" ||
-selectedBlock?.type === "formula_board" ||
+  selectedBlock?.type === "process_flow" ||
+  selectedBlock?.type === "letter_fill" ||
+  selectedBlock?.type === "statistic_cards" ||
+  selectedBlock?.type === "chart" ||
+  selectedBlock?.type === "comparison_table" ||
+  selectedBlock?.type === "data_pyramid" ||
+  selectedBlock?.type === "circular_hub" ||
+  selectedBlock?.type === "story_cards" ||
+  selectedBlock?.type === "interactive_hotspots" ||
+  selectedBlock?.type === "formula_board" ||
   selectedBlock?.type === "file_share" ||
   selectedBlock?.type === "speed_dating" ||
   selectedBlock?.type === "registry" ||
@@ -3861,8 +3913,6 @@ selectedBlock?.type === "formula_board" ||
   selectedBlock?.type === "image_carousel" ||
   selectedBlock?.type === "links";
 
-const showTypographyControls =
-  showTextControls || selectedBlockFromDraft?.type === "gallery";
 
 const showAppearanceControls =
   selectedContext.kind === "label" ||
@@ -3884,15 +3934,16 @@ const showAppearanceControls =
   selectedBlock?.type === "schedule_agenda" ||
   selectedBlock?.type === "calendar_event" ||
   selectedBlock?.type === "map_location" ||
-selectedBlock?.type === "process_flow" ||
-selectedBlock?.type === "statistic_cards" ||
-selectedBlock?.type === "chart" ||
-selectedBlock?.type === "comparison_table" ||
-selectedBlock?.type === "data_pyramid" ||
-selectedBlock?.type === "circular_hub" ||
-selectedBlock?.type === "story_cards" ||
-selectedBlock?.type === "interactive_hotspots" ||
-selectedBlock?.type === "formula_board" ||
+  selectedBlock?.type === "process_flow" ||
+  selectedBlock?.type === "letter_fill" ||
+  selectedBlock?.type === "statistic_cards" ||
+  selectedBlock?.type === "chart" ||
+  selectedBlock?.type === "comparison_table" ||
+  selectedBlock?.type === "data_pyramid" ||
+  selectedBlock?.type === "circular_hub" ||
+  selectedBlock?.type === "story_cards" ||
+  selectedBlock?.type === "interactive_hotspots" ||
+  selectedBlock?.type === "formula_board" ||
   selectedBlock?.type === "file_share" ||
   selectedBlock?.type === "speed_dating" ||
   selectedBlock?.type === "registry" ||
@@ -3913,6 +3964,7 @@ selectedBlock?.type === "formula_board" ||
   selectedBlock?.type === "wave" ||
   selectedBlock?.type === "summary" ||
   selectedBlock?.type === "visitor_counter";
+
 
 const showBorderWidthRadiusControls =
   selectedContext.kind === "label" ||
@@ -3937,13 +3989,14 @@ const showBorderWidthRadiusControls =
   selectedBlock?.type === "calendar_event" ||
   selectedBlock?.type === "map_location" ||
   selectedBlock?.type === "process_flow" ||
+  selectedBlock?.type === "letter_fill" ||
   selectedBlock?.type === "statistic_cards" ||
-selectedBlock?.type === "chart" ||
-selectedBlock?.type === "comparison_table" ||
-selectedBlock?.type === "data_pyramid" ||
-selectedBlock?.type === "story_cards" ||
-selectedBlock?.type === "interactive_hotspots" ||
-selectedBlock?.type === "circular_hub" ||
+  selectedBlock?.type === "chart" ||
+  selectedBlock?.type === "comparison_table" ||
+  selectedBlock?.type === "data_pyramid" ||
+  selectedBlock?.type === "story_cards" ||
+  selectedBlock?.type === "interactive_hotspots" ||
+  selectedBlock?.type === "circular_hub" ||
   selectedBlock?.type === "formula_board" ||
   selectedBlock?.type === "file_share" ||
   selectedBlock?.type === "speed_dating" ||
@@ -3960,6 +4013,9 @@ selectedBlock?.type === "circular_hub" ||
   selectedBlock?.type === "visitor_counter" ||
   selectedBlock?.type === "highlight" ||
   selectedBlock?.type === "summary";
+
+const showTypographyControls =
+  showTextControls || selectedBlockFromDraft?.type === "gallery";
   
   const selectedTextValue = getSelectedTextValue(draft, selectedContext);
 
@@ -5189,10 +5245,40 @@ function applyPageTextBoxBackground(value: string) {
 }
 
 function applyFillColor(value: string) {
-  
-  if (selectedBlock?.type === "enrollment_board") {
-    applyAppearancePatch({ backgroundColor: value });
+  if (
+    selectedBlock?.type ===
+    "letter_fill"
+  ) {
+    updateSelectedBlock(
+      (block) =>
+        block.type !==
+        "letter_fill"
+          ? block
+          : applyLetterFillStylePatch(
+              block,
+              letterFillStyleTarget,
+              {
+                backgroundColor:
+                  value,
+              },
+            ),
+    );
+
     pushRecentColor(value);
+
+    return;
+  }
+
+  if (
+    selectedBlock?.type ===
+    "enrollment_board"
+  ) {
+    applyAppearancePatch({
+      backgroundColor: value,
+    });
+
+    pushRecentColor(value);
+
     return;
   }
 
@@ -5803,16 +5889,42 @@ const handleVideoUpload = async (
   }
 };
 
-function applyStylePatch(patch: Partial<TextStyle>) {
-  if (selectedBlock?.type === "process_flow") {
-    updateSelectedBlock((block) =>
-      block.type !== "process_flow"
-        ? block
-        : applyProcessFlowTextStylePatch(
-            block,
-            processFlowTextTarget,
-            patch,
-          ),
+function applyStylePatch(
+  patch: Partial<TextStyle>,
+) {
+  if (
+    selectedBlock?.type ===
+    "process_flow"
+  ) {
+    updateSelectedBlock(
+      (block) =>
+        block.type !==
+        "process_flow"
+          ? block
+          : applyProcessFlowTextStylePatch(
+              block,
+              processFlowTextTarget,
+              patch,
+            ),
+    );
+
+    return;
+  }
+
+  if (
+    selectedBlock?.type ===
+    "letter_fill"
+  ) {
+    updateSelectedBlock(
+      (block) =>
+        block.type !==
+        "letter_fill"
+          ? block
+          : applyLetterFillTextStylePatch(
+              block,
+              letterFillTextTarget,
+              patch,
+            ),
     );
 
     return;
@@ -6666,33 +6778,62 @@ function clearSelectedBackground() {
 
 function applyAppearancePatch(patch: AppearancePatch) {
 
-  if (selectedBlock?.type === "form_field") {
-  updateSelectedBlock((block) =>
-    block.type !== "form_field"
-      ? block
-      : applyFormFieldStylePatch(
-          block,
-          formFieldStyleTarget,
-          patch,
-        ),
+if (
+  selectedBlock?.type ===
+  "form_field"
+) {
+  updateSelectedBlock(
+    (block) =>
+      block.type !==
+      "form_field"
+        ? block
+        : applyFormFieldStylePatch(
+            block,
+            formFieldStyleTarget,
+            patch,
+          ),
   );
 
   return;
 }
 
-  if (selectedBlock?.type === "process_flow") {
-    updateSelectedBlock((block) =>
-      block.type !== "process_flow"
+if (
+  selectedBlock?.type ===
+  "process_flow"
+) {
+  updateSelectedBlock(
+    (block) =>
+      block.type !==
+      "process_flow"
         ? block
         : applyProcessFlowStylePatch(
             block,
             processFlowStyleTarget,
             patch,
           ),
-    );
+  );
 
-    return;
-  }
+  return;
+}
+
+if (
+  selectedBlock?.type ===
+  "letter_fill"
+) {
+  updateSelectedBlock(
+    (block) =>
+      block.type !==
+      "letter_fill"
+        ? block
+        : applyLetterFillStylePatch(
+            block,
+            letterFillStyleTarget,
+            patch,
+          ),
+  );
+
+  return;
+}
 
 if (selectedBlock?.type === "checklist") {
   updateSelectedBlock((block) => {
@@ -17095,30 +17236,42 @@ const currentSlides =
     inspectorInputClass={inspectorInputClass}
   />
 ) : null}
-{!isMultiSelection && selectedBlock?.type === "process_flow" ? (
-<ProcessFlowInspector
-  selectedBlock={selectedBlock}
-  updateSelectedBlock={updateSelectedBlock}
 
-  processFlowTextTarget={processFlowTextTarget}
-  setProcessFlowTextTarget={setProcessFlowTextTarget}
+{!isMultiSelection &&
+selectedBlock?.type === "process_flow" ? (
+  <ProcessFlowInspector
+    selectedBlock={selectedBlock}
+    updateSelectedBlock={updateSelectedBlock}
+    processFlowTextTarget={processFlowTextTarget}
+    setProcessFlowTextTarget={setProcessFlowTextTarget}
+    processFlowStyleTarget={processFlowStyleTarget}
+    setProcessFlowStyleTarget={setProcessFlowStyleTarget}
+    makeClientId={makeClientId}
+    uploadImageToSelectedBlock={uploadImageToSelectedBlock}
+    CATEGORY_BUTTONS={CATEGORY_BUTTONS}
+    getIconNameFromUrl={getIconNameFromUrl}
+    inspectorCardClass={inspectorCardClass}
+    inspectorLabelClass={inspectorLabelClass}
+    inspectorInputClass={inspectorInputClass}
+    inspectorTextareaClass={inspectorTextareaClass}
+    toolSetButtonClass={toolSetButtonClass}
+  />
+) : null}
 
-  processFlowStyleTarget={processFlowStyleTarget}
-  setProcessFlowStyleTarget={setProcessFlowStyleTarget}
-
-  makeClientId={makeClientId}
-  uploadImageToSelectedBlock={uploadImageToSelectedBlock}
-
-  CATEGORY_BUTTONS={CATEGORY_BUTTONS}
-  getIconNameFromUrl={getIconNameFromUrl}
-
-  inspectorCardClass={inspectorCardClass}
-  inspectorLabelClass={inspectorLabelClass}
-  inspectorInputClass={inspectorInputClass}
-  inspectorTextareaClass={inspectorTextareaClass}
-
-  toolSetButtonClass={toolSetButtonClass}
-/>
+{!isMultiSelection &&
+selectedBlock?.type === "letter_fill" ? (
+  <LetterFillInspector
+    selectedBlock={selectedBlock}
+    updateSelectedBlock={updateSelectedBlock}
+    letterFillTextTarget={letterFillTextTarget}
+    setLetterFillTextTarget={setLetterFillTextTarget}
+    letterFillStyleTarget={letterFillStyleTarget}
+    setLetterFillStyleTarget={setLetterFillStyleTarget}
+    inspectorCardClass={inspectorCardClass}
+    inspectorLabelClass={inspectorLabelClass}
+    inspectorInputClass={inspectorInputClass}
+    inspectorTextareaClass={inspectorTextareaClass}
+  />
 ) : null}
 
 {!isMultiSelection &&

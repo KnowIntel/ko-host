@@ -6073,6 +6073,1391 @@ const cardWidth =
   );
 }
 
+function renderLetterFill(
+  block: Extract<
+    MicrositeBlock,
+    { type: "letter_fill" }
+  >,
+  designKey?: string,
+) {
+  function LetterFillLive() {
+    const data =
+      block.data as any;
+
+    const appearanceStyle =
+      getAppearanceStyle(
+        block,
+      );
+
+    /* ==============================================================
+       CONTENT
+       ============================================================== */
+
+const answer: string =
+  typeof data.answer === "string"
+    ? (data.answer as string)
+    : "";
+
+const answerCharacters: string[] =
+  Array.from(
+    answer.replace(
+      /\r\n/g,
+      "\n",
+    ),
+  );
+
+    const styleVariant =
+      data.styleVariant ??
+      "square";
+
+    const caseMode =
+      data.caseMode ??
+      "uppercase";
+
+    const validationMode =
+      data.validationMode ??
+      "manual";
+
+    const cellSize =
+      Math.max(
+        28,
+        Math.min(
+          96,
+          Number(
+            data.cellSize ??
+              52,
+          ),
+        ),
+      );
+
+    const cellGap =
+      Math.max(
+        0,
+        Math.min(
+          48,
+          Number(
+            data.cellGap ??
+              10,
+          ),
+        ),
+      );
+
+    const maxAttempts =
+      Math.max(
+        0,
+        Math.floor(
+          Number(
+            data.maxAttempts ??
+              0,
+          ),
+        ),
+      );
+
+    /* ==============================================================
+       TEXT STYLES
+       ============================================================== */
+
+    const headingStyle =
+      getContainerTextStyle(
+        data.headingStyle ??
+          data.style ??
+          {},
+        designKey,
+      );
+
+    const instructionsStyle =
+      getContainerTextStyle(
+        data.instructionsStyle ??
+          data.style ??
+          {},
+        designKey,
+      );
+
+    const cellTextStyle =
+      getContainerTextStyle(
+        data.cellTextStyle ??
+          data.style ??
+          {},
+        designKey,
+      );
+
+    const checkButtonTextStyle =
+      getContainerTextStyle(
+        data.checkButtonTextStyle ??
+          data.style ??
+          {},
+        designKey,
+      );
+
+    const resetButtonTextStyle =
+      getContainerTextStyle(
+        data.resetButtonTextStyle ??
+          data.style ??
+          {},
+        designKey,
+      );
+
+    const successMessageStyle =
+      getContainerTextStyle(
+        data.successMessageStyle ??
+          data.style ??
+          {},
+        designKey,
+      );
+
+    const errorMessageStyle =
+      getContainerTextStyle(
+        data.errorMessageStyle ??
+          data.style ??
+          {},
+        designKey,
+      );
+
+    /* ==============================================================
+       APPEARANCE TARGETS
+       ============================================================== */
+
+    const cellStyle =
+      data.cellStyle ??
+      {};
+
+    const correctCellStyle =
+      data.correctCellStyle ??
+      {};
+
+    const incorrectCellStyle =
+      data.incorrectCellStyle ??
+      {};
+
+    const checkButtonStyle =
+      data.checkButtonStyle ??
+      {};
+
+    const resetButtonStyle =
+      data.resetButtonStyle ??
+      {};
+
+    /* ==============================================================
+       EDITABLE CHARACTER MAP
+       ============================================================== */
+
+    function isEditableCharacter(
+      character: string,
+    ) {
+      /*
+       * Letters and numbers become visitor inputs.
+       *
+       * Spaces, punctuation, hyphens, apostrophes, etc.
+       * remain visible fixed separators.
+       */
+      return /[\p{L}\p{N}]/u.test(
+        character,
+      );
+    }
+
+    const editableEntries =
+      answerCharacters
+        .map(
+          (
+            character,
+            sourceIndex,
+          ) => ({
+            character,
+            sourceIndex,
+          }),
+        )
+        .filter(
+          (entry) =>
+            isEditableCharacter(
+              entry.character,
+            ),
+        );
+
+    const editableIndexBySource =
+      new Map<
+        number,
+        number
+      >();
+
+    editableEntries.forEach(
+      (
+        entry,
+        editableIndex,
+      ) => {
+        editableIndexBySource.set(
+          entry.sourceIndex,
+          editableIndex,
+        );
+      },
+    );
+
+    /* ==============================================================
+       STATE
+       ============================================================== */
+
+    const [
+      values,
+      setValues,
+    ] = useState<string[]>(
+      () =>
+        Array.from(
+          {
+            length:
+              editableEntries.length,
+          },
+          () => "",
+        ),
+    );
+
+    const [
+      attempts,
+      setAttempts,
+    ] = useState(0);
+
+    const [
+      validationState,
+      setValidationState,
+    ] = useState<
+      | "idle"
+      | "correct"
+      | "incorrect"
+    >("idle");
+
+    const [
+      revealed,
+      setRevealed,
+    ] = useState(false);
+
+    /*
+     * Keep visitor state synchronized when the owner edits
+     * the answer while working in the builder.
+     */
+    useEffect(() => {
+      setValues(
+        Array.from(
+          {
+            length:
+              editableEntries.length,
+          },
+          () => "",
+        ),
+      );
+
+      setAttempts(0);
+
+      setValidationState(
+        "idle",
+      );
+
+      setRevealed(false);
+    }, [answer]);
+
+    /* ==============================================================
+       NORMALIZATION
+       ============================================================== */
+
+    function normalizeCharacter(
+      value: string,
+    ) {
+      const character =
+        Array.from(value)[0] ??
+        "";
+
+      if (
+        caseMode ===
+        "uppercase"
+      ) {
+        return character.toUpperCase();
+      }
+
+      if (
+        caseMode ===
+        "lowercase"
+      ) {
+        return character.toLowerCase();
+      }
+
+      return character;
+    }
+
+    function normalizeForComparison(
+      value: string,
+    ) {
+      if (
+        caseMode ===
+        "uppercase"
+      ) {
+        return value.toUpperCase();
+      }
+
+      if (
+        caseMode ===
+        "lowercase"
+      ) {
+        return value.toLowerCase();
+      }
+
+      return value;
+    }
+
+    function expectedCharacterAt(
+      editableIndex: number,
+    ) {
+      return normalizeForComparison(
+        editableEntries[
+          editableIndex
+        ]?.character ??
+          "",
+      );
+    }
+
+    function enteredCharacterAt(
+      editableIndex: number,
+    ) {
+      return normalizeForComparison(
+        values[
+          editableIndex
+        ] ??
+          "",
+      );
+    }
+
+    function isCharacterCorrect(
+      editableIndex: number,
+    ) {
+      const entered =
+        enteredCharacterAt(
+          editableIndex,
+        );
+
+      if (!entered) {
+        return false;
+      }
+
+      return (
+        entered ===
+        expectedCharacterAt(
+          editableIndex,
+        )
+      );
+    }
+
+    const allFilled =
+      editableEntries.length >
+        0 &&
+      values.every(
+        (value) =>
+          value.length > 0,
+      );
+
+    const answerIsCorrect =
+      editableEntries.length >
+        0 &&
+      editableEntries.every(
+        (
+          _entry,
+          editableIndex,
+        ) =>
+          isCharacterCorrect(
+            editableIndex,
+          ),
+      );
+
+    const attemptsExhausted =
+      maxAttempts > 0 &&
+      attempts >=
+        maxAttempts;
+
+    /* ==============================================================
+       FOCUS
+       ============================================================== */
+
+    function getInputId(
+      editableIndex: number,
+    ) {
+      return `letter-fill-${block.id}-${editableIndex}`;
+    }
+
+    function focusInput(
+      editableIndex: number,
+    ) {
+      if (
+        editableIndex < 0 ||
+        editableIndex >=
+          editableEntries.length
+      ) {
+        return;
+      }
+
+      const element =
+        document.getElementById(
+          getInputId(
+            editableIndex,
+          ),
+        ) as
+          | HTMLInputElement
+          | null;
+
+      element?.focus();
+      element?.select();
+    }
+
+    /* ==============================================================
+       VALIDATION
+       ============================================================== */
+
+    function validateAnswer(
+      countAttempt:
+        boolean = true,
+    ) {
+      if (
+        !editableEntries.length
+      ) {
+        return;
+      }
+
+      if (
+        answerIsCorrect
+      ) {
+        setValidationState(
+          "correct",
+        );
+
+        return;
+      }
+
+      if (
+        countAttempt
+      ) {
+        const nextAttempts =
+          attempts + 1;
+
+        setAttempts(
+          nextAttempts,
+        );
+
+        if (
+          maxAttempts > 0 &&
+          nextAttempts >=
+            maxAttempts &&
+          data.revealAnswerAfterAttempts ===
+            true
+        ) {
+          setRevealed(
+            true,
+          );
+        }
+      }
+
+      setValidationState(
+        "incorrect",
+      );
+    }
+
+    function resetAnswer() {
+      setValues(
+        Array.from(
+          {
+            length:
+              editableEntries.length,
+          },
+          () => "",
+        ),
+      );
+
+      setAttempts(0);
+
+      setValidationState(
+        "idle",
+      );
+
+      setRevealed(false);
+
+      window.setTimeout(
+        () =>
+          focusInput(0),
+        0,
+      );
+    }
+
+    /* ==============================================================
+       INPUT
+       ============================================================== */
+
+    function updateCharacter(
+      editableIndex: number,
+      rawValue: string,
+    ) {
+      const nextCharacter =
+        normalizeCharacter(
+          rawValue,
+        );
+
+      const nextValues = [
+        ...values,
+      ];
+
+      nextValues[
+        editableIndex
+      ] = nextCharacter;
+
+      setValues(
+        nextValues,
+      );
+
+      setValidationState(
+        "idle",
+      );
+
+      /*
+       * LIVE:
+       * individual cells immediately reflect correctness.
+       */
+      if (
+        validationMode ===
+        "live"
+      ) {
+        const complete =
+          nextValues.every(
+            (value) =>
+              value.length >
+              0,
+          );
+
+        if (complete) {
+          const correct =
+            editableEntries.every(
+              (
+                entry,
+                index,
+              ) =>
+                normalizeForComparison(
+                  nextValues[
+                    index
+                  ] ??
+                    "",
+                ) ===
+                normalizeForComparison(
+                  entry.character,
+                ),
+            );
+
+          setValidationState(
+            correct
+              ? "correct"
+              : "incorrect",
+          );
+        }
+      }
+
+      /*
+       * ON COMPLETE:
+       * validate once the visitor fills the final blank.
+       */
+      if (
+        validationMode ===
+        "on_complete"
+      ) {
+        const complete =
+          nextValues.every(
+            (value) =>
+              value.length >
+              0,
+          );
+
+        if (complete) {
+          const correct =
+            editableEntries.every(
+              (
+                entry,
+                index,
+              ) =>
+                normalizeForComparison(
+                  nextValues[
+                    index
+                  ] ??
+                    "",
+                ) ===
+                normalizeForComparison(
+                  entry.character,
+                ),
+            );
+
+          if (correct) {
+            setValidationState(
+              "correct",
+            );
+          } else {
+            const nextAttempts =
+              attempts + 1;
+
+            setAttempts(
+              nextAttempts,
+            );
+
+            setValidationState(
+              "incorrect",
+            );
+
+            if (
+              maxAttempts >
+                0 &&
+              nextAttempts >=
+                maxAttempts &&
+              data.revealAnswerAfterAttempts ===
+                true
+            ) {
+              setRevealed(
+                true,
+              );
+            }
+          }
+        }
+      }
+
+      if (
+        nextCharacter &&
+        editableIndex <
+          editableEntries.length -
+            1
+      ) {
+        window.setTimeout(
+          () =>
+            focusInput(
+              editableIndex +
+                1,
+            ),
+          0,
+        );
+      }
+    }
+
+    function handleKeyDown(
+      event:
+        React.KeyboardEvent<HTMLInputElement>,
+      editableIndex:
+        number,
+    ) {
+      if (
+        event.key ===
+          "Backspace" &&
+        !values[
+          editableIndex
+        ] &&
+        editableIndex >
+          0
+      ) {
+        event.preventDefault();
+
+        focusInput(
+          editableIndex -
+            1,
+        );
+
+        return;
+      }
+
+      if (
+        event.key ===
+        "ArrowLeft"
+      ) {
+        event.preventDefault();
+
+        focusInput(
+          editableIndex -
+            1,
+        );
+
+        return;
+      }
+
+      if (
+        event.key ===
+        "ArrowRight"
+      ) {
+        event.preventDefault();
+
+        focusInput(
+          editableIndex +
+            1,
+        );
+      }
+    }
+
+    function handlePaste(
+      event:
+        React.ClipboardEvent<HTMLInputElement>,
+      editableIndex:
+        number,
+    ) {
+      const pasted =
+        event.clipboardData.getData(
+          "text",
+        );
+
+      const characters =
+        Array.from(
+          pasted,
+        )
+          .filter(
+            (character) =>
+              isEditableCharacter(
+                character,
+              ),
+          )
+          .map(
+            (character) =>
+              normalizeCharacter(
+                character,
+              ),
+          );
+
+      if (
+        characters.length <=
+        1
+      ) {
+        return;
+      }
+
+      event.preventDefault();
+
+      const nextValues = [
+        ...values,
+      ];
+
+      characters.forEach(
+        (
+          character,
+          offset,
+        ) => {
+          const targetIndex =
+            editableIndex +
+            offset;
+
+          if (
+            targetIndex >=
+            editableEntries.length
+          ) {
+            return;
+          }
+
+          nextValues[
+            targetIndex
+          ] = character;
+        },
+      );
+
+      setValues(
+        nextValues,
+      );
+
+      setValidationState(
+        "idle",
+      );
+
+      const lastIndex =
+        Math.min(
+          editableEntries.length -
+            1,
+          editableIndex +
+            characters.length,
+        );
+
+      window.setTimeout(
+        () =>
+          focusInput(
+            lastIndex,
+          ),
+        0,
+      );
+    }
+
+    /* ==============================================================
+       STYLE HELPERS
+       ============================================================== */
+
+    function getCellAppearance(
+      editableIndex:
+        number,
+    ): React.CSSProperties {
+      let resolved =
+        cellStyle;
+
+      const hasValue =
+        Boolean(
+          values[
+            editableIndex
+          ],
+        );
+
+      const showLiveState =
+        validationMode ===
+          "live" &&
+        hasValue;
+
+      const showCheckedState =
+        validationState !==
+          "idle" &&
+        hasValue;
+
+      if (
+        showLiveState ||
+        showCheckedState
+      ) {
+        resolved =
+          isCharacterCorrect(
+            editableIndex,
+          )
+            ? {
+                ...cellStyle,
+                ...correctCellStyle,
+              }
+            : {
+                ...cellStyle,
+                ...incorrectCellStyle,
+              };
+      }
+
+      if (
+        revealed
+      ) {
+        resolved = {
+          ...cellStyle,
+          ...correctCellStyle,
+        };
+      }
+
+      const borderWidth =
+        Math.max(
+          0,
+          Number(
+            resolved.borderWidth ??
+              (styleVariant ===
+              "underline"
+                ? 2
+                : 2),
+          ),
+        );
+
+      if (
+        styleVariant ===
+        "underline"
+      ) {
+        return {
+          backgroundColor:
+            "transparent",
+
+          borderTop:
+            "none",
+
+          borderLeft:
+            "none",
+
+          borderRight:
+            "none",
+
+          borderBottom:
+            `${Math.max(
+              1,
+              borderWidth,
+            )}px solid ${
+              resolved.borderColor ??
+              "#D1D5DB"
+            }`,
+
+          borderRadius:
+            0,
+
+          opacity:
+            typeof resolved.opacity ===
+            "number"
+              ? resolved.opacity
+              : 1,
+        };
+      }
+
+      return {
+        backgroundColor:
+          resolved.backgroundColor ??
+          "#FFFFFF",
+
+        borderColor:
+          resolved.borderColor ??
+          "#D1D5DB",
+
+        borderWidth:
+          `${borderWidth}px`,
+
+        borderStyle:
+          borderWidth > 0
+            ? "solid"
+            : "none",
+
+        borderRadius:
+          `${Math.max(
+            0,
+            Number(
+              resolved.borderRadius ??
+                10,
+            ),
+          )}px`,
+
+        opacity:
+          typeof resolved.opacity ===
+          "number"
+            ? resolved.opacity
+            : 1,
+      };
+    }
+
+    function getButtonAppearance(
+      targetStyle:
+        Record<
+          string,
+          any
+        >,
+      fallbackBackground:
+        string,
+      fallbackBorder:
+        string,
+    ): React.CSSProperties {
+      const borderWidth =
+        Math.max(
+          0,
+          Number(
+            targetStyle.borderWidth ??
+              0,
+          ),
+        );
+
+      return {
+        backgroundColor:
+          targetStyle.backgroundColor ??
+          fallbackBackground,
+
+        borderColor:
+          targetStyle.borderColor ??
+          fallbackBorder,
+
+        borderWidth:
+          `${borderWidth}px`,
+
+        borderStyle:
+          borderWidth > 0
+            ? "solid"
+            : "none",
+
+        borderRadius:
+          `${Math.max(
+            0,
+            Number(
+              targetStyle.borderRadius ??
+                12,
+            ),
+          )}px`,
+
+        opacity:
+          typeof targetStyle.opacity ===
+          "number"
+            ? targetStyle.opacity
+            : 1,
+      };
+    }
+
+    /* ==============================================================
+       RENDER
+       ============================================================== */
+
+    return (
+      <div
+        className="pointer-events-auto h-full w-full overflow-auto"
+        style={
+          appearanceStyle
+        }
+        onPointerDown={(
+          event,
+        ) => {
+          event.stopPropagation();
+        }}
+        onMouseDown={(
+          event,
+        ) => {
+          event.stopPropagation();
+        }}
+        onClick={(
+          event,
+        ) => {
+          event.stopPropagation();
+        }}
+      >
+        <div className="flex min-h-full w-full flex-col p-4">
+          {/* HEADING */}
+
+          {data.heading ? (
+            <div
+              style={
+                headingStyle
+              }
+            >
+              {
+                data.heading
+              }
+            </div>
+          ) : null}
+
+          {/* INSTRUCTIONS */}
+
+          {data.instructions ? (
+            <div
+              className="mt-2"
+              style={
+                instructionsStyle
+              }
+            >
+              {
+                data.instructions
+              }
+            </div>
+          ) : null}
+
+
+          {/* BLANKS */}
+
+          {answerCharacters.length > 0 ? (
+            <div
+              className="mt-5 flex w-full flex-wrap items-end"
+              style={{
+                gap: `${cellGap}px`,
+
+                justifyContent:
+                  cellTextStyle.textAlign ===
+                  "center"
+                    ? "center"
+                    : cellTextStyle.textAlign ===
+                        "right"
+                      ? "flex-end"
+                      : "flex-start",
+              }}
+            >
+              {answerCharacters.map(
+                (
+                  character,
+                  sourceIndex,
+                ) => {
+                  /*
+                   * SPACE
+                   */
+                  if (
+                    character === " "
+                  ) {
+                    return (
+                      <div
+                        key={`letter-fill-space-${sourceIndex}`}
+                        aria-hidden="true"
+                        style={{
+                          width: `${Math.max(
+                            12,
+                            cellSize * 0.55,
+                          )}px`,
+
+                          height: `${cellSize}px`,
+                        }}
+                      />
+                    );
+                  }
+
+                  /*
+                   * LINE BREAK
+                   */
+                  if (
+                    character === "\n"
+                  ) {
+                    return (
+                      <div
+                        key={`letter-fill-break-${sourceIndex}`}
+                        className="basis-full"
+                        aria-hidden="true"
+                      />
+                    );
+                  }
+
+                  /*
+                   * FIXED PUNCTUATION
+                   */
+                  if (
+                    !isEditableCharacter(
+                      character,
+                    )
+                  ) {
+                    return (
+                      <div
+                        key={`letter-fill-fixed-${sourceIndex}`}
+                        className="flex items-end justify-center pb-1"
+                        aria-hidden="true"
+                        style={{
+                          width: `${Math.max(
+                            12,
+                            cellSize * 0.4,
+                          )}px`,
+
+                          height: `${cellSize}px`,
+
+                          ...cellTextStyle,
+
+                          textAlign: "center",
+                        }}
+                      >
+                        {character}
+                      </div>
+                    );
+                  }
+
+                  const editableIndex =
+                    editableIndexBySource.get(
+                      sourceIndex,
+                    );
+
+                  if (
+                    editableIndex ===
+                    undefined
+                  ) {
+                    return null;
+                  }
+
+                  const displayedValue =
+                    revealed
+                      ? normalizeCharacter(
+                          character,
+                        )
+                      : values[
+                          editableIndex
+                        ] ?? "";
+
+                  const disabled =
+                    validationState ===
+                      "correct" ||
+                    attemptsExhausted;
+
+                  return (
+                    <input
+                      key={`letter-fill-input-${sourceIndex}`}
+                      id={getInputId(
+                        editableIndex,
+                      )}
+                      type="text"
+                      inputMode="text"
+                      autoComplete="off"
+                      autoCorrect="off"
+                      autoCapitalize="off"
+                      spellCheck={false}
+                      maxLength={2}
+                      value={
+                        displayedValue
+                      }
+                      disabled={disabled}
+                      onChange={(
+                        event,
+                      ) =>
+                        updateCharacter(
+                          editableIndex,
+                          event.target
+                            .value,
+                        )
+                      }
+                      onKeyDown={(
+                        event,
+                      ) =>
+                        handleKeyDown(
+                          event,
+                          editableIndex,
+                        )
+                      }
+                      onPaste={(
+                        event,
+                      ) =>
+                        handlePaste(
+                          event,
+                          editableIndex,
+                        )
+                      }
+                      aria-label={`Character ${
+                        editableIndex + 1
+                      } of ${
+                        editableEntries.length
+                      }`}
+                      className="shrink-0 appearance-none bg-transparent text-center outline-none transition"
+                      style={{
+                        width: `${cellSize}px`,
+
+                        height: `${cellSize}px`,
+
+                        boxSizing:
+                          "border-box",
+
+                        caretColor:
+                          cellTextStyle.color ??
+                          "#111827",
+
+                        ...getCellAppearance(
+                          editableIndex,
+                        ),
+
+                        ...cellTextStyle,
+
+                        /*
+                         * The toolbar alignment controls
+                         * the group position above.
+                         * Characters themselves remain
+                         * centered inside their cells.
+                         */
+                        textAlign: "center",
+                      }}
+                    />
+                  );
+                },
+              )}
+            </div>
+          ) : (
+            <div className="mt-5 rounded-xl border border-dashed border-neutral-300 px-4 py-6 text-sm text-neutral-500">
+              Add a correct answer in the inspector.
+            </div>
+          )}
+
+          {/* BUTTONS */}
+
+          {(data.showCheckButton !==
+            false ||
+            data.showResetButton !==
+              false) &&
+          editableEntries.length >
+            0 ? (
+            <div className="mt-5 flex flex-wrap gap-2">
+              {data.showCheckButton !==
+                false &&
+              validationMode ===
+                "manual" ? (
+                <button
+                  type="button"
+                  disabled={
+                    !allFilled ||
+                    validationState ===
+                      "correct" ||
+                    attemptsExhausted
+                  }
+                  onClick={() =>
+                    validateAnswer(
+                      true,
+                    )
+                  }
+                  className="inline-flex min-h-11 items-center justify-center px-5 py-2 transition disabled:cursor-not-allowed disabled:opacity-50"
+                  style={{
+                    ...getButtonAppearance(
+                      checkButtonStyle,
+                      "#111827",
+                      "#111827",
+                    ),
+
+                    ...checkButtonTextStyle,
+                  }}
+                >
+                  {data.checkButtonText ??
+                    ""}
+                </button>
+              ) : null}
+
+              {data.showResetButton !==
+              false ? (
+                <button
+                  type="button"
+                  onClick={
+                    resetAnswer
+                  }
+                  className="inline-flex min-h-11 items-center justify-center px-5 py-2 transition"
+                  style={{
+                    ...getButtonAppearance(
+                      resetButtonStyle,
+                      "#FFFFFF",
+                      "#D1D5DB",
+                    ),
+
+                    ...resetButtonTextStyle,
+                  }}
+                >
+                  {data.resetButtonText ??
+                    ""}
+                </button>
+              ) : null}
+            </div>
+          ) : null}
+
+          {/* FEEDBACK */}
+
+          {validationState ===
+          "correct" ? (
+            <div
+              className="mt-4"
+              style={
+                successMessageStyle
+              }
+            >
+              {data.successMessage ??
+                ""}
+            </div>
+          ) : null}
+
+          {validationState ===
+            "incorrect" &&
+          !revealed ? (
+            <div
+              className="mt-4"
+              style={
+                errorMessageStyle
+              }
+            >
+              {data.errorMessage ??
+                ""}
+            </div>
+          ) : null}
+
+          {/* ATTEMPTS */}
+
+          {maxAttempts >
+            0 &&
+          validationState !==
+            "correct" ? (
+            <div className="mt-2 text-xs opacity-60">
+              {Math.min(
+                attempts,
+                maxAttempts,
+              )}{" "}
+              of{" "}
+              {maxAttempts}{" "}
+              attempts used
+            </div>
+          ) : null}
+
+          {/* REVEALED STATE */}
+
+          {revealed ? (
+            <div
+              className="mt-4"
+              style={
+                successMessageStyle
+              }
+            >
+              Answer revealed.
+            </div>
+          ) : null}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <LetterFillLive />
+  );
+}
+
 function renderStatisticCards(
   block: Extract<MicrositeBlock, { type: "statistic_cards" }>,
   designKey?: string,
@@ -35280,7 +36665,16 @@ case "timeline":
   return renderTimeline(block, designKey, onFocusTimelineEntry);
 
 case "process_flow":
-  return renderProcessFlow(block, designKey);
+  return renderProcessFlow(
+    block,
+    designKey,
+  );
+
+case "letter_fill":
+  return renderLetterFill(
+    block,
+    designKey,
+  );
 
 case "statistic_cards":
   return renderStatisticCards(block, designKey);

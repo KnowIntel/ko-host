@@ -900,6 +900,7 @@ const isInteractiveBlock =
   block.type === "schedule_agenda" ||
   block.type === "checklist" ||
   block.type === "rsvp" ||
+  block.type === "letter_fill" ||
   block.type === "form_field" ||
   block.type === "poll" ||
   block.type === "thread" ||

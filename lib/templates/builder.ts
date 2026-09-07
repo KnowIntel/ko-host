@@ -115,6 +115,7 @@ export type BuilderBlockType =
   | "wave"
   | "label"
   | "text_fx"
+  | "letter_fill"
   | "image"
   | "icon"
   | "image_carousel"
@@ -2015,32 +2016,199 @@ badgeSize?: number;
 
 export type RichTextBlock = BaseBlock & {
   type: "rich_text";
-data: {
-  title?: string;
-  content: string;
-  contentHtml?: string;
-  contentJson?: unknown;
-  plainText?: string;
-  pasteMode?: "keep" | "match" | "plain";
-  style?: TextStyle;
-  typography?: {
-    fontFamily?: string;
-    fontSize?: number;
-    color?: string;
-    lineHeight?: number;
-    letterSpacing?: number;
-    paragraphSpacing?: number;
-    textAlign?: TextAlign;
+
+  data: {
+    title?: string;
+
+    content: string;
+
+    contentHtml?: string;
+
+    contentJson?: unknown;
+
+    plainText?: string;
+
+    pasteMode?:
+      | "keep"
+      | "match"
+      | "plain";
+
+    style?: TextStyle;
+
+    typography?: {
+      fontFamily?: string;
+
+      fontSize?: number;
+
+      color?: string;
+
+      lineHeight?: number;
+
+      letterSpacing?: number;
+
+      paragraphSpacing?: number;
+
+      textAlign?: TextAlign;
+    };
+
+    behavior?: {
+      maxHeight?: number;
+
+      scrollable?: boolean;
+
+      preserveFormatting?: boolean;
+    };
+
+    listType?:
+      | "none"
+      | "bullet"
+      | "number";
+
+    linkUrl?: string;
   };
-  behavior?: {
-    maxHeight?: number;
-    scrollable?: boolean;
-    preserveFormatting?: boolean;
+};
+
+/* ================================================================
+   LETTER FILL
+   ================================================================ */
+
+export type LetterFillStyleVariant =
+  | "square"
+  | "underline";
+
+export type LetterFillCaseMode =
+  | "preserve"
+  | "uppercase"
+  | "lowercase";
+
+export type LetterFillValidationMode =
+  | "live"
+  | "on_complete"
+  | "manual";
+
+export type LetterFillCellStyle = {
+  backgroundColor?: string;
+
+  backgroundOpacity?: number;
+
+  borderColor?: string;
+
+  borderWidth?: number;
+
+  borderRadius?: number;
+
+  opacity?: number;
+};
+
+export type LetterFillBlock =
+  BaseBlock & {
+    type: "letter_fill";
+
+    data: {
+      /*
+       * ============================================================
+       * CONTENT
+       * ============================================================
+       */
+
+      heading?: string;
+
+      instructions?: string;
+
+      /*
+       * Hidden answer used to generate the visible character cells.
+       *
+       * Example:
+       * APPLE
+       * NEW YORK
+       * DON'T
+       */
+      answer: string;
+
+      /*
+       * ============================================================
+       * LAYOUT
+       * ============================================================
+       */
+
+      styleVariant?:
+        LetterFillStyleVariant;
+
+      caseMode?:
+        LetterFillCaseMode;
+
+      cellSize?: number;
+
+      cellGap?: number;
+
+      /*
+       * ============================================================
+       * VALIDATION
+       * ============================================================
+       */
+
+      validationMode?:
+        LetterFillValidationMode;
+
+      showCheckButton?: boolean;
+
+      checkButtonText?: string;
+
+      showResetButton?: boolean;
+
+      resetButtonText?: string;
+
+      maxAttempts?: number;
+
+      revealAnswerAfterAttempts?: boolean;
+
+      successMessage?: string;
+
+      errorMessage?: string;
+
+      /*
+       * ============================================================
+       * TEXT STYLES
+       * ============================================================
+       */
+
+      style?: TextStyle;
+
+      headingStyle?: TextStyle;
+
+      instructionsStyle?: TextStyle;
+
+      cellTextStyle?: TextStyle;
+
+      checkButtonTextStyle?: TextStyle;
+
+      resetButtonTextStyle?: TextStyle;
+
+      successMessageStyle?: TextStyle;
+
+      errorMessageStyle?: TextStyle;
+
+      /*
+       * ============================================================
+       * APPEARANCE / STYLE TARGETS
+       * ============================================================
+       */
+
+      cellStyle?: LetterFillCellStyle;
+
+      correctCellStyle?:
+        LetterFillCellStyle;
+
+      incorrectCellStyle?:
+        LetterFillCellStyle;
+
+      checkButtonStyle?:
+        LetterFillCellStyle;
+
+      resetButtonStyle?:
+        LetterFillCellStyle;
+    };
   };
-  listType?: "none" | "bullet" | "number";
-  linkUrl?: string;
-};
-};
 
 export type VideoBlock = BaseBlock & {
   type: "video";
@@ -4038,6 +4206,7 @@ export type MicrositeBlock = (
   | ContentPanelBlock
   | LabelBlock
   | TextFxBlock
+  | LetterFillBlock
   | ImageBlock
   | IconBlock
   | ImageCarouselBlock
@@ -4092,7 +4261,6 @@ export type MicrositeBlock = (
   contentPanelParentId?: string;
   contentPanelSlideId?: string;
 };
-
 /* =========================================
    Draft Model
    ========================================= */
@@ -5219,37 +5387,55 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
 case "text_fx":
   return {
     id: makeId("textfx"),
+
     type: "text_fx",
+
     label: "TextFX",
+
     grid,
 
     data: {
       text: "TextFX",
 
       positionX: 50,
+
       positionY: 50,
 
       style: {
         fontFamily: "Inter",
+
         fontSize: 32,
+
         bold: false,
+
         italic: false,
+
         underline: false,
+
         strike: false,
+
         align: "center",
+
         color: "#000000",
       },
 
       fx: {
         mode: "straight",
+
         intensity: 0,
+
         rotation: 0,
+
         opacity: 1,
 
-        transformStyle: "normal",
-        transformStrength: 100,
+        transformStyle:
+          "normal",
+
+        transformStrength:
+          100,
 
         letterScaleX: 1,
+
         letterScaleY: 1,
 
         letterColors: [],
@@ -5257,38 +5443,377 @@ case "text_fx":
         /*
          * DISTRESS
          */
-        distressEnabled: false,
-        distressStyle: "grunge",
-        distressAmount: 35,
-        distressScale: 45,
-        distressSeed: 17,
+
+        distressEnabled:
+          false,
+
+        distressStyle:
+          "grunge",
+
+        distressAmount:
+          35,
+
+        distressScale:
+          45,
+
+        distressSeed:
+          17,
 
         /*
          * SHADOW
          */
-        shadowEnabled: false,
-        shadowColor: "#000000",
-        shadowOffsetX: 2,
-        shadowOffsetY: 2,
-        shadowBlur: 4,
+
+        shadowEnabled:
+          false,
+
+        shadowColor:
+          "#000000",
+
+        shadowOffsetX:
+          2,
+
+        shadowOffsetY:
+          2,
+
+        shadowBlur:
+          4,
 
         /*
          * OUTLINE
          */
-        outlineEnabled: false,
-        outlineColor: "#000000",
-        outlineWidth: 2,
+
+        outlineEnabled:
+          false,
+
+        outlineColor:
+          "#000000",
+
+        outlineWidth:
+          2,
       },
     },
 
     appearance: {
-      backgroundColor: "transparent",
-      borderColor: "#000000",
+      backgroundColor:
+        "transparent",
+
+      borderColor:
+        "#000000",
+
       borderWidth: 0,
+
       borderRadius: 0,
     },
   };
-  
+
+case "letter_fill":
+  return {
+    id: makeId(
+      "letterfill",
+    ),
+
+    type:
+      "letter_fill",
+
+    label:
+      "Letter Fill",
+
+    grid: {
+      ...grid,
+
+      rowSpan:
+        Math.max(
+          2,
+          grid.rowSpan ??
+            2,
+        ),
+    },
+
+    appearance:
+      createDefaultBlockAppearance(),
+
+    data: {
+      /*
+       * ============================================================
+       * CONTENT
+       * ============================================================
+       */
+
+      heading:
+        "Spell the Word",
+
+      instructions:
+        "Enter one character in each blank.",
+
+      answer:
+        "APPLE",
+
+      /*
+       * ============================================================
+       * LAYOUT
+       * ============================================================
+       */
+
+      styleVariant:
+        "square",
+
+      caseMode:
+        "uppercase",
+
+      cellSize:
+        52,
+
+      cellGap:
+        10,
+
+      /*
+       * ============================================================
+       * VALIDATION
+       * ============================================================
+       */
+
+      validationMode:
+        "manual",
+
+      showCheckButton:
+        true,
+
+      checkButtonText:
+        "Check Answer",
+
+      showResetButton:
+        true,
+
+      resetButtonText:
+        "Reset",
+
+      maxAttempts:
+        0,
+
+      revealAnswerAfterAttempts:
+        false,
+
+      successMessage:
+        "Correct!",
+
+      errorMessage:
+        "Try again.",
+
+      /*
+       * ============================================================
+       * TEXT STYLES
+       * ============================================================
+       */
+
+      style:
+        createDefaultTextStyle(),
+
+      headingStyle: {
+        ...createDefaultTextStyle(),
+
+        fontSize:
+          24,
+
+        bold:
+          true,
+
+        align:
+          "center",
+      },
+
+      instructionsStyle: {
+        ...createDefaultTextStyle(),
+
+        fontSize:
+          14,
+
+        align:
+          "center",
+
+        color:
+          "#6B7280",
+      },
+
+      cellTextStyle: {
+        ...createDefaultTextStyle(),
+
+        fontSize:
+          24,
+
+        bold:
+          true,
+
+        align:
+          "center",
+
+        color:
+          "#111827",
+      },
+
+      checkButtonTextStyle: {
+        ...createDefaultTextStyle(),
+
+        fontSize:
+          14,
+
+        bold:
+          true,
+
+        align:
+          "center",
+
+        color:
+          "#FFFFFF",
+      },
+
+      resetButtonTextStyle: {
+        ...createDefaultTextStyle(),
+
+        fontSize:
+          14,
+
+        bold:
+          true,
+
+        align:
+          "center",
+
+        color:
+          "#111827",
+      },
+
+      successMessageStyle: {
+        ...createDefaultTextStyle(),
+
+        fontSize:
+          14,
+
+        bold:
+          true,
+
+        align:
+          "center",
+
+        color:
+          "#15803D",
+      },
+
+      errorMessageStyle: {
+        ...createDefaultTextStyle(),
+
+        fontSize:
+          14,
+
+        bold:
+          true,
+
+        align:
+          "center",
+
+        color:
+          "#B91C1C",
+      },
+
+      /*
+       * ============================================================
+       * CELL APPEARANCE
+       * ============================================================
+       */
+
+      cellStyle: {
+        backgroundColor:
+          "#FFFFFF",
+
+        borderColor:
+          "#D1D5DB",
+
+        borderWidth:
+          2,
+
+        borderRadius:
+          10,
+
+        opacity:
+          1,
+      },
+
+      correctCellStyle: {
+        backgroundColor:
+          "#F0FDF4",
+
+        borderColor:
+          "#22C55E",
+
+        borderWidth:
+          2,
+
+        borderRadius:
+          10,
+
+        opacity:
+          1,
+      },
+
+      incorrectCellStyle: {
+        backgroundColor:
+          "#FEF2F2",
+
+        borderColor:
+          "#EF4444",
+
+        borderWidth:
+          2,
+
+        borderRadius:
+          10,
+
+        opacity:
+          1,
+      },
+
+      /*
+       * ============================================================
+       * BUTTON APPEARANCE
+       * ============================================================
+       */
+
+      checkButtonStyle: {
+        backgroundColor:
+          "#111827",
+
+        borderColor:
+          "#111827",
+
+        borderWidth:
+          0,
+
+        borderRadius:
+          12,
+
+        opacity:
+          1,
+      },
+
+      resetButtonStyle: {
+        backgroundColor:
+          "#FFFFFF",
+
+        borderColor:
+          "#D1D5DB",
+
+        borderWidth:
+          1,
+
+        borderRadius:
+          12,
+
+        opacity:
+          1,
+      },
+    },
+  };
+
+
   case "image":
       return {
         id: makeId("image"),
