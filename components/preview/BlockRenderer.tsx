@@ -6093,18 +6093,23 @@ function renderLetterFill(
        CONTENT
        ============================================================== */
 
-const answer: string =
-  typeof data.answer === "string"
-    ? (data.answer as string)
-    : "";
+    const answer: string =
+      typeof data.answer ===
+      "string"
+        ? data.answer
+        : "";
 
-const answerCharacters: string[] =
-  Array.from(
-    answer.replace(
-      /\r\n/g,
-      "\n",
-    ),
-  );
+    const normalizedAnswer =
+      answer.replace(
+        /\r\n/g,
+        "\n",
+      );
+
+    const answerCharacters:
+      string[] =
+      Array.from(
+        normalizedAnswer,
+      );
 
     const styleVariant =
       data.styleVariant ??
@@ -6140,6 +6145,13 @@ const answerCharacters: string[] =
               10,
           ),
         ),
+      );
+
+    const wordGap =
+      Math.max(
+        12,
+        cellSize * 0.55 +
+          cellGap,
       );
 
     const maxAttempts =
@@ -6238,17 +6250,15 @@ const answerCharacters: string[] =
       {};
 
     /* ==============================================================
-       EDITABLE CHARACTER MAP
+       CHARACTER MAP
        ============================================================== */
 
     function isEditableCharacter(
       character: string,
     ) {
       /*
-       * Letters and numbers become visitor inputs.
-       *
-       * Spaces, punctuation, hyphens, apostrophes, etc.
-       * remain visible fixed separators.
+       * Letters and numbers are visitor inputs.
+       * Punctuation remains fixed and visible.
        */
       return /[\p{L}\p{N}]/u.test(
         character,
@@ -6292,6 +6302,101 @@ const answerCharacters: string[] =
     );
 
     /* ==============================================================
+       WORD GROUPS
+       ============================================================== */
+
+    type LetterFillWordGroup = {
+      type:
+        | "word"
+        | "break";
+
+      startIndex: number;
+
+      characters: Array<{
+        character: string;
+        sourceIndex: number;
+      }>;
+    };
+
+    const wordGroups:
+      LetterFillWordGroup[] =
+      [];
+
+    let currentWord:
+      LetterFillWordGroup["characters"] =
+      [];
+
+    let currentWordStart =
+      0;
+
+    function flushCurrentWord() {
+      if (
+        !currentWord.length
+      ) {
+        return;
+      }
+
+      wordGroups.push({
+        type: "word",
+
+        startIndex:
+          currentWordStart,
+
+        characters:
+          currentWord,
+      });
+
+      currentWord = [];
+    }
+
+    answerCharacters.forEach(
+      (
+        character,
+        sourceIndex,
+      ) => {
+        if (
+          character === "\n"
+        ) {
+          flushCurrentWord();
+
+          wordGroups.push({
+            type: "break",
+
+            startIndex:
+              sourceIndex,
+
+            characters: [],
+          });
+
+          return;
+        }
+
+        if (
+          character === " " ||
+          character === "\t"
+        ) {
+          flushCurrentWord();
+
+          return;
+        }
+
+        if (
+          !currentWord.length
+        ) {
+          currentWordStart =
+            sourceIndex;
+        }
+
+        currentWord.push({
+          character,
+          sourceIndex,
+        });
+      },
+    );
+
+    flushCurrentWord();
+
+    /* ==============================================================
        STATE
        ============================================================== */
 
@@ -6328,10 +6433,6 @@ const answerCharacters: string[] =
       setRevealed,
     ] = useState(false);
 
-    /*
-     * Keep visitor state synchronized when the owner edits
-     * the answer while working in the builder.
-     */
     useEffect(() => {
       setValues(
         Array.from(
@@ -6360,7 +6461,9 @@ const answerCharacters: string[] =
       value: string,
     ) {
       const character =
-        Array.from(value)[0] ??
+        Array.from(
+          value,
+        )[0] ??
         "";
 
       if (
@@ -6442,31 +6545,53 @@ const answerCharacters: string[] =
       );
     }
 
+    function checkValues(
+      nextValues:
+        string[],
+    ) {
+      return (
+        editableEntries.length >
+          0 &&
+        editableEntries.every(
+          (
+            entry,
+            index,
+          ) =>
+            normalizeForComparison(
+              nextValues[
+                index
+              ] ?? "",
+            ) ===
+            normalizeForComparison(
+              entry.character,
+            ),
+        )
+      );
+    }
+
     const allFilled =
       editableEntries.length >
         0 &&
       values.every(
         (value) =>
-          value.length > 0,
+          Boolean(value),
       );
 
     const answerIsCorrect =
-      editableEntries.length >
-        0 &&
-      editableEntries.every(
-        (
-          _entry,
-          editableIndex,
-        ) =>
-          isCharacterCorrect(
-            editableIndex,
-          ),
+      checkValues(
+        values,
       );
 
     const attemptsExhausted =
       maxAttempts > 0 &&
       attempts >=
         maxAttempts;
+
+    const isLocked =
+      validationState ===
+        "correct" ||
+      revealed ||
+      attemptsExhausted;
 
     /* ==============================================================
        FOCUS
@@ -6499,19 +6624,48 @@ const answerCharacters: string[] =
           | null;
 
       element?.focus();
+
       element?.select();
+    }
+
+    /* ==============================================================
+       ATTEMPTS
+       ============================================================== */
+
+    function registerIncorrectAttempt() {
+      const nextAttempts =
+        attempts + 1;
+
+      setAttempts(
+        nextAttempts,
+      );
+
+      setValidationState(
+        "incorrect",
+      );
+
+      if (
+        maxAttempts > 0 &&
+        nextAttempts >=
+          maxAttempts &&
+        data.revealAnswerAfterAttempts ===
+          true
+      ) {
+        setRevealed(
+          true,
+        );
+      }
     }
 
     /* ==============================================================
        VALIDATION
        ============================================================== */
 
-    function validateAnswer(
-      countAttempt:
-        boolean = true,
-    ) {
+    function validateAnswer() {
       if (
-        !editableEntries.length
+        !editableEntries.length ||
+        !allFilled ||
+        isLocked
       ) {
         return;
       }
@@ -6526,33 +6680,46 @@ const answerCharacters: string[] =
         return;
       }
 
-      if (
-        countAttempt
-      ) {
-        const nextAttempts =
-          attempts + 1;
+      registerIncorrectAttempt();
+    }
 
-        setAttempts(
-          nextAttempts,
+    function validateCompletedValues(
+      nextValues:
+        string[],
+    ) {
+      const complete =
+        nextValues.every(
+          (value) =>
+            Boolean(value),
         );
 
-        if (
-          maxAttempts > 0 &&
-          nextAttempts >=
-            maxAttempts &&
-          data.revealAnswerAfterAttempts ===
-            true
-        ) {
-          setRevealed(
-            true,
-          );
-        }
+      if (!complete) {
+        return;
       }
 
-      setValidationState(
-        "incorrect",
-      );
+      const correct =
+        checkValues(
+          nextValues,
+        );
+
+      if (correct) {
+        setValidationState(
+          "correct",
+        );
+
+        return;
+      }
+
+      /*
+       * Live mode highlights each character as it is typed.
+       * It does not consume an attempt until the full answer exists.
+       */
+      registerIncorrectAttempt();
     }
+
+    /* ==============================================================
+       RESET
+       ============================================================== */
 
     function resetAnswer() {
       setValues(
@@ -6574,8 +6741,11 @@ const answerCharacters: string[] =
       setRevealed(false);
 
       window.setTimeout(
-        () =>
-          focusInput(0),
+        () => {
+          focusInput(
+            0,
+          );
+        },
         0,
       );
     }
@@ -6585,9 +6755,16 @@ const answerCharacters: string[] =
        ============================================================== */
 
     function updateCharacter(
-      editableIndex: number,
-      rawValue: string,
+      editableIndex:
+        number,
+
+      rawValue:
+        string,
     ) {
+      if (isLocked) {
+        return;
+      }
+
       const nextCharacter =
         normalizeCharacter(
           rawValue,
@@ -6599,122 +6776,108 @@ const answerCharacters: string[] =
 
       nextValues[
         editableIndex
-      ] = nextCharacter;
+      ] =
+        nextCharacter;
 
       setValues(
         nextValues,
       );
 
-      setValidationState(
-        "idle",
+      /*
+       * Manual mode clears old feedback while editing.
+       */
+      if (
+        validationMode ===
+        "manual"
+      ) {
+        setValidationState(
+          "idle",
+        );
+      }
+
+      /*
+       * Live mode:
+       *
+       * individual cells immediately use correct / incorrect styling.
+       * When all fields are complete, also set the overall result.
+       */
+if (
+  validationMode ===
+  "live"
+) {
+  const complete =
+    nextValues.every(
+      (value) =>
+        Boolean(value),
+    );
+
+  if (complete) {
+    const correct =
+      checkValues(
+        nextValues,
       );
 
-      /*
-       * LIVE:
-       * individual cells immediately reflect correctness.
-       */
-      if (
-        validationMode ===
-        "live"
-      ) {
-        const complete =
-          nextValues.every(
-            (value) =>
-              value.length >
-              0,
-          );
-
-        if (complete) {
-          const correct =
-            editableEntries.every(
-              (
-                entry,
-                index,
-              ) =>
-                normalizeForComparison(
-                  nextValues[
-                    index
-                  ] ??
-                    "",
-                ) ===
-                normalizeForComparison(
-                  entry.character,
-                ),
-            );
-
-          setValidationState(
-            correct
-              ? "correct"
-              : "incorrect",
-          );
-        }
-      }
+    setValidationState(
+      correct
+        ? "correct"
+        : "incorrect",
+    );
+  } else {
+    setValidationState(
+      "idle",
+    );
+  }
+}
 
       /*
-       * ON COMPLETE:
-       * validate once the visitor fills the final blank.
+       * On Complete mode:
+       *
+       * wait until every field contains a character.
        */
-      if (
-        validationMode ===
-        "on_complete"
-      ) {
-        const complete =
-          nextValues.every(
-            (value) =>
-              value.length >
-              0,
-          );
+if (
+  validationMode ===
+  "on_complete"
+) {
+  const wasComplete =
+    values.every(
+      (value) =>
+        Boolean(value),
+    );
 
-        if (complete) {
-          const correct =
-            editableEntries.every(
-              (
-                entry,
-                index,
-              ) =>
-                normalizeForComparison(
-                  nextValues[
-                    index
-                  ] ??
-                    "",
-                ) ===
-                normalizeForComparison(
-                  entry.character,
-                ),
-            );
+  const isComplete =
+    nextValues.every(
+      (value) =>
+        Boolean(value),
+    );
 
-          if (correct) {
-            setValidationState(
-              "correct",
-            );
-          } else {
-            const nextAttempts =
-              attempts + 1;
+  if (
+    isComplete &&
+    !wasComplete
+  ) {
+    const correct =
+      checkValues(
+        nextValues,
+      );
 
-            setAttempts(
-              nextAttempts,
-            );
+    if (correct) {
+      setValidationState(
+        "correct",
+      );
+    } else {
+      registerIncorrectAttempt();
+    }
+  } else if (
+    !isComplete
+  ) {
+    setValidationState(
+      "idle",
+    );
+  }
+}
 
-            setValidationState(
-              "incorrect",
-            );
-
-            if (
-              maxAttempts >
-                0 &&
-              nextAttempts >=
-                maxAttempts &&
-              data.revealAnswerAfterAttempts ===
-                true
-            ) {
-              setRevealed(
-                true,
-              );
-            }
-          }
-        }
-      }
-
+      /*
+       * Auto advance.
+       */
       if (
         nextCharacter &&
         editableIndex <
@@ -6722,74 +6885,172 @@ const answerCharacters: string[] =
             1
       ) {
         window.setTimeout(
-          () =>
+          () => {
             focusInput(
               editableIndex +
                 1,
-            ),
+            );
+          },
           0,
         );
       }
     }
 
-    function handleKeyDown(
-      event:
-        React.KeyboardEvent<HTMLInputElement>,
-      editableIndex:
-        number,
+function handleKeyDown(
+  event:
+    React.KeyboardEvent<HTMLInputElement>,
+
+  editableIndex:
+    number,
+) {
+  if (isLocked) {
+    return;
+  }
+
+  /*
+   * ================================================================
+   * ENTER
+   * ================================================================
+   *
+   * Manual validation:
+   * pressing Enter checks the answer once every field is complete.
+   */
+  if (
+    event.key ===
+      "Enter"
+  ) {
+    event.preventDefault();
+
+if (
+  validationMode ===
+    "manual" &&
+  allFilled &&
+  !attemptsExhausted
+) {
+  validateAnswer();
+}
+
+return;
+  }
+
+  /*
+   * ================================================================
+   * BACKSPACE
+   * ================================================================
+   *
+   * Filled cell:
+   * allow the input to clear itself normally.
+   *
+   * Empty cell:
+   * move backward and clear the previous character.
+   */
+  if (
+    event.key ===
+      "Backspace"
+  ) {
+    if (
+      values[
+        editableIndex
+      ]
     ) {
-      if (
-        event.key ===
-          "Backspace" &&
-        !values[
-          editableIndex
-        ] &&
-        editableIndex >
-          0
-      ) {
-        event.preventDefault();
-
-        focusInput(
-          editableIndex -
-            1,
-        );
-
-        return;
-      }
-
-      if (
-        event.key ===
-        "ArrowLeft"
-      ) {
-        event.preventDefault();
-
-        focusInput(
-          editableIndex -
-            1,
-        );
-
-        return;
-      }
-
-      if (
-        event.key ===
-        "ArrowRight"
-      ) {
-        event.preventDefault();
-
-        focusInput(
-          editableIndex +
-            1,
-        );
-      }
+      return;
     }
+
+    if (
+      editableIndex >
+      0
+    ) {
+      event.preventDefault();
+
+      const previousIndex =
+        editableIndex -
+        1;
+
+      setValues(
+        (
+          currentValues,
+        ) => {
+          const nextValues = [
+            ...currentValues,
+          ];
+
+          nextValues[
+            previousIndex
+          ] = "";
+
+          return nextValues;
+        },
+      );
+
+      setValidationState(
+        "idle",
+      );
+
+      window.setTimeout(
+        () => {
+          focusInput(
+            previousIndex,
+          );
+        },
+        0,
+      );
+    }
+
+    return;
+  }
+
+  /*
+   * ================================================================
+   * LEFT ARROW
+   * ================================================================
+   */
+
+  if (
+    event.key ===
+      "ArrowLeft"
+  ) {
+    event.preventDefault();
+
+    focusInput(
+      editableIndex -
+        1,
+    );
+
+    return;
+  }
+
+  /*
+   * ================================================================
+   * RIGHT ARROW
+   * ================================================================
+   */
+
+  if (
+    event.key ===
+      "ArrowRight"
+  ) {
+    event.preventDefault();
+
+    focusInput(
+      editableIndex +
+        1,
+    );
+
+    return;
+  }
+}
 
     function handlePaste(
       event:
         React.ClipboardEvent<HTMLInputElement>,
+
       editableIndex:
         number,
     ) {
+      if (isLocked) {
+        return;
+      }
+
       const pasted =
         event.clipboardData.getData(
           "text",
@@ -6813,8 +7074,7 @@ const answerCharacters: string[] =
           );
 
       if (
-        characters.length <=
-        1
+        !characters.length
       ) {
         return;
       }
@@ -6851,23 +7111,100 @@ const answerCharacters: string[] =
         nextValues,
       );
 
-      setValidationState(
-        "idle",
-      );
+      const complete =
+        nextValues.every(
+          (value) =>
+            Boolean(value),
+        );
 
-      const lastIndex =
+if (
+  validationMode ===
+  "manual"
+) {
+  setValidationState(
+    "idle",
+  );
+} else if (
+  validationMode ===
+  "live"
+) {
+  if (complete) {
+    setValidationState(
+      checkValues(
+        nextValues,
+      )
+        ? "correct"
+        : "incorrect",
+    );
+  } else {
+    setValidationState(
+      "idle",
+    );
+  }
+} else if (
+  validationMode ===
+    "on_complete"
+) {
+  const wasComplete =
+    values.every(
+      (value) =>
+        Boolean(value),
+    );
+
+  if (
+    complete &&
+    !wasComplete
+  ) {
+    if (
+      checkValues(
+        nextValues,
+      )
+    ) {
+      setValidationState(
+        "correct",
+      );
+    } else {
+      registerIncorrectAttempt();
+    }
+  } else if (
+    !complete
+  ) {
+    setValidationState(
+      "idle",
+    );
+  }
+}
+
+      const insertedCount =
+        Math.min(
+          characters.length,
+          editableEntries.length -
+            editableIndex,
+        );
+
+      const lastInsertedIndex =
         Math.min(
           editableEntries.length -
             1,
           editableIndex +
-            characters.length,
+            insertedCount -
+            1,
+        );
+
+      const nextFocusIndex =
+        Math.min(
+          editableEntries.length -
+            1,
+          lastInsertedIndex +
+            1,
         );
 
       window.setTimeout(
-        () =>
+        () => {
           focusInput(
-            lastIndex,
-          ),
+            nextFocusIndex,
+          );
+        },
         0,
       );
     }
@@ -6890,11 +7227,18 @@ const answerCharacters: string[] =
           ],
         );
 
+      /*
+       * Live validation gives immediate per-character feedback.
+       */
       const showLiveState =
         validationMode ===
           "live" &&
         hasValue;
 
+      /*
+       * Manual / complete validation gives cell feedback after
+       * the answer has actually been checked.
+       */
       const showCheckedState =
         validationState !==
           "idle" &&
@@ -6918,9 +7262,7 @@ const answerCharacters: string[] =
               };
       }
 
-      if (
-        revealed
-      ) {
+      if (revealed) {
         resolved = {
           ...cellStyle,
           ...correctCellStyle,
@@ -6932,10 +7274,7 @@ const answerCharacters: string[] =
           0,
           Number(
             resolved.borderWidth ??
-              (styleVariant ===
-              "underline"
-                ? 2
-                : 2),
+              2,
           ),
         );
 
@@ -7016,8 +7355,10 @@ const answerCharacters: string[] =
           string,
           any
         >,
+
       fallbackBackground:
         string,
+
       fallbackBorder:
         string,
     ): React.CSSProperties {
@@ -7065,12 +7406,156 @@ const answerCharacters: string[] =
     }
 
     /* ==============================================================
+       CELL RENDERER
+       ============================================================== */
+
+    function renderCharacter(
+      character:
+        string,
+
+      sourceIndex:
+        number,
+    ) {
+      /*
+       * FIXED PUNCTUATION
+       */
+      if (
+        !isEditableCharacter(
+          character,
+        )
+      ) {
+        return (
+          <div
+            key={`letter-fill-fixed-${sourceIndex}`}
+            className="flex shrink-0 items-end justify-center pb-1"
+            aria-hidden="true"
+            style={{
+              width:
+                `${Math.max(
+                  12,
+                  cellSize *
+                    0.4,
+                )}px`,
+
+              height:
+                `${cellSize}px`,
+
+              ...cellTextStyle,
+
+              textAlign:
+                "center",
+            }}
+          >
+            {character}
+          </div>
+        );
+      }
+
+      const editableIndex =
+        editableIndexBySource.get(
+          sourceIndex,
+        );
+
+      if (
+        editableIndex ===
+        undefined
+      ) {
+        return null;
+      }
+
+      const displayedValue =
+        revealed
+          ? normalizeCharacter(
+              character,
+            )
+          : values[
+              editableIndex
+            ] ?? "";
+
+      return (
+        <input
+          key={`letter-fill-input-${sourceIndex}`}
+          id={getInputId(
+            editableIndex,
+          )}
+          type="text"
+          inputMode="text"
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck={false}
+          maxLength={2}
+          value={
+            displayedValue
+          }
+          disabled={
+            isLocked
+          }
+          onChange={(
+            event,
+          ) =>
+            updateCharacter(
+              editableIndex,
+              event.target
+                .value,
+            )
+          }
+          onKeyDown={(
+            event,
+          ) =>
+            handleKeyDown(
+              event,
+              editableIndex,
+            )
+          }
+          onPaste={(
+            event,
+          ) =>
+            handlePaste(
+              event,
+              editableIndex,
+            )
+          }
+          aria-label={`Character ${
+            editableIndex + 1
+          } of ${
+            editableEntries.length
+          }`}
+          className="shrink-0 appearance-none bg-transparent text-center outline-none transition"
+          style={{
+            width:
+              `${cellSize}px`,
+
+            height:
+              `${cellSize}px`,
+
+            boxSizing:
+              "border-box",
+
+            caretColor:
+              cellTextStyle.color ??
+              "#111827",
+
+            ...getCellAppearance(
+              editableIndex,
+            ),
+
+            ...cellTextStyle,
+
+            textAlign:
+              "center",
+          }}
+        />
+      );
+    }
+
+    /* ==============================================================
        RENDER
        ============================================================== */
 
     return (
       <div
-        className="pointer-events-auto h-full w-full overflow-auto"
+        className="pointer-events-auto h-full w-full overflow-visible"
         style={
           appearanceStyle
         }
@@ -7091,7 +7576,9 @@ const answerCharacters: string[] =
         }}
       >
         <div className="flex min-h-full w-full flex-col p-4">
+          {/* ======================================================== */}
           {/* HEADING */}
+          {/* ======================================================== */}
 
           {data.heading ? (
             <div
@@ -7099,13 +7586,13 @@ const answerCharacters: string[] =
                 headingStyle
               }
             >
-              {
-                data.heading
-              }
+              {data.heading}
             </div>
           ) : null}
 
+          {/* ======================================================== */}
           {/* INSTRUCTIONS */}
+          {/* ======================================================== */}
 
           {data.instructions ? (
             <div
@@ -7120,14 +7607,58 @@ const answerCharacters: string[] =
             </div>
           ) : null}
 
-
+          {/* ======================================================== */}
           {/* BLANKS */}
+          {/* ======================================================== */}
 
-          {answerCharacters.length > 0 ? (
-            <div
-              className="mt-5 flex w-full flex-wrap items-end"
-              style={{
-                gap: `${cellGap}px`,
+          {answerCharacters.length >
+          0 ? (
+<div
+  className="mt-5 flex w-full cursor-text flex-wrap items-end"
+  onClick={(event) => {
+    /*
+     * Clicking directly on a character field
+     * should preserve normal input behavior.
+     */
+    if (
+      event.target instanceof
+        HTMLInputElement
+    ) {
+      return;
+    }
+
+    /*
+     * Focus the first unanswered character.
+     */
+    const firstEmptyIndex =
+      values.findIndex(
+        (value) => !value,
+      );
+
+    /*
+     * If everything is filled, focus the
+     * final character instead.
+     */
+    const targetIndex =
+      firstEmptyIndex >= 0
+        ? firstEmptyIndex
+        : editableEntries.length - 1;
+
+    if (targetIndex >= 0) {
+      focusInput(
+        targetIndex,
+      );
+    }
+  }}
+  style={{
+                columnGap:
+                  `${wordGap}px`,
+
+                rowGap:
+                  `${Math.max(
+                    cellGap,
+                    10,
+                  )}px`,
 
                 justifyContent:
                   cellTextStyle.textAlign ===
@@ -7139,42 +7670,18 @@ const answerCharacters: string[] =
                       : "flex-start",
               }}
             >
-              {answerCharacters.map(
+              {wordGroups.map(
                 (
-                  character,
-                  sourceIndex,
+                  group,
+                  groupIndex,
                 ) => {
-                  /*
-                   * SPACE
-                   */
                   if (
-                    character === " "
+                    group.type ===
+                    "break"
                   ) {
                     return (
                       <div
-                        key={`letter-fill-space-${sourceIndex}`}
-                        aria-hidden="true"
-                        style={{
-                          width: `${Math.max(
-                            12,
-                            cellSize * 0.55,
-                          )}px`,
-
-                          height: `${cellSize}px`,
-                        }}
-                      />
-                    );
-                  }
-
-                  /*
-                   * LINE BREAK
-                   */
-                  if (
-                    character === "\n"
-                  ) {
-                    return (
-                      <div
-                        key={`letter-fill-break-${sourceIndex}`}
+                        key={`letter-fill-break-${group.startIndex}`}
                         className="basis-full"
                         aria-hidden="true"
                       />
@@ -7182,148 +7689,47 @@ const answerCharacters: string[] =
                   }
 
                   /*
-                   * FIXED PUNCTUATION
+                   * Entire word stays together.
+                   *
+                   * If there is not enough horizontal room,
+                   * the whole word moves to the next row instead
+                   * of splitting individual character cells.
                    */
-                  if (
-                    !isEditableCharacter(
-                      character,
-                    )
-                  ) {
-                    return (
-                      <div
-                        key={`letter-fill-fixed-${sourceIndex}`}
-                        className="flex items-end justify-center pb-1"
-                        aria-hidden="true"
-                        style={{
-                          width: `${Math.max(
-                            12,
-                            cellSize * 0.4,
-                          )}px`,
-
-                          height: `${cellSize}px`,
-
-                          ...cellTextStyle,
-
-                          textAlign: "center",
-                        }}
-                      >
-                        {character}
-                      </div>
-                    );
-                  }
-
-                  const editableIndex =
-                    editableIndexBySource.get(
-                      sourceIndex,
-                    );
-
-                  if (
-                    editableIndex ===
-                    undefined
-                  ) {
-                    return null;
-                  }
-
-                  const displayedValue =
-                    revealed
-                      ? normalizeCharacter(
-                          character,
-                        )
-                      : values[
-                          editableIndex
-                        ] ?? "";
-
-                  const disabled =
-                    validationState ===
-                      "correct" ||
-                    attemptsExhausted;
-
                   return (
-                    <input
-                      key={`letter-fill-input-${sourceIndex}`}
-                      id={getInputId(
-                        editableIndex,
-                      )}
-                      type="text"
-                      inputMode="text"
-                      autoComplete="off"
-                      autoCorrect="off"
-                      autoCapitalize="off"
-                      spellCheck={false}
-                      maxLength={2}
-                      value={
-                        displayedValue
-                      }
-                      disabled={disabled}
-                      onChange={(
-                        event,
-                      ) =>
-                        updateCharacter(
-                          editableIndex,
-                          event.target
-                            .value,
-                        )
-                      }
-                      onKeyDown={(
-                        event,
-                      ) =>
-                        handleKeyDown(
-                          event,
-                          editableIndex,
-                        )
-                      }
-                      onPaste={(
-                        event,
-                      ) =>
-                        handlePaste(
-                          event,
-                          editableIndex,
-                        )
-                      }
-                      aria-label={`Character ${
-                        editableIndex + 1
-                      } of ${
-                        editableEntries.length
-                      }`}
-                      className="shrink-0 appearance-none bg-transparent text-center outline-none transition"
+                    <div
+                      key={`letter-fill-word-${group.startIndex}-${groupIndex}`}
+                      className="inline-flex shrink-0 items-end"
                       style={{
-                        width: `${cellSize}px`,
-
-                        height: `${cellSize}px`,
-
-                        boxSizing:
-                          "border-box",
-
-                        caretColor:
-                          cellTextStyle.color ??
-                          "#111827",
-
-                        ...getCellAppearance(
-                          editableIndex,
-                        ),
-
-                        ...cellTextStyle,
-
-                        /*
-                         * The toolbar alignment controls
-                         * the group position above.
-                         * Characters themselves remain
-                         * centered inside their cells.
-                         */
-                        textAlign: "center",
+                        gap:
+                          `${cellGap}px`,
                       }}
-                    />
+                    >
+                      {group.characters.map(
+                        ({
+                          character,
+                          sourceIndex,
+                        }) =>
+                          renderCharacter(
+                            character,
+                            sourceIndex,
+                          ),
+                      )}
+                    </div>
                   );
                 },
               )}
             </div>
           ) : (
             <div className="mt-5 rounded-xl border border-dashed border-neutral-300 px-4 py-6 text-sm text-neutral-500">
-              Add a correct answer in the inspector.
+              Add a correct
+              answer in the
+              inspector.
             </div>
           )}
 
+          {/* ======================================================== */}
           {/* BUTTONS */}
+          {/* ======================================================== */}
 
           {(data.showCheckButton !==
             false ||
@@ -7332,32 +7738,34 @@ const answerCharacters: string[] =
           editableEntries.length >
             0 ? (
             <div
-  className="mt-5 flex w-full flex-wrap gap-2"
-  style={{
-    justifyContent:
-      data.buttonAlign === "center"
-        ? "center"
-        : data.buttonAlign === "right"
-          ? "flex-end"
-          : "flex-start",
-  }}
->
-              {data.showCheckButton !==
-                false &&
-              validationMode ===
-                "manual" ? (
+              className="mt-5 flex w-full flex-wrap gap-2"
+              style={{
+                justifyContent:
+                  data.buttonAlign ===
+                  "center"
+                    ? "center"
+                    : data.buttonAlign ===
+                        "right"
+                      ? "flex-end"
+                      : "flex-start",
+              }}
+            >
+{data.showCheckButton !==
+  false &&
+validationMode ===
+  "manual" &&
+String(
+  data.checkButtonText ??
+    "",
+).trim() ? (
                 <button
                   type="button"
                   disabled={
                     !allFilled ||
-                    validationState ===
-                      "correct" ||
-                    attemptsExhausted
+                    isLocked
                   }
-                  onClick={() =>
-                    validateAnswer(
-                      true,
-                    )
+                  onClick={
+                    validateAnswer
                   }
                   className="inline-flex min-h-11 items-center justify-center px-5 py-2 transition disabled:cursor-not-allowed disabled:opacity-50"
                   style={{
@@ -7375,8 +7783,12 @@ const answerCharacters: string[] =
                 </button>
               ) : null}
 
-              {data.showResetButton !==
-              false ? (
+{data.showResetButton !==
+false &&
+String(
+  data.resetButtonText ??
+    "",
+).trim() ? (
                 <button
                   type="button"
                   onClick={
@@ -7400,12 +7812,14 @@ const answerCharacters: string[] =
             </div>
           ) : null}
 
+          {/* ======================================================== */}
           {/* FEEDBACK */}
+          {/* ======================================================== */}
 
           {validationState ===
           "correct" ? (
             <div
-              className="mt-4"
+              className="mt-4 w-full"
               style={
                 successMessageStyle
               }
@@ -7419,7 +7833,7 @@ const answerCharacters: string[] =
             "incorrect" &&
           !revealed ? (
             <div
-              className="mt-4"
+              className="mt-4 w-full"
               style={
                 errorMessageStyle
               }
@@ -7429,28 +7843,47 @@ const answerCharacters: string[] =
             </div>
           ) : null}
 
+          {/* ======================================================== */}
           {/* ATTEMPTS */}
+          {/* ======================================================== */}
 
-          {maxAttempts >
-            0 &&
+          {maxAttempts > 0 &&
           validationState !==
-            "correct" ? (
-            <div className="mt-2 text-xs opacity-60">
-              {Math.min(
-                attempts,
-                maxAttempts,
-              )}{" "}
-              of{" "}
-              {maxAttempts}{" "}
-              attempts used
+            "correct" &&
+          !revealed ? (
+            <div
+              className="mt-2 w-full text-xs opacity-60"
+              style={{
+                textAlign:
+                  errorMessageStyle.textAlign ??
+                  "center",
+              }}
+            >
+              {attemptsExhausted
+                ? "No attempts remaining"
+                : `${Math.max(
+                    0,
+                    maxAttempts -
+                      attempts,
+                  )} ${
+                    Math.max(
+                      0,
+                      maxAttempts -
+                        attempts,
+                    ) === 1
+                      ? "attempt"
+                      : "attempts"
+                  } remaining`}
             </div>
           ) : null}
 
+          {/* ======================================================== */}
           {/* REVEALED STATE */}
+          {/* ======================================================== */}
 
           {revealed ? (
             <div
-              className="mt-4"
+              className="mt-4 w-full"
               style={
                 successMessageStyle
               }

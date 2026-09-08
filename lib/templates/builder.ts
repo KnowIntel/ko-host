@@ -5571,6 +5571,9 @@ case "letter_fill":
       cellGap:
         10,
 
+      buttonAlign:
+        "center",
+
       /*
        * ============================================================
        * VALIDATION
