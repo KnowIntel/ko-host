@@ -2194,6 +2194,9 @@ showCheckButton?: boolean;
 
 checkButtonText?: string;
 
+checkButtonPaddingX?: number;
+checkButtonPaddingY?: number;
+
 showResetButton?: boolean;
 
 resetButtonText?: string;
@@ -5628,6 +5631,12 @@ case "letter_fill":
 
       checkButtonText:
         "Check Answer",
+
+      checkButtonPaddingX:
+        20,
+
+      checkButtonPaddingY:
+        8,
 
       showResetButton:
         true,

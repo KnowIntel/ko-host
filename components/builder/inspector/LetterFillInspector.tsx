@@ -718,35 +718,125 @@ onClick={() =>
           Show Check Answer button
         </label>
 
-        {data.showCheckButton !==
-        false ? (
-          <div className="mt-3">
-            <div
-              className={
-                inspectorLabelClass()
-              }
-            >
-              Check Button Text
-            </div>
+{data.showCheckButton !==
+false ? (
+  <>
+    <div className="mt-3">
+      <div
+        className={
+          inspectorLabelClass()
+        }
+      >
+        Check Button Text
+      </div>
 
-            <input
-              type="text"
-              value={
-                data.checkButtonText ??
-                ""
-              }
-              onChange={(e) =>
-                patchLetterFillData({
-                  checkButtonText:
-                    e.target.value,
-                })
-              }
-              className={
-                inspectorInputClass()
-              }
-            />
-          </div>
-        ) : null}
+      <input
+        type="text"
+        value={
+          data.checkButtonText ??
+          ""
+        }
+        onChange={(e) =>
+          patchLetterFillData({
+            checkButtonText:
+              e.target.value,
+          })
+        }
+        className={
+          inspectorInputClass()
+        }
+      />
+    </div>
+
+    {/* ========================================================== */}
+    {/* CHECK BUTTON HORIZONTAL PADDING */}
+    {/* ========================================================== */}
+
+    <div className="mt-4">
+      <div className="flex items-center justify-between gap-3">
+        <div
+          className={
+            inspectorLabelClass()
+          }
+        >
+          Horizontal Padding
+        </div>
+
+        <div className="text-xs text-neutral-500">
+          {Number(
+            data.checkButtonPaddingX ??
+              20,
+          )}
+          px
+        </div>
+      </div>
+
+      <input
+        type="range"
+        min={0}
+        max={80}
+        step={1}
+        value={Number(
+          data.checkButtonPaddingX ??
+            20,
+        )}
+        onChange={(e) =>
+          patchLetterFillData({
+            checkButtonPaddingX:
+              Number(
+                e.target.value,
+              ),
+          })
+        }
+        className="mt-2 w-full"
+      />
+    </div>
+
+    {/* ========================================================== */}
+    {/* CHECK BUTTON VERTICAL PADDING */}
+    {/* ========================================================== */}
+
+    <div className="mt-4">
+      <div className="flex items-center justify-between gap-3">
+        <div
+          className={
+            inspectorLabelClass()
+          }
+        >
+          Vertical Padding
+        </div>
+
+        <div className="text-xs text-neutral-500">
+          {Number(
+            data.checkButtonPaddingY ??
+              8,
+          )}
+          px
+        </div>
+      </div>
+
+      <input
+        type="range"
+        min={0}
+        max={40}
+        step={1}
+        value={Number(
+          data.checkButtonPaddingY ??
+            8,
+        )}
+        onChange={(e) =>
+          patchLetterFillData({
+            checkButtonPaddingY:
+              Number(
+                e.target.value,
+              ),
+          })
+        }
+        className="mt-2 w-full"
+      />
+    </div>
+  </>
+) : null}
 
         {/* RESET BUTTON */}
 

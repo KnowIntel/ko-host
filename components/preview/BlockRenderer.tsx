@@ -7767,16 +7767,52 @@ String(
                   onClick={
                     validateAnswer
                   }
-                  className="inline-flex min-h-11 items-center justify-center px-5 py-2 transition disabled:cursor-not-allowed disabled:opacity-50"
-                  style={{
-                    ...getButtonAppearance(
-                      checkButtonStyle,
-                      "#111827",
-                      "#111827",
-                    ),
+                  className="inline-flex items-center justify-center transition disabled:cursor-not-allowed disabled:opacity-50"
+style={{
+  ...getButtonAppearance(
+    checkButtonStyle,
+    "#111827",
+    "#111827",
+  ),
 
-                    ...checkButtonTextStyle,
-                  }}
+  ...checkButtonTextStyle,
+
+  paddingLeft:
+    `${Math.max(
+      0,
+      Number(
+        data.checkButtonPaddingX ??
+          20,
+      ),
+    )}px`,
+
+  paddingRight:
+    `${Math.max(
+      0,
+      Number(
+        data.checkButtonPaddingX ??
+          20,
+      ),
+    )}px`,
+
+  paddingTop:
+    `${Math.max(
+      0,
+      Number(
+        data.checkButtonPaddingY ??
+          8,
+      ),
+    )}px`,
+
+  paddingBottom:
+    `${Math.max(
+      0,
+      Number(
+        data.checkButtonPaddingY ??
+          8,
+      ),
+    )}px`,
+}}
                 >
                   {data.checkButtonText ??
                     ""}
@@ -16494,22 +16530,17 @@ function renderAudio(
 
     /*
      * ================================================================
-     * NO AUDIO
-     * ================================================================
-     */
-
-    if (!audioUrl) {
-      return (
-        <div className="flex h-full w-full items-center justify-center rounded-xl border border-dashed border-neutral-300 bg-neutral-50 px-4 py-3 text-center text-sm text-neutral-500">
-          Add audio
-        </div>
-      );
-    }
-
-    /*
-     * ================================================================
      * IMAGE BUTTON MODE
      * ================================================================
+     *
+     * Render this mode BEFORE checking whether an audio file exists.
+     *
+     * This allows the owner to:
+     *
+     * 1. Select Image Button mode.
+     * 2. Upload the button image.
+     * 3. See the image immediately.
+     * 4. Add the audio file afterward.
      */
 
     if (isImageButton) {
@@ -16523,11 +16554,25 @@ function renderAudio(
             ? "contain"
             : "fill";
 
+      const canPlay =
+        Boolean(
+          audioUrl,
+        );
+
       async function playOnce() {
         /*
-         * While the audio is playing, clicking
-         * the image again intentionally does
-         * nothing.
+         * No audio has been assigned yet.
+         *
+         * Keep the image visible, but clicking
+         * it should do nothing.
+         */
+        if (!canPlay) {
+          return;
+        }
+
+        /*
+         * While already playing, additional
+         * clicks intentionally do nothing.
          */
         if (isPlaying) {
           return;
@@ -16542,8 +16587,7 @@ function renderAudio(
 
         try {
           /*
-           * Image Button always starts from the
-           * beginning and plays exactly once.
+           * Always play from the beginning.
            */
           audio.pause();
 
@@ -16570,54 +16614,53 @@ function renderAudio(
           {/*
            * Hidden playback element.
            *
-           * No controls.
-           * No autoplay.
-           * No looping.
+           * Only create it once an audio file
+           * actually exists.
            */}
-          <audio
-            ref={audioRef}
-            src={audioUrl}
-            preload="auto"
-            playsInline
-            controls={false}
-            autoPlay={false}
-            loop={false}
-            className="hidden"
-            onPlay={() =>
-              setIsPlaying(
-                true,
-              )
-            }
-            onEnded={() => {
-              setIsPlaying(
-                false,
-              );
-
-              const audio =
-                audioRef.current;
-
-              if (audio) {
-                audio.currentTime =
-                  0;
+          {audioUrl ? (
+            <audio
+              ref={audioRef}
+              src={audioUrl}
+              preload="auto"
+              playsInline
+              controls={false}
+              autoPlay={false}
+              loop={false}
+              className="hidden"
+              onPlay={() =>
+                setIsPlaying(
+                  true,
+                )
               }
-            }}
-            onPause={() => {
-              /*
-               * A natural pause caused by the
-               * browser or media interruption
-               * releases the button so it can
-               * be played again.
-               */
-              setIsPlaying(
-                false,
-              );
-            }}
-            onError={() =>
-              setIsPlaying(
-                false,
-              )
-            }
-          />
+              onEnded={() => {
+                setIsPlaying(
+                  false,
+                );
+
+                const audio =
+                  audioRef.current;
+
+                if (audio) {
+                  audio.currentTime =
+                    0;
+                }
+              }}
+              onPause={() => {
+                setIsPlaying(
+                  false,
+                );
+              }}
+              onError={() =>
+                setIsPlaying(
+                  false,
+                )
+              }
+            />
+          ) : null}
+
+          {/*
+           * IMAGE FACE
+           */}
 
           {buttonImageUrl ? (
             <button
@@ -16626,19 +16669,23 @@ function renderAudio(
                 playOnce
               }
               aria-label={
-                isPlaying
-                  ? "Audio is playing"
-                  : "Play audio"
+                !canPlay
+                  ? "Audio file not assigned"
+                  : isPlaying
+                    ? "Audio is playing"
+                    : "Play audio"
               }
               aria-disabled={
+                !canPlay ||
                 isPlaying
               }
               className={[
                 "block h-full w-full overflow-hidden border-0 bg-transparent p-0 outline-none",
 
-                isPlaying
-                  ? "cursor-default"
-                  : "cursor-pointer",
+                canPlay &&
+                !isPlaying
+                  ? "cursor-pointer"
+                  : "cursor-default",
               ].join(" ")}
             >
               <img
@@ -16659,17 +16706,24 @@ function renderAudio(
               />
             </button>
           ) : (
-            <button
-              type="button"
-              onClick={
-                playOnce
-              }
-              aria-label="Play audio"
-              className="flex h-full w-full cursor-pointer items-center justify-center rounded-xl border border-dashed border-neutral-300 bg-neutral-50 px-4 py-3 text-center text-sm text-neutral-500"
-            >
+            <div className="flex h-full w-full items-center justify-center rounded-xl border border-dashed border-neutral-300 bg-neutral-50 px-4 py-3 text-center text-sm text-neutral-500">
               Add a button image
-            </button>
+            </div>
           )}
+        </div>
+      );
+    }
+
+    /*
+     * ================================================================
+     * STANDARD PLAYER MODE — NO AUDIO
+     * ================================================================
+     */
+
+    if (!audioUrl) {
+      return (
+        <div className="flex h-full w-full items-center justify-center rounded-xl border border-dashed border-neutral-300 bg-neutral-50 px-4 py-3 text-center text-sm text-neutral-500">
+          Add audio
         </div>
       );
     }
@@ -16678,8 +16732,6 @@ function renderAudio(
      * ================================================================
      * STANDARD PLAYER MODE
      * ================================================================
-     *
-     * Preserve all existing Audio behavior.
      */
 
     return (
