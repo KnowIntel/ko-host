@@ -9695,8 +9695,14 @@ function handleClearClipboard() {
 function removeCanvasBlocks(
   blockIds: string[],
 ) {
+  if (
+    blockIds.length === 0
+  ) {
+    return;
+  }
+
   const requestedIds =
-    new Set(
+    new Set<string>(
       blockIds,
     );
 
@@ -9737,65 +9743,98 @@ function removeCanvasBlocks(
     },
   );
 
+  /*
+   * Remove deleted blocks from the
+   * multi-selection state.
+   */
   setSelectedBlockIds(
     (prev) =>
       prev.filter(
         (id) =>
-          !idsToRemove.has(id),
+          !idsToRemove.has(
+            id,
+          ),
       ),
   );
 
-  setSelection((prev) => {
-    const selectedCanvasBlockId =
-      (prev as any)
-        ?.canvasBlockId ??
-      (prev as any)
-        ?.blockId ??
-      (prev as any)?.id;
+  /*
+   * Clear the primary selection only
+   * when the selected canvas block is
+   * one of the blocks being removed.
+   *
+   * IMPORTANT:
+   * Do not fall back to the page title.
+   */
+  setSelection(
+    (prev) => {
+      const selectedCanvasBlockId =
+        (prev as any)
+          ?.canvasBlockId ??
+        (prev as any)
+          ?.blockId ??
+        (prev as any)
+          ?.id;
 
-    return selectedCanvasBlockId &&
-      idsToRemove.has(
-        selectedCanvasBlockId,
-      )
-      ? createEmptySelection()
-      : prev;
-  });
+      if (
+        selectedCanvasBlockId &&
+        idsToRemove.has(
+          selectedCanvasBlockId,
+        )
+      ) {
+        return createEmptySelection();
+      }
 
-  setDraft((prev) => {
-    const next =
-      prev as DraftWithPageExtras;
+      return prev;
+    },
+  );
 
-    return {
-      ...prev,
+  /*
+   * Remove the requested blocks.
+   *
+   * Page-title visibility is preserved
+   * exactly as-is when deleting normal
+   * canvas blocks.
+   *
+   * Only deleting the actual synthetic
+   * page-title block is allowed to
+   * change title visibility.
+   */
+  setDraft(
+    (prev) => {
+      const next =
+        prev as DraftWithPageExtras;
 
-      pageVisibility: {
-        ...(
-          next.pageVisibility ??
-          {}
-        ),
+      const deletingPageTitle =
+        idsToRemove.has(
+          PAGE_TITLE_BLOCK_ID,
+        );
 
-        title:
-          idsToRemove.has(
-            PAGE_TITLE_BLOCK_ID,
-          )
-            ? false
-            : (
-                next
-                  .pageVisibility
-                  ?.title ??
-                true
+      return {
+        ...prev,
+
+        ...(deletingPageTitle
+          ? {
+              pageVisibility: {
+                ...(
+                  next.pageVisibility ??
+                  {}
+                ),
+
+                title: false,
+              },
+            }
+          : {}),
+
+        blocks:
+          prev.blocks.filter(
+            (block) =>
+              !idsToRemove.has(
+                block.id,
               ),
-      },
-
-      blocks:
-        prev.blocks.filter(
-          (block) =>
-            !idsToRemove.has(
-              block.id,
-            ),
-        ),
-    };
-  });
+          ),
+      };
+    },
+  );
 }
 
 /* ================================================================= */
