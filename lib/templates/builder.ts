@@ -810,16 +810,56 @@ styleVariant?:
 
 export type AudioBlock = BaseBlock & {
   type: "audio";
+
   data: {
+    /*
+     * ============================================================
+     * AUDIO SOURCE
+     * ============================================================
+     */
+
     audioUrl?: string;
 
     audioStoragePath?: string;
     audioMimeType?: string;
     audioSizeBytes?: number;
 
+    /*
+     * ============================================================
+     * DISPLAY MODE
+     * ============================================================
+     */
+
+    displayMode?:
+      | "player"
+      | "image_button";
+
+    /*
+     * ============================================================
+     * STANDARD PLAYER
+     * ============================================================
+     */
+
     autoplay?: boolean;
     loop?: boolean;
     showPlayer?: boolean;
+
+    /*
+     * ============================================================
+     * IMAGE BUTTON
+     * ============================================================
+     */
+
+    buttonImageUrl?: string;
+
+    buttonImageStoragePath?: string;
+    buttonImageMimeType?: string;
+    buttonImageSizeBytes?: number;
+
+    buttonImageFit?:
+      | "stretch"
+      | "cover"
+      | "contain";
   };
 };
 
@@ -6190,23 +6230,89 @@ buttonImagePlacement: "before",
         },
       };
 
-          case "audio":
-      return {
-        id: makeId("audio"),
-        type: "audio",
-        label: "Audio",
-        grid,
-        appearance: createDefaultBlockAppearance(),
-        data: {
-          audioUrl: "",
-          audioStoragePath: "",
-          audioMimeType: "",
-          audioSizeBytes: 0,
-          autoplay: false,
-          loop: false,
-          showPlayer: true,
-        },
-      };
+case "audio":
+  return {
+    id:
+      makeId(
+        "audio",
+      ),
+
+    type:
+      "audio",
+
+    label:
+      "Audio",
+
+    grid,
+
+    appearance:
+      createDefaultBlockAppearance(),
+
+    data: {
+      /*
+       * ============================================================
+       * AUDIO SOURCE
+       * ============================================================
+       */
+
+      audioUrl:
+        "",
+
+      audioStoragePath:
+        "",
+
+      audioMimeType:
+        "",
+
+      audioSizeBytes:
+        0,
+
+      /*
+       * ============================================================
+       * DISPLAY MODE
+       * ============================================================
+       */
+
+      displayMode:
+        "player",
+
+      /*
+       * ============================================================
+       * STANDARD PLAYER
+       * ============================================================
+       */
+
+      autoplay:
+        false,
+
+      loop:
+        false,
+
+      showPlayer:
+        true,
+
+      /*
+       * ============================================================
+       * IMAGE BUTTON
+       * ============================================================
+       */
+
+      buttonImageUrl:
+        "",
+
+      buttonImageStoragePath:
+        "",
+
+      buttonImageMimeType:
+        "",
+
+      buttonImageSizeBytes:
+        0,
+
+      buttonImageFit:
+        "stretch",
+    },
+  };
 
     case "frame":
       return {

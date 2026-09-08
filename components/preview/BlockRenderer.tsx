@@ -16456,31 +16456,255 @@ function renderFrame(
 }
 
 function renderAudio(
-  block: Extract<MicrositeBlock, { type: "audio" }>,
+  block: Extract<
+    MicrositeBlock,
+    { type: "audio" }
+  >,
 ) {
-  const audioUrl = block.data.audioUrl?.trim();
+  function AudioLive() {
+    const audioRef =
+      useRef<HTMLAudioElement | null>(
+        null,
+      );
 
-  if (!audioUrl) {
+    const [
+      isPlaying,
+      setIsPlaying,
+    ] = useState(false);
+
+    const audioUrl =
+      block.data.audioUrl?.trim() ??
+      "";
+
+    const displayMode =
+      block.data.displayMode ??
+      "player";
+
+    const isImageButton =
+      displayMode ===
+      "image_button";
+
+    const buttonImageUrl =
+      block.data.buttonImageUrl?.trim() ??
+      "";
+
+    const buttonImageFit =
+      block.data.buttonImageFit ??
+      "stretch";
+
+    /*
+     * ================================================================
+     * NO AUDIO
+     * ================================================================
+     */
+
+    if (!audioUrl) {
+      return (
+        <div className="flex h-full w-full items-center justify-center rounded-xl border border-dashed border-neutral-300 bg-neutral-50 px-4 py-3 text-center text-sm text-neutral-500">
+          Add audio
+        </div>
+      );
+    }
+
+    /*
+     * ================================================================
+     * IMAGE BUTTON MODE
+     * ================================================================
+     */
+
+    if (isImageButton) {
+      const objectFit:
+        React.CSSProperties["objectFit"] =
+        buttonImageFit ===
+        "cover"
+          ? "cover"
+          : buttonImageFit ===
+              "contain"
+            ? "contain"
+            : "fill";
+
+      async function playOnce() {
+        /*
+         * While the audio is playing, clicking
+         * the image again intentionally does
+         * nothing.
+         */
+        if (isPlaying) {
+          return;
+        }
+
+        const audio =
+          audioRef.current;
+
+        if (!audio) {
+          return;
+        }
+
+        try {
+          /*
+           * Image Button always starts from the
+           * beginning and plays exactly once.
+           */
+          audio.pause();
+
+          audio.currentTime =
+            0;
+
+          audio.loop =
+            false;
+
+          setIsPlaying(
+            true,
+          );
+
+          await audio.play();
+        } catch {
+          setIsPlaying(
+            false,
+          );
+        }
+      }
+
+      return (
+        <div className="relative h-full w-full overflow-hidden">
+          {/*
+           * Hidden playback element.
+           *
+           * No controls.
+           * No autoplay.
+           * No looping.
+           */}
+          <audio
+            ref={audioRef}
+            src={audioUrl}
+            preload="auto"
+            playsInline
+            controls={false}
+            autoPlay={false}
+            loop={false}
+            className="hidden"
+            onPlay={() =>
+              setIsPlaying(
+                true,
+              )
+            }
+            onEnded={() => {
+              setIsPlaying(
+                false,
+              );
+
+              const audio =
+                audioRef.current;
+
+              if (audio) {
+                audio.currentTime =
+                  0;
+              }
+            }}
+            onPause={() => {
+              /*
+               * A natural pause caused by the
+               * browser or media interruption
+               * releases the button so it can
+               * be played again.
+               */
+              setIsPlaying(
+                false,
+              );
+            }}
+            onError={() =>
+              setIsPlaying(
+                false,
+              )
+            }
+          />
+
+          {buttonImageUrl ? (
+            <button
+              type="button"
+              onClick={
+                playOnce
+              }
+              aria-label={
+                isPlaying
+                  ? "Audio is playing"
+                  : "Play audio"
+              }
+              aria-disabled={
+                isPlaying
+              }
+              className={[
+                "block h-full w-full overflow-hidden border-0 bg-transparent p-0 outline-none",
+
+                isPlaying
+                  ? "cursor-default"
+                  : "cursor-pointer",
+              ].join(" ")}
+            >
+              <img
+                src={
+                  buttonImageUrl
+                }
+                alt=""
+                draggable={
+                  false
+                }
+                className="block h-full w-full select-none"
+                style={{
+                  objectFit,
+
+                  objectPosition:
+                    "center",
+                }}
+              />
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={
+                playOnce
+              }
+              aria-label="Play audio"
+              className="flex h-full w-full cursor-pointer items-center justify-center rounded-xl border border-dashed border-neutral-300 bg-neutral-50 px-4 py-3 text-center text-sm text-neutral-500"
+            >
+              Add a button image
+            </button>
+          )}
+        </div>
+      );
+    }
+
+    /*
+     * ================================================================
+     * STANDARD PLAYER MODE
+     * ================================================================
+     *
+     * Preserve all existing Audio behavior.
+     */
+
     return (
-      <div className="flex h-full w-full items-center justify-center rounded-xl border border-dashed border-neutral-300 bg-neutral-50 px-4 py-3 text-center text-sm text-neutral-500">
-        Add audio
+      <div className="flex h-full w-full items-center justify-center">
+        <audio
+          controls={
+            block.data.showPlayer !==
+            false
+          }
+          autoPlay={Boolean(
+            block.data.autoplay,
+          )}
+          loop={Boolean(
+            block.data.loop,
+          )}
+          preload="auto"
+          playsInline
+          className="w-full"
+          src={audioUrl}
+        />
       </div>
     );
   }
 
-return (
-  <div className="flex h-full w-full items-center justify-center">
-    <audio
-      controls={block.data.showPlayer !== false}
-      autoPlay={Boolean(block.data.autoplay)}
-      loop={Boolean(block.data.loop)}
-      preload="auto"
-      playsInline
-      className="w-full"
-      src={audioUrl}
-    />
-  </div>
-);
+  return <AudioLive />;
 }
 
 function renderLinks(

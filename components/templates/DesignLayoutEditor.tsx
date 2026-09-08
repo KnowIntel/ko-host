@@ -17612,13 +17612,30 @@ selectedBlock?.type === "comparison_table" ? (
   />
 ) : null}
 
-{!isMultiSelection && selectedBlock?.type === "audio" ? (
+{!isMultiSelection &&
+selectedBlock?.type === "audio" ? (
   <AudioInspector
-    selectedBlock={selectedBlock}
-    updateSelectedBlock={updateSelectedBlock}
-    uploadAudioToSelectedBlock={uploadAudioToSelectedBlock}
-    inspectorCardClass={inspectorCardClass}
-    inspectorLabelClass={inspectorLabelClass}
+    selectedBlock={
+      selectedBlock
+    }
+    updateSelectedBlock={
+      updateSelectedBlock
+    }
+    uploadAudioToSelectedBlock={
+      uploadAudioToSelectedBlock
+    }
+    openImagePicker={
+      openImagePicker
+    }
+    uploadBuilderImageFile={
+      uploadBuilderImageFile
+    }
+    inspectorCardClass={
+      inspectorCardClass
+    }
+    inspectorLabelClass={
+      inspectorLabelClass
+    }
   />
 ) : null}
 
