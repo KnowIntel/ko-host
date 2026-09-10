@@ -610,212 +610,410 @@ onChange={(e) =>
   </div>
 </div>
 
-    <div className="mt-5 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
-      <div className={inspectorLabelClass()}>Are You Attending Section</div>
+<div className="mt-5 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
+  <div className={inspectorLabelClass()}>
+    Contact Details Section
+  </div>
 
-      <label className="mt-3 flex items-center gap-3 text-sm text-neutral-800">
+  {/* ============================================================ */}
+  {/* DISPLAY CONTACT DETAILS SECTION */}
+  {/* ============================================================ */}
+
+  <label className="mt-3 flex items-center gap-3 text-sm text-neutral-800">
+    <input
+      type="checkbox"
+      checked={
+        selectedBlock.data
+          .contactDetailsDisplay !==
+        false
+      }
+      onChange={(e) =>
+        updateSelectedBlock(
+          (block: any) =>
+            block.type !== "rsvp"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    contactDetailsDisplay:
+                      e.target.checked,
+                  },
+                },
+        )
+      }
+    />
+
+    Display contact details section
+  </label>
+
+  {/* ============================================================ */}
+  {/* SECTION LABEL */}
+  {/* ============================================================ */}
+
+  <div className="mt-4">
+    <div className={inspectorLabelClass()}>
+      Section Label
+    </div>
+
+    <input
+      type="text"
+      value={
+        selectedBlock.data
+          .contactLabel ??
+        "Contact Details"
+      }
+      onChange={(e) =>
+        updateSelectedBlock(
+          (block: any) =>
+            block.type !== "rsvp"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    contactLabel:
+                      e.target.value,
+                  },
+                },
+        )
+      }
+      className={inspectorInputClass()}
+      placeholder="Optional section label"
+    />
+
+    <div className="mt-1 text-xs text-neutral-500">
+      Leave blank to hide the section label.
+    </div>
+  </div>
+
+  {/* ============================================================ */}
+  {/* CONTACT FIELD CONTROLS */}
+  {/* ============================================================ */}
+
+  <div className="mt-5 space-y-4">
+    {/* ========================================================== */}
+    {/* NAME FIELDS */}
+    {/* ========================================================== */}
+
+    <div className="rounded-xl border border-neutral-200 bg-white p-4">
+      <div className="flex items-center justify-between gap-3">
+        <div className="text-sm font-medium text-neutral-800">
+          Name Fields
+        </div>
+
         <input
           type="checkbox"
-          checked={selectedBlock.data.attendingDisplay !== false}
-          onChange={(e) =>
-            updateSelectedBlock((block: any) =>
-              block.type !== "rsvp"
-                ? block
-                : {
-                    ...block,
-                    data: {
-                      ...block.data,
-                      attendingDisplay: e.target.checked,
-                    },
-                  },
-            )
+          checked={
+            selectedBlock.data
+              .nameDisplay !==
+            false
           }
-        />
-        Display in public form
-      </label>
-
-      <div className="mt-4">
-        <div className={inspectorLabelClass()}>Label</div>
-        <input
-          type="text"
-          value={selectedBlock.data.attendingLabel ?? "Are you attending?"}
           onChange={(e) =>
-            updateSelectedBlock((block: any) =>
-              block.type !== "rsvp"
-                ? block
-                : {
-                    ...block,
-                    data: {
-                      ...block.data,
-                      attendingLabel: e.target.value,
-                    },
-                  },
-            )
-          }
-          className={inspectorInputClass()}
-        />
-      </div>
-
-      <div className="mt-4 space-y-3">
-        <div className={inspectorLabelClass()}>Attendance Options</div>
-
-        {(selectedBlock.data.attendingOptions?.length
-          ? selectedBlock.data.attendingOptions
-          : ["Yes", "No"]
-        )
-          .slice(0, 8)
-          .map((option: string, index: number, options: string[]) => (
-            <div
-              key={`attending-option-${index}`}
-              className="flex items-center gap-2"
-            >
-              <input
-                type="text"
-                value={option}
-                onChange={(e) =>
-                  updateSelectedBlock((block: any) => {
-                    if (block.type !== "rsvp") return block;
-
-                    const currentOptions = (
-                      block.data.attendingOptions?.length
-                        ? block.data.attendingOptions
-                        : ["Yes", "No"]
-                    ).slice(0, 8);
-
-                    const previousValue = currentOptions[index];
-
-                    const nextOptions = currentOptions.map(
-                      (item: string, itemIndex: number) =>
-                        itemIndex === index ? e.target.value : item,
-                    );
-
-                    return {
+            updateSelectedBlock(
+              (block: any) =>
+                block.type !==
+                "rsvp"
+                  ? block
+                  : {
                       ...block,
                       data: {
                         ...block.data,
-                        attendingOptions: nextOptions,
-                        attendingDefaultValue:
-                          block.data.attendingDefaultValue === previousValue
-                            ? e.target.value
-                            : block.data.attendingDefaultValue,
+                        nameDisplay:
+                          e.target.checked,
                       },
-                    };
-                  })
+                    },
+            )
+          }
+        />
+      </div>
+
+      {selectedBlock.data
+        .nameDisplay !==
+      false ? (
+        <div className="mt-4 space-y-4">
+          {/* FIRST NAME */}
+
+          <div>
+            <div
+              className={
+                inspectorLabelClass()
+              }
+            >
+              First Name Placeholder
+            </div>
+
+            <input
+              type="text"
+              value={
+                selectedBlock.data
+                  .firstNamePlaceholder ??
+                "First Name"
+              }
+              onChange={(e) =>
+                updateSelectedBlock(
+                  (block: any) =>
+                    block.type !==
+                    "rsvp"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            firstNamePlaceholder:
+                              e.target
+                                .value,
+                          },
+                        },
+                )
+              }
+              className={
+                inspectorInputClass()
+              }
+            />
+          </div>
+
+          {/* LAST NAME */}
+
+          <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+            <label className="flex items-center gap-3 text-sm text-neutral-800">
+              <input
+                type="checkbox"
+                checked={
+                  selectedBlock.data
+                    .lastNameDisplay !==
+                  false
                 }
-                className={inspectorInputClass()}
-                placeholder={`Attendance option ${index + 1}`}
+                onChange={(e) =>
+                  updateSelectedBlock(
+                    (block: any) =>
+                      block.type !==
+                      "rsvp"
+                        ? block
+                        : {
+                            ...block,
+                            data: {
+                              ...block.data,
+                              lastNameDisplay:
+                                e.target
+                                  .checked,
+                            },
+                          },
+                  )
+                }
               />
 
-              <button
-                type="button"
-                disabled={options.length <= 1}
-                onClick={() =>
-                  updateSelectedBlock((block: any) => {
-                    if (block.type !== "rsvp") return block;
+              Include Last Name field
+            </label>
 
-                    const currentOptions = (
-                      block.data.attendingOptions?.length
-                        ? block.data.attendingOptions
-                        : ["Yes", "No"]
-                    ).slice(0, 8);
+            {selectedBlock.data
+              .lastNameDisplay !==
+            false ? (
+              <div className="mt-3">
+                <div
+                  className={
+                    inspectorLabelClass()
+                  }
+                >
+                  Last Name Placeholder
+                </div>
 
-                    const removedValue = currentOptions[index];
+                <input
+                  type="text"
+                  value={
+                    selectedBlock.data
+                      .lastNamePlaceholder ??
+                    "Last Name"
+                  }
+                  onChange={(e) =>
+                    updateSelectedBlock(
+                      (block: any) =>
+                        block.type !==
+                        "rsvp"
+                          ? block
+                          : {
+                              ...block,
+                              data: {
+                                ...block.data,
+                                lastNamePlaceholder:
+                                  e.target
+                                    .value,
+                              },
+                            },
+                    )
+                  }
+                  className={
+                    inspectorInputClass()
+                  }
+                />
+              </div>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
+    </div>
 
-                    const nextOptions = currentOptions.filter(
-                      (_item: string, itemIndex: number) => itemIndex !== index,
-                    );
+    {/* ========================================================== */}
+    {/* EMAIL */}
+    {/* ========================================================== */}
 
-                    return {
+    <div className="rounded-xl border border-neutral-200 bg-white p-4">
+      <div className="flex items-center justify-between gap-3">
+        <div className="text-sm font-medium text-neutral-800">
+          Email Address
+        </div>
+
+        <input
+          type="checkbox"
+          checked={
+            selectedBlock.data
+              .emailDisplay !==
+            false
+          }
+          onChange={(e) =>
+            updateSelectedBlock(
+              (block: any) =>
+                block.type !==
+                "rsvp"
+                  ? block
+                  : {
                       ...block,
                       data: {
                         ...block.data,
-                        attendingOptions: nextOptions.length
-                          ? nextOptions
-                          : ["Yes"],
-                        attendingDefaultValue:
-                          block.data.attendingDefaultValue === removedValue
-                            ? nextOptions[0] ?? "Yes"
-                            : block.data.attendingDefaultValue,
+                        emailDisplay:
+                          e.target.checked,
                       },
-                    };
-                  })
-                }
-                className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-neutral-200 bg-white text-sm text-neutral-700 transition hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                ×
-              </button>
-            </div>
-          ))}
-
-        <button
-          type="button"
-          disabled={(selectedBlock.data.attendingOptions?.length ?? 2) >= 8}
-          onClick={() =>
-            updateSelectedBlock((block: any) => {
-              if (block.type !== "rsvp") return block;
-
-              const currentOptions = (
-                block.data.attendingOptions?.length
-                  ? block.data.attendingOptions
-                  : ["Yes", "No"]
-              ).slice(0, 8);
-
-              if (currentOptions.length >= 8) return block;
-
-              return {
-                ...block,
-                data: {
-                  ...block.data,
-                  attendingOptions: [
-                    ...currentOptions,
-                    `Option ${currentOptions.length + 1}`,
-                  ],
-                },
-              };
-            })
-          }
-          className="inline-flex h-10 items-center justify-center rounded-xl border border-neutral-200 bg-white px-3 text-sm font-medium text-neutral-800 transition hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          + Add attendance option
-        </button>
-      </div>
-
-      <div className="mt-4">
-        <div className={inspectorLabelClass()}>Default Table Value</div>
-        <select
-          value={
-            selectedBlock.data.attendingDefaultValue ??
-            selectedBlock.data.attendingOptions?.[0] ??
-            "Yes"
-          }
-          onChange={(e) =>
-            updateSelectedBlock((block: any) =>
-              block.type !== "rsvp"
-                ? block
-                : {
-                    ...block,
-                    data: {
-                      ...block.data,
-                      attendingDefaultValue: e.target.value,
                     },
-                  },
             )
           }
-          className={inspectorInputClass()}
-        >
-          {(selectedBlock.data.attendingOptions?.length
-            ? selectedBlock.data.attendingOptions
-            : ["Yes", "No"]
-          )
-            .slice(0, 8)
-            .map((option: string, index: number) => (
-              <option key={`attending-default-${index}`} value={option}>
-                {option || `Option ${index + 1}`}
-              </option>
-            ))}
-        </select>
+        />
       </div>
+
+      {selectedBlock.data
+        .emailDisplay !==
+      false ? (
+        <div className="mt-4">
+          <div
+            className={
+              inspectorLabelClass()
+            }
+          >
+            Email Placeholder
+          </div>
+
+          <input
+            type="text"
+            value={
+              selectedBlock.data
+                .emailPlaceholder ??
+              "Email Address"
+            }
+            onChange={(e) =>
+              updateSelectedBlock(
+                (block: any) =>
+                  block.type !==
+                  "rsvp"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          emailPlaceholder:
+                            e.target
+                              .value,
+                        },
+                      },
+              )
+            }
+            className={
+              inspectorInputClass()
+            }
+          />
+        </div>
+      ) : null}
     </div>
+
+    {/* ========================================================== */}
+    {/* MAILING ADDRESS */}
+    {/* ========================================================== */}
+
+    <div className="rounded-xl border border-neutral-200 bg-white p-4">
+      <div className="flex items-center justify-between gap-3">
+        <div className="text-sm font-medium text-neutral-800">
+          Mailing Address
+        </div>
+
+        <input
+          type="checkbox"
+          checked={
+            selectedBlock.data
+              .addressDisplay !==
+            false
+          }
+          onChange={(e) =>
+            updateSelectedBlock(
+              (block: any) =>
+                block.type !==
+                "rsvp"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        addressDisplay:
+                          e.target.checked,
+                      },
+                    },
+            )
+          }
+        />
+      </div>
+
+      {selectedBlock.data
+        .addressDisplay !==
+      false ? (
+        <div className="mt-4">
+          <div
+            className={
+              inspectorLabelClass()
+            }
+          >
+            Address Placeholder
+          </div>
+
+          <input
+            type="text"
+            value={
+              selectedBlock.data
+                .addressPlaceholder ??
+              "Mailing Address"
+            }
+            onChange={(e) =>
+              updateSelectedBlock(
+                (block: any) =>
+                  block.type !==
+                  "rsvp"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          addressPlaceholder:
+                            e.target
+                              .value,
+                        },
+                      },
+              )
+            }
+            className={
+              inspectorInputClass()
+            }
+          />
+        </div>
+      ) : null}
+    </div>
+  </div>
+</div>
 
     <div className="mt-5 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
       <div className={inspectorLabelClass()}>Meal Section</div>
