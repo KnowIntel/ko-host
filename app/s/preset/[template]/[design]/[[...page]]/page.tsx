@@ -1,9 +1,25 @@
 import PlacedBlocksPreview from "@/components/preview/PlacedBlocksPreview";
-import { loadTemplateDraftPreset } from "@/lib/drafts";
+import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import type { BuilderDraft } from "@/lib/templates/builder";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
+
+type MicrositeRow = {
+  id: string;
+  slug: string;
+  title: string | null;
+  selected_design_key: string | null;
+  is_published: boolean | null;
+  is_active?: boolean | null;
+};
+
+type MicrositePageRow = {
+  id: string;
+  slug: string;
+  title: string | null;
+  draft: BuilderDraft | null;
+};
 
 function PageShell({
   title,
@@ -22,11 +38,12 @@ function PageShell({
   );
 }
 
-type PresetPage = BuilderDraft & {
-  id?: string;
-  slug?: string;
-  draft?: BuilderDraft;
-};
+function normalizeKey(value: string) {
+  return decodeURIComponent(String(value || ""))
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "_");
+}
 
 export default async function PresetMicrositePage({
   params,
@@ -39,15 +56,28 @@ export default async function PresetMicrositePage({
 }) {
   const { template, design, page } = await params;
 
-  const templateKey = decodeURIComponent(template || "").trim();
-  const designKey = decodeURIComponent(design || "").trim();
-  const pageSlug = decodeURIComponent(page?.[0] || "home").trim().toLowerCase();
+  const templateKey = normalizeKey(template);
+  const designKey = normalizeKey(design);
 
-  const presetDraft = loadTemplateDraftPreset(templateKey, designKey) as
-    | (BuilderDraft & { pages?: PresetPage[] })
-    | null;
+  const pageSlug = decodeURIComponent(page?.[0] || "home")
+    .trim()
+    .toLowerCase();
 
-  if (!presetDraft) {
+  const supabaseAdmin = getSupabaseAdmin();
+
+  const { data: presetMicrosite, error: presetMicrositeError } =
+    await supabaseAdmin
+      .from("microsites")
+      .select(
+        "id, slug, title, selected_design_key, is_published, is_active",
+      )
+      .eq("selected_design_key", designKey)
+      .eq("is_published", true)
+      .eq("is_active", true)
+      .ilike("slug", `%${templateKey.replace(/_/g, "-")}%`)
+      .maybeSingle();
+
+  if (presetMicrositeError || !presetMicrosite) {
     return (
       <PageShell
         title="Preset unavailable"
@@ -56,18 +86,17 @@ export default async function PresetMicrositePage({
     );
   }
 
-  const pages = Array.isArray(presetDraft.pages) ? presetDraft.pages : [];
+  const typedPresetMicrosite = presetMicrosite as MicrositeRow;
 
-  const matchedPage =
-    pages.find((p) => String(p.slug || "").toLowerCase() === pageSlug) ||
-    (pageSlug === "home" ? pages[0] : null);
+  const { data: micrositePage, error: micrositePageError } =
+    await supabaseAdmin
+      .from("microsite_pages")
+      .select("id, slug, title, draft")
+      .eq("microsite_id", typedPresetMicrosite.id)
+      .eq("slug", pageSlug)
+      .maybeSingle();
 
-  const draft =
-    matchedPage?.draft ||
-    (matchedPage as BuilderDraft | null) ||
-    (pageSlug === "home" ? presetDraft : null);
-
-  if (!draft) {
+  if (micrositePageError || !micrositePage) {
     return (
       <PageShell
         title="Page unavailable"
@@ -76,8 +105,21 @@ export default async function PresetMicrositePage({
     );
   }
 
+  const typedMicrositePage = micrositePage as MicrositePageRow;
+  const draft = typedMicrositePage.draft ?? null;
+
+  if (!draft) {
+    return (
+      <PageShell
+        title="Page unavailable"
+        message="No preset page content is available."
+      />
+    );
+  }
+
   const pageColor =
-    (((draft as any)?.pageColor && String((draft as any).pageColor).trim()) ||
+    (((draft as any)?.pageColor &&
+      String((draft as any).pageColor).trim()) ||
       "#fcfbf8") as string;
 
   const pageBackgroundImage = String(
@@ -117,8 +159,8 @@ export default async function PresetMicrositePage({
         <PlacedBlocksPreview
           draft={draft}
           designKey={designKey}
-          micrositeId={`preset-${templateKey}-${designKey}`}
-          micrositeSlug={`preset-${templateKey}-${designKey}`}
+          micrositeId={typedPresetMicrosite.id}
+          micrositeSlug={typedPresetMicrosite.slug}
           serverNow={Date.now()}
           hideFrame={true}
         />
