@@ -9,9 +9,10 @@ type MicrositeRow = {
   id: string;
   slug: string;
   title: string | null;
+  template_key: string | null;
   selected_design_key: string | null;
-  is_published: boolean | null;
-  is_active?: boolean | null;
+  is_preset: boolean | null;
+  preset_key: string | null;
 };
 
 type MicrositePageRow = {
@@ -31,8 +32,13 @@ function PageShell({
   return (
     <main className="min-h-screen bg-[#fcfbf8] px-4 py-16">
       <div className="w-full rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm">
-        <div className="text-base font-semibold text-neutral-900">{title}</div>
-        <div className="mt-2 text-sm text-neutral-600">{message}</div>
+        <div className="text-base font-semibold text-neutral-900">
+          {title}
+        </div>
+
+        <div className="mt-2 text-sm text-neutral-600">
+          {message}
+        </div>
       </div>
     </main>
   );
@@ -59,25 +65,54 @@ export default async function PresetMicrositePage({
   const templateKey = normalizeKey(template);
   const designKey = normalizeKey(design);
 
-  const pageSlug = decodeURIComponent(page?.[0] || "home")
+  const pageSlug = decodeURIComponent(
+    Array.isArray(page)
+      ? page[0] || "home"
+      : "home",
+  )
     .trim()
     .toLowerCase();
 
+  const presetKey = `${templateKey}:${designKey}`;
+
   const supabaseAdmin = getSupabaseAdmin();
 
-  const { data: presetMicrosite, error: presetMicrositeError } =
-    await supabaseAdmin
-      .from("microsites")
-      .select(
-        "id, slug, title, selected_design_key, is_published, is_active",
-      )
-      .eq("selected_design_key", designKey)
-      .eq("is_published", true)
-      .eq("is_active", true)
-      .ilike("slug", `%${templateKey.replace(/_/g, "-")}%`)
-      .maybeSingle();
+  const {
+    data: presetMicrosite,
+    error: presetMicrositeError,
+  } = await supabaseAdmin
+    .from("microsites")
+    .select(
+      `
+        id,
+        slug,
+        title,
+        template_key,
+        selected_design_key,
+        is_preset,
+        preset_key
+      `,
+    )
+    .eq("is_preset", true)
+    .eq("template_key", templateKey)
+    .eq("selected_design_key", designKey)
+    .eq("preset_key", presetKey)
+    .maybeSingle();
 
-  if (presetMicrositeError || !presetMicrosite) {
+  if (
+    presetMicrositeError ||
+    !presetMicrosite
+  ) {
+    console.error(
+      "Preset microsite lookup failed",
+      presetMicrositeError,
+      {
+        templateKey,
+        designKey,
+        presetKey,
+      },
+    );
+
     return (
       <PageShell
         title="Preset unavailable"
@@ -86,17 +121,51 @@ export default async function PresetMicrositePage({
     );
   }
 
-  const typedPresetMicrosite = presetMicrosite as MicrositeRow;
+  const typedPresetMicrosite =
+    presetMicrosite as MicrositeRow;
 
-  const { data: micrositePage, error: micrositePageError } =
-    await supabaseAdmin
-      .from("microsite_pages")
-      .select("id, slug, title, draft")
-      .eq("microsite_id", typedPresetMicrosite.id)
-      .eq("slug", pageSlug)
-      .maybeSingle();
+  const {
+    data: micrositePage,
+    error: micrositePageError,
+  } = await supabaseAdmin
+    .from("microsite_pages")
+    .select(
+      `
+        id,
+        slug,
+        title,
+        draft
+      `,
+    )
+    .eq(
+      "microsite_id",
+      typedPresetMicrosite.id,
+    )
+    .eq(
+      "slug",
+      pageSlug,
+    )
+    .eq(
+      "is_preset",
+      true,
+    )
+    .maybeSingle();
 
-  if (micrositePageError || !micrositePage) {
+  if (
+    micrositePageError ||
+    !micrositePage
+  ) {
+    console.error(
+      "Preset page lookup failed",
+      micrositePageError,
+      {
+        micrositeId:
+          typedPresetMicrosite.id,
+
+        pageSlug,
+      },
+    );
+
     return (
       <PageShell
         title="Page unavailable"
@@ -105,8 +174,12 @@ export default async function PresetMicrositePage({
     );
   }
 
-  const typedMicrositePage = micrositePage as MicrositePageRow;
-  const draft = typedMicrositePage.draft ?? null;
+  const typedMicrositePage =
+    micrositePage as MicrositePageRow;
+
+  const draft =
+    typedMicrositePage.draft ??
+    null;
 
   if (!draft) {
     return (
@@ -119,20 +192,32 @@ export default async function PresetMicrositePage({
 
   const pageColor =
     (((draft as any)?.pageColor &&
-      String((draft as any).pageColor).trim()) ||
+      String(
+        (draft as any).pageColor,
+      ).trim()) ||
       "#fcfbf8") as string;
 
-  const pageBackgroundImage = String(
-    (draft as any)?.pageBackgroundImage || "",
-  ).trim();
+  const pageBackgroundImage =
+    String(
+      (draft as any)
+        ?.pageBackgroundImage ||
+        "",
+    ).trim();
 
-  const pageBackgroundImageFit = ((draft as any)?.pageBackgroundImageFit ||
-    "zoom") as "clip" | "zoom" | "stretch";
+  const pageBackgroundImageFit =
+    ((draft as any)
+      ?.pageBackgroundImageFit ||
+      "zoom") as
+      | "clip"
+      | "zoom"
+      | "stretch";
 
   const pageBackgroundSize =
-    pageBackgroundImageFit === "clip"
+    pageBackgroundImageFit ===
+    "clip"
       ? "contain"
-      : pageBackgroundImageFit === "stretch"
+      : pageBackgroundImageFit ===
+          "stretch"
         ? "100% 100%"
         : "cover";
 
@@ -144,13 +229,22 @@ export default async function PresetMicrositePage({
         width: "100%",
         margin: 0,
         padding: 0,
-        backgroundColor: pageColor,
+
+        backgroundColor:
+          pageColor,
+
         ...(pageBackgroundImage
           ? {
               backgroundImage: `url("${pageBackgroundImage}")`,
-              backgroundSize: pageBackgroundSize,
-              backgroundPosition: "center center",
-              backgroundRepeat: "no-repeat",
+
+              backgroundSize:
+                pageBackgroundSize,
+
+              backgroundPosition:
+                "center center",
+
+              backgroundRepeat:
+                "no-repeat",
             }
           : {}),
       }}
@@ -158,9 +252,17 @@ export default async function PresetMicrositePage({
       <div className="w-screen max-w-none overflow-hidden">
         <PlacedBlocksPreview
           draft={draft}
-          designKey={designKey}
-          micrositeId={typedPresetMicrosite.id}
-          micrositeSlug={typedPresetMicrosite.slug}
+          designKey={
+            typedPresetMicrosite
+              .selected_design_key ||
+            designKey
+          }
+          micrositeId={
+            typedPresetMicrosite.id
+          }
+          micrositeSlug={
+            typedPresetMicrosite.slug
+          }
           serverNow={Date.now()}
           hideFrame={true}
         />
