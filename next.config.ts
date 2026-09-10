@@ -1,24 +1,43 @@
 import type { NextConfig } from "next";
 import withPWA from "next-pwa";
 
-const isProd = process.env.NODE_ENV === "production";
+const isProd =
+  process.env.NODE_ENV ===
+  "production";
 
 const nextConfig: NextConfig = {
-  reactStrictMode: true,
+  reactStrictMode:
+    true,
 
   experimental: {
     serverActions: {
-      bodySizeLimit: "20mb",
+      bodySizeLimit:
+        "20mb",
     },
+  },
+
+  serverExternalPackages: [
+    "@sparticuz/chromium",
+    "puppeteer-core",
+  ],
+
+  outputFileTracingIncludes: {
+    "/api/dashboard/microsites/[id]/share-preview/regenerate": [
+      "./node_modules/@sparticuz/chromium/bin/**",
+    ],
   },
 };
 
 export default withPWA({
-  dest: "public",
-  disable: !isProd, // don't generate SW in dev
-  register: true,
-  skipWaiting: true,
+  dest:
+    "public",
 
-  // Helps allow install prompts + offline shell
-  // (You can tune runtimeCaching later if needed)
+  disable:
+    !isProd,
+
+  register:
+    true,
+
+  skipWaiting:
+    true,
 })(nextConfig);
