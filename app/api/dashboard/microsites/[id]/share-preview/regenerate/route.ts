@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import puppeteer from "puppeteer";
+import puppeteer from "puppeteer-core";
+import chromium from "@sparticuz/chromium";
 
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 
@@ -44,14 +45,9 @@ function serializeMicrosite(
         null;
 
   return {
-    id:
-      site.id,
-
-    slug:
-      site.slug,
-
-    title:
-      site.title,
+    id: site.id,
+    slug: site.slug,
+    title: site.title,
 
     share_preview_mode:
       mode,
@@ -69,10 +65,6 @@ function serializeMicrosite(
   };
 }
 
-/* ================================================================= */
-/* POST */
-/* ================================================================= */
-
 export async function POST(
   req: Request,
   ctx: {
@@ -86,8 +78,7 @@ export async function POST(
       ReturnType<
         typeof puppeteer.launch
       >
-    > | null =
-    null;
+    > | null = null;
 
   try {
     const {
@@ -102,8 +93,7 @@ export async function POST(
       return NextResponse.json(
         {
           ok: false,
-          error:
-            "Unauthorized.",
+          error: "Unauthorized.",
         },
         {
           status: 401,
@@ -165,8 +155,7 @@ export async function POST(
       return NextResponse.json(
         {
           ok: false,
-          error:
-            "Unauthorized.",
+          error: "Unauthorized.",
         },
         {
           status: 401,
@@ -193,14 +182,6 @@ export async function POST(
     /* PUBLIC URL */
     /* ============================================================= */
 
-    /*
-     * Production:
-     * https://slug.ko-host.com
-     *
-     * Local development:
-     * use the existing /s/[slug] route because the production
-     * subdomain will not point at the local dev server.
-     */
     const requestUrl =
       new URL(
         req.url,
@@ -225,37 +206,37 @@ export async function POST(
         : `https://${site.slug}.ko-host.com`;
 
     /* ============================================================= */
-    /* CAPTURE */
+    /* CHROMIUM */
     /* ============================================================= */
 
-    browser =
-      await puppeteer.launch({
-        args: [
-          "--no-sandbox",
-          "--disable-setuid-sandbox",
-        ],
-      });
+    const executablePath =
+      await chromium.executablePath();
+
+browser =
+  await puppeteer.launch({
+    args: [
+      ...chromium.args,
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+    ],
+
+    executablePath,
+
+    headless: true,
+  });
 
     const page =
       await browser.newPage();
 
-    /*
-     * Open Graph's common large-image ratio:
-     * 1200 × 630.
-     *
-     * Because fullPage is false, this captures exactly the
-     * top 630px of the published microsite.
-     */
     await page.setViewport({
-      width:
-        1200,
-
-      height:
-        630,
-
-      deviceScaleFactor:
-        1,
+      width: 1200,
+      height: 630,
+      deviceScaleFactor: 1,
     });
+
+    /* ============================================================= */
+    /* LOAD PAGE */
+    /* ============================================================= */
 
     await page.goto(
       publicUrl,
@@ -268,10 +249,6 @@ export async function POST(
       },
     );
 
-    /*
-     * Give fonts, externally-hosted images, and builder
-     * rendering a short opportunity to settle.
-     */
     await new Promise<void>(
       (resolve) => {
         setTimeout(
@@ -281,9 +258,6 @@ export async function POST(
       },
     );
 
-    /*
-     * Wait for document fonts when supported.
-     */
     await page
       .evaluate(
         async () => {
@@ -301,25 +275,23 @@ export async function POST(
         () => undefined,
       );
 
+    /* ============================================================= */
+    /* SCREENSHOT */
+    /* ============================================================= */
+
     const screenshotBuffer =
       await page.screenshot({
-        type:
-          "jpeg",
-
-        quality:
-          88,
-
-        fullPage:
-          false,
+        type: "jpeg",
+        quality: 88,
+        fullPage: false,
       });
 
     await browser.close();
 
-    browser =
-      null;
+    browser = null;
 
     /* ============================================================= */
-    /* STORE AUTO IMAGE */
+    /* STORAGE */
     /* ============================================================= */
 
     const bucket =
@@ -327,10 +299,6 @@ export async function POST(
         "microsite-thumbnails",
       );
 
-    /*
-     * Fixed path + upsert means regeneration replaces the
-     * previous automatic preview instead of creating endless files.
-     */
     const filePath =
       `share-previews/${micrositeId}/auto.jpg`;
 
@@ -358,6 +326,7 @@ export async function POST(
       return NextResponse.json(
         {
           ok: false,
+
           error:
             uploadError.message ||
             "Failed to save auto-generated preview image.",
@@ -369,24 +338,21 @@ export async function POST(
     }
 
     const {
-      data:
-        publicUrlData,
+      data: publicUrlData,
     } =
       bucket.getPublicUrl(
         filePath,
       );
 
     const baseImageUrl =
-      publicUrlData
-        ?.publicUrl ??
+      publicUrlData?.publicUrl ??
       "";
 
-    if (
-      !baseImageUrl
-    ) {
+    if (!baseImageUrl) {
       return NextResponse.json(
         {
           ok: false,
+
           error:
             "Unable to create the preview image URL.",
         },
@@ -396,10 +362,6 @@ export async function POST(
       );
     }
 
-    /*
-     * Add a version query so the dashboard and link-preview
-     * crawlers do not keep displaying a cached older screenshot.
-     */
     const versionedImageUrl =
       `${baseImageUrl}?v=${Date.now()}`;
 
@@ -408,14 +370,10 @@ export async function POST(
     /* ============================================================= */
 
     const {
-      data:
-        updatedData,
-      error:
-        updateError,
+      data: updatedData,
+      error: updateError,
     } = await sb
-      .from(
-        "microsites",
-      )
+      .from("microsites")
       .update({
         share_preview_auto_image_url:
           versionedImageUrl,
@@ -464,8 +422,7 @@ export async function POST(
       updatedData as SharePreviewRow;
 
     return NextResponse.json({
-      ok:
-        true,
+      ok: true,
 
       microsite:
         serializeMicrosite(
@@ -481,22 +438,24 @@ export async function POST(
       await browser
         .close()
         .catch(
-          () =>
-            undefined,
+          () => undefined,
         );
     }
 
     const message =
-      error instanceof
-        Error
+      error instanceof Error
         ? error.message
         : "Unexpected error.";
+
+    console.error(
+      "share preview screenshot failed",
+      error,
+    );
 
     return NextResponse.json(
       {
         ok: false,
-        error:
-          message,
+        error: message,
       },
       {
         status: 500,
