@@ -1,7 +1,9 @@
 // app\s\[slug]\page.tsx
 
+import type { Metadata } from "next";
 import { cookies, headers } from "next/headers";
 import crypto from "crypto";
+
 import PlacedBlocksPreview from "@/components/preview/PlacedBlocksPreview";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import type { BuilderDraft } from "@/lib/templates/builder";
@@ -11,18 +13,235 @@ import PrivateMicrositeAccessForm from "@/components/microsite/PrivateMicrositeA
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
+/* ================================================================= */
+/* SHARE / OPEN GRAPH METADATA */
+/* ================================================================= */
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{
+    slug: string;
+  }>;
+}): Promise<Metadata> {
+  const {
+    slug,
+  } = await params;
+
+  const safeSlug =
+    decodeURIComponent(
+      String(
+        slug || "",
+      ),
+    )
+      .trim()
+      .toLowerCase();
+
+  const fallbackTitle =
+    "Ko-Host";
+
+  const fallbackDescription =
+    "View this microsite on Ko-Host.";
+
+  if (!safeSlug) {
+    return {
+      title:
+        fallbackTitle,
+
+      description:
+        fallbackDescription,
+    };
+  }
+
+  try {
+    /*
+     * Cast locally because the Share Preview columns
+     * may not yet exist in generated Supabase typings.
+     */
+    const supabaseAdmin =
+      getSupabaseAdmin() as any;
+
+    const {
+      data,
+      error,
+    } =
+      await supabaseAdmin
+        .from(
+          "microsites",
+        )
+        .select(`
+          id,
+          slug,
+          title,
+          is_active,
+          is_published,
+          paid_until,
+          share_preview_mode,
+          share_preview_auto_image_url,
+          share_preview_custom_image_url
+        `)
+        .eq(
+          "slug",
+          safeSlug,
+        )
+        .maybeSingle();
+
+    if (
+      error ||
+      !data
+    ) {
+      return {
+        title:
+          fallbackTitle,
+
+        description:
+          fallbackDescription,
+      };
+    }
+
+    const site =
+      data as MicrositeRow;
+
+    const title =
+      typeof site.title ===
+        "string" &&
+      site.title.trim()
+        ? site.title.trim()
+        : safeSlug;
+
+    const description =
+      `View ${title} on Ko-Host.`;
+
+    /*
+     * Custom image wins only when:
+     *
+     * 1. Custom mode is active.
+     * 2. A custom image actually exists.
+     *
+     * Otherwise fall back to the automatic screenshot.
+     */
+    const previewImageUrl =
+      site.share_preview_mode ===
+        "custom" &&
+      site.share_preview_custom_image_url
+        ? site.share_preview_custom_image_url
+        : site.share_preview_auto_image_url ??
+          null;
+
+    const publicUrl =
+      `https://${safeSlug}.ko-host.com`;
+
+    const metadata: Metadata = {
+      title,
+
+      description,
+
+      alternates: {
+        canonical:
+          publicUrl,
+      },
+
+      openGraph: {
+        type:
+          "website",
+
+        url:
+          publicUrl,
+
+        siteName:
+          "Ko-Host",
+
+        title,
+
+        description,
+
+        ...(previewImageUrl
+          ? {
+              images: [
+                {
+                  url:
+                    previewImageUrl,
+
+                  width:
+                    1200,
+
+                  height:
+                    630,
+
+                  alt:
+                    title,
+                },
+              ],
+            }
+          : {}),
+      },
+
+      twitter: {
+        card:
+          "summary_large_image",
+
+        title,
+
+        description,
+
+        ...(previewImageUrl
+          ? {
+              images: [
+                previewImageUrl,
+              ],
+            }
+          : {}),
+      },
+    };
+
+    return metadata;
+  } catch (
+    error
+  ) {
+    console.error(
+      "share preview metadata failed",
+      error,
+    );
+
+    return {
+      title:
+        fallbackTitle,
+
+      description:
+        fallbackDescription,
+    };
+  }
+}
+
 type MicrositeRow = {
   id: string;
   slug: string;
   title: string | null;
+
   is_active?: boolean | null;
   is_published: boolean | null;
   paid_until: string | null;
+
   selected_design_key: string | null;
+
   site_visibility: string | null;
   private_mode: string | boolean | null;
   passcode_hash: string | null;
+
   draft: BuilderDraft | null;
+
+  share_preview_mode?:
+    | "auto"
+    | "custom"
+    | null;
+
+  share_preview_auto_image_url?:
+    | string
+    | null;
+
+  share_preview_custom_image_url?:
+    | string
+    | null;
 };
 
 type MicrositePageRow = {
@@ -191,9 +410,9 @@ export default async function PublishedMicrositePage({
 
   const { data, error } = await supabaseAdmin
     .from("microsites")
-    .select(
-      "id, slug, title, is_active, is_published, paid_until, selected_design_key, site_visibility, private_mode, passcode_hash, draft",
-    )
+.select(
+  "id, slug, title, is_active, is_published, paid_until, selected_design_key, site_visibility, private_mode, passcode_hash, draft, share_preview_mode, share_preview_auto_image_url, share_preview_custom_image_url",
+)
     .eq("slug", safeSlug)
     .maybeSingle();
 

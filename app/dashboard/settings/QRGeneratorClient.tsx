@@ -1,3 +1,5 @@
+// app\dashboard\settings\QRGeneratorClient.tsx
+
 "use client";
 
 import { useMemo, useState } from "react";

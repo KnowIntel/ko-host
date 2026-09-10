@@ -546,9 +546,9 @@ async function sendBulkEmail() {
 </a>
 
 <a
-href={`/api/qr?text=${encodeURIComponent(
-  `https://${site.slug}.ko-host.com`,
-)}&filename=${encodeURIComponent(`${site.slug}-qr-code.png`)}`}
+  href={`/api/qr?text=${encodeURIComponent(
+    `https://${site.slug}.ko-host.com`,
+  )}&filename=${encodeURIComponent(`${site.slug}-qr-code.png`)}`}
   download={`${site.slug}-qr-code.png`}
   target="_blank"
   rel="noreferrer"
@@ -556,6 +556,13 @@ href={`/api/qr?text=${encodeURIComponent(
 >
   Download QR Code
 </a>
+
+<Link
+  href={`/dashboard/microsites/${site.id}/share-preview`}
+  className="inline-flex items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-neutral-900 hover:border-neutral-900"
+>
+  Share Preview
+</Link>
         </div>
       </div>
 

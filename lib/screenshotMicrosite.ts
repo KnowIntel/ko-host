@@ -1,3 +1,5 @@
+// lib\screenshotMicrosite.ts
+
 import { chromium } from "playwright";
 
 export async function generateMicrositeThumbnail(url: string) {
@@ -17,4 +19,4 @@ export async function generateMicrositeThumbnail(url: string) {
   await browser.close();
 
   return buffer;
-}
+} 

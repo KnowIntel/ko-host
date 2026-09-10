@@ -1,3 +1,5 @@
+// app\api\internal\microsites\[id]\thumbnail\route.ts
+
 import { NextResponse } from "next/server";
 import puppeteer from "puppeteer";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
