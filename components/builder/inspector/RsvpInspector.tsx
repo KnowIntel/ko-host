@@ -610,6 +610,7 @@ onChange={(e) =>
   </div>
 </div>
 
+
 <div className="mt-5 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
   <div className={inspectorLabelClass()}>
     Contact Details Section
