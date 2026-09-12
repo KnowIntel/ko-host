@@ -188,7 +188,10 @@ export type TemplateDef = {
 
 const POPULAR_KEYS = new Set<TemplateKey>([
   "wedding_rsvp",
+  "birthday_party",
   "rental_listing",
+  "graduation",
+  "learning_lab",
   "investor_pitch",
   "service_promo",
   "for_sale_by_owner",
@@ -205,6 +208,7 @@ const NEW_KEYS = new Set<TemplateKey>([
   "private_discord",
   "community_alert",
   "job_fair",
+  "newsletter",
   "software_trial",
   "masterclass",
   "startup_demo_day",
