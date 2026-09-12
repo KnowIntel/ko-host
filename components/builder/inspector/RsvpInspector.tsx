@@ -36,6 +36,32 @@ export function RsvpInspector({
   inspectorLabelClass,
   inspectorInputClass,
 }: RsvpInspectorProps) {
+  const updateHiddenElement = (
+    block: any,
+    key: string,
+    hidden: boolean,
+  ) => {
+    const currentHidden = Array.isArray(
+      block.data.hiddenElements,
+    )
+      ? block.data.hiddenElements
+      : [];
+
+    const nextHidden = hidden
+      ? Array.from(
+          new Set([
+            ...currentHidden,
+            key,
+          ]),
+        )
+      : currentHidden.filter(
+          (item: string) =>
+            item !== key,
+        );
+
+    return nextHidden;
+  };
+
   return (
   <div id="inspector-rsvp" className={inspectorCardClass()}>
     <div className={inspectorLabelClass()}>RSVP</div>
@@ -78,10 +104,318 @@ export function RsvpInspector({
   </div>
 </div>
 
+<div className="mt-4">
+  <div className={inspectorLabelClass()}>
+    Style Variant
+  </div>
+
+  <select
+    value={
+      selectedBlock.data.layoutVariant ??
+      "standard"
+    }
+    onChange={(e) =>
+      updateSelectedBlock((block: any) =>
+        block.type !== "rsvp"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+
+                layoutVariant:
+                  e.target.value as
+                    | "standard"
+                    | "invitation_card"
+                    | "hero_overlay"
+                    | "flyer_stack",
+              },
+            },
+      )
+    }
+    className={inspectorInputClass()}
+  >
+    <option value="standard">
+      Standard
+    </option>
+
+    <option value="invitation_card">
+      Invitation Card
+    </option>
+
+    <option value="hero_overlay">
+      Hero Overlay
+    </option>
+
+    <option value="flyer_stack">
+      Flyer Stack
+    </option>
+  </select>
+</div>
+
+<div className="mt-4">
+  <div className={inspectorLabelClass()}>
+    Theme Variant
+  </div>
+
+  <select
+    value={
+      selectedBlock.data.styleVariant ??
+      "standard"
+    }
+    onChange={(e) =>
+      updateSelectedBlock((block: any) =>
+        block.type !== "rsvp"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+
+                styleVariant:
+                  e.target.value as any,
+              },
+            },
+      )
+    }
+    className={inspectorInputClass()}
+  >
+    <option value="standard">
+      Standard
+    </option>
+
+    <option value="elegant_wedding">
+      Elegant Wedding
+    </option>
+
+    <option value="modern_minimal">
+      Modern Minimal
+    </option>
+
+    <option value="glassmorphism">
+      Glassmorphism
+    </option>
+
+    <option value="editorial_magazine">
+      Editorial Magazine
+    </option>
+
+    <option value="bold_event">
+      Bold Event
+    </option>
+
+    <option value="dark_neon">
+      Dark Neon
+    </option>
+
+    <option value="ticket_style">
+      Ticket Style
+    </option>
+  </select>
+</div>
+
+{/* ============================================================
+    LAYOUT SPACING
+    ============================================================ */}
+
+<div className="mt-5 border-t border-neutral-200 pt-4">
+  <div className="text-xs font-semibold uppercase tracking-[0.12em] text-neutral-500">
+    Layout
+  </div>
+
+  <div className="mt-4">
+    <div className={inspectorLabelClass()}>
+      Content Padding
+    </div>
+
+    <input
+      type="range"
+      min={0}
+      max={64}
+      step={1}
+      value={
+        selectedBlock.data.contentPadding ??
+        24
+      }
+      onChange={(e) =>
+        updateSelectedBlock((block: any) =>
+          block.type !== "rsvp"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+
+                  contentPadding:
+                    Number(e.target.value),
+                },
+              },
+        )
+      }
+      className="w-full"
+    />
+
+    <div className="mt-1 text-right text-[11px] text-neutral-500">
+      {selectedBlock.data.contentPadding ??
+        24}
+      px
+    </div>
+  </div>
+
+  <div className="mt-4">
+    <div className={inspectorLabelClass()}>
+      Section Spacing
+    </div>
+
+    <input
+      type="range"
+      min={0}
+      max={48}
+      step={1}
+      value={
+        selectedBlock.data.sectionGap ??
+        20
+      }
+      onChange={(e) =>
+        updateSelectedBlock((block: any) =>
+          block.type !== "rsvp"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+
+                  sectionGap:
+                    Number(e.target.value),
+                },
+              },
+        )
+      }
+      className="w-full"
+    />
+
+    <div className="mt-1 text-right text-[11px] text-neutral-500">
+      {selectedBlock.data.sectionGap ??
+        20}
+      px
+    </div>
+  </div>
+
+  <div className="mt-4">
+    <div className={inspectorLabelClass()}>
+      Field Spacing
+    </div>
+
+    <input
+      type="range"
+      min={0}
+      max={40}
+      step={1}
+      value={
+        selectedBlock.data.fieldGap ??
+        14
+      }
+      onChange={(e) =>
+        updateSelectedBlock((block: any) =>
+          block.type !== "rsvp"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+
+                  fieldGap:
+                    Number(e.target.value),
+                },
+              },
+        )
+      }
+      className="w-full"
+    />
+
+    <div className="mt-1 text-right text-[11px] text-neutral-500">
+      {selectedBlock.data.fieldGap ??
+        14}
+      px
+    </div>
+  </div>
+</div>
+
+{/* ============================================================
+    STANDARD
+    ============================================================ */}
+
+{(
+  selectedBlock.data.layoutVariant ??
+  "standard"
+) === "standard" ? (
+  <div className="mt-4">
+    <div className={inspectorLabelClass()}>
+      Form Max Width
+    </div>
+
+    <input
+      type="range"
+      min={320}
+      max={1200}
+      step={10}
+      value={
+        selectedBlock.data.formMaxWidth ??
+        760
+      }
+      onChange={(e) =>
+        updateSelectedBlock((block: any) =>
+          block.type !== "rsvp"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+
+                  formMaxWidth:
+                    Number(e.target.value),
+                },
+              },
+        )
+      }
+      className="w-full"
+    />
+
+    <div className="mt-1 text-right text-[11px] text-neutral-500">
+      {selectedBlock.data.formMaxWidth ??
+        760}
+      px
+    </div>
+  </div>
+) : null}
+
+{/* ============================================================
+    INVITATION CARD
+    ============================================================ */}
+
+{(
+  selectedBlock.data.layoutVariant ??
+  "standard"
+) === "invitation_card" ? (
+  <div className="mt-5 rounded-xl border border-neutral-200 bg-neutral-50 p-4">
+    <div className="text-xs font-semibold uppercase tracking-[0.12em] text-neutral-500">
+      Invitation Card
+    </div>
+
     <div className="mt-4">
-      <div className={inspectorLabelClass()}>Style Variant</div>
-      <select
-        value={selectedBlock.data.styleVariant ?? "standard"}
+      <div className={inspectorLabelClass()}>
+        Card Width
+      </div>
+
+      <input
+        type="range"
+        min={280}
+        max={700}
+        step={10}
+        value={
+          selectedBlock.data.portraitMaxWidth ??
+          460
+        }
         onChange={(e) =>
           updateSelectedBlock((block: any) =>
             block.type !== "rsvp"
@@ -90,46 +424,476 @@ export function RsvpInspector({
                   ...block,
                   data: {
                     ...block.data,
-                    styleVariant: e.target.value as any,
+
+                    portraitMaxWidth:
+                      Number(e.target.value),
+                  },
+                },
+          )
+        }
+        className="w-full"
+      />
+
+      <div className="mt-1 text-right text-[11px] text-neutral-500">
+        {selectedBlock.data.portraitMaxWidth ??
+          460}
+        px
+      </div>
+    </div>
+  </div>
+) : null}
+
+{/* ============================================================
+    HERO OVERLAY
+    ============================================================ */}
+
+{(
+  selectedBlock.data.layoutVariant ??
+  "standard"
+) === "hero_overlay" ? (
+  <div className="mt-5 rounded-xl border border-neutral-200 bg-neutral-50 p-4">
+    <div className="text-xs font-semibold uppercase tracking-[0.12em] text-neutral-500">
+      Hero Overlay
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>
+        Horizontal Position
+      </div>
+
+      <select
+        value={
+          selectedBlock.data.overlayAlign ??
+          "center"
+        }
+        onChange={(e) =>
+          updateSelectedBlock((block: any) =>
+            block.type !== "rsvp"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+
+                    overlayAlign:
+                      e.target.value as
+                        | "left"
+                        | "center"
+                        | "right",
                   },
                 },
           )
         }
         className={inspectorInputClass()}
       >
-<option value="standard">
-  Standard
-</option>
+        <option value="left">
+          Left
+        </option>
 
-<option value="elegant_wedding">
-  Elegant Wedding
-</option>
+        <option value="center">
+          Center
+        </option>
 
-<option value="modern_minimal">
-  Modern Minimal
-</option>
-
-<option value="glassmorphism">
-  Glassmorphism
-</option>
-
-<option value="editorial_magazine">
-  Editorial Magazine
-</option>
-
-<option value="bold_event">
-  Bold Event
-</option>
-
-<option value="dark_neon">
-  Dark Neon
-</option>
-
-<option value="ticket_style">
-  Ticket Style
-</option>
+        <option value="right">
+          Right
+        </option>
       </select>
     </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>
+        Vertical Position
+      </div>
+
+      <select
+        value={
+          selectedBlock.data.overlayVerticalAlign ??
+          "center"
+        }
+        onChange={(e) =>
+          updateSelectedBlock((block: any) =>
+            block.type !== "rsvp"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+
+                    overlayVerticalAlign:
+                      e.target.value as
+                        | "top"
+                        | "center"
+                        | "bottom",
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      >
+        <option value="top">
+          Top
+        </option>
+
+        <option value="center">
+          Center
+        </option>
+
+        <option value="bottom">
+          Bottom
+        </option>
+      </select>
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>
+        Form Width
+      </div>
+
+      <input
+        type="range"
+        min={280}
+        max={900}
+        step={10}
+        value={
+          selectedBlock.data.overlayWidth ??
+          620
+        }
+        onChange={(e) =>
+          updateSelectedBlock((block: any) =>
+            block.type !== "rsvp"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+
+                    overlayWidth:
+                      Number(e.target.value),
+                  },
+                },
+          )
+        }
+        className="w-full"
+      />
+
+      <div className="mt-1 text-right text-[11px] text-neutral-500">
+        {selectedBlock.data.overlayWidth ??
+          620}
+        px
+      </div>
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>
+        Overlay Opacity
+      </div>
+
+      <input
+        type="range"
+        min={0}
+        max={1}
+        step={0.05}
+        value={
+          selectedBlock.data.overlayBackgroundOpacity ??
+          0.78
+        }
+        onChange={(e) =>
+          updateSelectedBlock((block: any) =>
+            block.type !== "rsvp"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+
+                    overlayBackgroundOpacity:
+                      Number(e.target.value),
+                  },
+                },
+          )
+        }
+        className="w-full"
+      />
+
+      <div className="mt-1 text-right text-[11px] text-neutral-500">
+        {Math.round(
+          (selectedBlock.data
+            .overlayBackgroundOpacity ??
+            0.78) * 100,
+        )}
+        %
+      </div>
+    </div>
+  </div>
+) : null}
+
+{/* ============================================================
+    FLYER STACK
+    ============================================================ */}
+
+{(
+  selectedBlock.data.layoutVariant ??
+  "standard"
+) === "flyer_stack" ? (
+  <div className="mt-5 rounded-xl border border-neutral-200 bg-neutral-50 p-4">
+    <div className="text-xs font-semibold uppercase tracking-[0.12em] text-neutral-500">
+      Flyer Stack
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>
+        Flyer Width
+      </div>
+
+      <input
+        type="range"
+        min={280}
+        max={700}
+        step={10}
+        value={
+          selectedBlock.data.portraitMaxWidth ??
+          460
+        }
+        onChange={(e) =>
+          updateSelectedBlock((block: any) =>
+            block.type !== "rsvp"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+
+                    portraitMaxWidth:
+                      Number(e.target.value),
+                  },
+                },
+          )
+        }
+        className="w-full"
+      />
+
+      <div className="mt-1 text-right text-[11px] text-neutral-500">
+        {selectedBlock.data.portraitMaxWidth ??
+          460}
+        px
+      </div>
+    </div>
+  </div>
+) : null}
+
+{/* ============================================================
+    IMAGE POSITIONING
+    ============================================================ */}
+
+<div className="mt-5 border-t border-neutral-200 pt-4">
+  <div className="text-xs font-semibold uppercase tracking-[0.12em] text-neutral-500">
+    Image Layout
+  </div>
+
+  <div className="mt-4">
+    <div className={inspectorLabelClass()}>
+      Image Fit
+    </div>
+
+    <select
+      value={
+        selectedBlock.data.imageFit ??
+        "cover"
+      }
+      onChange={(e) =>
+        updateSelectedBlock((block: any) =>
+          block.type !== "rsvp"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+
+                  imageFit:
+                    e.target.value as
+                      | "cover"
+                      | "contain"
+                      | "stretch",
+                },
+              },
+        )
+      }
+      className={inspectorInputClass()}
+    >
+      <option value="cover">
+        Cover
+      </option>
+
+      <option value="contain">
+        Contain
+      </option>
+
+      <option value="stretch">
+        Stretch
+      </option>
+    </select>
+  </div>
+
+  <div className="mt-4">
+    <div className={inspectorLabelClass()}>
+      Horizontal Position
+    </div>
+
+    <input
+      type="range"
+      min={0}
+      max={100}
+      step={1}
+      value={
+        selectedBlock.data.imagePositionX ??
+        50
+      }
+      onChange={(e) =>
+        updateSelectedBlock((block: any) =>
+          block.type !== "rsvp"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+
+                  imagePositionX:
+                    Number(e.target.value),
+                },
+              },
+        )
+      }
+      className="w-full"
+    />
+
+    <div className="mt-1 text-right text-[11px] text-neutral-500">
+      {selectedBlock.data.imagePositionX ??
+        50}
+      %
+    </div>
+  </div>
+
+  <div className="mt-4">
+    <div className={inspectorLabelClass()}>
+      Vertical Position
+    </div>
+
+    <input
+      type="range"
+      min={0}
+      max={100}
+      step={1}
+      value={
+        selectedBlock.data.imagePositionY ??
+        50
+      }
+      onChange={(e) =>
+        updateSelectedBlock((block: any) =>
+          block.type !== "rsvp"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+
+                  imagePositionY:
+                    Number(e.target.value),
+                },
+              },
+        )
+      }
+      className="w-full"
+    />
+
+    <div className="mt-1 text-right text-[11px] text-neutral-500">
+      {selectedBlock.data.imagePositionY ??
+        50}
+      %
+    </div>
+  </div>
+
+  <div className="mt-4">
+    <div className={inspectorLabelClass()}>
+      Image Zoom
+    </div>
+
+    <input
+      type="range"
+      min={0.5}
+      max={3}
+      step={0.05}
+      value={
+        selectedBlock.data.imageZoom ??
+        1
+      }
+      onChange={(e) =>
+        updateSelectedBlock((block: any) =>
+          block.type !== "rsvp"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+
+                  imageZoom:
+                    Number(e.target.value),
+                },
+              },
+        )
+      }
+      className="w-full"
+    />
+
+    <div className="mt-1 text-right text-[11px] text-neutral-500">
+      {Math.round(
+        (selectedBlock.data.imageZoom ??
+          1) * 100,
+      )}
+      %
+    </div>
+  </div>
+
+  <div className="mt-4">
+    <div className={inspectorLabelClass()}>
+      Image Opacity
+    </div>
+
+    <input
+      type="range"
+      min={0}
+      max={1}
+      step={0.05}
+      value={
+        selectedBlock.data.imageOpacity ??
+        1
+      }
+      onChange={(e) =>
+        updateSelectedBlock((block: any) =>
+          block.type !== "rsvp"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+
+                  imageOpacity:
+                    Number(e.target.value),
+                },
+              },
+        )
+      }
+      className="w-full"
+    />
+
+    <div className="mt-1 text-right text-[11px] text-neutral-500">
+      {Math.round(
+        (selectedBlock.data.imageOpacity ??
+          1) * 100,
+      )}
+      %
+    </div>
+  </div>
+</div>
 
     <label className="mt-4 flex items-center gap-3 text-sm text-neutral-800">
       <input
@@ -210,10 +974,19 @@ export function RsvpInspector({
                 ? block
                 : {
                     ...block,
-                    data: {
-                      ...block.data,
-                      replyByDisplay: e.target.checked,
-                    },
+data: {
+  ...block.data,
+
+  replyByDisplay:
+    e.target.checked,
+
+  hiddenElements:
+    updateHiddenElement(
+      block,
+      "replyBy",
+      !e.target.checked,
+    ),
+},
                   },
             )
           }
@@ -297,6 +1070,253 @@ export function RsvpInspector({
       </select>
     </div>
 
+    <div className="mt-5 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
+  <div className={inspectorLabelClass()}>
+    Form Element Order
+  </div>
+
+  <div className="mt-2 text-xs text-neutral-500">
+    Move sections up or down in the RSVP form.
+  </div>
+
+  <div className="mt-4 space-y-2">
+    {(() => {
+      const availableElements = [
+        {
+          key: "image",
+          label: "Image",
+        },
+        {
+          key: "heading",
+          label: "Heading / Intro",
+        },
+        {
+          key: "contactSection",
+          label: "Contact Details",
+        },
+        {
+          key: "attending",
+          label: "Attendance",
+        },
+        {
+          key: "meal",
+          label: "Meal",
+        },
+        {
+          key: "guestToggle",
+          label: "Guest Question",
+        },
+        {
+          key: "guestCount",
+          label: "Guest Count",
+        },
+        {
+          key: "guestName",
+          label: "Guest Names",
+        },
+        {
+          key: "comments",
+          label: "Comments",
+        },
+      ] as const;
+
+      const savedOrder =
+        Array.isArray(
+          selectedBlock.data.elementOrder,
+        )
+          ? selectedBlock.data.elementOrder
+          : [];
+
+      const normalizedSavedOrder =
+        savedOrder
+          .map((key: string) => {
+            if (
+              key === "helperText" ||
+              key === "replyBy"
+            ) {
+              return "heading";
+            }
+
+            if (
+              key === "nameLabel" ||
+              key === "firstName" ||
+              key === "lastName" ||
+              key === "email" ||
+              key === "address"
+            ) {
+              return "contactSection";
+            }
+
+            return key;
+          })
+          .filter(
+            (
+              key: string,
+              index: number,
+              array: string[],
+            ) =>
+              array.indexOf(key) ===
+              index,
+          );
+
+      const orderedKeys = [
+        ...normalizedSavedOrder.filter(
+          (key: string) =>
+            availableElements.some(
+              (item) =>
+                item.key === key,
+            ),
+        ),
+
+        ...availableElements
+          .map(
+            (item) =>
+              item.key,
+          )
+          .filter(
+            (key) =>
+              !normalizedSavedOrder.includes(
+                key,
+              ),
+          ),
+      ];
+
+      return orderedKeys.map(
+        (
+          key,
+          index,
+        ) => {
+          const item =
+            availableElements.find(
+              (entry) =>
+                entry.key === key,
+            );
+
+          if (!item) {
+            return null;
+          }
+
+          const moveItem = (
+            direction:
+              | "up"
+              | "down",
+          ) => {
+            updateSelectedBlock(
+              (block: any) => {
+                if (
+                  block.type !==
+                  "rsvp"
+                ) {
+                  return block;
+                }
+
+                const current =
+                  [
+                    ...orderedKeys,
+                  ];
+
+                const nextIndex =
+                  direction ===
+                  "up"
+                    ? index - 1
+                    : index + 1;
+
+                if (
+                  nextIndex <
+                    0 ||
+                  nextIndex >=
+                    current.length
+                ) {
+                  return block;
+                }
+
+                [
+                  current[
+                    index
+                  ],
+                  current[
+                    nextIndex
+                  ],
+                ] = [
+                  current[
+                    nextIndex
+                  ],
+                  current[
+                    index
+                  ],
+                ];
+
+                return {
+                  ...block,
+
+                  data: {
+                    ...block.data,
+
+                    elementOrder:
+                      current,
+                  },
+                };
+              },
+            );
+          };
+
+          return (
+            <div
+              key={
+                item.key
+              }
+              className="flex items-center justify-between gap-3 rounded-xl border border-neutral-200 bg-white px-3 py-2"
+            >
+              <div className="min-w-0 text-sm font-medium text-neutral-800">
+                {
+                  item.label
+                }
+              </div>
+
+              <div className="flex shrink-0 items-center gap-1">
+                <button
+                  type="button"
+                  disabled={
+                    index ===
+                    0
+                  }
+                  onClick={() =>
+                    moveItem(
+                      "up",
+                    )
+                  }
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-neutral-200 bg-white text-sm text-neutral-700 transition hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-30"
+                  title="Move up"
+                >
+                  ↑
+                </button>
+
+                <button
+                  type="button"
+                  disabled={
+                    index ===
+                    orderedKeys.length -
+                      1
+                  }
+                  onClick={() =>
+                    moveItem(
+                      "down",
+                    )
+                  }
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-neutral-200 bg-white text-sm text-neutral-700 transition hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-30"
+                  title="Move down"
+                >
+                  ↓
+                </button>
+              </div>
+            </div>
+          );
+        },
+      );
+    })()}
+  </div>
+</div>
+
 
 <div className="mt-5 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
   <div className={inspectorLabelClass()}>
@@ -322,11 +1342,19 @@ export function RsvpInspector({
               ? block
               : {
                   ...block,
-                  data: {
-                    ...block.data,
-                    contactDetailsDisplay:
-                      e.target.checked,
-                  },
+data: {
+  ...block.data,
+
+  contactDetailsDisplay:
+    e.target.checked,
+
+  hiddenElements:
+    updateHiddenElement(
+      block,
+      "contactSection",
+      !e.target.checked,
+    ),
+},
                 },
         )
       }
@@ -405,11 +1433,19 @@ export function RsvpInspector({
                   ? block
                   : {
                       ...block,
-                      data: {
-                        ...block.data,
-                        nameDisplay:
-                          e.target.checked,
-                      },
+data: {
+  ...block.data,
+
+  nameDisplay:
+    e.target.checked,
+
+  hiddenElements:
+    updateHiddenElement(
+      block,
+      "firstName",
+      !e.target.checked,
+    ),
+},
                     },
             )
           }
@@ -480,12 +1516,19 @@ export function RsvpInspector({
                         ? block
                         : {
                             ...block,
-                            data: {
-                              ...block.data,
-                              lastNameDisplay:
-                                e.target
-                                  .checked,
-                            },
+data: {
+  ...block.data,
+
+  lastNameDisplay:
+    e.target.checked,
+
+  hiddenElements:
+    updateHiddenElement(
+      block,
+      "lastName",
+      !e.target.checked,
+    ),
+},
                           },
                   )
                 }
@@ -566,11 +1609,19 @@ export function RsvpInspector({
                   ? block
                   : {
                       ...block,
-                      data: {
-                        ...block.data,
-                        emailDisplay:
-                          e.target.checked,
-                      },
+data: {
+  ...block.data,
+
+  emailDisplay:
+    e.target.checked,
+
+  hiddenElements:
+    updateHiddenElement(
+      block,
+      "email",
+      !e.target.checked,
+    ),
+},
                     },
             )
           }
@@ -646,11 +1697,19 @@ export function RsvpInspector({
                   ? block
                   : {
                       ...block,
-                      data: {
-                        ...block.data,
-                        addressDisplay:
-                          e.target.checked,
-                      },
+data: {
+  ...block.data,
+
+  addressDisplay:
+    e.target.checked,
+
+  hiddenElements:
+    updateHiddenElement(
+      block,
+      "address",
+      !e.target.checked,
+    ),
+},
                     },
             )
           }
@@ -703,6 +1762,415 @@ export function RsvpInspector({
   </div>
 </div>
 
+<div className="mt-5 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
+  <div className={inspectorLabelClass()}>
+    Attendance Section
+  </div>
+
+  <label className="mt-3 flex items-center gap-3 text-sm text-neutral-800">
+    <input
+      type="checkbox"
+      checked={
+        selectedBlock.data.attendingDisplay !==
+        false
+      }
+      onChange={(e) =>
+        updateSelectedBlock(
+          (block: any) =>
+            block.type !==
+            "rsvp"
+              ? block
+              : {
+                  ...block,
+data: {
+  ...block.data,
+
+  attendingDisplay:
+    e.target.checked,
+
+  hiddenElements:
+    updateHiddenElement(
+      block,
+      "attending",
+      !e.target.checked,
+    ),
+},
+                },
+        )
+      }
+    />
+
+    Display in public form
+  </label>
+
+  <div className="mt-4">
+    <div className={inspectorLabelClass()}>
+      Label
+    </div>
+
+    <input
+      type="text"
+      value={
+        selectedBlock.data.attendingLabel ??
+        "Will you be attending?"
+      }
+      onChange={(e) =>
+        updateSelectedBlock(
+          (block: any) =>
+            block.type !==
+            "rsvp"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+
+                    attendingLabel:
+                      e.target.value,
+                  },
+                },
+        )
+      }
+      className={inspectorInputClass()}
+    />
+  </div>
+
+  <div className="mt-4 space-y-3">
+    <div className={inspectorLabelClass()}>
+      Attendance Options
+    </div>
+
+    {(selectedBlock.data.attendingOptions?.length
+      ? selectedBlock.data.attendingOptions
+      : [
+          "Yes",
+          "No",
+        ]
+    )
+      .slice(
+        0,
+        8,
+      )
+      .map(
+        (
+          option: string,
+          index: number,
+          options: string[],
+        ) => (
+          <div
+            key={`attending-option-${index}`}
+            className="flex items-center gap-2"
+          >
+            <input
+              type="text"
+              value={
+                option
+              }
+              onChange={(e) =>
+                updateSelectedBlock(
+                  (
+                    block: any,
+                  ) => {
+                    if (
+                      block.type !==
+                      "rsvp"
+                    ) {
+                      return block;
+                    }
+
+                    const currentOptions =
+                      (
+                        block.data
+                          .attendingOptions
+                          ?.length
+                          ? block.data
+                              .attendingOptions
+                          : [
+                              "Yes",
+                              "No",
+                            ]
+                      ).slice(
+                        0,
+                        8,
+                      );
+
+                    const previousValue =
+                      currentOptions[
+                        index
+                      ];
+
+                    const nextOptions =
+                      currentOptions.map(
+                        (
+                          item: string,
+                          itemIndex: number,
+                        ) =>
+                          itemIndex ===
+                          index
+                            ? e
+                                .target
+                                .value
+                            : item,
+                      );
+
+                    return {
+                      ...block,
+
+                      data: {
+                        ...block.data,
+
+                        attendingOptions:
+                          nextOptions,
+
+                        attendingDefaultValue:
+                          block.data
+                            .attendingDefaultValue ===
+                          previousValue
+                            ? e
+                                .target
+                                .value
+                            : block
+                                .data
+                                .attendingDefaultValue,
+                      },
+                    };
+                  },
+                )
+              }
+              className={inspectorInputClass()}
+              placeholder={`Attendance option ${
+                index +
+                1
+              }`}
+            />
+
+            <button
+              type="button"
+              disabled={
+                options.length <=
+                1
+              }
+              onClick={() =>
+                updateSelectedBlock(
+                  (
+                    block: any,
+                  ) => {
+                    if (
+                      block.type !==
+                      "rsvp"
+                    ) {
+                      return block;
+                    }
+
+                    const currentOptions =
+                      (
+                        block.data
+                          .attendingOptions
+                          ?.length
+                          ? block.data
+                              .attendingOptions
+                          : [
+                              "Yes",
+                              "No",
+                            ]
+                      ).slice(
+                        0,
+                        8,
+                      );
+
+                    const removedValue =
+                      currentOptions[
+                        index
+                      ];
+
+                    const nextOptions =
+                      currentOptions.filter(
+                        (
+                          _item: string,
+                          itemIndex: number,
+                        ) =>
+                          itemIndex !==
+                          index,
+                      );
+
+                    return {
+                      ...block,
+
+                      data: {
+                        ...block.data,
+
+                        attendingOptions:
+                          nextOptions.length
+                            ? nextOptions
+                            : [
+                                "Yes",
+                              ],
+
+                        attendingDefaultValue:
+                          block.data
+                            .attendingDefaultValue ===
+                          removedValue
+                            ? nextOptions[
+                                0
+                              ] ??
+                              "Yes"
+                            : block
+                                .data
+                                .attendingDefaultValue,
+                      },
+                    };
+                  },
+                )
+              }
+              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-neutral-200 bg-white text-sm text-neutral-700 transition hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-40"
+              title="Remove attendance option"
+            >
+              ×
+            </button>
+          </div>
+        ),
+      )}
+
+    <button
+      type="button"
+      disabled={
+        (
+          selectedBlock.data
+            .attendingOptions
+            ?.length ??
+          2
+        ) >=
+        8
+      }
+      onClick={() =>
+        updateSelectedBlock(
+          (
+            block: any,
+          ) => {
+            if (
+              block.type !==
+              "rsvp"
+            ) {
+              return block;
+            }
+
+            const currentOptions =
+              (
+                block.data
+                  .attendingOptions
+                  ?.length
+                  ? block.data
+                      .attendingOptions
+                  : [
+                      "Yes",
+                      "No",
+                    ]
+              ).slice(
+                0,
+                8,
+              );
+
+            if (
+              currentOptions.length >=
+              8
+            ) {
+              return block;
+            }
+
+            return {
+              ...block,
+
+              data: {
+                ...block.data,
+
+                attendingOptions:
+                  [
+                    ...currentOptions,
+                    `Option ${
+                      currentOptions.length +
+                      1
+                    }`,
+                  ],
+              },
+            };
+          },
+        )
+      }
+      className="inline-flex h-10 items-center justify-center rounded-xl border border-neutral-200 bg-white px-3 text-sm font-medium text-neutral-800 transition hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-50"
+    >
+      + Add attendance option
+    </button>
+  </div>
+
+  <div className="mt-4">
+    <div className={inspectorLabelClass()}>
+      Default Value
+    </div>
+
+    <select
+      value={
+        selectedBlock.data
+          .attendingDefaultValue ??
+        selectedBlock.data
+          .attendingOptions?.[
+          0
+        ] ??
+        "Yes"
+      }
+      onChange={(e) =>
+        updateSelectedBlock(
+          (block: any) =>
+            block.type !==
+            "rsvp"
+              ? block
+              : {
+                  ...block,
+
+                  data: {
+                    ...block.data,
+
+                    attendingDefaultValue:
+                      e.target.value,
+                  },
+                },
+        )
+      }
+      className={inspectorInputClass()}
+    >
+      {(selectedBlock.data.attendingOptions?.length
+        ? selectedBlock.data.attendingOptions
+        : [
+            "Yes",
+            "No",
+          ]
+      )
+        .slice(
+          0,
+          8,
+        )
+        .map(
+          (
+            option: string,
+            index: number,
+          ) => (
+            <option
+              key={`attending-default-${index}`}
+              value={
+                option
+              }
+            >
+              {option ||
+                `Option ${
+                  index +
+                  1
+                }`}
+            </option>
+          ),
+        )}
+    </select>
+  </div>
+</div>
+
     <div className="mt-5 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
       <div className={inspectorLabelClass()}>Meal Section</div>
 
@@ -716,10 +2184,19 @@ export function RsvpInspector({
                 ? block
                 : {
                     ...block,
-                    data: {
-                      ...block.data,
-                      mealDisplay: e.target.checked,
-                    },
+data: {
+  ...block.data,
+
+  mealDisplay:
+    e.target.checked,
+
+  hiddenElements:
+    updateHiddenElement(
+      block,
+      "meal",
+      !e.target.checked,
+    ),
+},
                   },
             )
           }
@@ -913,10 +2390,19 @@ export function RsvpInspector({
                 ? block
                 : {
                     ...block,
-                    data: {
-                      ...block.data,
-                      guestDisplay: e.target.checked,
-                    },
+data: {
+  ...block.data,
+
+  guestDisplay:
+    e.target.checked,
+
+  hiddenElements:
+    updateHiddenElement(
+      block,
+      "guestToggle",
+      !e.target.checked,
+    ),
+},
                   },
             )
           }
@@ -945,6 +2431,137 @@ export function RsvpInspector({
           className={inspectorInputClass()}
         />
       </div>
+
+<div className="mt-4 grid grid-cols-2 gap-3">
+  <div>
+    <div className={inspectorLabelClass()}>
+      Minimum Guests
+    </div>
+
+    <input
+      type="number"
+      min={1}
+      max={
+        selectedBlock.data.guestMax ??
+        10
+      }
+      value={
+        selectedBlock.data.guestMin ??
+        1
+      }
+      onChange={(e) =>
+        updateSelectedBlock(
+          (block: any) => {
+            if (
+              block.type !==
+              "rsvp"
+            ) {
+              return block;
+            }
+
+            const nextMin =
+              Math.max(
+                1,
+                Number(
+                  e.target.value,
+                ) || 1,
+              );
+
+            const currentMax =
+              Number(
+                block.data
+                  .guestMax ??
+                  10,
+              );
+
+            return {
+              ...block,
+
+              data: {
+                ...block.data,
+
+                guestMin:
+                  Math.min(
+                    nextMin,
+                    Math.max(
+                      currentMax,
+                      1,
+                    ),
+                  ),
+              },
+            };
+          },
+        )
+      }
+      className={inspectorInputClass()}
+    />
+  </div>
+
+  <div>
+    <div className={inspectorLabelClass()}>
+      Maximum Guests
+    </div>
+
+    <input
+      type="number"
+      min={
+        selectedBlock.data.guestMin ??
+        1
+      }
+      max={20}
+      value={
+        selectedBlock.data.guestMax ??
+        10
+      }
+      onChange={(e) =>
+        updateSelectedBlock(
+          (block: any) => {
+            if (
+              block.type !==
+              "rsvp"
+            ) {
+              return block;
+            }
+
+            const currentMin =
+              Math.max(
+                1,
+                Number(
+                  block.data
+                    .guestMin ??
+                    1,
+                ),
+              );
+
+            const nextMax =
+              Math.max(
+                currentMin,
+                Math.min(
+                  20,
+                  Number(
+                    e.target.value,
+                  ) ||
+                    currentMin,
+                ),
+              );
+
+            return {
+              ...block,
+
+              data: {
+                ...block.data,
+
+                guestMax:
+                  nextMax,
+              },
+            };
+          },
+        )
+      }
+      className={inspectorInputClass()}
+    />
+  </div>
+</div>
 
       <div className="mt-4 space-y-3">
         <div className={inspectorLabelClass()}>Guest Options</div>
@@ -1120,10 +2737,19 @@ export function RsvpInspector({
                 ? block
                 : {
                     ...block,
-                    data: {
-                      ...block.data,
-                      commentsDisplay: e.target.checked,
-                    },
+data: {
+  ...block.data,
+
+  commentsDisplay:
+    e.target.checked,
+
+  hiddenElements:
+    updateHiddenElement(
+      block,
+      "comments",
+      !e.target.checked,
+    ),
+},
                   },
             )
           }
@@ -1248,6 +2874,51 @@ export function RsvpInspector({
           <option value="compact">Compact</option>
         </select>
       </div>
+
+<div className="mt-4">
+  <div className={inspectorLabelClass()}>
+    Button Alignment
+  </div>
+
+  <select
+    value={
+      selectedBlock.data.buttonAlign ??
+      "center"
+    }
+    onChange={(e) =>
+      updateSelectedBlock(
+        (block: any) =>
+          block.type !==
+          "rsvp"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  buttonAlign:
+                    e.target.value as
+                      | "left"
+                      | "center"
+                      | "right",
+                },
+              },
+      )
+    }
+    className={inspectorInputClass()}
+  >
+    <option value="left">
+      Left
+    </option>
+
+    <option value="center">
+      Center
+    </option>
+
+    <option value="right">
+      Right
+    </option>
+  </select>
+</div>
 
       <div className="mt-4">
         <div className={inspectorLabelClass()}>Button Shape</div>

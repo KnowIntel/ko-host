@@ -18829,7 +18829,12 @@ function renderRsvp(
   block: Extract<MicrositeBlock, { type: "rsvp" }>,
   designKey?: string,
 ) {
-  return <RsvpFormBlock block={block} designKey={designKey} />;
+  return (
+    <RsvpFormBlock
+      block={block}
+      designKey={designKey}
+    />
+  );
 }
 
 function RsvpFormBlock({
@@ -18841,68 +18846,158 @@ function RsvpFormBlock({
 }) {
   const data = block.data as any;
 
-const headingStyle = getContainerTextStyle(
-  data.headingStyle ?? data.style ?? {},
-  designKey,
-);
+  /*
+   * ============================================================
+   * VARIANTS
+   * ============================================================
+   */
 
-const helperTextStyle = getContainerTextStyle(
-  data.helperTextStyle ?? {},
-  designKey,
-);
+  const layoutVariant =
+    data.layoutVariant ??
+    "standard";
 
-const badgeTextStyle = getContainerTextStyle(
-  data.badgeTextStyle ?? {},
-  designKey,
-);
+  const styleVariant =
+    data.styleVariant ??
+    "standard";
 
-const sectionLabelStyle = getContainerTextStyle(
-  data.sectionLabelStyle ?? {},
-  designKey,
-);
+  /*
+   * ============================================================
+   * TEXT STYLES
+   * ============================================================
+   */
 
-const placeholderStyle = getContainerTextStyle(
-  data.placeholderStyle ?? {},
-  designKey,
-);
+  const headingStyle =
+    getContainerTextStyle(
+      data.headingStyle ??
+        data.style ??
+        {},
+      designKey,
+    );
 
-const placeholderClassName = `rsvp-placeholder-${block.id.replace(/[^a-zA-Z0-9_-]/g, "")}`;
-const placeholderColor =
-  (placeholderStyle.color as string | undefined) ??
-  data.placeholderColor ??
-  undefined;
+  const helperTextStyle =
+    getContainerTextStyle(
+      data.helperTextStyle ??
+        {},
+      designKey,
+    );
 
-const optionTextStyle = getContainerTextStyle(
-  data.optionTextStyle ?? {},
-  designKey,
-);
+  const badgeTextStyle =
+    getContainerTextStyle(
+      data.badgeTextStyle ??
+        {},
+      designKey,
+    );
 
-const submitButtonTextStyle = getContainerTextStyle(
-  data.submitButtonTextStyle ?? {},
-  designKey,
-);
+  const sectionLabelStyle =
+    getContainerTextStyle(
+      data.sectionLabelStyle ??
+        {},
+      designKey,
+    );
 
-const confirmationTitleStyle = getContainerTextStyle(
-  data.confirmationTitleStyle ?? {},
-  designKey,
-);
+  /*
+   * Support both the new property name and the old property name
+   * so existing saved RSVP blocks continue to render correctly.
+   */
+  const placeholderStyle =
+    getContainerTextStyle(
+      data.placeholderTextStyle ??
+        data.placeholderStyle ??
+        {},
+      designKey,
+    );
 
-const confirmationMessageStyle = getContainerTextStyle(
-  data.confirmationMessageStyle ?? {},
-  designKey,
-);
+  const optionTextStyle =
+    getContainerTextStyle(
+      data.optionTextStyle ??
+        {},
+      designKey,
+    );
 
-const fieldStyle = data.fieldStyle ?? {};
-const sectionStyle = data.sectionStyle ?? {};
-const buttonDefaultStyle = data.buttonDefaultStyle ?? {};
-const buttonSelectionStyle = data.buttonSelectionStyle ?? {};
-const submitButtonStyle = data.submitButtonStyle ?? {};
-const hidden = new Set(block.data.hiddenElements ?? []);
-const styleVariant = block.data.styleVariant ?? "standard";
+  const submitButtonTextStyle =
+    getContainerTextStyle(
+      data.submitButtonTextStyle ??
+        {},
+      designKey,
+    );
+
+  const confirmationTitleStyle =
+    getContainerTextStyle(
+      data.confirmationTitleStyle ??
+        {},
+      designKey,
+    );
+
+  const confirmationMessageStyle =
+    getContainerTextStyle(
+      data.confirmationMessageStyle ??
+        {},
+      designKey,
+    );
+
+  /*
+   * ============================================================
+   * APPEARANCE TARGETS
+   * ============================================================
+   */
+
+  const fieldStyle =
+    data.fieldStyle ??
+    {};
+
+  const sectionStyle =
+    data.sectionStyle ??
+    {};
+
+  const buttonDefaultStyle =
+    data.buttonDefaultStyle ??
+    {};
+
+  const buttonSelectionStyle =
+    data.buttonSelectionStyle ??
+    {};
+
+  const submitButtonStyle =
+    data.submitButtonStyle ??
+    {};
+
+  const hidden =
+    new Set(
+      data.hiddenElements ??
+        [],
+    );
+
+  /*
+   * ============================================================
+   * PLACEHOLDER SUPPORT
+   * ============================================================
+   */
+
+  const placeholderClassName =
+    `rsvp-placeholder-${block.id.replace(
+      /[^a-zA-Z0-9_-]/g,
+      "",
+    )}`;
+
+  const placeholderColor =
+    (placeholderStyle.color as
+      | string
+      | undefined) ??
+    data.placeholderColor ??
+    undefined;
+
+  /*
+   * ============================================================
+   * ELEMENT ORDER
+   * ============================================================
+   */
 
   const defaultRsvpOrder = [
     "image",
     "heading",
+    "helperText",
+    "replyBy",
+    "contactSection",
     "nameLabel",
     "firstName",
     "lastName",
@@ -18914,1371 +19009,4420 @@ const styleVariant = block.data.styleVariant ?? "standard";
     "guestCount",
     "guestName",
     "comments",
+    "submitButton",
+    "confirmation",
   ] as const;
 
-  const order = block.data.elementOrder?.length
-    ? block.data.elementOrder.includes("comments")
-      ? block.data.elementOrder
-      : [...block.data.elementOrder, "comments"]
-    : [...defaultRsvpOrder];
+  const order =
+    data.elementOrder?.length
+      ? data.elementOrder
+      : [...defaultRsvpOrder];
 
-  const imageShape = block.data.imageFrameShape ?? "circle";
-  const guestMin = Math.max(0, block.data.guestMin ?? 0);
-  const guestMax = Math.max(guestMin, block.data.guestMax ?? 1);
+  /*
+   * ============================================================
+   * IMAGE
+   * ============================================================
+   */
+
+  const imageShape =
+    data.imageFrameShape ??
+    "circle";
+
+  const imageFit =
+    data.imageFit ??
+    "cover";
+
+  const imagePositionX =
+    Math.max(
+      0,
+      Math.min(
+        100,
+        Number(
+          data.imagePositionX ??
+            50,
+        ),
+      ),
+    );
+
+  const imagePositionY =
+    Math.max(
+      0,
+      Math.min(
+        100,
+        Number(
+          data.imagePositionY ??
+            50,
+        ),
+      ),
+    );
+
+  const imageZoom =
+    Math.max(
+      0.25,
+      Number(
+        data.imageZoom ??
+          1,
+      ),
+    );
+
+  const imageOpacity =
+    Math.max(
+      0,
+      Math.min(
+        1,
+        Number(
+          data.imageOpacity ??
+            1,
+        ),
+      ),
+    );
+
+  /*
+   * ============================================================
+   * GUEST LIMITS
+   * ============================================================
+   */
+
+  const guestMin =
+    Math.max(
+      0,
+      Number(
+        data.guestMin ??
+          0,
+      ),
+    );
+
+  const guestMax =
+    Math.max(
+      guestMin,
+      Number(
+        data.guestMax ??
+          1,
+      ),
+    );
+
+  /*
+   * ============================================================
+   * ATTENDING
+   * ============================================================
+   */
 
   const attendingLabel =
-  block.data.attendingLabel ??
-  "";
-  const attendingOptions = (block.data.attendingOptions?.length
-  ? block.data.attendingOptions
-  : ["Yes", "No"]
-)
-  .map((option) => option.trim())
-  .filter(Boolean)
-  .slice(0, 8);
+    data.attendingLabel ??
+    "";
 
-if (!attendingOptions.length) {
-  attendingOptions.push("Yes");
-}
-  const attendingDisplay = block.data.attendingDisplay !== false;
+  const attendingOptions =
+    (
+      data.attendingOptions
+        ?.length
+        ? data.attendingOptions
+        : [
+            "Yes",
+            "No",
+          ]
+    )
+      .map(
+        (option: string) =>
+          option.trim(),
+      )
+      .filter(Boolean)
+      .slice(
+        0,
+        8,
+      );
+
+  if (
+    !attendingOptions.length
+  ) {
+    attendingOptions.push(
+      "Yes",
+    );
+  }
+
+  const attendingDisplay =
+    data.attendingDisplay !==
+    false;
+
   const attendingDefaultValue =
-    block.data.attendingDefaultValue || attendingOptions[0] || "Yes";
-  const showAttendingInForm = attendingDisplay && !hidden.has("attending");
+    data.attendingDefaultValue &&
+    attendingOptions.includes(
+      data.attendingDefaultValue,
+    )
+      ? data.attendingDefaultValue
+      : attendingOptions[0] ??
+        "Yes";
+
+  const showAttendingInForm =
+    attendingDisplay &&
+    !hidden.has(
+      "attending",
+    );
+
+  /*
+   * ============================================================
+   * MEAL
+   * ============================================================
+   */
 
   const mealLabel =
-  block.data.mealLabel ??
-  "";
-  const mealOptions = (block.data.mealOptions?.length
-  ? block.data.mealOptions
-  : ["Chicken", "Salmon"]
-)
-  .map((option) => option.trim())
-  .filter(Boolean)
-  .slice(0, 8);
+    data.mealLabel ??
+    "";
 
-if (!mealOptions.length) {
-  mealOptions.push("Chicken");
-}
-  const mealDisplay = block.data.mealDisplay !== false;
+  const mealOptions =
+    (
+      data.mealOptions?.length
+        ? data.mealOptions
+        : [
+            "Chicken",
+            "Salmon",
+          ]
+    )
+      .map(
+        (option: string) =>
+          option.trim(),
+      )
+      .filter(Boolean)
+      .slice(
+        0,
+        8,
+      );
+
+  if (
+    !mealOptions.length
+  ) {
+    mealOptions.push(
+      "Chicken",
+    );
+  }
+
+  const mealDisplay =
+    data.mealDisplay !==
+    false;
+
   const mealDefaultValue =
-  block.data.mealDefaultValue && mealOptions.includes(block.data.mealDefaultValue)
-    ? block.data.mealDefaultValue
-    : mealOptions[0] || "Chicken";
-  const showMealInForm = mealDisplay && !hidden.has("meal");
+    data.mealDefaultValue &&
+    mealOptions.includes(
+      data.mealDefaultValue,
+    )
+      ? data.mealDefaultValue
+      : mealOptions[0] ??
+        "Chicken";
+
+  const showMealInForm =
+    mealDisplay &&
+    !hidden.has(
+      "meal",
+    );
+
+  /*
+   * ============================================================
+   * GUEST
+   * ============================================================
+   */
 
   const guestLabel =
-  block.data.guestLabel ??
-  "";
-  const guestOptions = (block.data.guestOptions?.length
-  ? block.data.guestOptions
-  : ["Yes", "No"]
-)
-  .map((option) => option.trim())
-  .filter(Boolean)
-  .slice(0, 8);
+    data.guestLabel ??
+    "";
 
-if (!guestOptions.length) {
-  guestOptions.push("Yes");
-}
-  const guestDisplay = block.data.guestDisplay !== false;
-  const guestDefaultValue = block.data.guestDefaultValue || guestOptions[1] || "No";
+  const guestOptions =
+    (
+      data.guestOptions?.length
+        ? data.guestOptions
+        : [
+            "Yes",
+            "No",
+          ]
+    )
+      .map(
+        (option: string) =>
+          option.trim(),
+      )
+      .filter(Boolean)
+      .slice(
+        0,
+        8,
+      );
+
+  if (
+    !guestOptions.length
+  ) {
+    guestOptions.push(
+      "Yes",
+    );
+  }
+
+  const guestYesValue =
+    guestOptions[0] ??
+    "Yes";
+
+  const guestNoValue =
+    guestOptions[1] ??
+    "No";
+
+  const guestDisplay =
+    data.guestDisplay !==
+    false;
+
+  const guestDefaultValue =
+    data.guestDefaultValue &&
+    guestOptions.includes(
+      data.guestDefaultValue,
+    )
+      ? data.guestDefaultValue
+      : guestNoValue;
+
   const showGuestInForm =
     guestDisplay &&
-    !hidden.has("guestToggle") &&
-    !hidden.has("guestCount") &&
-    !hidden.has("guestName");
+    (
+      !hidden.has(
+        "guestToggle",
+      ) ||
+      !hidden.has(
+        "guestCount",
+      ) ||
+      !hidden.has(
+        "guestName",
+      )
+    );
+
+  /*
+   * ============================================================
+   * COMMENTS
+   * ============================================================
+   */
 
   const commentsLabel =
-  block.data.commentsLabel ??
-  "";
-const commentsPlaceholder =
-  block.data.commentsPlaceholder ??
-  "";
-  const commentsDisplay = block.data.commentsDisplay !== false;
-  const commentsDefaultValue = block.data.commentsDefaultValue || "";
-  const showCommentsInForm = commentsDisplay && !hidden.has("comments");
+    data.commentsLabel ??
+    "";
 
-const helperText =
-  block.data.helperText ??
-  "";
-const replyByText =
-  block.data.replyByText ??
-  "";
-const replyByDisplay = block.data.replyByDisplay !== false;
-const confirmationTitle =
-  block.data.confirmationTitle ??
-  "";
+  const commentsPlaceholder =
+    data.commentsPlaceholder ??
+    "";
 
-const confirmationMessage =
-  block.data.confirmationMessage ??
-  "";
+  const commentsDisplay =
+    data.commentsDisplay !==
+    false;
 
-const submitButtonText =
-  block.data.submitButtonText ??
-  "";
-const buttonLayout = block.data.buttonLayout ?? "full";
-const buttonShape = block.data.buttonShape ?? "rounded";
-const buttonVariant = block.data.buttonVariant ?? "solid";
-const buttonUppercase = block.data.buttonUppercase ?? false;
-const useChoiceCards = block.data.useChoiceCards ?? true;
+  const commentsDefaultValue =
+    data.commentsDefaultValue ??
+    "";
 
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
-  const [address, setAddress] = useState("");
-const [
-  attendingChoice,
-  setAttendingChoice,
-] = useState(
-  attendingOptions.includes(
-    attendingDefaultValue,
-  )
-    ? attendingDefaultValue
-    : attendingOptions[0] ??
-        "Yes",
-);
-  const [mealChoice, setMealChoice] = useState(mealDefaultValue);
-  const [bringingGuest, setBringingGuest] = useState(
-    guestDefaultValue === guestOptions[0],
-  );
-  const [guestCount, setGuestCount] = useState(
-    guestDefaultValue === guestOptions[0] ? Math.max(guestMin, 1) : 0,
-  );
-  const [guestNames, setGuestNames] = useState<string[]>([]);
-  const [comments, setComments] = useState(commentsDefaultValue);
-  const [company, setCompany] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [submitState, setSubmitState] = useState<"idle" | "success" | "error">("idle");
-  const [submitMessage, setSubmitMessage] = useState("");
-
-const attendingYesValue =
-  attendingOptions[0] ??
-  "Yes";
-
-const guestYesValue =
-  guestOptions[0] ??
-  "Yes";
-
-const guestNoValue =
-  guestOptions[1] ??
-  "No";
-
-const isCurrentlyAttending =
-  showAttendingInForm
-    ? attendingChoice ===
-      attendingYesValue
-    : attendingDefaultValue ===
-      attendingYesValue;
-
-const isCurrentlyBringingGuest = showGuestInForm
-  ? bringingGuest
-  : guestDefaultValue === guestYesValue;
-
-const variantClassMap:
-  Record<string, string> = {
-  /*
-   * Classic elevated card.
-   */
-  standard:
-    "rounded-[24px] border-neutral-200 bg-white text-neutral-900 shadow-[0_18px_60px_rgba(15,23,42,0.10)]",
+  const showCommentsInForm =
+    commentsDisplay &&
+    !hidden.has(
+      "comments",
+    );
 
   /*
-   * Warm invitation paper with a softer,
-   * more traditional wedding treatment.
+   * ============================================================
+   * GENERAL CONTENT
+   * ============================================================
    */
-  elegant_wedding:
-    "rounded-[36px] border-[#d9c9a8] bg-[#fffaf0] text-[#30291f] shadow-[0_28px_80px_rgba(120,97,60,0.16)]",
+
+  const helperText =
+    data.helperText ??
+    "";
+
+  const replyByText =
+    data.replyByText ??
+    "";
+
+  const replyByDisplay =
+    data.replyByDisplay !==
+    false;
+
+  const confirmationTitle =
+    data.confirmationTitle ??
+    "";
+
+  const confirmationMessage =
+    data.confirmationMessage ??
+    "";
+
+  const submitButtonText =
+    data.submitButtonText ??
+    "Submit RSVP";
 
   /*
-   * Nearly flat and architectural.
+   * ============================================================
+   * BUTTON SETTINGS
+   * ============================================================
    */
-  modern_minimal:
-    "rounded-none border-neutral-300 bg-white text-neutral-950 shadow-none",
+
+  const buttonLayout =
+    data.buttonLayout ??
+    "full";
+
+  const buttonShape =
+    data.buttonShape ??
+    "rounded";
+
+  const buttonVariant =
+    data.buttonVariant ??
+    "solid";
+
+  const buttonUppercase =
+    data.buttonUppercase ??
+    false;
+
+  const buttonAlign =
+    data.buttonAlign ??
+    "center";
+
+  const useChoiceCards =
+    data.useChoiceCards ??
+    true;
 
   /*
-   * Frosted translucent panel.
+   * ============================================================
+   * LAYOUT SETTINGS
+   * ============================================================
    */
-  glassmorphism:
-    "rounded-[32px] border-white/50 bg-white/40 text-neutral-950 shadow-[0_30px_90px_rgba(15,23,42,0.22)] backdrop-blur-2xl",
+
+  const contentPadding =
+    Math.max(
+      0,
+      Number(
+        data.contentPadding ??
+          24,
+      ),
+    );
+
+  const sectionGap =
+    Math.max(
+      0,
+      Number(
+        data.sectionGap ??
+          20,
+      ),
+    );
+
+  const fieldGap =
+    Math.max(
+      0,
+      Number(
+        data.fieldGap ??
+          14,
+      ),
+    );
+
+  const formMaxWidth =
+    Math.max(
+      260,
+      Number(
+        data.formMaxWidth ??
+          760,
+      ),
+    );
+
+  const portraitMaxWidth =
+    Math.max(
+      260,
+      Number(
+        data.portraitMaxWidth ??
+          460,
+      ),
+    );
+
+  const overlayWidth =
+    Math.max(
+      260,
+      Number(
+        data.overlayWidth ??
+          620,
+      ),
+    );
+
+  const overlayBackgroundOpacity =
+    Math.max(
+      0,
+      Math.min(
+        1,
+        Number(
+          data.overlayBackgroundOpacity ??
+            0.78,
+        ),
+      ),
+    );
 
   /*
-   * Hard-edged print/editorial treatment.
+   * ============================================================
+   * STATE
+   * ============================================================
    */
-  editorial_magazine:
-    "rounded-none border-2 border-neutral-950 bg-white text-neutral-950 shadow-[12px_12px_0_rgba(0,0,0,0.14)]",
+
+  const [
+    firstName,
+    setFirstName,
+  ] =
+    useState("");
+
+  const [
+    lastName,
+    setLastName,
+  ] =
+    useState("");
+
+  const [
+    email,
+    setEmail,
+  ] =
+    useState("");
+
+  const [
+    address,
+    setAddress,
+  ] =
+    useState("");
+
+  const [
+    attendingChoice,
+    setAttendingChoice,
+  ] =
+    useState(
+      attendingDefaultValue,
+    );
+
+  const [
+    mealChoice,
+    setMealChoice,
+  ] =
+    useState(
+      mealDefaultValue,
+    );
+
+  const [
+    guestChoice,
+    setGuestChoice,
+  ] =
+    useState(
+      guestDefaultValue,
+    );
+
+  const [
+    guestCount,
+    setGuestCount,
+  ] =
+    useState(
+      guestDefaultValue ===
+        guestYesValue
+        ? Math.max(
+            guestMin,
+            1,
+          )
+        : 0,
+    );
+
+  const [
+    guestNames,
+    setGuestNames,
+  ] =
+    useState<string[]>(
+      [],
+    );
+
+  const [
+    comments,
+    setComments,
+  ] =
+    useState(
+      commentsDefaultValue,
+    );
+
+  const [
+    company,
+    setCompany,
+  ] =
+    useState("");
+
+  const [
+    submitting,
+    setSubmitting,
+  ] =
+    useState(false);
+
+  const [
+    submitState,
+    setSubmitState,
+  ] =
+    useState<
+      | "idle"
+      | "success"
+      | "error"
+    >(
+      "idle",
+    );
+
+  const [
+    submitMessage,
+    setSubmitMessage,
+  ] =
+    useState("");
 
   /*
-   * Loud event / celebration treatment.
+   * ============================================================
+   * DERIVED STATE
+   * ============================================================
    */
-  bold_event:
-    "rounded-[32px] border-transparent bg-gradient-to-br from-fuchsia-600 via-rose-500 to-orange-400 text-white shadow-[0_28px_90px_rgba(225,29,72,0.34)]",
+
+  const attendingYesValue =
+    attendingOptions[0] ??
+    "Yes";
+
+  const isCurrentlyAttending =
+    showAttendingInForm
+      ? attendingChoice ===
+        attendingYesValue
+      : attendingDefaultValue ===
+        attendingYesValue;
+
+  const isCurrentlyBringingGuest =
+    showGuestInForm
+      ? guestChoice ===
+        guestYesValue
+      : guestDefaultValue ===
+        guestYesValue;
 
   /*
-   * High-contrast dark / electric treatment.
+   * ============================================================
+   * THEME
+   * ============================================================
    */
-  dark_neon:
-    "rounded-[28px] border-2 border-cyan-300/70 bg-[#080b16] text-white shadow-[0_0_50px_rgba(34,211,238,0.28)]",
+
+  const variantClassMap: Record<
+    string,
+    string
+  > = {
+    standard: [
+      "border-neutral-200",
+      "bg-white",
+      "text-neutral-900",
+      "shadow-[0_18px_60px_rgba(15,23,42,0.10)]",
+    ].join(" "),
+
+    elegant_wedding: [
+      "border-[#d9c9a8]",
+      "bg-[#fffaf0]",
+      "text-[#30291f]",
+      "shadow-[0_28px_80px_rgba(120,97,60,0.16)]",
+    ].join(" "),
+
+    modern_minimal: [
+      "border-neutral-300",
+      "bg-white",
+      "text-neutral-950",
+      "shadow-none",
+    ].join(" "),
+
+    glassmorphism: [
+      "border-white/50",
+      "bg-white/40",
+      "text-neutral-950",
+      "shadow-[0_30px_90px_rgba(15,23,42,0.22)]",
+      "backdrop-blur-2xl",
+    ].join(" "),
+
+    editorial_magazine: [
+      "border-2",
+      "border-neutral-950",
+      "bg-white",
+      "text-neutral-950",
+      "shadow-[12px_12px_0_rgba(0,0,0,0.14)]",
+    ].join(" "),
+
+    bold_event: [
+      "border-transparent",
+      "bg-gradient-to-br",
+      "from-fuchsia-600",
+      "via-rose-500",
+      "to-orange-400",
+      "text-white",
+      "shadow-[0_28px_90px_rgba(225,29,72,0.34)]",
+    ].join(" "),
+
+    dark_neon: [
+      "border-2",
+      "border-cyan-300/70",
+      "bg-[#080b16]",
+      "text-white",
+      "shadow-[0_0_50px_rgba(34,211,238,0.28)]",
+    ].join(" "),
+
+    ticket_style: [
+      "border-2",
+      "border-dashed",
+      "border-neutral-400",
+      "bg-[#fffdf7]",
+      "text-neutral-950",
+      "shadow-[0_18px_45px_rgba(15,23,42,0.10)]",
+    ].join(" "),
+  };
+
+  const darkVariant =
+    styleVariant ===
+      "dark_neon" ||
+    styleVariant ===
+      "bold_event";
 
   /*
-   * Event-ticket treatment.
+   * ============================================================
+   * THEME HELPERS
+   * ============================================================
    */
-  ticket_style:
-    "rounded-[18px] border-2 border-dashed border-neutral-400 bg-[#fffdf7] text-neutral-950 shadow-[0_18px_45px_rgba(15,23,42,0.10)]",
-};
 
-const darkVariant =
-  styleVariant ===
-    "dark_neon" ||
-  styleVariant ===
-    "bold_event";
+  function sectionClass() {
+    switch (
+      styleVariant
+    ) {
+      case "elegant_wedding":
+        return [
+          "rounded-[28px]",
+          "border",
+          "border-[#ddcfb4]",
+          "bg-[#fffdf7]",
+          "p-5",
+          "shadow-[0_8px_24px_rgba(120,97,60,0.08)]",
+        ].join(" ");
 
-function sectionClass() {
-  switch (
-    styleVariant
-  ) {
-    case "elegant_wedding":
-      return [
-        "rounded-[28px]",
-        "border",
-        "border-[#ddcfb4]",
-        "bg-[#fffdf7]",
-        "p-5",
-        "shadow-[0_8px_24px_rgba(120,97,60,0.08)]",
-      ].join(" ");
+      case "modern_minimal":
+        return [
+          "rounded-none",
+          "border-0",
+          "border-b",
+          "border-neutral-300",
+          "bg-transparent",
+          "px-0",
+          "py-5",
+        ].join(" ");
 
-    case "modern_minimal":
-      return [
-        "rounded-none",
-        "border-0",
-        "border-b",
-        "border-neutral-300",
-        "bg-transparent",
-        "px-0",
-        "py-5",
-      ].join(" ");
+      case "glassmorphism":
+        return [
+          "rounded-[24px]",
+          "border",
+          "border-white/45",
+          "bg-white/25",
+          "p-5",
+          "shadow-[0_12px_32px_rgba(15,23,42,0.08)]",
+          "backdrop-blur-xl",
+        ].join(" ");
 
-    case "glassmorphism":
-      return [
-        "rounded-[24px]",
-        "border",
-        "border-white/45",
-        "bg-white/25",
-        "p-5",
-        "shadow-[0_12px_32px_rgba(15,23,42,0.08)]",
-        "backdrop-blur-xl",
-      ].join(" ");
+      case "editorial_magazine":
+        return [
+          "rounded-none",
+          "border-2",
+          "border-neutral-950",
+          "bg-white",
+          "p-4",
+          "shadow-[5px_5px_0_rgba(0,0,0,0.10)]",
+        ].join(" ");
 
-    case "editorial_magazine":
-      return [
-        "rounded-none",
-        "border-2",
-        "border-neutral-950",
-        "bg-white",
-        "p-4",
-        "shadow-[5px_5px_0_rgba(0,0,0,0.10)]",
-      ].join(" ");
+      case "bold_event":
+        return [
+          "rounded-[24px]",
+          "border",
+          "border-white/30",
+          "bg-black/10",
+          "p-5",
+          "shadow-[0_12px_30px_rgba(0,0,0,0.10)]",
+        ].join(" ");
 
-    case "bold_event":
-      return [
-        "rounded-[24px]",
-        "border",
-        "border-white/30",
-        "bg-black/10",
-        "p-5",
-        "shadow-[0_12px_30px_rgba(0,0,0,0.10)]",
-      ].join(" ");
+      case "dark_neon":
+        return [
+          "rounded-[22px]",
+          "border",
+          "border-cyan-300/35",
+          "bg-cyan-300/[0.06]",
+          "p-5",
+          "shadow-[inset_0_0_24px_rgba(34,211,238,0.05)]",
+        ].join(" ");
 
-    case "dark_neon":
-      return [
-        "rounded-[22px]",
-        "border",
-        "border-cyan-300/35",
-        "bg-cyan-300/[0.06]",
-        "p-5",
-        "shadow-[inset_0_0_24px_rgba(34,211,238,0.05)]",
-      ].join(" ");
+      case "ticket_style":
+        return [
+          "rounded-[14px]",
+          "border",
+          "border-dashed",
+          "border-neutral-400",
+          "bg-[#fffef9]",
+          "p-4",
+        ].join(" ");
 
-    case "ticket_style":
-      return [
-        "rounded-[14px]",
-        "border",
-        "border-dashed",
-        "border-neutral-400",
-        "bg-[#fffef9]",
-        "p-4",
-      ].join(" ");
-
-    default:
-      return [
-        "rounded-2xl",
-        "border",
-        "border-black/10",
-        "bg-white/70",
-        "p-4",
-      ].join(" ");
+      default:
+        return [
+          "rounded-2xl",
+          "border",
+          "border-black/10",
+          "bg-white/70",
+          "p-4",
+        ].join(" ");
+    }
   }
-}
 
-function inputClass() {
-  switch (
-    styleVariant
-  ) {
-    case "elegant_wedding":
-      return [
-        "relative",
-        "z-10",
-        "block",
-        "min-h-[50px]",
-        "w-full",
-        "rounded-[18px]",
-        "border",
-        "border-[#ddcfb4]",
-        "bg-[#fffef9]",
-        "px-4",
-        "py-3",
-        "text-sm",
-        "text-[#30291f]",
-        "outline-none",
-        "placeholder:text-[#8d806d]",
-        "focus:border-[#9d8254]",
-      ].join(" ");
+  function inputClass() {
+    switch (
+      styleVariant
+    ) {
+      case "elegant_wedding":
+        return [
+          "relative",
+          "z-10",
+          "block",
+          "min-h-[50px]",
+          "w-full",
+          "rounded-[18px]",
+          "border",
+          "border-[#ddcfb4]",
+          "bg-[#fffef9]",
+          "px-4",
+          "py-3",
+          "text-sm",
+          "text-[#30291f]",
+          "outline-none",
+          "focus:border-[#9d8254]",
+        ].join(" ");
 
-    case "modern_minimal":
-      return [
-        "relative",
-        "z-10",
-        "block",
-        "min-h-[50px]",
-        "w-full",
-        "rounded-none",
-        "border-0",
-        "border-b",
-        "border-neutral-400",
-        "bg-transparent",
-        "px-0",
-        "py-3",
-        "text-sm",
-        "text-neutral-950",
-        "outline-none",
-        "placeholder:text-neutral-400",
-        "focus:border-neutral-950",
-      ].join(" ");
+      case "modern_minimal":
+        return [
+          "relative",
+          "z-10",
+          "block",
+          "min-h-[50px]",
+          "w-full",
+          "rounded-none",
+          "border-0",
+          "border-b",
+          "border-neutral-400",
+          "bg-transparent",
+          "px-0",
+          "py-3",
+          "text-sm",
+          "text-neutral-950",
+          "outline-none",
+          "focus:border-neutral-950",
+        ].join(" ");
 
-    case "glassmorphism":
-      return [
-        "relative",
-        "z-10",
-        "block",
-        "min-h-[50px]",
-        "w-full",
-        "rounded-[18px]",
-        "border",
-        "border-white/55",
-        "bg-white/35",
-        "px-4",
-        "py-3",
-        "text-sm",
-        "text-neutral-950",
-        "outline-none",
-        "backdrop-blur-md",
-        "placeholder:text-neutral-500",
-        "focus:border-white",
-      ].join(" ");
+      case "glassmorphism":
+        return [
+          "relative",
+          "z-10",
+          "block",
+          "min-h-[50px]",
+          "w-full",
+          "rounded-[18px]",
+          "border",
+          "border-white/55",
+          "bg-white/35",
+          "px-4",
+          "py-3",
+          "text-sm",
+          "text-neutral-950",
+          "outline-none",
+          "backdrop-blur-md",
+          "focus:border-white",
+        ].join(" ");
 
-    case "editorial_magazine":
-      return [
-        "relative",
-        "z-10",
-        "block",
-        "min-h-[50px]",
-        "w-full",
-        "rounded-none",
-        "border-2",
-        "border-neutral-950",
-        "bg-white",
-        "px-4",
-        "py-3",
-        "text-sm",
-        "text-neutral-950",
-        "outline-none",
-        "placeholder:text-neutral-500",
-        "focus:bg-neutral-50",
-      ].join(" ");
+      case "editorial_magazine":
+        return [
+          "relative",
+          "z-10",
+          "block",
+          "min-h-[50px]",
+          "w-full",
+          "rounded-none",
+          "border-2",
+          "border-neutral-950",
+          "bg-white",
+          "px-4",
+          "py-3",
+          "text-sm",
+          "text-neutral-950",
+          "outline-none",
+          "focus:bg-neutral-50",
+        ].join(" ");
 
-    case "bold_event":
-      return [
-        "relative",
-        "z-10",
-        "block",
-        "min-h-[50px]",
-        "w-full",
-        "rounded-[18px]",
-        "border",
-        "border-white/35",
-        "bg-white/15",
-        "px-4",
-        "py-3",
-        "text-sm",
-        "text-white",
-        "outline-none",
-        "placeholder:text-white/60",
-        "focus:bg-white/20",
-        "focus:border-white/70",
-      ].join(" ");
+      case "bold_event":
+        return [
+          "relative",
+          "z-10",
+          "block",
+          "min-h-[50px]",
+          "w-full",
+          "rounded-[18px]",
+          "border",
+          "border-white/35",
+          "bg-white/15",
+          "px-4",
+          "py-3",
+          "text-sm",
+          "text-white",
+          "outline-none",
+          "focus:border-white/70",
+          "focus:bg-white/20",
+        ].join(" ");
 
-    case "dark_neon":
-      return [
-        "relative",
-        "z-10",
-        "block",
-        "min-h-[50px]",
-        "w-full",
-        "rounded-[16px]",
-        "border",
-        "border-cyan-300/35",
-        "bg-cyan-300/[0.05]",
-        "px-4",
-        "py-3",
-        "text-sm",
-        "text-white",
-        "outline-none",
-        "placeholder:text-cyan-100/45",
-        "focus:border-cyan-300",
-        "focus:shadow-[0_0_18px_rgba(34,211,238,0.15)]",
-      ].join(" ");
+      case "dark_neon":
+        return [
+          "relative",
+          "z-10",
+          "block",
+          "min-h-[50px]",
+          "w-full",
+          "rounded-[16px]",
+          "border",
+          "border-cyan-300/35",
+          "bg-cyan-300/[0.05]",
+          "px-4",
+          "py-3",
+          "text-sm",
+          "text-white",
+          "outline-none",
+          "focus:border-cyan-300",
+          "focus:shadow-[0_0_18px_rgba(34,211,238,0.15)]",
+        ].join(" ");
 
-    case "ticket_style":
-      return [
-        "relative",
-        "z-10",
-        "block",
-        "min-h-[50px]",
-        "w-full",
-        "rounded-[10px]",
-        "border",
-        "border-dashed",
-        "border-neutral-400",
-        "bg-white",
-        "px-4",
-        "py-3",
-        "text-sm",
-        "text-neutral-950",
-        "outline-none",
-        "placeholder:text-neutral-400",
-        "focus:border-neutral-800",
-      ].join(" ");
+      case "ticket_style":
+        return [
+          "relative",
+          "z-10",
+          "block",
+          "min-h-[50px]",
+          "w-full",
+          "rounded-[10px]",
+          "border",
+          "border-dashed",
+          "border-neutral-400",
+          "bg-white",
+          "px-4",
+          "py-3",
+          "text-sm",
+          "text-neutral-950",
+          "outline-none",
+          "focus:border-neutral-800",
+        ].join(" ");
 
-    default:
-      return [
-        "relative",
-        "z-10",
-        "block",
-        "min-h-[50px]",
-        "w-full",
-        "rounded-2xl",
-        "border",
-        "border-neutral-200",
-        "bg-white",
-        "px-4",
-        "py-3",
-        "text-sm",
-        "text-neutral-900",
-        "outline-none",
-        "placeholder:text-neutral-400",
-        "focus:border-neutral-400",
-      ].join(" ");
-  }
-}
-
-  function getFrameClass(shape: string) {
-    if (shape === "square") return "rounded-2xl";
-    if (shape === "circle") return "rounded-full";
-    if (shape === "diamond") return "rotate-45 rounded-2xl";
-    return "";
+      default:
+        return [
+          "relative",
+          "z-10",
+          "block",
+          "min-h-[50px]",
+          "w-full",
+          "rounded-2xl",
+          "border",
+          "border-neutral-200",
+          "bg-white",
+          "px-4",
+          "py-3",
+          "text-sm",
+          "text-neutral-900",
+          "outline-none",
+          "focus:border-neutral-400",
+        ].join(" ");
+    }
   }
 
-  function getMicrositeSlugFromLocation() {
-    if (typeof window === "undefined") return "";
+  /*
+   * ============================================================
+   * LAYOUT HELPERS
+   * ============================================================
+   */
 
-    const host = window.location.hostname.toLowerCase();
-    const pathname = window.location.pathname;
-    const search = new URLSearchParams(window.location.search);
-
-    const qsSlug = search.get("slug");
-    if (qsSlug?.trim()) return qsSlug.trim().toLowerCase();
-
-    if (host.endsWith(".ko-host.com")) {
-      const sub = host.replace(".ko-host.com", "").split(".")[0] || "";
-      if (sub && sub !== "www") return sub;
+  function formRadiusClass() {
+    if (
+      styleVariant ===
+      "modern_minimal"
+    ) {
+      return "rounded-none";
     }
 
-    const sRouteMatch = pathname.match(/^\/s\/([^/]+)/i);
-    if (sRouteMatch?.[1]) {
-      return decodeURIComponent(sRouteMatch[1]).toLowerCase();
+    if (
+      styleVariant ===
+      "editorial_magazine"
+    ) {
+      return "rounded-none";
+    }
+
+    if (
+      styleVariant ===
+      "ticket_style"
+    ) {
+      return "rounded-[18px]";
+    }
+
+    if (
+      layoutVariant ===
+      "invitation_card"
+    ) {
+      return "rounded-[38px]";
+    }
+
+    if (
+      layoutVariant ===
+      "flyer_stack"
+    ) {
+      return "rounded-[26px]";
+    }
+
+    return "rounded-[28px]";
+  }
+
+  function layoutFormClass() {
+    switch (
+      layoutVariant
+    ) {
+      case "invitation_card":
+        return [
+          "mx-auto",
+          "w-full",
+          "flex",
+          "flex-col",
+          "border",
+          "overflow-y-auto",
+        ].join(" ");
+
+      case "hero_overlay":
+        return [
+          "relative",
+          "z-20",
+          "w-full",
+          "flex",
+          "flex-col",
+          "border",
+          "overflow-y-auto",
+          "backdrop-blur-md",
+        ].join(" ");
+
+      case "flyer_stack":
+        return [
+          "mx-auto",
+          "w-full",
+          "flex",
+          "flex-col",
+          "border",
+          "overflow-y-auto",
+        ].join(" ");
+
+      default:
+        return [
+          "mx-auto",
+          "w-full",
+          "flex",
+          "flex-col",
+          "border",
+          "overflow-y-auto",
+        ].join(" ");
+    }
+  }
+
+  function heroAlignmentClass() {
+    const horizontal =
+      data.overlayAlign ===
+      "left"
+        ? "justify-start"
+        : data.overlayAlign ===
+            "right"
+          ? "justify-end"
+          : "justify-center";
+
+    const vertical =
+      data.overlayVerticalAlign ===
+      "top"
+        ? "items-start"
+        : data.overlayVerticalAlign ===
+            "bottom"
+          ? "items-end"
+          : "items-center";
+
+    return `${horizontal} ${vertical}`;
+  }
+
+  function submitAlignmentClass() {
+    if (
+      buttonLayout ===
+      "full"
+    ) {
+      return "w-full";
+    }
+
+    if (
+      buttonAlign ===
+      "left"
+    ) {
+      return "w-fit self-start";
+    }
+
+    if (
+      buttonAlign ===
+      "right"
+    ) {
+      return "w-fit self-end";
+    }
+
+    return "w-fit self-center";
+  }
+
+  /*
+   * ============================================================
+   * PUBLIC SLUG
+   * ============================================================
+   */
+
+  function getMicrositeSlugFromLocation() {
+    if (
+      typeof window ===
+      "undefined"
+    ) {
+      return "";
+    }
+
+    const host =
+      window.location.hostname.toLowerCase();
+
+    const pathname =
+      window.location.pathname;
+
+    const search =
+      new URLSearchParams(
+        window.location.search,
+      );
+
+    const qsSlug =
+      search.get(
+        "slug",
+      );
+
+    if (
+      qsSlug?.trim()
+    ) {
+      return qsSlug
+        .trim()
+        .toLowerCase();
+    }
+
+    if (
+      host.endsWith(
+        ".ko-host.com",
+      )
+    ) {
+      const sub =
+        host
+          .replace(
+            ".ko-host.com",
+            "",
+          )
+          .split(
+            ".",
+          )[0] ??
+        "";
+
+      if (
+        sub &&
+        sub !== "www"
+      ) {
+        return sub;
+      }
+    }
+
+    const routeMatch =
+      pathname.match(
+        /^\/s\/([^/]+)/i,
+      );
+
+    if (
+      routeMatch?.[1]
+    ) {
+      return decodeURIComponent(
+        routeMatch[1],
+      ).toLowerCase();
     }
 
     const metaSlug =
-      document.querySelector('meta[name="ko-host-slug"]')?.getAttribute("content") ?? "";
-    if (metaSlug.trim()) return metaSlug.trim().toLowerCase();
+      document
+        .querySelector(
+          'meta[name="ko-host-slug"]',
+        )
+        ?.getAttribute(
+          "content",
+        ) ??
+      "";
+
+    return metaSlug
+      .trim()
+      .toLowerCase();
+  }
+
+  /*
+   * ============================================================
+   * SUBMISSION
+   * ============================================================
+   */
+
+async function handleSubmit(
+  e: React.FormEvent,
+) {
+  e.preventDefault();
+
+  /*
+   * ============================================================
+   * RESOLVE WHAT IS ACTUALLY ACTIVE/VISIBLE
+   * ============================================================
+   */
+
+  const showContactSection =
+    data.contactDetailsDisplay !==
+    false;
+
+  const firstNameActive =
+    showContactSection &&
+    data.nameDisplay !==
+      false &&
+    !hidden.has(
+      "firstName",
+    );
+
+  const lastNameActive =
+    showContactSection &&
+    data.nameDisplay !==
+      false &&
+    data.lastNameDisplay !==
+      false &&
+    !hidden.has(
+      "lastName",
+    );
+
+  const emailActive =
+    showContactSection &&
+    data.emailDisplay !==
+      false &&
+    !hidden.has(
+      "email",
+    );
+
+  const addressActive =
+    showContactSection &&
+    data.addressDisplay !==
+      false &&
+    !hidden.has(
+      "address",
+    );
+
+  const attendingActive =
+    showAttendingInForm &&
+    !hidden.has(
+      "attending",
+    );
+
+  const mealActive =
+    showMealInForm &&
+    !hidden.has(
+      "meal",
+    );
+
+  const guestToggleActive =
+    showGuestInForm &&
+    !hidden.has(
+      "guestToggle",
+    );
+
+  const guestCountActive =
+    guestToggleActive &&
+    !hidden.has(
+      "guestCount",
+    );
+
+  const guestNameActive =
+    guestToggleActive &&
+    !hidden.has(
+      "guestName",
+    );
+
+  const commentsActive =
+    showCommentsInForm &&
+    !hidden.has(
+      "comments",
+    );
+
+  /*
+   * ============================================================
+   * RESOLVE EFFECTIVE ANSWERS
+   * ============================================================
+   */
+
+  const effectiveAttending =
+    attendingActive
+      ? isCurrentlyAttending
+      : attendingDefaultValue ===
+          attendingYesValue;
+
+  const effectiveMealChoice =
+    effectiveAttending
+      ? mealActive
+        ? mealChoice
+        : mealDefaultValue
+      : "";
+
+  const effectiveBringingGuest =
+    effectiveAttending &&
+    (
+      guestToggleActive
+        ? isCurrentlyBringingGuest
+        : guestDefaultValue ===
+            guestYesValue
+    );
+
+  const effectiveGuestCount =
+    effectiveBringingGuest
+      ? guestCountActive
+        ? Math.max(
+            0,
+            guestCount,
+          )
+        : Math.max(
+            guestMin,
+            1,
+          )
+      : 0;
+
+  /*
+   * ============================================================
+   * VALIDATION
+   * ============================================================
+   */
+
+  if (
+    firstNameActive &&
+    !firstName.trim()
+  ) {
+    setSubmitState(
+      "error",
+    );
+
+    setSubmitMessage(
+      "First name is required.",
+    );
+
+    return;
+  }
+
+  if (
+    lastNameActive &&
+    !lastName.trim()
+  ) {
+    setSubmitState(
+      "error",
+    );
+
+    setSubmitMessage(
+      "Last name is required.",
+    );
+
+    return;
+  }
+
+  /*
+   * Only require guest names when the guest-name fields are
+   * actually being displayed.
+   */
+  if (
+    effectiveAttending &&
+    effectiveBringingGuest &&
+    effectiveGuestCount >
+      0 &&
+    guestNameActive
+  ) {
+    const missingGuestName =
+      Array.from({
+        length:
+          effectiveGuestCount,
+      }).some(
+        (
+          _,
+          index,
+        ) =>
+          !(
+            guestNames[
+              index
+            ] ??
+            ""
+          ).trim(),
+      );
+
+    if (
+      missingGuestName
+    ) {
+      setSubmitState(
+        "error",
+      );
+
+      setSubmitMessage(
+        effectiveGuestCount ===
+          1
+          ? "Guest name is required."
+          : "Guest name is required for each guest.",
+      );
+
+      return;
+    }
+  }
+
+  /*
+   * ============================================================
+   * MICROSITE
+   * ============================================================
+   */
+
+  const micrositeSlug =
+    getMicrositeSlugFromLocation();
+
+  if (
+    !micrositeSlug
+  ) {
+    setSubmitState(
+      "error",
+    );
+
+    setSubmitMessage(
+      "Unable to determine microsite slug. RSVP submission works on public microsite pages, not builder/preview routes.",
+    );
+
+    return;
+  }
+
+  /*
+   * ============================================================
+   * SUBMIT
+   * ============================================================
+   */
+
+  setSubmitting(
+    true,
+  );
+
+  setSubmitState(
+    "idle",
+  );
+
+  setSubmitMessage(
+    "",
+  );
+
+  try {
+    const submittedGuestNames =
+      effectiveAttending &&
+      effectiveBringingGuest &&
+      guestNameActive
+        ? guestNames
+            .slice(
+              0,
+              effectiveGuestCount,
+            )
+            .map(
+              (
+                name,
+              ) =>
+                name.trim(),
+            )
+            .filter(
+              Boolean,
+            )
+            .join(
+              ", ",
+            )
+        : "";
+
+    const res =
+      await fetch(
+        "/api/public/rsvp",
+        {
+          method:
+            "POST",
+
+          headers: {
+            "content-type":
+              "application/json",
+          },
+
+          body:
+            JSON.stringify(
+              {
+                micrositeSlug,
+
+                /*
+                 * Keep the API payload keys unchanged.
+                 * Hidden/disabled contact fields submit blank values
+                 * instead of stale state.
+                 */
+
+                firstName:
+                  firstNameActive
+                    ? firstName.trim()
+                    : "",
+
+                lastName:
+                  lastNameActive
+                    ? lastName.trim()
+                    : "",
+
+                email:
+                  emailActive
+                    ? email.trim()
+                    : "",
+
+                address:
+                  addressActive
+                    ? address.trim()
+                    : "",
+
+                isAttending:
+                  effectiveAttending,
+
+                mealChoice:
+                  effectiveMealChoice,
+
+                bringingGuest:
+                  effectiveBringingGuest,
+
+                guestCount:
+                  effectiveGuestCount,
+
+                guestName:
+                  submittedGuestNames,
+
+                comments:
+                  commentsActive
+                    ? comments.trim()
+                    : (
+                        commentsDefaultValue ??
+                        ""
+                      ).trim(),
+
+                company:
+                  company.trim(),
+              },
+            ),
+        },
+      );
+
+    const responseData =
+      await res
+        .json()
+        .catch(
+          () =>
+            null,
+        );
+
+    if (
+      !res.ok ||
+      !responseData?.ok
+    ) {
+      setSubmitState(
+        "error",
+      );
+
+      setSubmitMessage(
+        responseData?.error ||
+          "Failed to submit RSVP.",
+      );
+
+      return;
+    }
+
+    /*
+     * ============================================================
+     * SUCCESS
+     * ============================================================
+     */
+
+    setSubmitState(
+      "success",
+    );
+
+    setSubmitMessage(
+      confirmationMessage,
+    );
+
+    /*
+     * Reset the form back to its configured defaults.
+     */
+
+    setFirstName(
+      "",
+    );
+
+    setLastName(
+      "",
+    );
+
+    setEmail(
+      "",
+    );
+
+    setAddress(
+      "",
+    );
+
+    setAttendingChoice(
+      attendingDefaultValue,
+    );
+
+    setMealChoice(
+      mealDefaultValue,
+    );
+
+    setGuestChoice(
+      guestDefaultValue,
+    );
+
+    const resetGuestCount =
+      guestDefaultValue ===
+      guestYesValue
+        ? Math.max(
+            guestMin,
+            1,
+          )
+        : 0;
+
+    setGuestCount(
+      resetGuestCount,
+    );
+
+    setGuestNames(
+      guestDefaultValue ===
+        guestYesValue &&
+      resetGuestCount >
+        0
+        ? Array.from(
+            {
+              length:
+                resetGuestCount,
+            },
+            () =>
+              "",
+          )
+        : [],
+    );
+
+    setComments(
+      commentsDefaultValue ??
+        "",
+    );
+
+    setCompany(
+      "",
+    );
+  } catch {
+    setSubmitState(
+      "error",
+    );
+
+    setSubmitMessage(
+      "Failed to submit RSVP.",
+    );
+  } finally {
+    setSubmitting(
+      false,
+    );
+  }
+}
+
+  /*
+   * ============================================================
+   * IMAGE
+   * ============================================================
+   */
+
+  function renderedObjectFit():
+    | "cover"
+    | "contain"
+    | "fill" {
+    if (
+      imageFit ===
+      "contain"
+    ) {
+      return "contain";
+    }
+
+    if (
+      imageFit ===
+      "stretch"
+    ) {
+      return "fill";
+    }
+
+    return "cover";
+  }
+
+  const sharedImageStyle: React.CSSProperties =
+    {
+      objectFit:
+        renderedObjectFit(),
+
+      objectPosition:
+        `${imagePositionX}% ${imagePositionY}%`,
+
+      opacity:
+        imageOpacity,
+
+      transform:
+        `scale(${imageZoom})`,
+    };
+
+  function getFrameClass(
+    shape: string,
+  ) {
+    if (
+      shape ===
+      "square"
+    ) {
+      return "rounded-2xl";
+    }
+
+    if (
+      shape ===
+      "circle"
+    ) {
+      return "rounded-full";
+    }
 
     return "";
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-
-    if (!firstName.trim() || !lastName.trim()) {
-      setSubmitState("error");
-      setSubmitMessage("First name and last name are required.");
-      return;
-    }
-
-    if (bringingGuest && guestCount > 0) {
-      const missingGuestName = Array.from({ length: guestCount }).some(
-        (_, index) => !(guestNames[index] ?? "").trim(),
-      );
-
-      if (missingGuestName) {
-        setSubmitState("error");
-        setSubmitMessage("Guest name is required for each guest.");
-        return;
-      }
-    }
-
-    const micrositeSlug = getMicrositeSlugFromLocation();
-
-    if (!micrositeSlug) {
-      setSubmitState("error");
-      setSubmitMessage(
-        "Unable to determine microsite slug. RSVP submission works on public microsite pages, not builder/preview routes.",
-      );
-      return;
-    }
-
-    setSubmitting(true);
-    setSubmitState("idle");
-    setSubmitMessage("");
-
-    try {
-      const res = await fetch("/api/public/rsvp", {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-        },
-        body: JSON.stringify({
-          micrositeSlug,
-          firstName: firstName.trim(),
-          lastName: lastName.trim(),
-          email: email.trim(),
-          address: address.trim(),
-          isAttending: isCurrentlyAttending,
-          mealChoice: isCurrentlyAttending
-            ? showMealInForm
-              ? mealChoice
-              : mealDefaultValue
-            : "",
-bringingGuest: isCurrentlyBringingGuest,
-guestCount: isCurrentlyAttending && isCurrentlyBringingGuest ? guestCount : 0,
-          guestName: isCurrentlyBringingGuest
-            ? guestNames
-                .slice(0, guestCount)
-                .map((name) => name.trim())
-                .filter(Boolean)
-                .join(", ")
-            : "",
-          comments: showCommentsInForm ? comments.trim() : commentsDefaultValue.trim(),
-          company: company.trim(),
-        }),
-      });
-
-      const data = await res.json().catch(() => null);
-
-      if (!res.ok || !data?.ok) {
-        setSubmitState("error");
-        setSubmitMessage(data?.error || "Failed to submit RSVP.");
-        return;
-      }
-
-      setSubmitState("success");
-setSubmitMessage(`${confirmationTitle} ${confirmationMessage}`.trim());
-      setFirstName("");
-      setLastName("");
-      setEmail("");
-      setAddress("");
-      setAttendingChoice(
-  attendingOptions.includes(
-    attendingDefaultValue,
-  )
-    ? attendingDefaultValue
-    : attendingOptions[0] ??
-        "Yes",
-);
-      setMealChoice(mealDefaultValue);
-setBringingGuest(guestDefaultValue === guestYesValue);
-setGuestCount(guestDefaultValue === guestYesValue ? Math.max(guestMin, 1) : 0);
-      setGuestNames([]);
-      setComments(commentsDefaultValue);
-      setCompany("");
-    } catch {
-      setSubmitState("error");
-      setSubmitMessage("Failed to submit RSVP.");
-    } finally {
-      setSubmitting(false);
-    }
+function renderImage(
+  mode:
+    | "normal"
+    | "flyer" =
+    "normal",
+) {
+  if (
+    hidden.has(
+      "image",
+    ) ||
+    !data.imageUrl
+  ) {
+    return null;
   }
 
-  function renderImage() {
-    if (!block.data.imageUrl) return null;
+  /*
+   * ============================================================
+   * RESOLVED IMAGE SETTINGS
+   * ============================================================
+   */
 
-    const imageStyle = {};
+  const resolvedFit:
+    | "cover"
+    | "contain"
+    | "fill" =
+    imageFit ===
+    "contain"
+      ? "contain"
+      : imageFit ===
+          "stretch"
+        ? "fill"
+        : "cover";
 
-    if (imageShape === "heart") {
-      const heartClipId = `rsvp-heart-clip-${block.id}`;
+  const resolvedPositionX =
+    Number.isFinite(
+      imagePositionX,
+    )
+      ? imagePositionX
+      : 50;
 
-      return (
-        <div key="image" className="relative z-0 flex justify-center overflow-hidden">
-          <div className="h-28 w-28" style={imageStyle}>
-            <svg viewBox="0 0 100 100" className="block h-full w-full">
-              <defs>
-                <clipPath id={heartClipId} clipPathUnits="objectBoundingBox">
-                  <path d="M 0.5 0.95 C 0.2 0.72, 0.02 0.5, 0.02 0.28 C 0.02 0.1, 0.16 0.0, 0.3 0.0 C 0.42 0.0, 0.5 0.1, 0.5 0.18 C 0.5 0.1, 0.58 0.0, 0.7 0.0 C 0.84 0.0, 0.98 0.1, 0.98 0.28 C 0.98 0.5, 0.8 0.72, 0.5 0.95 Z" />
-                </clipPath>
-              </defs>
+  const resolvedPositionY =
+    Number.isFinite(
+      imagePositionY,
+    )
+      ? imagePositionY
+      : 50;
 
-              <image
-                href={block.data.imageUrl}
-                x="0"
-                y="0"
-                width="100"
-                height="100"
-                preserveAspectRatio="xMidYMid slice"
-                clipPath={`url(#${heartClipId})`}
-              />
-            </svg>
-          </div>
-        </div>
-      );
-    }
+  const resolvedZoom =
+    Number.isFinite(
+      imageZoom,
+    )
+      ? Math.max(
+          0.5,
+          imageZoom,
+        )
+      : 1;
 
-    if (imageShape === "diamond") {
-      return (
-        <div key="image" className="relative z-0 flex justify-center overflow-hidden py-2">
-          <div
-            className={`relative h-28 w-28 overflow-hidden border border-neutral-200 bg-neutral-100 ${getFrameClass(
-              imageShape,
-            )}`}
-            style={imageStyle}
-          >
-            <img
-              src={block.data.imageUrl}
-              alt=""
-              className="block h-full w-full -rotate-45 scale-150 object-cover"
-            />
-          </div>
-        </div>
-      );
-    }
+  const resolvedOpacity =
+    Number.isFinite(
+      imageOpacity,
+    )
+      ? Math.min(
+          1,
+          Math.max(
+            0,
+            imageOpacity,
+          ),
+        )
+      : 1;
 
+  const baseImageStyle:
+    React.CSSProperties =
+    {
+      objectFit:
+        resolvedFit,
+
+      objectPosition:
+        `${resolvedPositionX}% ${resolvedPositionY}%`,
+
+      opacity:
+        resolvedOpacity,
+
+      transformOrigin:
+        `${resolvedPositionX}% ${resolvedPositionY}%`,
+
+      transform:
+        resolvedFit ===
+        "fill"
+          ? undefined
+          : `scale(${resolvedZoom})`,
+    };
+
+  /*
+   * ============================================================
+   * SIZE
+   * ============================================================
+   */
+
+  const sizeClass =
+    mode ===
+    "flyer"
+      ? "h-[220px] w-full"
+      : layoutVariant ===
+          "invitation_card"
+        ? "h-36 w-36"
+        : "h-28 w-28";
+
+  /*
+   * ============================================================
+   * FLYER
+   * ============================================================
+   */
+
+  if (
+    mode ===
+    "flyer"
+  ) {
     return (
-      <div key="image" className="relative z-0 flex justify-center overflow-hidden">
+      <div
+        key="image"
+        className="relative w-full overflow-hidden"
+      >
         <img
-          src={block.data.imageUrl}
+          src={
+            data.imageUrl
+          }
           alt=""
-          className={`block h-28 w-28 border border-neutral-200 object-cover ${getFrameClass(
-            imageShape,
-          )}`}
-          style={imageStyle}
+          className="block h-[220px] w-full"
+          style={
+            baseImageStyle
+          }
         />
       </div>
     );
   }
 
-function renderField(
-  key: string,
-  placeholder: string,
-  value: string,
-  onChange: (v: string) => void,
-  type: string = "text",
-) {
-return (
-  <input
-    key={key}
-    type={type}
-    placeholder={placeholder}
-    value={value}
-    onChange={(e) => onChange(e.target.value)}
-    className={`${inputClass()} ${placeholderClassName}`}
-    style={{
-      ...fieldStyle,
-      color: placeholderStyle.color,
-      fontFamily: placeholderStyle.fontFamily,
-      fontSize: placeholderStyle.fontSize,
-      fontWeight: placeholderStyle.fontWeight,
-      fontStyle: placeholderStyle.fontStyle,
-      textDecoration: placeholderStyle.textDecoration,
-      letterSpacing: placeholderStyle.letterSpacing,
-      lineHeight: placeholderStyle.lineHeight,
-      textAlign: placeholderStyle.textAlign,
-    }}
-  />
-);
-}
+  /*
+   * ============================================================
+   * HEART
+   * ============================================================
+   */
 
-function renderTextarea(
-  key: string,
-  placeholder: string,
-  value: string,
-  onChange: (value: string) => void,
-) {
-  return (
-    <textarea
-      key={key}
-      placeholder={placeholder}
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className={`${inputClass()} min-h-[120px] resize-none ${placeholderClassName}`}
-style={{
-  ...fieldStyle,
-  color: optionTextStyle.color,
-fontFamily: optionTextStyle.fontFamily,
-fontSize: optionTextStyle.fontSize,
-fontWeight: optionTextStyle.fontWeight,
-fontStyle: optionTextStyle.fontStyle,
-textDecoration: optionTextStyle.textDecoration,
-letterSpacing: optionTextStyle.letterSpacing,
-lineHeight: optionTextStyle.lineHeight,
-  textAlign: "left",
-  ...(placeholderColor
-    ? ({ "--rsvp-placeholder-color": placeholderColor } as React.CSSProperties)
-    : {}),
-}}
-      rows={4}
-    />
-  );
-}
+  if (
+    imageShape ===
+    "heart"
+  ) {
+    return (
+      <div
+        key="image"
+        className="relative z-0 flex justify-center overflow-visible"
+      >
+        <div
+          className={`${sizeClass} overflow-hidden`}
+          style={{
+            clipPath:
+              "polygon(50% 95%, 42% 87%, 14% 62%, 6% 47%, 4% 31%, 8% 18%, 18% 8%, 31% 5%, 41% 9%, 50% 19%, 59% 9%, 69% 5%, 82% 8%, 92% 18%, 96% 31%, 94% 47%, 86% 62%, 58% 87%)",
+          }}
+        >
+          <img
+            src={
+              data.imageUrl
+            }
+            alt=""
+            className="block h-full w-full"
+            style={
+              baseImageStyle
+            }
+          />
+        </div>
+      </div>
+    );
+  }
 
-function renderFieldLabel(key: string, text: string) {
+  /*
+   * ============================================================
+   * DIAMOND
+   * ============================================================
+   */
+
+  if (
+    imageShape ===
+    "diamond"
+  ) {
+    return (
+      <div
+        key="image"
+        className="relative z-0 flex justify-center overflow-visible py-5"
+      >
+        <div
+          className={`${sizeClass} rotate-45 overflow-hidden border border-neutral-200 bg-neutral-100`}
+        >
+          <img
+            src={
+              data.imageUrl
+            }
+            alt=""
+            className="block h-full w-full"
+            style={{
+              objectFit:
+                resolvedFit,
+
+              objectPosition:
+                `${resolvedPositionX}% ${resolvedPositionY}%`,
+
+              opacity:
+                resolvedOpacity,
+
+              transformOrigin:
+                `${resolvedPositionX}% ${resolvedPositionY}%`,
+
+              transform:
+                resolvedFit ===
+                "fill"
+                  ? "rotate(-45deg) scale(1.42)"
+                  : `rotate(-45deg) scale(${1.42 * resolvedZoom})`,
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  /*
+   * ============================================================
+   * SQUARE / CIRCLE / OTHER STANDARD FRAMES
+   * ============================================================
+   */
+
   return (
     <div
-      key={key}
-      className={
-        darkVariant
-          ? "text-sm font-semibold text-white/90"
-          : "text-sm font-semibold text-neutral-800"
-      }
-      style={sectionLabelStyle}
+      key="image"
+      className="relative z-0 flex justify-center overflow-visible"
     >
-      {text}
+      <div
+        className={`${sizeClass} overflow-hidden border border-neutral-200 ${getFrameClass(
+          imageShape,
+        )}`}
+      >
+        <img
+          src={
+            data.imageUrl
+          }
+          alt=""
+          className="block h-full w-full"
+          style={
+            baseImageStyle
+          }
+        />
+      </div>
     </div>
   );
 }
+
+  /*
+   * ============================================================
+   * FIELDS
+   * ============================================================
+   */
+
+  function renderField(
+    key: string,
+    placeholder: string,
+    value: string,
+    onChange: (
+      value: string,
+    ) => void,
+    type:
+      | "text"
+      | "email" =
+      "text",
+  ) {
+    return (
+      <input
+        key={key}
+        type={type}
+        placeholder={
+          placeholder
+        }
+        value={value}
+        onChange={(
+          e,
+        ) =>
+          onChange(
+            e.target.value,
+          )
+        }
+        className={`${inputClass()} ${placeholderClassName}`}
+        style={{
+          ...fieldStyle,
+
+          color:
+            placeholderStyle.color,
+
+          fontFamily:
+            placeholderStyle.fontFamily,
+
+          fontSize:
+            placeholderStyle.fontSize,
+
+          fontWeight:
+            placeholderStyle.fontWeight,
+
+          fontStyle:
+            placeholderStyle.fontStyle,
+
+          textDecoration:
+            placeholderStyle.textDecoration,
+
+          letterSpacing:
+            placeholderStyle.letterSpacing,
+
+          lineHeight:
+            placeholderStyle.lineHeight,
+
+          textAlign:
+            placeholderStyle.textAlign,
+
+          ...(placeholderColor
+            ? ({
+                "--rsvp-placeholder-color":
+                  placeholderColor,
+              } as React.CSSProperties)
+            : {}),
+        }}
+      />
+    );
+  }
+
+  function renderTextarea(
+    key: string,
+    placeholder: string,
+    value: string,
+    onChange: (
+      value: string,
+    ) => void,
+  ) {
+    return (
+      <textarea
+        key={key}
+        placeholder={
+          placeholder
+        }
+        value={value}
+        onChange={(
+          e,
+        ) =>
+          onChange(
+            e.target.value,
+          )
+        }
+        rows={4}
+        className={`${inputClass()} ${placeholderClassName} min-h-[120px] resize-none`}
+        style={{
+          ...fieldStyle,
+
+          color:
+            optionTextStyle.color,
+
+          fontFamily:
+            optionTextStyle.fontFamily,
+
+          fontSize:
+            optionTextStyle.fontSize,
+
+          fontWeight:
+            optionTextStyle.fontWeight,
+
+          fontStyle:
+            optionTextStyle.fontStyle,
+
+          textDecoration:
+            optionTextStyle.textDecoration,
+
+          letterSpacing:
+            optionTextStyle.letterSpacing,
+
+          lineHeight:
+            optionTextStyle.lineHeight,
+
+          textAlign:
+            "left",
+
+          ...(placeholderColor
+            ? ({
+                "--rsvp-placeholder-color":
+                  placeholderColor,
+              } as React.CSSProperties)
+            : {}),
+        }}
+      />
+    );
+  }
+
+  function renderFieldLabel(
+    key: string,
+    text: string,
+  ) {
+    if (
+      !text.trim()
+    ) {
+      return null;
+    }
+
+    return (
+      <div
+        key={key}
+        className={
+          darkVariant
+            ? "text-sm font-semibold text-white/90"
+            : "text-sm font-semibold text-neutral-800"
+        }
+        style={
+          sectionLabelStyle
+        }
+      >
+        {text}
+      </div>
+    );
+  }
+
+/*
+ * ============================================================
+ * CHOICE SECTION
+ * ============================================================
+ */
 
 function renderChoiceSection(
   key: string,
   label: string,
   options: string[],
   value: string,
-  onChange: (value: string) => void,
+  onChange: (
+    value: string,
+  ) => void,
 ) {
+  const resolvedOptions =
+    (options ?? [])
+      .map(
+        (
+          option,
+        ) =>
+          String(
+            option ?? "",
+          ).trim(),
+      )
+      .filter(
+        Boolean,
+      );
+
+  /*
+   * Do not render an empty section when there are no usable
+   * choices.
+   */
+  if (
+    resolvedOptions.length ===
+    0
+  ) {
+    return null;
+  }
+
   return (
-<div
-  key={key}
-  className={`pointer-events-auto relative z-30 ${sectionClass()}`}
-  style={sectionStyle}
->
-      <div
-        className="mb-3 text-sm font-semibold"
-        style={sectionLabelStyle}
-      >
-        {label}
-      </div>
+    <div
+      key={key}
+      className={`pointer-events-auto relative z-30 ${sectionClass()}`}
+      style={
+        sectionStyle
+      }
+    >
+      {label ? (
+        <div
+          className="mb-3 text-sm font-semibold"
+          style={
+            sectionLabelStyle
+          }
+        >
+          {label}
+        </div>
+      ) : null}
 
       {useChoiceCards ? (
-        <div className="pointer-events-auto relative z-40 grid grid-cols-1 gap-2 sm:grid-cols-2">
-{options.map((option) => {
-  const selected = value === option;
+        <div
+          className={[
+            "pointer-events-auto",
+            "relative",
+            "z-40",
+            "grid",
+            "grid-cols-1",
+            "gap-2",
 
-const resolvedButtonStyle =
-  selected
-    ? {
-        backgroundColor:
-          darkVariant
-            ? "rgba(255,255,255,0.18)"
-            : "#111827",
+            layoutVariant ===
+              "invitation_card" ||
+            layoutVariant ===
+              "flyer_stack"
+              ? ""
+              : "sm:grid-cols-2",
+          ].join(" ")}
+        >
+          {resolvedOptions.map(
+            (
+              option,
+              index,
+            ) => {
+              const selected =
+                value ===
+                option;
 
-        borderColor:
-          darkVariant
-            ? "rgba(255,255,255,0.75)"
-            : "#111827",
+              const resolvedButtonStyle =
+                selected
+                  ? {
+                      backgroundColor:
+                        darkVariant
+                          ? "rgba(255,255,255,0.18)"
+                          : "#111827",
 
-        borderWidth: 1,
-        borderStyle:
-          "solid",
+                      borderColor:
+                        darkVariant
+                          ? "rgba(255,255,255,0.75)"
+                          : "#111827",
 
-        borderRadius: 14,
+                      borderWidth:
+                        1,
 
-        ...buttonSelectionStyle,
-      }
-    : {
-        backgroundColor:
-          darkVariant
-            ? "rgba(255,255,255,0.06)"
-            : "#ffffff",
+                      borderStyle:
+                        "solid",
 
-        borderColor:
-          darkVariant
-            ? "rgba(255,255,255,0.18)"
-            : "#e5e7eb",
+                      borderRadius:
+                        14,
 
-        borderWidth: 1,
-        borderStyle:
-          "solid",
+                      ...buttonSelectionStyle,
+                    }
+                  : {
+                      backgroundColor:
+                        darkVariant
+                          ? "rgba(255,255,255,0.06)"
+                          : "#ffffff",
 
-        borderRadius: 14,
+                      borderColor:
+                        darkVariant
+                          ? "rgba(255,255,255,0.18)"
+                          : "#e5e7eb",
 
-        ...buttonDefaultStyle,
-      };
+                      borderWidth:
+                        1,
 
-  const optionAlignment =
-    optionTextStyle.textAlign === "right"
-      ? "right"
-      : optionTextStyle.textAlign === "center"
-        ? "center"
-        : "left";
+                      borderStyle:
+                        "solid",
 
-  const justifyContent =
-    optionAlignment === "right"
-      ? "flex-end"
-      : optionAlignment === "center"
-        ? "center"
-        : "flex-start";
+                      borderRadius:
+                        14,
 
-  return (
-    <button
-      key={`${key}-${option}`}
-      type="button"
-      onClick={() => onChange(option)}
-      className="pointer-events-auto relative z-50 flex min-h-[46px] w-full items-center px-4 py-3 text-sm font-medium transition duration-200"
-      style={{
-        ...resolvedButtonStyle,
-        color:
-  optionTextStyle.color ??
-  (selected
-    ? darkVariant
-      ? "#ffffff"
-      : "#ffffff"
-    : darkVariant
-      ? "#ffffff"
-      : "#171717"),
-        fontFamily: optionTextStyle.fontFamily,
-        fontSize: optionTextStyle.fontSize,
-        fontWeight: optionTextStyle.fontWeight,
-        fontStyle: optionTextStyle.fontStyle,
-        textDecoration: optionTextStyle.textDecoration,
-        letterSpacing: optionTextStyle.letterSpacing,
-        lineHeight: optionTextStyle.lineHeight,
-        textAlign: optionAlignment,
-        justifyContent,
-      }}
-    >
-      <span className="w-full" style={{ textAlign: optionAlignment }}>
-        {option}
-      </span>
-    </button>
-  );
-})}
+                      ...buttonDefaultStyle,
+                    };
+
+              const optionAlignment =
+                optionTextStyle.textAlign ===
+                "right"
+                  ? "right"
+                  : optionTextStyle.textAlign ===
+                      "center"
+                    ? "center"
+                    : "left";
+
+              const justifyContent =
+                optionAlignment ===
+                "right"
+                  ? "flex-end"
+                  : optionAlignment ===
+                      "center"
+                    ? "center"
+                    : "flex-start";
+
+              return (
+                <button
+                  key={`${key}-${option}-${index}`}
+                  type="button"
+                  aria-pressed={
+                    selected
+                  }
+                  onClick={() => {
+                    onChange(
+                      option,
+                    );
+                  }}
+                  className="pointer-events-auto relative z-50 flex min-h-[46px] w-full items-center px-4 py-3 text-sm font-medium transition duration-200"
+                  style={{
+                    ...resolvedButtonStyle,
+
+                    color:
+                      optionTextStyle.color ??
+                      (
+                        selected
+                          ? "#ffffff"
+                          : darkVariant
+                            ? "#ffffff"
+                            : "#171717"
+                      ),
+
+                    fontFamily:
+                      optionTextStyle.fontFamily,
+
+                    fontSize:
+                      optionTextStyle.fontSize,
+
+                    fontWeight:
+                      optionTextStyle.fontWeight,
+
+                    fontStyle:
+                      optionTextStyle.fontStyle,
+
+                    textDecoration:
+                      optionTextStyle.textDecoration,
+
+                    letterSpacing:
+                      optionTextStyle.letterSpacing,
+
+                    lineHeight:
+                      optionTextStyle.lineHeight,
+
+                    textAlign:
+                      optionAlignment,
+
+                    justifyContent,
+                  }}
+                >
+                  <span
+                    className="w-full"
+                    style={{
+                      textAlign:
+                        optionAlignment,
+                    }}
+                  >
+                    {option}
+                  </span>
+                </button>
+              );
+            },
+          )}
         </div>
       ) : (
         <div className="relative z-10 flex flex-wrap gap-4">
-          {options.map((option) => (
-            <label
-              key={`${key}-${option}`}
-              className="inline-flex items-center gap-2 text-sm"
-              style={optionTextStyle}
-            >
-              <input
-                type="radio"
-                name={`${block.id}-${key}`}
-                checked={value === option}
-                onChange={() => onChange(option)}
-              />
+          {resolvedOptions.map(
+            (
+              option,
+              index,
+            ) => (
+              <label
+                key={`${key}-${option}-${index}`}
+                className="inline-flex cursor-pointer items-center gap-2 text-sm"
+                style={
+                  optionTextStyle
+                }
+              >
+                <input
+                  type="radio"
+                  name={`${block.id}-${key}`}
+                  value={
+                    option
+                  }
+                  checked={
+                    value ===
+                    option
+                  }
+                  onChange={() => {
+                    onChange(
+                      option,
+                    );
+                  }}
+                />
 
-              <span>{option}</span>
-            </label>
-          ))}
+                <span>
+                  {option}
+                </span>
+              </label>
+            ),
+          )}
         </div>
       )}
     </div>
   );
 }
 
-  function renderGuestCount() {
+/*
+ * ============================================================
+ * GUEST COUNT
+ * ============================================================
+ */
+
+function renderGuestCount() {
+  if (
+    hidden.has(
+      "guestCount",
+    ) ||
+    !showGuestInForm ||
+    !isCurrentlyAttending ||
+    !isCurrentlyBringingGuest
+  ) {
+    return null;
+  }
+
+  const resolvedGuestMin =
+    Math.max(
+      1,
+      guestMin,
+    );
+
+  const resolvedGuestMax =
+    Math.max(
+      resolvedGuestMin,
+      guestMax,
+    );
+
+  const displayedGuestCount =
+    Math.min(
+      resolvedGuestMax,
+      Math.max(
+        resolvedGuestMin,
+        guestCount,
+      ),
+    );
+
+  const decreaseGuestCount =
+    () => {
+      setGuestCount(
+        (
+          current,
+        ) => {
+          /*
+           * Going below the configured minimum means "no guests"
+           * rather than creating an invalid count such as 1 when
+           * guestMin is 2.
+           */
+          if (
+            current <=
+            resolvedGuestMin
+          ) {
+            setGuestChoice(
+              guestNoValue,
+            );
+
+            setGuestNames(
+              [],
+            );
+
+            return 0;
+          }
+
+          const next =
+            Math.max(
+              resolvedGuestMin,
+              current -
+                1,
+            );
+
+          setGuestNames(
+            (
+              previous,
+            ) =>
+              previous.slice(
+                0,
+                next,
+              ),
+          );
+
+          return next;
+        },
+      );
+    };
+
+  const increaseGuestCount =
+    () => {
+      setGuestCount(
+        (
+          current,
+        ) => {
+          const next =
+            current <= 0
+              ? resolvedGuestMin
+              : Math.min(
+                  resolvedGuestMax,
+                  current +
+                    1,
+                );
+
+          setGuestChoice(
+            guestYesValue,
+          );
+
+          setGuestNames(
+            (
+              previous,
+            ) => {
+              const copy =
+                [
+                  ...previous,
+                ];
+
+              while (
+                copy.length <
+                next
+              ) {
+                copy.push(
+                  "",
+                );
+              }
+
+              return copy.slice(
+                0,
+                next,
+              );
+            },
+          );
+
+          return next;
+        },
+      );
+    };
+
+  return (
+    <div
+      key="guestCount"
+      className={
+        sectionClass()
+      }
+      style={
+        sectionStyle
+      }
+    >
+      <div
+        className="mb-3 text-sm font-semibold"
+        style={
+          sectionLabelStyle
+        }
+      >
+        Guest Count
+      </div>
+
+      <div className="inline-flex items-center gap-3 rounded-2xl border border-current/15 bg-white/10 px-3 py-2">
+        <button
+          type="button"
+          aria-label="Decrease guest count"
+          onClick={
+            decreaseGuestCount
+          }
+          className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-current/20 text-base transition hover:bg-black/5"
+        >
+          −
+        </button>
+
+        <div
+          className="min-w-[68px] text-center text-sm"
+          aria-live="polite"
+        >
+          {
+            displayedGuestCount
+          }
+        </div>
+
+        <button
+          type="button"
+          aria-label="Increase guest count"
+          disabled={
+            displayedGuestCount >=
+            resolvedGuestMax
+          }
+          onClick={
+            increaseGuestCount
+          }
+          className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-current/20 text-base transition hover:bg-black/5 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          +
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/*
+ * ============================================================
+ * HEADING GROUP
+ * ============================================================
+ */
+
+function renderHeading() {
+  const showHeading =
+    !hidden.has(
+      "heading",
+    ) &&
+    Boolean(
+      data.heading,
+    );
+
+  const showHelperText =
+    !hidden.has(
+      "helperText",
+    ) &&
+    Boolean(
+      helperText,
+    );
+
+  const showReplyBy =
+    !hidden.has(
+      "replyBy",
+    ) &&
+    replyByDisplay &&
+    Boolean(
+      replyByText,
+    );
+
+  /*
+   * The heading group can remain visible even when the actual
+   * heading is hidden, because Helper Text and Reply By are
+   * independently configurable elements.
+   */
+  if (
+    !showHeading &&
+    !showHelperText &&
+    !showReplyBy
+  ) {
+    return null;
+  }
+
+  return (
+    <div
+      key="heading"
+      className="space-y-2 text-center"
+    >
+      {showHeading ? (
+        <div
+          className="text-2xl font-semibold tracking-tight"
+          style={
+            headingStyle
+          }
+        >
+          {data.heading ??
+            ""}
+        </div>
+      ) : null}
+
+      {showHelperText ? (
+        <div
+          className={
+            darkVariant
+              ? "text-sm text-white/65"
+              : "text-sm text-neutral-500"
+          }
+          style={
+            helperTextStyle
+          }
+        >
+          {
+            helperText
+          }
+        </div>
+      ) : null}
+
+      {showReplyBy ? (
+        <div>
+          <div
+            className="inline-flex rounded-full border px-3 py-1 text-xs font-semibold"
+            style={
+              badgeTextStyle
+            }
+          >
+            {
+              replyByText
+            }
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+/*
+ * ============================================================
+ * CONTACT SECTION
+ * ============================================================
+ */
+
+function renderContactSection() {
+  /*
+   * ----------------------------------------------------------
+   * MASTER VISIBILITY
+   * ----------------------------------------------------------
+   */
+
+  const contactSectionEnabled =
+    data.contactDetailsDisplay !==
+      false &&
+    !hidden.has(
+      "contactSection",
+    );
+
+  if (
+    !contactSectionEnabled
+  ) {
+    return null;
+  }
+
+  /*
+   * ----------------------------------------------------------
+   * INDIVIDUAL FIELD VISIBILITY
+   * ----------------------------------------------------------
+   *
+   * First Name and Last Name are independent.
+   *
+   * nameDisplay is still the master switch for the name fields,
+   * but hiding First Name does not automatically hide Last Name.
+   */
+
+  const namesEnabled =
+    data.nameDisplay !==
+    false;
+
+  const showFirstName =
+    namesEnabled &&
+    !hidden.has(
+      "firstName",
+    );
+
+  const showLastName =
+    namesEnabled &&
+    data.lastNameDisplay !==
+      false &&
+    !hidden.has(
+      "lastName",
+    );
+
+  const showEmail =
+    data.emailDisplay !==
+      false &&
+    !hidden.has(
+      "email",
+    );
+
+  const showAddress =
+    data.addressDisplay !==
+      false &&
+    !hidden.has(
+      "address",
+    );
+
+  const showContactLabel =
+    !hidden.has(
+      "nameLabel",
+    );
+
+  /*
+   * Do not render an empty contact card when every field has
+   * been disabled/hidden.
+   */
+  const hasVisibleFields =
+    showFirstName ||
+    showLastName ||
+    showEmail ||
+    showAddress;
+
+  if (
+    !hasVisibleFields
+  ) {
+    return null;
+  }
+
+  const contactLabel =
+    data.contactLabel ??
+    "Contact Details";
+
+  /*
+   * ----------------------------------------------------------
+   * NAME GRID
+   * ----------------------------------------------------------
+   *
+   * Standard and Hero Overlay can use a two-column name row.
+   *
+   * Invitation Card and Flyer Stack stay stacked because their
+   * layouts are intentionally narrower/portrait-oriented.
+   */
+
+  const useTwoColumnNames =
+    showFirstName &&
+    showLastName &&
+    layoutVariant !==
+      "invitation_card" &&
+    layoutVariant !==
+      "flyer_stack";
+
+  return (
+    <div
+      key="contact-details-card"
+      className={`${sectionClass()} space-y-4`}
+      style={
+        sectionStyle
+      }
+    >
+      {showContactLabel
+        ? renderFieldLabel(
+            "nameLabel",
+            contactLabel,
+          )
+        : null}
+
+      {showFirstName ||
+      showLastName ? (
+        <div
+          className={[
+            "grid",
+            "grid-cols-1",
+
+            useTwoColumnNames
+              ? "sm:grid-cols-2"
+              : "",
+
+            "gap-3",
+          ].join(" ")}
+        >
+          {showFirstName
+            ? renderField(
+                "firstName",
+                data.firstNamePlaceholder ??
+                  "First Name",
+                firstName,
+                setFirstName,
+              )
+            : null}
+
+          {showLastName
+            ? renderField(
+                "lastName",
+                data.lastNamePlaceholder ??
+                  "Last Name",
+                lastName,
+                setLastName,
+              )
+            : null}
+        </div>
+      ) : null}
+
+      {showEmail
+        ? renderField(
+            "email",
+            data.emailPlaceholder ??
+              "Email Address",
+            email,
+            setEmail,
+            "email",
+          )
+        : null}
+
+      {showAddress
+        ? renderField(
+            "address",
+            data.addressPlaceholder ??
+              "Mailing Address",
+            address,
+            setAddress,
+          )
+        : null}
+    </div>
+  );
+}
+
+/*
+ * ============================================================
+ * GUEST NAMES
+ * ============================================================
+ */
+
+function renderGuestNames() {
+  if (
+    hidden.has(
+      "guestName",
+    ) ||
+    !showGuestInForm ||
+    !isCurrentlyAttending ||
+    !isCurrentlyBringingGuest ||
+    guestCount <=
+      0
+  ) {
+    return null;
+  }
+
+  const resolvedGuestCount =
+    Math.min(
+      Math.max(
+        guestMax,
+        1,
+      ),
+      Math.max(
+        guestCount,
+        0,
+      ),
+    );
+
+  if (
+    resolvedGuestCount <=
+    0
+  ) {
+    return null;
+  }
+
+  return (
+    <div
+      key="guestName"
+      className={
+        sectionClass()
+      }
+      style={
+        sectionStyle
+      }
+    >
+      <div
+        className="mb-3 text-sm font-semibold"
+        style={
+          sectionLabelStyle
+        }
+      >
+        {resolvedGuestCount ===
+        1
+          ? "Guest Name"
+          : "Guest Names"}
+      </div>
+
+      <div className="space-y-3">
+        {Array.from({
+          length:
+            resolvedGuestCount,
+        }).map(
+          (
+            _,
+            index,
+          ) => (
+            <input
+              key={`guest-name-${index}`}
+              type="text"
+              placeholder={`Guest Name ${index + 1}`}
+              value={
+                guestNames[
+                  index
+                ] ??
+                ""
+              }
+              onChange={(
+                e,
+              ) => {
+                const next =
+                  [
+                    ...guestNames,
+                  ];
+
+                while (
+                  next.length <=
+                  index
+                ) {
+                  next.push(
+                    "",
+                  );
+                }
+
+                next[
+                  index
+                ] =
+                  e.target.value;
+
+                setGuestNames(
+                  next,
+                );
+              }}
+              className={`${inputClass()} ${placeholderClassName}`}
+              style={{
+                ...fieldStyle,
+
+                color:
+                  optionTextStyle.color,
+
+                fontFamily:
+                  optionTextStyle.fontFamily,
+
+                fontSize:
+                  optionTextStyle.fontSize,
+
+                fontWeight:
+                  optionTextStyle.fontWeight,
+
+                fontStyle:
+                  optionTextStyle.fontStyle,
+
+                textDecoration:
+                  optionTextStyle.textDecoration,
+
+                letterSpacing:
+                  optionTextStyle.letterSpacing,
+
+                lineHeight:
+                  optionTextStyle.lineHeight,
+              }}
+            />
+          ),
+        )}
+      </div>
+    </div>
+  );
+}
+
+/*
+ * ============================================================
+ * COMMENTS
+ * ============================================================
+ */
+
+function renderComments() {
+  if (
+    hidden.has(
+      "comments",
+    ) ||
+    !showCommentsInForm
+  ) {
+    return null;
+  }
+
+  return (
+    <div
+      key="comments"
+      className={
+        sectionClass()
+      }
+      style={
+        sectionStyle
+      }
+    >
+      {commentsLabel ? (
+        <div
+          className="mb-3 text-sm font-semibold"
+          style={
+            sectionLabelStyle
+          }
+        >
+          {
+            commentsLabel
+          }
+        </div>
+      ) : null}
+
+      {renderTextarea(
+        "comments-field",
+        commentsPlaceholder,
+        comments,
+        setComments,
+      )}
+    </div>
+  );
+}
+
+  /*
+   * ============================================================
+   * BODY ELEMENT
+   * ============================================================
+   */
+
+function renderElement(
+  key: string,
+) {
+  switch (key) {
+    /*
+     * ==========================================================
+     * IMAGE
+     * ==========================================================
+     */
+
+    case "image":
+      if (
+        hidden.has(
+          "image",
+        )
+      ) {
+        return null;
+      }
+
+      /*
+       * Hero Overlay owns its image as the full background.
+       * Flyer Stack owns its image as the poster/header region.
+       */
+      if (
+        layoutVariant ===
+          "hero_overlay" ||
+        layoutVariant ===
+          "flyer_stack"
+      ) {
+        return null;
+      }
+
+      return renderImage();
+
+    /*
+     * ==========================================================
+     * HEADING GROUP
+     * ==========================================================
+     */
+
+    case "heading":
+      if (
+        hidden.has(
+          "heading",
+        )
+      ) {
+        return null;
+      }
+
+      return renderHeading();
+
+    case "helperText":
+    case "replyBy":
+      /*
+       * These are rendered by renderHeading().
+       */
+      return null;
+
+    /*
+     * ==========================================================
+     * CONTACT DETAILS GROUP
+     * ==========================================================
+     */
+
+    case "contactSection":
+      return renderContactSection();
+
+    case "nameLabel":
+    case "firstName":
+    case "lastName":
+    case "email":
+    case "address":
+      /*
+       * These are rendered by renderContactSection().
+       */
+      return null;
+
+    /*
+     * ==========================================================
+     * ATTENDANCE
+     * ==========================================================
+     */
+
+    case "attending":
+      if (
+        !showAttendingInForm ||
+        hidden.has(
+          "attending",
+        )
+      ) {
+        return null;
+      }
+
+      return renderChoiceSection(
+        "attending",
+        attendingLabel,
+        attendingOptions,
+        attendingChoice,
+        setAttendingChoice,
+      );
+
+    /*
+     * ==========================================================
+     * MEAL
+     * ==========================================================
+     */
+
+    case "meal":
+      if (
+        !showMealInForm ||
+        !isCurrentlyAttending ||
+        hidden.has(
+          "meal",
+        )
+      ) {
+        return null;
+      }
+
+      return renderChoiceSection(
+        "meal",
+        mealLabel,
+        mealOptions,
+        mealChoice,
+        setMealChoice,
+      );
+
+    /*
+     * ==========================================================
+     * GUEST TOGGLE
+     * ==========================================================
+     */
+
+    case "guestToggle":
+      if (
+        !showGuestInForm ||
+        !isCurrentlyAttending ||
+        hidden.has(
+          "guestToggle",
+        )
+      ) {
+        return null;
+      }
+
+      return renderChoiceSection(
+        "guestToggle",
+        guestLabel,
+        guestOptions,
+        guestChoice,
+        (
+          next,
+        ) => {
+          setGuestChoice(
+            next,
+          );
+
+          const yes =
+            next ===
+            guestYesValue;
+
+          const nextCount =
+            yes
+              ? Math.max(
+                  1,
+                  guestMin,
+                )
+              : 0;
+
+          setGuestCount(
+            nextCount,
+          );
+
+          setGuestNames(
+            yes
+              ? Array.from(
+                  {
+                    length:
+                      nextCount,
+                  },
+                  () =>
+                    "",
+                )
+              : [],
+          );
+        },
+      );
+
+    /*
+     * ==========================================================
+     * GUEST COUNT
+     * ==========================================================
+     */
+
+    case "guestCount":
+      if (
+        !showGuestInForm ||
+        !isCurrentlyAttending ||
+        !isCurrentlyBringingGuest ||
+        hidden.has(
+          "guestCount",
+        )
+      ) {
+        return null;
+      }
+
+      return renderGuestCount();
+
+    /*
+     * ==========================================================
+     * GUEST NAMES
+     * ==========================================================
+     */
+
+    case "guestName":
+      if (
+        !showGuestInForm ||
+        !isCurrentlyAttending ||
+        !isCurrentlyBringingGuest ||
+        hidden.has(
+          "guestName",
+        )
+      ) {
+        return null;
+      }
+
+      return renderGuestNames();
+
+    /*
+     * ==========================================================
+     * COMMENTS
+     * ==========================================================
+     */
+
+    case "comments":
+      if (
+        hidden.has(
+          "comments",
+        )
+      ) {
+        return null;
+      }
+
+      return renderComments();
+
+    /*
+     * ==========================================================
+     * FORM-LEVEL ELEMENTS
+     * ==========================================================
+     *
+     * These remain outside renderBodyElements() because the form
+     * already renders them after its content body.
+     */
+
+    case "submitButton":
+    case "confirmation":
+      return null;
+
+    default:
+      return null;
+  }
+}
+
+  /*
+   * ============================================================
+   * BODY
+   * ============================================================
+   */
+
+function renderBodyElements() {
+  const rendered:
+    React.ReactNode[] =
+    [];
+
+  const alreadyRendered =
+    new Set<string>();
+
+  /*
+   * ============================================================
+   * ORDER NORMALIZATION
+   * ============================================================
+   *
+   * Some RSVP elements are visually rendered as a group:
+   *
+   * helperText / replyBy
+   *   -> heading
+   *
+   * nameLabel / firstName / lastName / email / address
+   *   -> contactSection
+   *
+   * This lets older saved RSVP blocks continue working even if
+   * their elementOrder does not contain the newer group keys.
+   */
+
+  const normalizeOrderKey = (
+    key: string,
+  ) => {
+    switch (key) {
+      case "helperText":
+      case "replyBy":
+        return "heading";
+
+      case "nameLabel":
+      case "firstName":
+      case "lastName":
+      case "email":
+      case "address":
+        return "contactSection";
+
+      default:
+        return key;
+    }
+  };
+
+  /*
+   * ============================================================
+   * PUSH ELEMENT
+   * ============================================================
+   */
+
+  const pushElement = (
+    rawKey: string,
+  ) => {
+    const key =
+      normalizeOrderKey(
+        rawKey,
+      );
+
+    if (
+      alreadyRendered.has(
+        key,
+      )
+    ) {
+      return;
+    }
+
+    /*
+     * Hidden grouped children should not automatically hide their
+     * entire parent group. The parent render function handles those
+     * children individually.
+     */
+    if (
+      key !==
+        "contactSection" &&
+      key !==
+        "heading" &&
+      hidden.has(
+        key as any,
+      )
+    ) {
+      return;
+    }
+
+    alreadyRendered.add(
+      key,
+    );
+
+    const node =
+      renderElement(
+        key,
+      );
+
+if (
+  node !== null &&
+  node !== undefined
+) {
+  rendered.push(
+    node,
+  );
+}
+  };
+
+  /*
+   * ============================================================
+   * SAVED ELEMENT ORDER
+   * ============================================================
+   */
+
+  order.forEach(
+    (
+      key: string,
+    ) => {
+      pushElement(
+        key,
+      );
+    },
+  );
+
+  /*
+   * ============================================================
+   * BACKWARD-COMPATIBILITY FALLBACKS
+   * ============================================================
+   *
+   * Older saved RSVP blocks may not contain newer keys such as
+   * contactSection, helperText, replyBy, submitButton, etc.
+   *
+   * Add only anything that was not encountered above.
+   */
+
+  const fallbackOrder = [
+    "image",
+    "heading",
+    "contactSection",
+    "attending",
+    "meal",
+    "guestToggle",
+    "guestCount",
+    "guestName",
+    "comments",
+  ];
+
+  fallbackOrder.forEach(
+    (
+      key,
+    ) => {
+      pushElement(
+        key,
+      );
+    },
+  );
+
+  return rendered;
+}
+
+  /*
+   * ============================================================
+   * SUBMIT BUTTON
+   * ============================================================
+   */
+
+/*
+ * ============================================================
+ * SUBMIT BUTTON
+ * ============================================================
+ */
+
+function renderSubmitButton() {
+  if (
+    hidden.has(
+      "submitButton",
+    )
+  ) {
+    return null;
+  }
+
+  const resolvedButtonText =
+    submitting
+      ? "Submitting..."
+      : submitButtonText ||
+        "Submit RSVP";
+
+  return (
+    <button
+      type="submit"
+      disabled={
+        submitting
+      }
+      aria-busy={
+        submitting
+      }
+      className={[
+        "inline-flex",
+        "min-h-[52px]",
+        "items-center",
+        "justify-center",
+        "px-5",
+        "py-3",
+        "text-sm",
+        "font-semibold",
+        "transition",
+        "duration-200",
+        "disabled:cursor-not-allowed",
+        "disabled:opacity-60",
+
+        /*
+         * BUTTON WIDTH
+         */
+        buttonLayout ===
+        "full"
+          ? "w-full"
+          : "w-auto",
+
+        /*
+         * BUTTON ALIGNMENT
+         */
+        submitAlignmentClass(),
+
+        /*
+         * BUTTON SHAPE
+         */
+        buttonShape ===
+        "pill"
+          ? "rounded-full"
+          : buttonShape ===
+              "square"
+            ? "rounded-none"
+            : "rounded-2xl",
+
+        /*
+         * TEXT CASE
+         */
+        buttonUppercase
+          ? "uppercase tracking-[0.18em]"
+          : "",
+
+        /*
+         * BUTTON VARIANT
+         */
+        buttonVariant ===
+        "outline"
+          ? darkVariant
+            ? [
+                "border",
+                "border-white/35",
+                "bg-transparent",
+                "text-white",
+                "hover:bg-white/10",
+              ].join(" ")
+            : [
+                "border",
+                "border-neutral-950",
+                "bg-transparent",
+                "text-neutral-950",
+                "hover:bg-neutral-950",
+                "hover:text-white",
+              ].join(" ")
+          : buttonVariant ===
+              "gradient"
+            ? [
+                "border",
+                "border-transparent",
+                "bg-gradient-to-r",
+                "from-fuchsia-600",
+                "via-rose-500",
+                "to-orange-400",
+                "text-white",
+                "hover:opacity-90",
+              ].join(" ")
+            : darkVariant
+              ? [
+                  "bg-white",
+                  "text-neutral-950",
+                  "hover:bg-white/90",
+                ].join(" ")
+              : [
+                  "bg-neutral-950",
+                  "text-white",
+                  "hover:bg-neutral-800",
+                ].join(" "),
+      ].join(" ")}
+      style={{
+        /*
+         * Appearance style first.
+         * Text formatting remains independently editable.
+         */
+        ...submitButtonStyle,
+        ...submitButtonTextStyle,
+      }}
+    >
+      {resolvedButtonText}
+    </button>
+  );
+}
+
+  /*
+   * ============================================================
+   * SUBMISSION STATUS
+   * ============================================================
+   */
+/*
+ * ============================================================
+ * SUBMISSION STATUS
+ * ============================================================
+ */
+
+function renderSubmissionStatus() {
+  const showSuccess =
+    submitState ===
+      "success" &&
+    !hidden.has(
+      "confirmation",
+    );
+
+  const showError =
+    submitState ===
+    "error";
+
+  if (
+    !showSuccess &&
+    !showError
+  ) {
+    return null;
+  }
+
+  if (
+    showSuccess
+  ) {
+    const resolvedSuccessMessage =
+      submitMessage ||
+      confirmationMessage ||
+      "";
+
     return (
       <div
-  key="guestCount"
-  className={sectionClass()}
-  style={sectionStyle}
->
-        <div className="mb-3 text-sm font-semibold" style={sectionLabelStyle}>
-  Guest Count
-</div>
-
-        <div className="inline-flex items-center gap-3 rounded-2xl border border-current/15 bg-white/10 px-3 py-2">
-          <button
-            type="button"
-            onClick={() =>
-              setGuestCount((current) => {
-                const next = Math.max(0, current - 1);
-                setGuestNames((prev) => prev.slice(0, next));
-
-                if (next === 0) setBringingGuest(false);
-
-                return next;
-              })
+        role="status"
+        aria-live="polite"
+        className={
+          darkVariant
+            ? [
+                "rounded-2xl",
+                "border",
+                "border-emerald-300/30",
+                "bg-emerald-300/10",
+                "p-4",
+              ].join(" ")
+            : [
+                "rounded-2xl",
+                "border",
+                "border-emerald-200",
+                "bg-emerald-50",
+                "p-4",
+              ].join(" ")
+        }
+      >
+        {confirmationTitle ? (
+          <div
+            className="text-base font-semibold"
+            style={
+              confirmationTitleStyle
             }
-            className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-current/20 text-base"
           >
-            -
-          </button>
-
-          <div className="min-w-[68px] text-center text-sm">{guestCount}</div>
-
-          <button
-            type="button"
-            onClick={() =>
-              setGuestCount((current) => {
-                const next = Math.min(guestMax, current + 1);
-                setGuestNames((prev) => {
-                  const copy = [...prev];
-                  while (copy.length < next) copy.push("");
-                  return copy.slice(0, next);
-                });
-                return next;
-              })
+            {
+              confirmationTitle
             }
-            className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-current/20 text-base"
+          </div>
+        ) : null}
+
+        {resolvedSuccessMessage ? (
+          <div
+            className={
+              confirmationTitle
+                ? "mt-2 text-sm"
+                : "text-sm"
+            }
+            style={
+              confirmationMessageStyle
+            }
           >
-            +
-          </button>
+            {
+              resolvedSuccessMessage
+            }
+          </div>
+        ) : null}
+      </div>
+    );
+  }
+
+  return (
+    <div
+      role="alert"
+      aria-live="assertive"
+      className={
+        darkVariant
+          ? [
+              "rounded-2xl",
+              "border",
+              "border-red-300/30",
+              "bg-red-300/10",
+              "p-3",
+              "text-sm",
+              "text-red-100",
+            ].join(" ")
+          : [
+              "rounded-2xl",
+              "border",
+              "border-red-200",
+              "bg-red-50",
+              "p-3",
+              "text-sm",
+              "text-red-800",
+            ].join(" ")
+      }
+    >
+      {submitMessage ||
+        "Failed to submit RSVP."}
+    </div>
+  );
+}
+
+  /*
+   * ============================================================
+   * FORM
+   * ============================================================
+   */
+
+function renderForm() {
+  const resolvedMaxWidth =
+    layoutVariant === "invitation_card" ||
+    layoutVariant === "flyer_stack"
+      ? portraitMaxWidth
+      : layoutVariant === "hero_overlay"
+        ? overlayWidth
+        : formMaxWidth;
+
+  const invitationCard =
+    layoutVariant === "invitation_card";
+
+  const flyerStack =
+    layoutVariant === "flyer_stack";
+
+  const heroOverlay =
+    layoutVariant === "hero_overlay";
+
+  const form = (
+    <form
+      onSubmit={handleSubmit}
+      className={[
+        "pointer-events-auto",
+        layoutFormClass(),
+        formRadiusClass(),
+
+        variantClassMap[
+          styleVariant
+        ] ??
+          variantClassMap.standard,
+
+        invitationCard
+          ? [
+              "relative",
+              "isolate",
+              "min-h-fit",
+              "overflow-hidden",
+              "before:pointer-events-none",
+              "before:absolute",
+              "before:inset-[10px]",
+              "before:z-0",
+              "before:rounded-[30px]",
+              "before:border",
+              "before:border-current/10",
+              "after:pointer-events-none",
+              "after:absolute",
+              "after:left-1/2",
+              "after:top-5",
+              "after:z-0",
+              "after:h-px",
+              "after:w-20",
+              "after:-translate-x-1/2",
+              "after:bg-current/15",
+            ].join(" ")
+          : "",
+
+        flyerStack
+          ? [
+              "relative",
+              "isolate",
+              "overflow-hidden",
+              "rounded-t-none",
+              "border-t-0",
+              "shadow-none",
+            ].join(" ")
+          : "",
+
+        heroOverlay
+          ? [
+              "relative",
+              "isolate",
+              "w-full",
+              "overflow-y-auto",
+              "shadow-2xl",
+            ].join(" ")
+          : "",
+      ].join(" ")}
+      style={{
+        maxWidth:
+          resolvedMaxWidth,
+
+        padding:
+          contentPadding,
+
+        gap:
+          sectionGap,
+
+        ...(invitationCard
+          ? {
+              paddingTop:
+                Math.max(
+                  contentPadding + 10,
+                  30,
+                ),
+
+              paddingBottom:
+                Math.max(
+                  contentPadding + 12,
+                  32,
+                ),
+            }
+          : {}),
+
+        ...(flyerStack
+          ? {
+              paddingTop:
+                Math.max(
+                  contentPadding,
+                  22,
+                ),
+
+              paddingBottom:
+                Math.max(
+                  contentPadding + 6,
+                  28,
+                ),
+            }
+          : {}),
+
+        ...(heroOverlay
+          ? {
+              backdropFilter:
+                "blur(14px)",
+
+              WebkitBackdropFilter:
+                "blur(14px)",
+
+              ...(styleVariant ===
+                "standard"
+                ? {
+                    backgroundColor:
+                      `rgba(255,255,255,${overlayBackgroundOpacity})`,
+                  }
+                : {}),
+            }
+          : {}),
+      }}
+    >
+      <input
+        type="text"
+        tabIndex={-1}
+        autoComplete="off"
+        value={company}
+        onChange={(e) =>
+          setCompany(
+            e.target.value,
+          )
+        }
+        className="hidden"
+        aria-hidden="true"
+      />
+
+      <div
+        className={[
+          "relative",
+          "z-10",
+          "flex",
+          "flex-col",
+
+          invitationCard
+            ? "mx-auto w-full"
+            : "",
+
+          flyerStack
+            ? "mx-auto w-full"
+            : "",
+        ].join(" ")}
+        style={{
+          gap:
+            invitationCard
+              ? Math.max(
+                  fieldGap,
+                  16,
+                )
+              : flyerStack
+                ? Math.max(
+                    fieldGap,
+                    14,
+                  )
+                : fieldGap,
+        }}
+      >
+        {invitationCard ? (
+          <>
+            <div className="pointer-events-none mx-auto flex items-center gap-3 opacity-40">
+              <span className="h-px w-8 bg-current" />
+
+              <span className="text-[10px] leading-none">
+                ◆
+              </span>
+
+              <span className="h-px w-8 bg-current" />
+            </div>
+
+            <div className="mx-auto w-full max-w-[92%]">
+              {renderBodyElements()}
+            </div>
+
+            <div className="pointer-events-none mx-auto flex items-center gap-3 opacity-30">
+              <span className="h-px w-12 bg-current" />
+
+              <span className="text-[8px] leading-none">
+                ✦
+              </span>
+
+              <span className="h-px w-12 bg-current" />
+            </div>
+          </>
+        ) : flyerStack ? (
+          <>
+            <div className="pointer-events-none flex w-full items-center gap-3 opacity-25">
+              <span className="h-px flex-1 bg-current" />
+
+              <span className="text-[9px] leading-none">
+                ●
+              </span>
+
+              <span className="h-px flex-1 bg-current" />
+            </div>
+
+            <div className="w-full">
+              {renderBodyElements()}
+            </div>
+          </>
+        ) : (
+          renderBodyElements()
+        )}
+      </div>
+
+      <div
+        className={[
+          "relative",
+          "z-10",
+
+          invitationCard
+            ? "mx-auto w-full max-w-[92%]"
+            : "",
+
+          flyerStack
+            ? "mx-auto w-full"
+            : "",
+        ].join(" ")}
+      >
+        {renderSubmitButton()}
+      </div>
+
+      <div
+        className={[
+          "relative",
+          "z-10",
+
+          invitationCard
+            ? "mx-auto w-full max-w-[92%]"
+            : "",
+
+          flyerStack
+            ? "mx-auto w-full"
+            : "",
+        ].join(" ")}
+      >
+        {renderSubmissionStatus()}
+      </div>
+    </form>
+  );
+
+  /*
+   * ============================================================
+   * HERO OVERLAY
+   * ============================================================
+   */
+
+  if (
+    layoutVariant ===
+    "hero_overlay"
+  ) {
+    const heroHorizontalPosition =
+      data.overlayAlign ===
+      "left"
+        ? "flex-start"
+        : data.overlayAlign ===
+            "right"
+          ? "flex-end"
+          : "center";
+
+    const heroVerticalPosition =
+      data.overlayVerticalAlign ===
+      "top"
+        ? "flex-start"
+        : data.overlayVerticalAlign ===
+            "bottom"
+          ? "flex-end"
+          : "center";
+
+    const heroObjectFit:
+      | "cover"
+      | "contain"
+      | "fill" =
+      imageFit === "contain"
+        ? "contain"
+        : imageFit ===
+            "stretch"
+          ? "fill"
+          : "cover";
+
+    return (
+      <div
+        className={[
+          "relative",
+          "isolate",
+          "h-full",
+          "min-h-[560px]",
+          "w-full",
+          "overflow-hidden",
+          "rounded-[inherit]",
+          darkVariant
+            ? "bg-slate-950"
+            : "bg-neutral-200",
+        ].join(" ")}
+      >
+        {data.imageUrl ? (
+          <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
+            <img
+              src={data.imageUrl}
+              alt=""
+              draggable={false}
+              className="h-full w-full select-none"
+              style={{
+                objectFit:
+                  heroObjectFit,
+
+                objectPosition:
+                  `${imagePositionX}% ${imagePositionY}%`,
+
+                opacity:
+                  imageOpacity,
+
+                transform:
+                  imageFit ===
+                  "stretch"
+                    ? undefined
+                    : `scale(${imageZoom})`,
+
+                transformOrigin:
+                  `${imagePositionX}% ${imagePositionY}%`,
+              }}
+            />
+          </div>
+        ) : null}
+
+        <div
+          className="pointer-events-none absolute inset-0 z-[1]"
+          style={{
+            background:
+              data.overlayAlign ===
+              "left"
+                ? "linear-gradient(90deg, rgba(0,0,0,0.34) 0%, rgba(0,0,0,0.16) 48%, rgba(0,0,0,0.04) 100%)"
+                : data.overlayAlign ===
+                    "right"
+                  ? "linear-gradient(270deg, rgba(0,0,0,0.34) 0%, rgba(0,0,0,0.16) 48%, rgba(0,0,0,0.04) 100%)"
+                  : "linear-gradient(180deg, rgba(0,0,0,0.10) 0%, rgba(0,0,0,0.24) 100%)",
+          }}
+        />
+
+        <div
+          className={[
+            "relative",
+            "z-10",
+            "flex",
+            "min-h-[560px]",
+            "w-full",
+            "p-4",
+            "sm:p-6",
+            "lg:p-8",
+          ].join(" ")}
+          style={{
+            justifyContent:
+              heroHorizontalPosition,
+
+            alignItems:
+              heroVerticalPosition,
+          }}
+        >
+          <div
+            className="flex w-full"
+            style={{
+              maxWidth:
+                overlayWidth,
+
+              justifyContent:
+                heroHorizontalPosition,
+            }}
+          >
+            {form}
+          </div>
+        </div>
+
+        <div className="pointer-events-none absolute inset-3 z-20 rounded-[inherit] border border-white/15 sm:inset-4" />
+      </div>
+    );
+  }
+
+  /*
+   * ============================================================
+   * FLYER STACK
+   * ============================================================
+   */
+
+  if (
+    layoutVariant ===
+    "flyer_stack"
+  ) {
+    const flyerObjectFit:
+      | "cover"
+      | "contain"
+      | "fill" =
+      imageFit === "contain"
+        ? "contain"
+        : imageFit ===
+            "stretch"
+          ? "fill"
+          : "cover";
+
+    return (
+      <div
+        className={[
+          "mx-auto",
+          "flex",
+          "h-full",
+          "w-full",
+          "flex-col",
+          "overflow-y-auto",
+          "px-2",
+          "py-3",
+          "sm:px-4",
+          "sm:py-5",
+        ].join(" ")}
+        style={{
+          maxWidth:
+            Math.max(
+              portraitMaxWidth +
+                36,
+              320,
+            ),
+        }}
+      >
+        <div
+          className={[
+            "relative",
+            "isolate",
+            "mx-auto",
+            "w-full",
+            "overflow-hidden",
+            "rounded-[28px]",
+            "shadow-xl",
+          ].join(" ")}
+          style={{
+            maxWidth:
+              portraitMaxWidth,
+          }}
+        >
+          {!hidden.has(
+            "image",
+          ) &&
+          data.imageUrl ? (
+            <div className="relative h-[280px] w-full overflow-hidden sm:h-[340px]">
+              <img
+                src={data.imageUrl}
+                alt=""
+                draggable={false}
+                className="h-full w-full select-none"
+                style={{
+                  objectFit:
+                    flyerObjectFit,
+
+                  objectPosition:
+                    `${imagePositionX}% ${imagePositionY}%`,
+
+                  opacity:
+                    imageOpacity,
+
+                  transform:
+                    imageFit ===
+                    "stretch"
+                      ? undefined
+                      : `scale(${imageZoom})`,
+
+                  transformOrigin:
+                    `${imagePositionX}% ${imagePositionY}%`,
+                }}
+              />
+
+              <div
+                className="pointer-events-none absolute inset-0"
+                style={{
+                  background:
+                    "linear-gradient(180deg, rgba(0,0,0,0.02) 35%, rgba(0,0,0,0.12) 72%, rgba(0,0,0,0.30) 100%)",
+                }}
+              />
+
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-16 bg-gradient-to-t from-black/20 to-transparent" />
+
+              <div className="pointer-events-none absolute inset-3 rounded-[20px] border border-white/20" />
+            </div>
+          ) : (
+            <div
+              className={[
+                "flex",
+                "h-[150px]",
+                "w-full",
+                "items-center",
+                "justify-center",
+                darkVariant
+                  ? "bg-slate-900"
+                  : "bg-neutral-100",
+              ].join(" ")}
+            >
+              <div className="text-center opacity-35">
+                <div className="text-3xl">
+                  ✦
+                </div>
+
+                <div className="mt-2 text-[10px] font-semibold uppercase tracking-[0.22em]">
+                  RSVP
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="relative z-20 -mt-5">
+            <div
+              className={[
+                "pointer-events-none",
+                "absolute",
+                "left-1/2",
+                "top-0",
+                "h-10",
+                "w-[72%]",
+                "-translate-x-1/2",
+                "rounded-full",
+                "blur-2xl",
+                darkVariant
+                  ? "bg-black/35"
+                  : "bg-black/10",
+              ].join(" ")}
+            />
+
+            <div className="relative">
+              {form}
+            </div>
+          </div>
         </div>
       </div>
     );
   }
 
-  function renderElement(key: string) {
-    switch (key) {
-      case "image":
-        return renderImage();
+  /*
+   * ============================================================
+   * INVITATION CARD
+   * ============================================================
+   */
 
-      case "icon":
-        return null;
+  if (
+    layoutVariant ===
+    "invitation_card"
+  ) {
+    return (
+      <div
+        className={[
+          "mx-auto",
+          "flex",
+          "h-full",
+          "w-full",
+          "items-start",
+          "justify-center",
+          "overflow-y-auto",
+          "px-2",
+          "py-3",
+          "sm:px-4",
+          "sm:py-5",
+        ].join(" ")}
+        style={{
+          maxWidth:
+            Math.max(
+              portraitMaxWidth +
+                48,
+              320,
+            ),
+        }}
+      >
+        <div className="w-full">
+          {form}
+        </div>
+      </div>
+    );
+  }
 
-      case "heading":
-        return (
-          <div key="heading" className="space-y-2 text-center">
-<div
-  className="text-2xl font-semibold tracking-tight"
-  style={headingStyle}
->
-  {block.data.heading ?? ""}
-</div>
-{helperText ? (
+/*
+ * ============================================================
+ * STANDARD
+ * ============================================================
+ */
+
+return (
   <div
-    className={darkVariant ? "text-sm text-white/65" : "text-sm text-neutral-500"}
-    style={helperTextStyle}
+    className={[
+      "mx-auto",
+      "flex",
+      "h-full",
+      "w-full",
+      "min-w-0",
+      "items-start",
+      "justify-center",
+      "overflow-y-auto",
+      "px-2",
+      "py-3",
+      "sm:px-4",
+      "sm:py-5",
+    ].join(" ")}
   >
-    {helperText}
+    <div
+      className={[
+        "relative",
+        "w-full",
+        "min-w-0",
+      ].join(" ")}
+      style={{
+        maxWidth:
+          Math.max(
+            formMaxWidth + 32,
+            320,
+          ),
+      }}
+    >
+      {/* Subtle standard-layout accent */}
+      <div className="pointer-events-none mb-3 flex items-center justify-center gap-3 opacity-20">
+        <span className="h-px w-8 bg-current" />
+
+        <span className="h-1 w-1 rounded-full bg-current" />
+
+        <span className="h-px w-8 bg-current" />
+      </div>
+
+      <div className="w-full">
+        {form}
+      </div>
+    </div>
   </div>
-) : null}
-
-{replyByDisplay && replyByText ? (
-  <div
-    className="mx-auto inline-flex rounded-full border px-3 py-1 text-xs font-semibold"
-    style={badgeTextStyle}
-  >
-    {replyByText}
-  </div>
-) : null}
-          </div>
-        );
-
-case "nameLabel": {
-  if (block.data.nameDisplay === false) return null;
-
-  const contactLabel = block.data.contactLabel ?? "Contact Details";
-
-  if (!contactLabel.trim()) return null;
-
-  return renderFieldLabel("nameLabel", contactLabel);
+);
 }
 
-case "firstName":
-  if (block.data.nameDisplay === false) return null;
-
-  return renderField(
-    "firstName",
-    block.data.firstNamePlaceholder ?? "First Name",
-    firstName,
-    setFirstName,
-  );
-
-case "lastName":
-  if (
-    block.data.nameDisplay === false ||
-    block.data.lastNameDisplay === false
-  ) {
-    return null;
-  }
-
-  return renderField(
-    "lastName",
-    block.data.lastNamePlaceholder ?? "Last Name",
-    lastName,
-    setLastName,
-  );
-
-      case "email":
-        if (block.data.emailDisplay === false) return null;
-
-        return renderField(
-          "email",
-          block.data.emailPlaceholder || "Email Address",
-          email,
-          setEmail,
-          "email",
-        );
-
-      case "address":
-        if (block.data.addressDisplay === false) return null;
-
-        return renderField(
-          "address",
-          block.data.addressPlaceholder || "Mailing Address",
-          address,
-          setAddress,
-        );
-
-case "attending":
-  if (!showAttendingInForm) {
-    return null;
-  }
-
-  return renderChoiceSection(
-    "attending",
-    attendingLabel,
-    attendingOptions,
-    attendingChoice,
-    setAttendingChoice,
-  );
-
-      case "meal":
-        if (!showMealInForm || !isCurrentlyAttending) return null;
-
-        return renderChoiceSection("meal", mealLabel, mealOptions, mealChoice, setMealChoice);
-
-      case "guestToggle":
-        if (!showGuestInForm || !isCurrentlyAttending) return null;
-
-        return renderChoiceSection(
-          "guestToggle",
-          guestLabel,
-          guestOptions,
-bringingGuest ? guestYesValue : guestNoValue,
-(next) => {
-  const yes = next === guestYesValue;
-            setBringingGuest(yes);
-
-            const nextCount = yes ? Math.max(1, guestMin) : 0;
-            setGuestCount(nextCount);
-            setGuestNames(yes ? Array.from({ length: nextCount }, () => "") : []);
-          },
-        );
-
-      case "guestCount":
-        if (!showGuestInForm || !isCurrentlyAttending || !bringingGuest) return null;
-        return renderGuestCount();
-
-      case "guestName":
-        if (!showGuestInForm || !isCurrentlyAttending || !bringingGuest || guestCount <= 0) {
-          return null;
-        }
-
-        return (
-          <div key="guestName" className="space-y-3">
-            {Array.from({ length: guestCount }).map((_, index) => (
-              <input
-                key={`guest-name-${index}`}
-                type="text"
-                placeholder={`Guest Name ${index + 1}`}
-                value={guestNames[index] ?? ""}
-                onChange={(e) => {
-                  const next = [...guestNames];
-                  next[index] = e.target.value;
-                  setGuestNames(next);
-                }}
-                className={inputClass()}
-                style={{
-  ...fieldStyle,
-  color: optionTextStyle.color,
-fontFamily: optionTextStyle.fontFamily,
-fontSize: optionTextStyle.fontSize,
-fontWeight: optionTextStyle.fontWeight,
-fontStyle: optionTextStyle.fontStyle,
-textDecoration: optionTextStyle.textDecoration,
-letterSpacing: optionTextStyle.letterSpacing,
-lineHeight: optionTextStyle.lineHeight,
-}}
-              />
-            ))}
-          </div>
-        );
-
-      case "comments":
-        if (!showCommentsInForm) return null;
-
-        return (
-          <div
-  key="comments"
-  className={sectionClass()}
-  style={sectionStyle}
->
-            <div
-              className="mb-3 text-sm font-semibold"
-              style={sectionLabelStyle}
-            >
-              {commentsLabel}
-            </div>
-            {renderTextarea("comments", commentsPlaceholder, comments, setComments)}
-          </div>
-        );
-
-      default:
-        return null;
-    }
-  }
+  /*
+   * ============================================================
+   * RENDER
+   * ============================================================
+   */
 
   return (
-<Surface
-  block={block}
-  designKey={designKey}
-  className={
-    block.appearance?.backgroundColor === "transparent"
-      ? "h-full overflow-hidden bg-transparent"
-      : `${getSoftSurfaceClass(designKey)} h-full overflow-hidden`
-  }
->
-  {placeholderColor ? (
-  <style>
-    {`
-      .${placeholderClassName}::placeholder {
-        color: ${placeholderColor} !important;
-        opacity: 1 !important;
+    <Surface
+      block={block}
+      designKey={
+        designKey
       }
-    `}
-  </style>
-) : null}
-<form
-  onSubmit={handleSubmit}
-  className={[
-    "pointer-events-auto relative z-20 mx-auto flex h-full w-full max-w-xl flex-col gap-4 overflow-y-auto border p-6 sm:p-8",
-    block.appearance?.backgroundColor === "transparent"
-      ? "border-transparent bg-transparent shadow-none"
-      : variantClassMap[styleVariant] ?? variantClassMap.standard,
-  ].join(" ")}
->
-        <input
-          type="text"
-          tabIndex={-1}
-          autoComplete="off"
-          value={company}
-          onChange={(e) => setCompany(e.target.value)}
-          className="hidden"
-          aria-hidden="true"
-        />
-
-{(() => {
-  const rendered: React.ReactNode[] = [];
-
-/*
- * Heading always belongs at the top of the RSVP form,
- * regardless of elementOrder.
- */
-if (!hidden.has("heading")) {
-  rendered.push(
-    renderElement("heading"),
-  );
-}
-
-/*
- * Image follows the heading when enabled.
- */
-if (
-  !hidden.has("image") &&
-  block.data.imageUrl
-) {
-  rendered.push(
-    renderElement("image"),
-  );
-}
-
-/*
- * Contact Details master visibility.
- *
- * If contactDetailsDisplay is false, the entire contact section
- * is hidden regardless of the individual Name / Email / Address
- * field settings.
- */
-const showContactSection =
-  block.data.contactDetailsDisplay !==
-    false &&
-  (
-    block.data.nameDisplay !==
-      false ||
-    block.data.emailDisplay !==
-      false ||
-    block.data.addressDisplay !==
-      false
-  );
-
-if (showContactSection) {
-  rendered.push(
-    <div
-      key="contact-details-card"
-      className={`space-y-4 ${sectionClass()}`}
-      style={sectionStyle}
+      className={
+        block.appearance
+          ?.backgroundColor ===
+        "transparent"
+          ? "h-full overflow-hidden bg-transparent"
+          : `${getSoftSurfaceClass(
+              designKey,
+            )} h-full overflow-hidden`
+      }
     >
-      {renderElement(
-        "nameLabel",
-      )}
-
-      {block.data.nameDisplay !==
-      false ? (
-        <div
-          className={[
-            "grid grid-cols-1 gap-3",
-
-            block.data
-              .lastNameDisplay ===
-            false
-              ? "sm:grid-cols-1"
-              : "sm:grid-cols-2",
-          ].join(" ")}
-        >
-          {renderElement(
-            "firstName",
-          )}
-
-          {renderElement(
-            "lastName",
-          )}
-        </div>
+      {placeholderColor ? (
+        <style>
+          {`
+            .${placeholderClassName}::placeholder {
+              color: ${placeholderColor} !important;
+              opacity: 1 !important;
+            }
+          `}
+        </style>
       ) : null}
 
-      {block.data.emailDisplay !==
-      false
-        ? renderElement(
-            "email",
-          )
-        : null}
-
-      {block.data.addressDisplay !==
-      false
-        ? renderElement(
-            "address",
-          )
-        : null}
-    </div>,
-  );
-}
-
-          order.forEach((key) => {
-if (
-  key === "heading" ||
-  key === "image" ||
-  key === "nameLabel" ||
-  key === "firstName" ||
-  key === "lastName" ||
-  key === "email" ||
-  key === "address"
-) {
-  return;
-}
-
-            if (hidden.has(key as any)) return;
-
-            rendered.push(renderElement(key));
-          });
-
-          return rendered;
-        })()}
-
-<button
-  type="submit"
-  disabled={submitting}
-  className={[
-    "inline-flex min-h-[52px] items-center justify-center px-5 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60",
-    buttonLayout === "full" ? "w-full" : "w-fit self-center",
-    buttonShape === "pill"
-      ? "rounded-full"
-      : buttonShape === "square"
-        ? "rounded-none"
-        : "rounded-2xl",
-    buttonUppercase ? "uppercase tracking-[0.18em]" : "",
-    buttonVariant === "outline"
-      ? darkVariant
-        ? "border border-white/35 bg-transparent text-white hover:bg-white/10"
-        : "border border-neutral-950 bg-transparent text-neutral-950 hover:bg-neutral-950 hover:text-white"
-      : buttonVariant === "gradient"
-        ? "border border-transparent bg-gradient-to-r from-fuchsia-600 via-rose-500 to-orange-400 text-white hover:opacity-90"
-        : darkVariant
-          ? "bg-white text-neutral-950 hover:bg-white/90"
-          : "bg-neutral-950 text-white hover:bg-neutral-800",
-  ].join(" ")}
-  style={{
-    ...submitButtonStyle,
-    ...submitButtonTextStyle,
-  }}
->
-  {submitting ? "Submitting..." : submitButtonText}
-</button>
-
-{submitState === "success" ? (
-  <div
-    className={
-      darkVariant
-        ? "rounded-2xl border border-emerald-300/30 bg-emerald-300/10 p-3"
-        : "rounded-2xl border border-emerald-200 bg-emerald-50 p-3"
-    }
-    style={submitButtonStyle}
-  >
-    <div
-      className="text-base font-semibold"
-      style={confirmationTitleStyle}
-    >
-      {confirmationTitle}
-    </div>
-
-    <div
-      className="mt-2 text-sm"
-      style={confirmationMessageStyle}
-    >
-      {submitMessage}
-    </div>
-  </div>
-) : null}
-
-        {submitState === "error" ? (
-          <div
-            className={
-              darkVariant
-                ? "rounded-2xl border border-red-300/30 bg-red-300/10 p-3 text-sm text-red-100"
-                : "rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-800"
-            }
-          >
-            {submitMessage || "Failed to submit RSVP."}
-          </div>
-        ) : null}
-      </form>
+      <div className="relative h-full w-full overflow-hidden">
+        {renderForm()}
+      </div>
     </Surface>
   );
 }

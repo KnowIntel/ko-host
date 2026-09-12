@@ -1001,11 +1001,18 @@ export type PollBlock = BaseBlock & {
   };
 };
 
-export type RsvpImageFrameShape = "square" | "circle" | "diamond" | "heart";
+export type RsvpImageFrameShape =
+  | "square"
+  | "circle"
+  | "diamond"
+  | "heart";
 
 export type RsvpElementKey =
   | "image"
   | "heading"
+  | "helperText"
+  | "replyBy"
+  | "contactSection"
   | "nameLabel"
   | "firstName"
   | "lastName"
@@ -1016,7 +1023,15 @@ export type RsvpElementKey =
   | "guestToggle"
   | "guestCount"
   | "guestName"
-  | "comments";
+  | "comments"
+  | "submitButton"
+  | "confirmation";
+
+export type RsvpLayoutVariant =
+  | "standard"
+  | "invitation_card"
+  | "hero_overlay"
+  | "flyer_stack";
 
 export type RsvpStyleVariant =
   | "standard"
@@ -1028,86 +1043,435 @@ export type RsvpStyleVariant =
   | "dark_neon"
   | "ticket_style";
 
-export type RsvpElementStyleMap = Partial<
-  Record<
-    RsvpElementKey,
-    {
-      textStyle?: TextStyle;
-      backgroundColor?: string;
-    }
-  >
->;
+export type RsvpButtonLayout =
+  | "full"
+  | "compact";
 
-export type RsvpBlock = BaseBlock & {
-  type: "rsvp";
-  data: {
-    heading: string;
-    styleVariant?: RsvpStyleVariant;
+export type RsvpButtonShape =
+  | "rounded"
+  | "pill"
+  | "square";
 
-    useChoiceCards?: boolean;
+export type RsvpButtonVariant =
+  | "solid"
+  | "outline"
+  | "gradient";
 
-    imageUrl?: string;
-    imageFrameShape?: RsvpImageFrameShape;
+export type RsvpElementStyle = {
+  textStyle?: TextStyle;
 
-    elementOrder: RsvpElementKey[];
-    hiddenElements?: RsvpElementKey[];
+  color?: string;
 
-    guestMin?: number;
-    guestMax?: number;
+  backgroundColor?: string;
+  backgroundOpacity?: number;
 
-    contactLabel?: string;
+  borderColor?: string;
+  borderWidth?: number;
+  borderRadius?: number;
+  borderStyle?:
+    | "solid"
+    | "dashed"
+    | "dotted";
 
-    contactDetailsDisplay?: boolean;
+  opacity?: number;
 
-    firstNamePlaceholder?: string;
-    lastNamePlaceholder?: string;
-    emailPlaceholder?: string;
-    addressPlaceholder?: string;
+  boxShadow?: string;
 
-    nameDisplay?: boolean;
-    lastNameDisplay?: boolean;
-    emailDisplay?: boolean;
-    addressDisplay?: boolean;
-
-    attendingLabel?: string;
-    attendingOptions?: string[];
-    attendingDisplay?: boolean;
-    attendingDefaultValue?: string;
-
-    mealLabel?: string;
-    mealOptions?: string[];
-    mealDisplay?: boolean;
-    mealDefaultValue?: string;
-
-    guestLabel?: string;
-    guestOptions?: string[];
-    guestDisplay?: boolean;
-    guestDefaultValue?: string;
-
-    commentsLabel?: string;
-    commentsPlaceholder?: string;
-    commentsDisplay?: boolean;
-    commentsDefaultValue?: string;
-
-    replyByText?: string;
-    replyByDisplay?: boolean;
-
-    submitButtonText?: string;
-
-    buttonLayout?: "full" | "compact";
-    buttonShape?: "rounded" | "pill" | "square";
-    buttonVariant?: "solid" | "outline" | "gradient";
-    buttonUppercase?: boolean;
-
-    elementStyles?: RsvpElementStyleMap;
-
-    style?: TextStyle;
-
-    helperText?: string;
-    confirmationTitle?: string;
-    confirmationMessage?: string;
-  };
+  paddingX?: number;
+  paddingY?: number;
 };
+
+export type RsvpElementStyleMap =
+  Partial<
+    Record<
+      RsvpElementKey,
+      RsvpElementStyle
+    >
+  >;
+
+export type RsvpBlock =
+  BaseBlock & {
+    type: "rsvp";
+
+    data: {
+      /*
+       * ============================================================
+       * STRUCTURE / LAYOUT
+       * ============================================================
+       */
+
+      layoutVariant?:
+        RsvpLayoutVariant;
+
+      /*
+       * Controls the visual theme/color treatment.
+       *
+       * This is intentionally separate from layoutVariant.
+       */
+      styleVariant?:
+        RsvpStyleVariant;
+
+      /*
+       * Optional custom rendering order.
+       */
+      elementOrder:
+        RsvpElementKey[];
+
+      hiddenElements?:
+        RsvpElementKey[];
+
+      /*
+       * ============================================================
+       * PRIMARY CONTENT
+       * ============================================================
+       */
+
+      heading:
+        string;
+
+      helperText?:
+        string;
+
+      /*
+       * ============================================================
+       * IMAGE / HERO MEDIA
+       * ============================================================
+       */
+
+      imageUrl?:
+        string;
+
+      imageFrameShape?:
+        RsvpImageFrameShape;
+
+      /*
+       * Optional media behavior useful for the new layout variants.
+       */
+      imageFit?:
+        | "cover"
+        | "contain"
+        | "stretch";
+
+      imagePositionX?:
+        number;
+
+      imagePositionY?:
+        number;
+
+      imageZoom?:
+        number;
+
+      imageOpacity?:
+        number;
+
+      /*
+       * ============================================================
+       * REPLY-BY BADGE
+       * ============================================================
+       */
+
+      replyByText?:
+        string;
+
+      replyByDisplay?:
+        boolean;
+
+      /*
+       * ============================================================
+       * CONTACT DETAILS SECTION
+       * ============================================================
+       */
+
+      contactDetailsDisplay?:
+        boolean;
+
+      contactLabel?:
+        string;
+
+      /*
+       * ============================================================
+       * NAME FIELDS
+       * ============================================================
+       */
+
+      nameDisplay?:
+        boolean;
+
+      lastNameDisplay?:
+        boolean;
+
+      firstNamePlaceholder?:
+        string;
+
+      lastNamePlaceholder?:
+        string;
+
+      /*
+       * ============================================================
+       * EMAIL
+       * ============================================================
+       */
+
+      emailDisplay?:
+        boolean;
+
+      emailPlaceholder?:
+        string;
+
+      /*
+       * ============================================================
+       * ADDRESS
+       * ============================================================
+       */
+
+      addressDisplay?:
+        boolean;
+
+      addressPlaceholder?:
+        string;
+
+      /*
+       * ============================================================
+       * ATTENDING
+       * ============================================================
+       */
+
+      attendingDisplay?:
+        boolean;
+
+      attendingLabel?:
+        string;
+
+      attendingOptions?:
+        string[];
+
+      attendingDefaultValue?:
+        string;
+
+      /*
+       * ============================================================
+       * MEAL
+       * ============================================================
+       */
+
+      mealDisplay?:
+        boolean;
+
+      mealLabel?:
+        string;
+
+      mealOptions?:
+        string[];
+
+      mealDefaultValue?:
+        string;
+
+      /*
+       * ============================================================
+       * GUEST
+       * ============================================================
+       */
+
+      guestDisplay?:
+        boolean;
+
+      guestLabel?:
+        string;
+
+      guestOptions?:
+        string[];
+
+      guestDefaultValue?:
+        string;
+
+      guestMin?:
+        number;
+
+      guestMax?:
+        number;
+
+      /*
+       * ============================================================
+       * COMMENTS
+       * ============================================================
+       */
+
+      commentsDisplay?:
+        boolean;
+
+      commentsLabel?:
+        string;
+
+      commentsPlaceholder?:
+        string;
+
+      commentsDefaultValue?:
+        string;
+
+      /*
+       * ============================================================
+       * CHOICE CARD BEHAVIOR
+       * ============================================================
+       */
+
+      useChoiceCards?:
+        boolean;
+
+      /*
+       * ============================================================
+       * SUBMIT BUTTON
+       * ============================================================
+       */
+
+      submitButtonText?:
+        string;
+
+      buttonLayout?:
+        RsvpButtonLayout;
+
+      buttonShape?:
+        RsvpButtonShape;
+
+      buttonVariant?:
+        RsvpButtonVariant;
+
+      buttonUppercase?:
+        boolean;
+
+      buttonAlign?:
+        | "left"
+        | "center"
+        | "right";
+
+      /*
+       * ============================================================
+       * CONFIRMATION STATE
+       * ============================================================
+       */
+
+      confirmationTitle?:
+        string;
+
+      confirmationMessage?:
+        string;
+
+      /*
+       * ============================================================
+       * TEXT STYLES
+       * ============================================================
+       *
+       * `style` remains the legacy/global fallback.
+       *
+       * Individual target styles allow the toolbar to format
+       * each RSVP text role independently.
+       * ============================================================
+       */
+
+      style?:
+        TextStyle;
+
+      headingStyle?:
+        TextStyle;
+
+      helperTextStyle?:
+        TextStyle;
+
+      badgeTextStyle?:
+        TextStyle;
+
+      sectionLabelStyle?:
+        TextStyle;
+
+      placeholderTextStyle?:
+        TextStyle;
+
+      optionTextStyle?:
+        TextStyle;
+
+      submitButtonTextStyle?:
+        TextStyle;
+
+      confirmationTitleStyle?:
+        TextStyle;
+
+      confirmationMessageStyle?:
+        TextStyle;
+
+      /*
+       * ============================================================
+       * APPEARANCE / STYLE TARGETS
+       * ============================================================
+       */
+
+      elementStyles?:
+        RsvpElementStyleMap;
+
+      fieldStyle?:
+        RsvpElementStyle;
+
+      sectionStyle?:
+        RsvpElementStyle;
+
+      buttonDefaultStyle?:
+        RsvpElementStyle;
+
+      buttonSelectionStyle?:
+        RsvpElementStyle;
+
+      submitButtonStyle?:
+        RsvpElementStyle;
+
+      /*
+       * ============================================================
+       * LAYOUT-VARIANT TUNING
+       * ============================================================
+       *
+       * These give Standard / Invitation Card / Hero Overlay /
+       * Flyer Stack enough flexibility without creating separate
+       * incompatible data models.
+       * ============================================================
+       */
+
+      contentPadding?:
+        number;
+
+      sectionGap?:
+        number;
+
+      fieldGap?:
+        number;
+
+      formMaxWidth?:
+        number;
+
+      /*
+       * Invitation Card / Flyer Stack:
+       * portrait-oriented compositions.
+       */
+      portraitMaxWidth?:
+        number;
+
+      /*
+       * Hero Overlay:
+       * controls form panel placement over the image.
+       */
+      overlayAlign?:
+        | "left"
+        | "center"
+        | "right";
+
+      overlayVerticalAlign?:
+        | "top"
+        | "center"
+        | "bottom";
+
+      overlayWidth?:
+        number;
+
+      overlayBackgroundOpacity?:
+        number;
+    };
+  };
 
 export type FaqBlock = BaseBlock & {
   type: "faq";
@@ -6636,36 +7000,159 @@ options: [
 
 case "rsvp":
   return {
-    id: makeId("rsvp"),
-    type: "rsvp",
-    label: "RSVP",
+    id:
+      makeId("rsvp"),
+
+    type:
+      "rsvp",
+
+    label:
+      "RSVP",
+
     grid,
-    appearance: createDefaultBlockAppearance(),
+
+    appearance:
+      createDefaultBlockAppearance(),
+
     data: {
-heading: "Wedding Invitation RSVP Form",
-helperText: "Please let us know if you’ll be joining us.",
-confirmationTitle: "Thank you — your RSVP has been received.",
-confirmationMessage: "We’re excited to celebrate with you.",
-styleVariant: "elegant_wedding",
-    imageUrl: "",
-      imageFrameShape: "circle",
+      /*
+       * ============================================================
+       * STRUCTURE / LAYOUT
+       * ============================================================
+       */
 
-      useChoiceCards: true,
+      layoutVariant:
+        "standard",
 
-contactLabel: "Contact Details",
-firstNamePlaceholder: "First Name",
-lastNamePlaceholder: "Last Name",
-emailPlaceholder: "Email Address",
-addressPlaceholder: "Mailing Address",
+      /*
+       * Existing visual theme system.
+       *
+       * Inspector label:
+       * Theme Variant
+       */
+      styleVariant:
+        "elegant_wedding",
 
-nameDisplay: true,
-lastNameDisplay: true,
-emailDisplay: true,
-addressDisplay: true,
+      /*
+       * ============================================================
+       * PRIMARY CONTENT
+       * ============================================================
+       */
+
+      heading:
+        "Wedding Invitation RSVP Form",
+
+      helperText:
+        "Please let us know if you’ll be joining us.",
+
+      confirmationTitle:
+        "Thank you — your RSVP has been received.",
+
+      confirmationMessage:
+        "We’re excited to celebrate with you.",
+
+      /*
+       * ============================================================
+       * IMAGE / HERO MEDIA
+       * ============================================================
+       */
+
+      imageUrl:
+        "",
+
+      imageFrameShape:
+        "circle",
+
+      imageFit:
+        "cover",
+
+      imagePositionX:
+        50,
+
+      imagePositionY:
+        50,
+
+      imageZoom:
+        1,
+
+      imageOpacity:
+        1,
+
+      /*
+       * ============================================================
+       * CHOICE CARD BEHAVIOR
+       * ============================================================
+       */
+
+      useChoiceCards:
+        true,
+
+      /*
+       * ============================================================
+       * CONTACT DETAILS SECTION
+       * ============================================================
+       */
+
+      contactDetailsDisplay:
+        true,
+
+      contactLabel:
+        "Contact Details",
+
+      /*
+       * ============================================================
+       * NAME FIELDS
+       * ============================================================
+       */
+
+      nameDisplay:
+        true,
+
+      lastNameDisplay:
+        true,
+
+      firstNamePlaceholder:
+        "First Name",
+
+      lastNamePlaceholder:
+        "Last Name",
+
+      /*
+       * ============================================================
+       * EMAIL
+       * ============================================================
+       */
+
+      emailDisplay:
+        true,
+
+      emailPlaceholder:
+        "Email Address",
+
+      /*
+       * ============================================================
+       * ADDRESS
+       * ============================================================
+       */
+
+      addressDisplay:
+        true,
+
+      addressPlaceholder:
+        "Mailing Address",
+
+      /*
+       * ============================================================
+       * ELEMENT ORDER
+       * ============================================================
+       */
 
       elementOrder: [
         "image",
         "heading",
+        "helperText",
+        "replyBy",
+        "contactSection",
         "nameLabel",
         "firstName",
         "lastName",
@@ -6677,45 +7164,395 @@ addressDisplay: true,
         "guestCount",
         "guestName",
         "comments",
+        "submitButton",
+        "confirmation",
       ],
-      hiddenElements: [],
-      guestMin: 0,
-      guestMax: 1,
 
-      attendingLabel: "Are you attending?",
-      attendingOptions: ["Yes", "No"],
-      attendingDisplay: true,
-      attendingDefaultValue: "Yes",
+      hiddenElements:
+        [],
 
-      mealLabel: "Your meal selection:",
-      mealOptions: ["Chicken", "Salmon"],
-      mealDisplay: true,
-      mealDefaultValue: "Chicken",
+      /*
+       * ============================================================
+       * ATTENDING
+       * ============================================================
+       */
 
-      guestLabel: "Are you bringing a guest?",
-      guestOptions: ["Yes", "No"],
-      guestDisplay: true,
-      guestDefaultValue: "No",
+      attendingLabel:
+        "Are you attending?",
 
-      commentsLabel: "Additional comments",
-      commentsPlaceholder: "Additional comments",
-      commentsDisplay: true,
-      commentsDefaultValue: "",
-      
-      replyByText: "Reply by May 12",
-      replyByDisplay: true,
+      attendingOptions: [
+        "Yes",
+        "No",
+      ],
 
-      submitButtonText: "Submit RSVP →",
-      buttonLayout: "full",
-      buttonShape: "rounded",
-      buttonVariant: "solid",
-      buttonUppercase: false,
+      attendingDisplay:
+        true,
 
-      elementStyles: {},
-      style: createDefaultTextStyle(),
+      attendingDefaultValue:
+        "Yes",
+
+      /*
+       * ============================================================
+       * MEAL
+       * ============================================================
+       */
+
+      mealLabel:
+        "Your meal selection:",
+
+      mealOptions: [
+        "Chicken",
+        "Salmon",
+      ],
+
+      mealDisplay:
+        true,
+
+      mealDefaultValue:
+        "Chicken",
+
+      /*
+       * ============================================================
+       * GUEST
+       * ============================================================
+       */
+
+      guestLabel:
+        "Are you bringing a guest?",
+
+      guestOptions: [
+        "Yes",
+        "No",
+      ],
+
+      guestDisplay:
+        true,
+
+      guestDefaultValue:
+        "No",
+
+      guestMin:
+        0,
+
+      guestMax:
+        1,
+
+      /*
+       * ============================================================
+       * COMMENTS
+       * ============================================================
+       */
+
+      commentsLabel:
+        "Additional comments",
+
+      commentsPlaceholder:
+        "Additional comments",
+
+      commentsDisplay:
+        true,
+
+      commentsDefaultValue:
+        "",
+
+      /*
+       * ============================================================
+       * REPLY-BY BADGE
+       * ============================================================
+       */
+
+      replyByText:
+        "Reply by May 12",
+
+      replyByDisplay:
+        true,
+
+      /*
+       * ============================================================
+       * SUBMIT BUTTON
+       * ============================================================
+       */
+
+      submitButtonText:
+        "Submit RSVP →",
+
+      buttonLayout:
+        "full",
+
+      buttonShape:
+        "rounded",
+
+      buttonVariant:
+        "solid",
+
+      buttonUppercase:
+        false,
+
+      buttonAlign:
+        "center",
+
+      /*
+       * ============================================================
+       * BASE TEXT STYLE
+       * ============================================================
+       */
+
+      style:
+        createDefaultTextStyle(),
+
+      /*
+       * ============================================================
+       * TARGETED TEXT STYLES
+       * ============================================================
+       */
+
+      headingStyle: {
+        ...createDefaultTextStyle(),
+
+        fontSize:
+          28,
+
+        bold:
+          true,
+
+        align:
+          "center",
+      },
+
+      helperTextStyle: {
+        ...createDefaultTextStyle(),
+
+        fontSize:
+          14,
+
+        align:
+          "center",
+
+        color:
+          "#6B7280",
+      },
+
+      badgeTextStyle: {
+        ...createDefaultTextStyle(),
+
+        fontSize:
+          12,
+
+        bold:
+          true,
+
+        align:
+          "center",
+      },
+
+      sectionLabelStyle: {
+        ...createDefaultTextStyle(),
+
+        fontSize:
+          12,
+
+        bold:
+          true,
+      },
+
+      placeholderTextStyle: {
+        ...createDefaultTextStyle(),
+
+        fontSize:
+          14,
+
+        color:
+          "#6B7280",
+      },
+
+      optionTextStyle: {
+        ...createDefaultTextStyle(),
+
+        fontSize:
+          14,
+      },
+
+      submitButtonTextStyle: {
+        ...createDefaultTextStyle(),
+
+        fontSize:
+          14,
+
+        bold:
+          true,
+
+        align:
+          "center",
+      },
+
+      confirmationTitleStyle: {
+        ...createDefaultTextStyle(),
+
+        fontSize:
+          22,
+
+        bold:
+          true,
+
+        align:
+          "center",
+      },
+
+      confirmationMessageStyle: {
+        ...createDefaultTextStyle(),
+
+        fontSize:
+          14,
+
+        align:
+          "center",
+
+        color:
+          "#6B7280",
+      },
+
+      /*
+       * ============================================================
+       * APPEARANCE TARGETS
+       * ============================================================
+       */
+
+      elementStyles:
+        {},
+
+      fieldStyle: {
+        backgroundColor:
+          "#FFFFFF",
+
+        borderColor:
+          "#D1D5DB",
+
+        borderWidth:
+          1,
+
+        borderRadius:
+          12,
+
+        opacity:
+          1,
+      },
+
+      sectionStyle: {
+        backgroundColor:
+          "#FFFFFF",
+
+        borderColor:
+          "#E5E7EB",
+
+        borderWidth:
+          0,
+
+        borderRadius:
+          16,
+
+        opacity:
+          1,
+      },
+
+      buttonDefaultStyle: {
+        backgroundColor:
+          "#FFFFFF",
+
+        borderColor:
+          "#D1D5DB",
+
+        borderWidth:
+          1,
+
+        borderRadius:
+          12,
+
+        opacity:
+          1,
+      },
+
+      buttonSelectionStyle: {
+        backgroundColor:
+          "#111827",
+
+        borderColor:
+          "#111827",
+
+        borderWidth:
+          1,
+
+        borderRadius:
+          12,
+
+        opacity:
+          1,
+      },
+
+      submitButtonStyle: {
+        backgroundColor:
+          "#111827",
+
+        borderColor:
+          "#111827",
+
+        borderWidth:
+          0,
+
+        borderRadius:
+          12,
+
+        opacity:
+          1,
+      },
+
+      /*
+       * ============================================================
+       * GLOBAL LAYOUT TUNING
+       * ============================================================
+       */
+
+      contentPadding:
+        24,
+
+      sectionGap:
+        20,
+
+      fieldGap:
+        14,
+
+      formMaxWidth:
+        760,
+
+      /*
+       * ============================================================
+       * PORTRAIT LAYOUTS
+       * ============================================================
+       */
+
+      portraitMaxWidth:
+        460,
+
+      /*
+       * ============================================================
+       * HERO OVERLAY
+       * ============================================================
+       */
+
+      overlayAlign:
+        "center",
+
+      overlayVerticalAlign:
+        "center",
+
+      overlayWidth:
+        620,
+
+      overlayBackgroundOpacity:
+        0.78,
     },
   };
 
+  
     case "faq":
       return {
         id: makeId("faq"),
