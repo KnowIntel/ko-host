@@ -9,13 +9,23 @@ type RsvpInspectorProps = {
   selectedBlock: any;
   updateSelectedBlock: any;
 
+  uploadImageToSelectedBlock: (
+    blockId: string,
+  ) => Promise<any> | void;
+
   rsvpTextTarget: RsvpTextTarget;
-  setRsvpTextTarget: (target: RsvpTextTarget) => void;
+  setRsvpTextTarget: (
+    target: RsvpTextTarget,
+  ) => void;
 
   rsvpStyleTarget: RsvpStyleTarget;
-  setRsvpStyleTarget: (target: RsvpStyleTarget) => void;
+  setRsvpStyleTarget: (
+    target: RsvpStyleTarget,
+  ) => void;
 
-  rsvpHeadingInputRef: React.RefObject<HTMLInputElement | null>;
+  rsvpHeadingInputRef: React.RefObject<
+    HTMLInputElement | null
+  >;
 
   inspectorCardClass: () => string;
   inspectorLabelClass: () => string;
@@ -25,6 +35,8 @@ type RsvpInspectorProps = {
 export function RsvpInspector({
   selectedBlock,
   updateSelectedBlock,
+
+  uploadImageToSelectedBlock,
 
   rsvpTextTarget,
   setRsvpTextTarget,
@@ -1018,28 +1030,70 @@ data: {
       </div>
     </div>
 
-    <div className="mt-4">
-      <div className={inspectorLabelClass()}>Choose Image</div>
-      <input
-        type="text"
-        value={selectedBlock.data.imageUrl ?? ""}
-        placeholder="Paste image URL"
-        onChange={(e) =>
-          updateSelectedBlock((block: any) =>
-            block.type !== "rsvp"
-              ? block
-              : {
-                  ...block,
-                  data: {
-                    ...block.data,
-                    imageUrl: e.target.value,
-                  },
-                },
-          )
-        }
-        className={inspectorInputClass()}
-      />
+<div className="mt-4">
+  <div className={inspectorLabelClass()}>
+    Image
+  </div>
+
+  {selectedBlock.data.imageUrl ? (
+    <div className="mt-3 space-y-3">
+      <div className="overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50">
+        <img
+          src={selectedBlock.data.imageUrl}
+          alt=""
+          className="h-32 w-full object-cover"
+        />
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          className="inline-flex h-10 items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-sm text-neutral-700 hover:bg-neutral-50"
+          onClick={() =>
+            void uploadImageToSelectedBlock(
+              selectedBlock.id,
+            )
+          }
+        >
+          Replace Image
+        </button>
+
+        <button
+          type="button"
+          className="inline-flex h-10 items-center justify-center rounded-xl border border-red-200 bg-white px-4 text-sm text-red-600 hover:bg-red-50"
+          onClick={() =>
+            updateSelectedBlock(
+              (block: any) =>
+                block.type !== "rsvp"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        imageUrl: "",
+                      },
+                    },
+            )
+          }
+        >
+          Remove Image
+        </button>
+      </div>
     </div>
+  ) : (
+    <button
+      type="button"
+      className="mt-3 inline-flex h-11 items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-sm text-neutral-700 hover:bg-neutral-50"
+      onClick={() =>
+        void uploadImageToSelectedBlock(
+          selectedBlock.id,
+        )
+      }
+    >
+      Browse Image
+    </button>
+  )}
+</div>
 
     <div className="mt-4">
       <div className={inspectorLabelClass()}>Image Frame Shape</div>

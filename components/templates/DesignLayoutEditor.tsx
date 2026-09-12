@@ -8202,6 +8202,16 @@ async function uploadImageToSelectedBlock(
             };
           }
 
+if (block.type === "rsvp") {
+  return {
+    ...block,
+    data: {
+      ...block.data,
+      imageUrl: uploaded.url,
+    },
+  };
+}
+
           if (block.type === "cta") {
             return {
               ...block,
@@ -17205,18 +17215,19 @@ const currentSlides =
 ) : null}
 
 {!isMultiSelection && selectedBlock?.type === "rsvp" ? (
-<RsvpInspector
-  selectedBlock={selectedBlock}
-  updateSelectedBlock={updateSelectedBlock}
-  rsvpTextTarget={rsvpTextTarget}
-  setRsvpTextTarget={setRsvpTextTarget}
-  rsvpStyleTarget={rsvpStyleTarget}
-  setRsvpStyleTarget={setRsvpStyleTarget}
-  rsvpHeadingInputRef={rsvpHeadingInputRef}
-  inspectorCardClass={inspectorCardClass}
-  inspectorLabelClass={inspectorLabelClass}
-  inspectorInputClass={inspectorInputClass}
-/>
+  <RsvpInspector
+    selectedBlock={selectedBlock}
+    updateSelectedBlock={updateSelectedBlock}
+    uploadImageToSelectedBlock={uploadImageToSelectedBlock}
+    rsvpTextTarget={rsvpTextTarget}
+    setRsvpTextTarget={setRsvpTextTarget}
+    rsvpStyleTarget={rsvpStyleTarget}
+    setRsvpStyleTarget={setRsvpStyleTarget}
+    rsvpHeadingInputRef={rsvpHeadingInputRef}
+    inspectorCardClass={inspectorCardClass}
+    inspectorLabelClass={inspectorLabelClass}
+    inspectorInputClass={inspectorInputClass}
+  />
 ) : null}
 
 {!isMultiSelection && selectedBlock?.type === "form_field" ? (
