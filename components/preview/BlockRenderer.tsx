@@ -20945,74 +20945,136 @@ function renderImage(
    * ============================================================
    */
 
-  function renderField(
-    key: string,
-    placeholder: string,
+function renderField(
+  key: string,
+  placeholder: string,
+  value: string,
+  onChange: (
     value: string,
-    onChange: (
-      value: string,
-    ) => void,
-    type:
-      | "text"
-      | "email" =
-      "text",
-  ) {
-    return (
-      <input
-        key={key}
-        type={type}
-        placeholder={
-          placeholder
-        }
-        value={value}
-        onChange={(
-          e,
-        ) =>
-          onChange(
-            e.target.value,
-          )
-        }
-        className={`${inputClass()} ${placeholderClassName}`}
-        style={{
-          ...fieldStyle,
+  ) => void,
+  type:
+    | "text"
+    | "email" =
+    "text",
+) {
+  const resolvedFieldTextStyle =
+    data.fieldTextStyle ??
+    data.style ??
+    {};
 
-          color:
-            placeholderStyle.color,
+  return (
+    <input
+      key={key}
+      type={type}
+      placeholder={
+        placeholder
+      }
+      value={value}
+      onChange={(
+        e,
+      ) =>
+        onChange(
+          e.target.value,
+        )
+      }
+      className={[
+        inputClass(),
+        placeholderClassName,
 
-          fontFamily:
-            placeholderStyle.fontFamily,
+        "[&::placeholder]:[color:var(--rsvp-placeholder-color)]",
+        "[&::placeholder]:[font-family:var(--rsvp-placeholder-font-family)]",
+        "[&::placeholder]:[font-size:var(--rsvp-placeholder-font-size)]",
+        "[&::placeholder]:[font-weight:var(--rsvp-placeholder-font-weight)]",
+        "[&::placeholder]:[font-style:var(--rsvp-placeholder-font-style)]",
+        "[&::placeholder]:[text-decoration:var(--rsvp-placeholder-text-decoration)]",
+        "[&::placeholder]:[letter-spacing:var(--rsvp-placeholder-letter-spacing)]",
+        "[&::placeholder]:[line-height:var(--rsvp-placeholder-line-height)]",
+        "[&::placeholder]:[text-align:var(--rsvp-placeholder-text-align)]",
+      ].join(" ")}
+      style={{
+        ...fieldStyle,
 
-          fontSize:
-            placeholderStyle.fontSize,
+        /*
+         * Actual entered field text.
+         */
+        color:
+          resolvedFieldTextStyle.color,
 
-          fontWeight:
-            placeholderStyle.fontWeight,
+        fontFamily:
+          resolvedFieldTextStyle.fontFamily,
 
-          fontStyle:
-            placeholderStyle.fontStyle,
+        fontSize:
+          resolvedFieldTextStyle.fontSize,
 
-          textDecoration:
-            placeholderStyle.textDecoration,
+        fontWeight:
+          resolvedFieldTextStyle.fontWeight,
 
-          letterSpacing:
-            placeholderStyle.letterSpacing,
+        fontStyle:
+          resolvedFieldTextStyle.fontStyle,
 
-          lineHeight:
-            placeholderStyle.lineHeight,
+        textDecoration:
+          resolvedFieldTextStyle.textDecoration,
 
-          textAlign:
-            placeholderStyle.textAlign,
+        letterSpacing:
+          resolvedFieldTextStyle.letterSpacing,
 
-          ...(placeholderColor
-            ? ({
-                "--rsvp-placeholder-color":
-                  placeholderColor,
-              } as React.CSSProperties)
-            : {}),
-        }}
-      />
-    );
-  }
+        lineHeight:
+          resolvedFieldTextStyle.lineHeight,
+
+        textAlign:
+          resolvedFieldTextStyle.textAlign,
+
+        /*
+         * Placeholder-only formatting.
+         */
+        ...({
+          "--rsvp-placeholder-color":
+            placeholderStyle.color ??
+            placeholderColor ??
+            "#6B7280",
+
+          "--rsvp-placeholder-font-family":
+            placeholderStyle.fontFamily ??
+            "inherit",
+
+          "--rsvp-placeholder-font-size":
+            typeof placeholderStyle.fontSize ===
+            "number"
+              ? `${placeholderStyle.fontSize}px`
+              : placeholderStyle.fontSize ??
+                "inherit",
+
+          "--rsvp-placeholder-font-weight":
+            placeholderStyle.fontWeight ??
+            "inherit",
+
+          "--rsvp-placeholder-font-style":
+            placeholderStyle.fontStyle ??
+            "normal",
+
+          "--rsvp-placeholder-text-decoration":
+            placeholderStyle.textDecoration ??
+            "none",
+
+          "--rsvp-placeholder-letter-spacing":
+            typeof placeholderStyle.letterSpacing ===
+            "number"
+              ? `${placeholderStyle.letterSpacing}px`
+              : placeholderStyle.letterSpacing ??
+                "normal",
+
+          "--rsvp-placeholder-line-height":
+            placeholderStyle.lineHeight ??
+            "normal",
+
+          "--rsvp-placeholder-text-align":
+            placeholderStyle.textAlign ??
+            "left",
+        } as React.CSSProperties),
+      }}
+    />
+  );
+}
 
   function renderTextarea(
     key: string,

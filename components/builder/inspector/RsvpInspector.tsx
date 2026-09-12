@@ -78,9 +78,10 @@ export function RsvpInspector({
       <option value="heading">Heading</option>
       <option value="helperText">Helper Text</option>
       <option value="badgeText">Badge Text</option>
-      <option value="sectionLabel">Section Label</option>
-      <option value="placeholderText">Placeholder Text</option>
-      <option value="optionText">Option Text</option>
+<option value="sectionLabel">Section Label</option>
+<option value="fieldText">Field Text</option>
+<option value="placeholderText">Placeholder Text</option>
+<option value="optionText">Option Text</option>
       <option value="submitButton">Submit Button</option>
       <option value="confirmationTitle">Confirmation Title</option>
       <option value="confirmationMessage">Confirmation Message</option>

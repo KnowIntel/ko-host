@@ -1370,23 +1370,13 @@ export type RsvpBlock =
       style?:
         TextStyle;
 
-      headingStyle?:
-        TextStyle;
-
-      helperTextStyle?:
-        TextStyle;
-
-      badgeTextStyle?:
-        TextStyle;
-
-      sectionLabelStyle?:
-        TextStyle;
-
-      placeholderTextStyle?:
-        TextStyle;
-
-      optionTextStyle?:
-        TextStyle;
+headingStyle?: TextStyle;
+helperTextStyle?: TextStyle;
+badgeTextStyle?: TextStyle;
+sectionLabelStyle?: TextStyle;
+fieldTextStyle?: TextStyle;
+placeholderTextStyle?: TextStyle;
+optionTextStyle?: TextStyle;
 
       submitButtonTextStyle?:
         TextStyle;
@@ -7345,25 +7335,23 @@ case "rsvp":
           "center",
       },
 
-      sectionLabelStyle: {
-        ...createDefaultTextStyle(),
+sectionLabelStyle: {
+  ...createDefaultTextStyle(),
+  fontSize: 12,
+  bold: true,
+},
 
-        fontSize:
-          12,
+fieldTextStyle: {
+  ...createDefaultTextStyle(),
+  fontSize: 14,
+  color: "#111827",
+},
 
-        bold:
-          true,
-      },
-
-      placeholderTextStyle: {
-        ...createDefaultTextStyle(),
-
-        fontSize:
-          14,
-
-        color:
-          "#6B7280",
-      },
+placeholderTextStyle: {
+  ...createDefaultTextStyle(),
+  fontSize: 14,
+  color: "#6B7280",
+},
 
 optionTextStyle: {
   ...createDefaultTextStyle(),
