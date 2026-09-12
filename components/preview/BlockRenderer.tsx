@@ -21112,6 +21112,7 @@ function renderImage(
  * ============================================================
  */
 
+
 function renderChoiceSection(
   key: string,
   label: string,
@@ -21135,10 +21136,6 @@ function renderChoiceSection(
         Boolean,
       );
 
-  /*
-   * Do not render an empty section when there are no usable
-   * choices.
-   */
   if (
     resolvedOptions.length ===
     0
@@ -21197,13 +21194,13 @@ function renderChoiceSection(
                   ? {
                       backgroundColor:
                         darkVariant
-                          ? "rgba(255,255,255,0.18)"
-                          : "#111827",
+                          ? "rgba(255,255,255,0.22)"
+                          : "#f3f4f6",
 
                       borderColor:
                         darkVariant
-                          ? "rgba(255,255,255,0.75)"
-                          : "#111827",
+                          ? "rgba(255,255,255,0.55)"
+                          : "#cbd5e1",
 
                       borderWidth:
                         1,
@@ -21276,11 +21273,9 @@ function renderChoiceSection(
                     color:
                       optionTextStyle.color ??
                       (
-                        selected
+                        darkVariant
                           ? "#ffffff"
-                          : darkVariant
-                            ? "#ffffff"
-                            : "#171717"
+                          : "#171717"
                       ),
 
                     fontFamily:
