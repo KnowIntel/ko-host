@@ -7365,12 +7365,15 @@ case "rsvp":
           "#6B7280",
       },
 
-      optionTextStyle: {
-        ...createDefaultTextStyle(),
+optionTextStyle: {
+  ...createDefaultTextStyle(),
 
-        fontSize:
-          14,
-      },
+  fontSize:
+    14,
+
+  color:
+    "#111827",
+},
 
       submitButtonTextStyle: {
         ...createDefaultTextStyle(),
@@ -7471,22 +7474,22 @@ case "rsvp":
           1,
       },
 
-      buttonSelectionStyle: {
-        backgroundColor:
-          "#111827",
+buttonSelectionStyle: {
+  backgroundColor:
+    "#F3F4F6",
 
-        borderColor:
-          "#111827",
+  borderColor:
+    "#CBD5E1",
 
-        borderWidth:
-          1,
+  borderWidth:
+    1,
 
-        borderRadius:
-          12,
+  borderRadius:
+    12,
 
-        opacity:
-          1,
-      },
+  opacity:
+    1,
+},
 
       submitButtonStyle: {
         backgroundColor:
@@ -7552,7 +7555,7 @@ case "rsvp":
     },
   };
 
-  
+
     case "faq":
       return {
         id: makeId("faq"),
