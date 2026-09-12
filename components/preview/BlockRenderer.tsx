@@ -21076,70 +21076,135 @@ function renderField(
   );
 }
 
-  function renderTextarea(
-    key: string,
-    placeholder: string,
+function renderTextarea(
+  key: string,
+  placeholder: string,
+  value: string,
+  onChange: (
     value: string,
-    onChange: (
-      value: string,
-    ) => void,
-  ) {
-    return (
-      <textarea
-        key={key}
-        placeholder={
-          placeholder
-        }
-        value={value}
-        onChange={(
-          e,
-        ) =>
-          onChange(
-            e.target.value,
-          )
-        }
-        rows={4}
-        className={`${inputClass()} ${placeholderClassName} min-h-[120px] resize-none`}
-        style={{
-          ...fieldStyle,
+  ) => void,
+) {
+  const resolvedFieldTextStyle =
+    data.fieldTextStyle ??
+    data.style ??
+    {};
 
-          color:
-            optionTextStyle.color,
+  return (
+    <textarea
+      key={key}
+      placeholder={
+        placeholder
+      }
+      value={value}
+      onChange={(
+        e,
+      ) =>
+        onChange(
+          e.target.value,
+        )
+      }
+      rows={4}
+      className={[
+        inputClass(),
+        placeholderClassName,
+        "min-h-[120px]",
+        "resize-none",
 
-          fontFamily:
-            optionTextStyle.fontFamily,
+        "[&::placeholder]:[color:var(--rsvp-placeholder-color)]",
+        "[&::placeholder]:[font-family:var(--rsvp-placeholder-font-family)]",
+        "[&::placeholder]:[font-size:var(--rsvp-placeholder-font-size)]",
+        "[&::placeholder]:[font-weight:var(--rsvp-placeholder-font-weight)]",
+        "[&::placeholder]:[font-style:var(--rsvp-placeholder-font-style)]",
+        "[&::placeholder]:[text-decoration:var(--rsvp-placeholder-text-decoration)]",
+        "[&::placeholder]:[letter-spacing:var(--rsvp-placeholder-letter-spacing)]",
+        "[&::placeholder]:[line-height:var(--rsvp-placeholder-line-height)]",
+        "[&::placeholder]:[text-align:var(--rsvp-placeholder-text-align)]",
+      ].join(" ")}
+      style={{
+        ...fieldStyle,
 
-          fontSize:
-            optionTextStyle.fontSize,
+        /*
+         * Actual typed textarea text
+         */
+        color:
+          resolvedFieldTextStyle.color,
 
-          fontWeight:
-            optionTextStyle.fontWeight,
+        fontFamily:
+          resolvedFieldTextStyle.fontFamily,
 
-          fontStyle:
-            optionTextStyle.fontStyle,
+        fontSize:
+          resolvedFieldTextStyle.fontSize,
 
-          textDecoration:
-            optionTextStyle.textDecoration,
+        fontWeight:
+          resolvedFieldTextStyle.fontWeight,
 
-          letterSpacing:
-            optionTextStyle.letterSpacing,
+        fontStyle:
+          resolvedFieldTextStyle.fontStyle,
 
-          lineHeight:
-            optionTextStyle.lineHeight,
+        textDecoration:
+          resolvedFieldTextStyle.textDecoration,
 
-          textAlign:
+        letterSpacing:
+          resolvedFieldTextStyle.letterSpacing,
+
+        lineHeight:
+          resolvedFieldTextStyle.lineHeight,
+
+        textAlign:
+          resolvedFieldTextStyle.textAlign ??
+          "left",
+
+        /*
+         * Placeholder-only formatting
+         */
+        ...({
+          "--rsvp-placeholder-color":
+            placeholderStyle.color ??
+            placeholderColor ??
+            "#6B7280",
+
+          "--rsvp-placeholder-font-family":
+            placeholderStyle.fontFamily ??
+            "inherit",
+
+          "--rsvp-placeholder-font-size":
+            typeof placeholderStyle.fontSize ===
+            "number"
+              ? `${placeholderStyle.fontSize}px`
+              : placeholderStyle.fontSize ??
+                "inherit",
+
+          "--rsvp-placeholder-font-weight":
+            placeholderStyle.fontWeight ??
+            "inherit",
+
+          "--rsvp-placeholder-font-style":
+            placeholderStyle.fontStyle ??
+            "normal",
+
+          "--rsvp-placeholder-text-decoration":
+            placeholderStyle.textDecoration ??
+            "none",
+
+          "--rsvp-placeholder-letter-spacing":
+            typeof placeholderStyle.letterSpacing ===
+            "number"
+              ? `${placeholderStyle.letterSpacing}px`
+              : placeholderStyle.letterSpacing ??
+                "normal",
+
+          "--rsvp-placeholder-line-height":
+            placeholderStyle.lineHeight ??
+            "normal",
+
+          "--rsvp-placeholder-text-align":
+            placeholderStyle.textAlign ??
             "left",
-
-          ...(placeholderColor
-            ? ({
-                "--rsvp-placeholder-color":
-                  placeholderColor,
-              } as React.CSSProperties)
-            : {}),
-        }}
-      />
-    );
-  }
+        } as React.CSSProperties),
+      }}
+    />
+  );
+}
 
   function renderFieldLabel(
     key: string,
