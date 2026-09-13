@@ -1396,6 +1396,9 @@ optionTextStyle?: TextStyle;
       elementStyles?:
         RsvpElementStyleMap;
 
+        formStyle?:
+  RsvpElementStyle;
+
       fieldStyle?:
         RsvpElementStyle;
 
@@ -7410,6 +7413,15 @@ optionTextStyle: {
 
       elementStyles:
         {},
+
+formStyle: {
+  backgroundColor: "#FFFFFF",
+  borderColor: "#E5E7EB",
+  borderWidth: 0,
+  borderRadius: 16,
+  opacity: 1,
+},
+
 
       fieldStyle: {
         backgroundColor:

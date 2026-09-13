@@ -18941,13 +18941,17 @@ function RsvpFormBlock({
    * ============================================================
    */
 
-  const fieldStyle =
-    data.fieldStyle ??
-    {};
+const formStyle =
+  data.formStyle ??
+  {};
 
-  const sectionStyle =
-    data.sectionStyle ??
-    {};
+const fieldStyle =
+  data.fieldStyle ??
+  {};
+
+const sectionStyle =
+  data.sectionStyle ??
+  {};
 
   const buttonDefaultStyle =
     data.buttonDefaultStyle ??
@@ -22936,67 +22940,121 @@ function renderForm() {
             ].join(" ")
           : "",
       ].join(" ")}
-      style={{
-        maxWidth:
-          resolvedMaxWidth,
+style={{
+  maxWidth:
+    resolvedMaxWidth,
 
-        padding:
-          contentPadding,
+  padding:
+    contentPadding,
 
-        gap:
-          sectionGap,
+  gap:
+    sectionGap,
 
-        ...(invitationCard
+  ...(invitationCard
+    ? {
+        paddingTop:
+          Math.max(
+            contentPadding + 10,
+            30,
+          ),
+
+        paddingBottom:
+          Math.max(
+            contentPadding + 12,
+            32,
+          ),
+      }
+    : {}),
+
+  ...(flyerStack
+    ? {
+        paddingTop:
+          Math.max(
+            contentPadding,
+            22,
+          ),
+
+        paddingBottom:
+          Math.max(
+            contentPadding + 6,
+            28,
+          ),
+      }
+    : {}),
+
+  ...(heroOverlay
+    ? {
+        backdropFilter:
+          "blur(14px)",
+
+        WebkitBackdropFilter:
+          "blur(14px)",
+
+        ...(styleVariant ===
+          "standard"
           ? {
-              paddingTop:
-                Math.max(
-                  contentPadding + 10,
-                  30,
-                ),
-
-              paddingBottom:
-                Math.max(
-                  contentPadding + 12,
-                  32,
-                ),
+              backgroundColor:
+                `rgba(255,255,255,${overlayBackgroundOpacity})`,
             }
           : {}),
+      }
+    : {}),
 
-        ...(flyerStack
-          ? {
-              paddingTop:
-                Math.max(
-                  contentPadding,
-                  22,
+  /*
+   * Form appearance controls are intentionally available only
+   * for the Standard THEME variant.
+   */
+  ...(styleVariant ===
+  "standard"
+    ? {
+        backgroundColor:
+          formStyle.backgroundColor ??
+          undefined,
+
+        borderColor:
+          formStyle.borderColor ??
+          undefined,
+
+        borderWidth:
+          typeof formStyle.borderWidth ===
+          "number"
+            ? `${Math.max(
+                0,
+                formStyle.borderWidth,
+              )}px`
+            : undefined,
+
+        borderStyle:
+          typeof formStyle.borderWidth ===
+            "number" &&
+          formStyle.borderWidth >
+            0
+            ? "solid"
+            : "none",
+
+        borderRadius:
+          typeof formStyle.borderRadius ===
+          "number"
+            ? `${Math.max(
+                0,
+                formStyle.borderRadius,
+              )}px`
+            : undefined,
+
+        opacity:
+          typeof formStyle.opacity ===
+          "number"
+            ? Math.max(
+                0,
+                Math.min(
+                  1,
+                  formStyle.opacity,
                 ),
-
-              paddingBottom:
-                Math.max(
-                  contentPadding + 6,
-                  28,
-                ),
-            }
-          : {}),
-
-        ...(heroOverlay
-          ? {
-              backdropFilter:
-                "blur(14px)",
-
-              WebkitBackdropFilter:
-                "blur(14px)",
-
-              ...(styleVariant ===
-                "standard"
-                ? {
-                    backgroundColor:
-                      `rgba(255,255,255,${overlayBackgroundOpacity})`,
-                  }
-                : {}),
-            }
-          : {}),
-      }}
-    >
+              )
+            : undefined,
+      }
+    : {}),
+}}    >
       <input
         type="text"
         tabIndex={-1}

@@ -18,6 +18,7 @@ export type RsvpTextTarget =
   | "confirmationMessage";
 
 export type RsvpStyleTarget =
+  | "form"
   | "field"
   | "section"
   | "buttonDefault"
@@ -155,25 +156,20 @@ export function applyRsvpTextStylePatch(
   };
 }
 
-function getStyleKey(
-  target: RsvpStyleTarget,
-) {
-  return target ===
-    "field"
-    ? "fieldStyle"
-    : target ===
-        "section"
-      ? "sectionStyle"
-      : target ===
-          "buttonDefault"
-        ? "buttonDefaultStyle"
-        : target ===
-            "buttonSelection"
-          ? "buttonSelectionStyle"
-          : target ===
-              "submitButton"
-            ? "submitButtonStyle"
-            : "blockStyle";
+function getStyleKey(target: RsvpStyleTarget) {
+  return target === "form"
+    ? "formStyle"
+    : target === "field"
+      ? "fieldStyle"
+      : target === "section"
+        ? "sectionStyle"
+        : target === "buttonDefault"
+          ? "buttonDefaultStyle"
+          : target === "buttonSelection"
+            ? "buttonSelectionStyle"
+            : target === "submitButton"
+              ? "submitButtonStyle"
+              : "blockStyle";
 }
 
 export function applyRsvpStylePatch(
