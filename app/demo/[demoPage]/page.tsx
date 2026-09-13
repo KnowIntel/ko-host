@@ -337,7 +337,12 @@ const DEMO_PAGES: Record<
   message:
     "You opened the email page. In a real crowdfunding microsite, this could help supporters contact the campaign organizer, ask questions, request more information, offer assistance, or send the wonderfully rare message that begins with, ‘I’d like to help.’",
 },
-
+"wedding-rsvp-registry": {
+  title: "Demo Registry",
+  eyebrow: "Wedding RSVP Demo",
+  message:
+    "You opened the registry page. In a real wedding microsite, this could connect guests to gift registries, honeymoon funds, wish lists, home essentials, and the surprisingly difficult decision of whether anyone truly needs another set of wine glasses.",
+},
 
 
 

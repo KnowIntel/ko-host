@@ -57,6 +57,8 @@ const draftPageCountByTemplateDesignKey: Record<string, number> = {
   "wedding_rsvp:classic": 3,
   "wedding_rsvp:subtle": 1,
   "wedding_rsvp:evergreen": 4,
+  "wedding_rsvp:golden": 1,
+
 
   "birthday_party:grown": 2,
   "birthday_party:blast": 1,
