@@ -1143,37 +1143,23 @@ onClick={(e) => {
                   width: PAGE_WIDTH,
                   height: pageHeight,
                   ...pageSurfaceStyle,
-                      backgroundImage: showGridLines
-                        ? pageSurfaceStyle?.backgroundImage
-                          ? `${pageSurfaceStyle.backgroundImage},
-                      linear-gradient(to right, rgba(59,130,246,0.18) 1px, transparent 1px),
-                      linear-gradient(to bottom, rgba(59,130,246,0.18) 1px, transparent 1px)`
-                          : `linear-gradient(to right, rgba(59,130,246,0.18) 1px, transparent 1px),
-                      linear-gradient(to bottom, rgba(59,130,246,0.18) 1px, transparent 1px)`
-                        : pageSurfaceStyle?.backgroundImage
-                          ? `${pageSurfaceStyle.backgroundImage}`
-                          : undefined,
-                  backgroundSize: showGridLines
-                    ? pageSurfaceStyle?.backgroundImage
-                      ? `contain, ${getStrideX() * GRID_STEP}px ${getStrideY() * GRID_STEP}px, ${getStrideX() * GRID_STEP}px ${getStrideY() * GRID_STEP}px`
-                      : `${getStrideX() * GRID_STEP}px ${getStrideY() * GRID_STEP}px`
-                    : pageSurfaceStyle?.backgroundImage
-                      ? "contain"
-                      : undefined,
-                  backgroundPosition: showGridLines
-                    ? pageSurfaceStyle?.backgroundImage
-                      ? `center top, 0 0, 0 0`
-                      : "0 0"
-                    : pageSurfaceStyle?.backgroundImage
-                      ? "center top"
-                      : undefined,
-                  backgroundRepeat: showGridLines
-                    ? pageSurfaceStyle?.backgroundImage
-                      ? `no-repeat, repeat, repeat`
-                      : "repeat"
-                    : pageSurfaceStyle?.backgroundImage
-                      ? "no-repeat"
-                      : undefined,
+backgroundImage:
+  pageSurfaceStyle?.backgroundImage,
+
+backgroundSize:
+  pageSurfaceStyle?.backgroundImage
+    ? "contain"
+    : undefined,
+
+backgroundPosition:
+  pageSurfaceStyle?.backgroundImage
+    ? "center top"
+    : undefined,
+
+backgroundRepeat:
+  pageSurfaceStyle?.backgroundImage
+    ? "no-repeat"
+    : undefined,
                 }}
               >
                 {dragGuides.map((guide, index) => (
@@ -1403,6 +1389,111 @@ className={[
                     </div>
                   );
                 })}
+
+{/* ========================================================== */}
+{/* CANVAS GRID VISUAL OVERLAY                                 */}
+{/* ========================================================== */}
+
+{showGridLines ? (
+  <>
+    {/* Gridlines — always above every canvas block */}
+    <div
+      className="pointer-events-none absolute inset-0"
+      style={{
+        zIndex: 1000000,
+
+        backgroundImage: `
+          linear-gradient(
+            to right,
+            rgba(59,130,246,0.22) 1px,
+            transparent 1px
+          ),
+          linear-gradient(
+            to bottom,
+            rgba(59,130,246,0.22) 1px,
+            transparent 1px
+          )
+        `,
+
+        backgroundSize: `
+          ${getStrideX() * GRID_STEP}px ${getStrideY() * GRID_STEP}px,
+          ${getStrideX() * GRID_STEP}px ${getStrideY() * GRID_STEP}px
+        `,
+
+        backgroundPosition:
+          "0 0, 0 0",
+
+        backgroundRepeat:
+          "repeat, repeat",
+      }}
+    />
+
+    {/* ====================================================== */}
+    {/* TOP OUTSIDE MARKER RAIL                                */}
+    {/* ====================================================== */}
+
+    <div
+      className="pointer-events-none absolute left-0 top-[-14px] h-[14px] bg-white"
+      style={{
+        width: "100%",
+        zIndex: 1000001,
+        borderBottom:
+          "1px solid rgba(0,0,0,0.10)",
+      }}
+    >
+      {[25, 50, 75].map(
+        (percent) => (
+          <div
+            key={`top-marker-${percent}`}
+            className="absolute bottom-0 w-px bg-slate-700"
+            style={{
+              left: `${percent}%`,
+              height:
+                percent === 50
+                  ? 11
+                  : 8,
+              transform:
+                "translateX(-0.5px)",
+            }}
+          />
+        ),
+      )}
+    </div>
+
+    {/* ====================================================== */}
+    {/* LEFT OUTSIDE MARKER RAIL                               */}
+    {/* ====================================================== */}
+
+    <div
+      className="pointer-events-none absolute left-[-14px] top-0 w-[14px] bg-white"
+      style={{
+        height: "100%",
+        zIndex: 1000001,
+        borderRight:
+          "1px solid rgba(0,0,0,0.10)",
+      }}
+    >
+      {[25, 50, 75].map(
+        (percent) => (
+          <div
+            key={`left-marker-${percent}`}
+            className="absolute right-0 h-px bg-slate-700"
+            style={{
+              top: `${percent}%`,
+              width:
+                percent === 50
+                  ? 11
+                  : 8,
+              transform:
+                "translateY(-0.5px)",
+            }}
+          />
+        ),
+      )}
+    </div>
+  </>
+) : null}
+
               </div>
             </div>
           </div>
