@@ -90,10 +90,10 @@ export function RsvpInspector({
       <option value="heading">Heading</option>
       <option value="helperText">Helper Text</option>
       <option value="badgeText">Badge Text</option>
-<option value="sectionLabel">Section Label</option>
-<option value="fieldText">Field Text</option>
-<option value="placeholderText">Placeholder Text</option>
-<option value="optionText">Option Text</option>
+      <option value="sectionLabel">Section Label</option>
+      <option value="fieldText">Field Text</option>
+      <option value="placeholderText">Placeholder Text</option>
+      <option value="optionText">Option Text</option>
       <option value="submitButton">Submit Button</option>
       <option value="confirmationTitle">Confirmation Title</option>
       <option value="confirmationMessage">Confirmation Message</option>
@@ -174,60 +174,87 @@ export function RsvpInspector({
     Theme Variant
   </div>
 
-  <select
-    value={
-      selectedBlock.data.styleVariant ??
-      "standard"
-    }
-    onChange={(e) =>
-      updateSelectedBlock((block: any) =>
-        block.type !== "rsvp"
-          ? block
-          : {
-              ...block,
-              data: {
-                ...block.data,
+<select
+  value={
+    selectedBlock.data.styleVariant ??
+    "standard"
+  }
+  onChange={(e) => {
+    const nextStyleVariant =
+      e.target.value as
+        | "standard"
+        | "elegant_wedding"
+        | "modern_minimal"
+        | "glassmorphism"
+        | "editorial_magazine"
+        | "bold_event"
+        | "dark_neon"
+        | "ticket_style";
 
-                styleVariant:
-                  e.target.value as any,
-              },
+    updateSelectedBlock((block: any) =>
+      block.type !== "rsvp"
+        ? block
+        : {
+            ...block,
+            data: {
+              ...block.data,
+
+              styleVariant:
+                nextStyleVariant,
             },
-      )
+          },
+    );
+
+    /*
+     * Form styling is only available for the Standard theme.
+     * If Form is currently selected and the owner changes to
+     * another theme, move the style target back to Field.
+     */
+    if (
+      nextStyleVariant !==
+        "standard" &&
+      rsvpStyleTarget ===
+        "form"
+    ) {
+      setRsvpStyleTarget(
+        "field",
+      );
     }
-    className={inspectorInputClass()}
-  >
-    <option value="standard">
-      Standard
-    </option>
+  }}
+  className={inspectorInputClass()}
+>
+  <option value="standard">
+    Standard
+  </option>
 
-    <option value="elegant_wedding">
-      Elegant Wedding
-    </option>
+  <option value="elegant_wedding">
+    Elegant Wedding
+  </option>
 
-    <option value="modern_minimal">
-      Modern Minimal
-    </option>
+  <option value="modern_minimal">
+    Modern Minimal
+  </option>
 
-    <option value="glassmorphism">
-      Glassmorphism
-    </option>
+  <option value="glassmorphism">
+    Glassmorphism
+  </option>
 
-    <option value="editorial_magazine">
-      Editorial Magazine
-    </option>
+  <option value="editorial_magazine">
+    Editorial Magazine
+  </option>
 
-    <option value="bold_event">
-      Bold Event
-    </option>
+  <option value="bold_event">
+    Bold Event
+  </option>
 
-    <option value="dark_neon">
-      Dark Neon
-    </option>
+  <option value="dark_neon">
+    Dark Neon
+  </option>
 
-    <option value="ticket_style">
-      Ticket Style
-    </option>
-  </select>
+  <option value="ticket_style">
+    Ticket Style
+  </option>
+</select>
 </div>
 
 {/* ============================================================
@@ -3004,35 +3031,6 @@ data: {
           <option value="rounded">Rounded</option>
           <option value="pill">Pill</option>
           <option value="square">Square</option>
-        </select>
-      </div>
-
-      <div className="mt-4">
-        <div className={inspectorLabelClass()}>Button Variant</div>
-
-        <select
-          value={selectedBlock.data.buttonVariant ?? "solid"}
-          onChange={(e) =>
-            updateSelectedBlock((block: any) =>
-              block.type !== "rsvp"
-                ? block
-                : {
-                    ...block,
-                    data: {
-                      ...block.data,
-                      buttonVariant: e.target.value as
-                        | "solid"
-                        | "outline"
-                        | "gradient",
-                    },
-                  },
-            )
-          }
-          className={inspectorInputClass()}
-        >
-          <option value="solid">Solid</option>
-          <option value="outline">Outline</option>
-          <option value="gradient">Gradient</option>
         </select>
       </div>
 
