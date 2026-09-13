@@ -108,8 +108,8 @@ export function RsvpInspector({
       className={inspectorInputClass()}
     >
       {(selectedBlock.data.styleVariant ?? "standard") === "standard" ? (
-  <option value="form">Form</option>
-) : null}
+        <option value="form">Form</option>
+      ) : null}
       <option value="field">Field</option>
       <option value="section">Section</option>
       <option value="buttonDefault">Button Default</option>
