@@ -629,6 +629,53 @@ export function PollInspector({
               </select>
             </div>
 
+{/* CHOICE LAYOUT */}
+
+<div className="mt-4">
+  <div
+    className={
+      inspectorLabelClass()
+    }
+  >
+    Choice Layout
+  </div>
+
+  <select
+    value={
+      selectedBlock.data
+        .choiceLayout ??
+      "stacked"
+    }
+    onChange={(e) =>
+      updatePollData({
+        choiceLayout:
+          e.target.value ===
+          "grid"
+            ? "grid"
+            : e.target.value ===
+                "linear"
+              ? "linear"
+              : "stacked",
+      })
+    }
+    className={
+      inspectorInputClass()
+    }
+  >
+    <option value="stacked">
+      Stacked
+    </option>
+
+    <option value="grid">
+      Grid
+    </option>
+
+    <option value="linear">
+      Linear
+    </option>
+  </select>
+</div>
+
             {/* TITLE FRAME */}
 
             <label className="mt-4 flex items-center justify-between gap-4 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3">

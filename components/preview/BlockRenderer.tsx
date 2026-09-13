@@ -18146,7 +18146,17 @@ const selectedOptionTextStyle:
               "Poll"}
           </div>
 
-          <div className="mt-3 space-y-2">
+          <div
+  className={[
+    "mt-3",
+
+    (block.data.choiceLayout ?? "stacked") === "grid"
+      ? "grid grid-cols-2 gap-2"
+      : (block.data.choiceLayout ?? "stacked") === "linear"
+        ? "flex flex-nowrap gap-2"
+        : "flex flex-col gap-2",
+  ].join(" ")}
+>
             {options.map(
               (
                 option:
@@ -18174,18 +18184,20 @@ const selectedOptionTextStyle:
                       submittedOptionIds.length >
                         0
                     }
-                    className={[
-                      "w-full px-3 py-2 text-left transition",
+className={[
+  (block.data.choiceLayout ?? "stacked") === "linear"
+    ? "min-w-0 flex-1"
+    : "w-full",
 
-                      "disabled:cursor-not-allowed disabled:opacity-50",
+  "px-3 py-2 text-left transition",
 
-                      submittedOptionIds.length &&
-                      !isSelected
-                        ? "opacity-70"
-                        : "",
-                    ].join(
-                      " ",
-                    )}
+  "disabled:cursor-not-allowed disabled:opacity-50",
+
+  submittedOptionIds.length &&
+  !isSelected
+    ? "opacity-70"
+    : "",
+].join(" ")}
                     style={{
                       backgroundColor:
                         fieldBackgroundColor ??
@@ -18330,16 +18342,28 @@ const selectedOptionTextStyle:
           {/* ========================================================== */}
 
 <div
-  className="mt-5 grid w-full min-w-0 gap-4"
+  className={[
+    "mt-5 w-full min-w-0 gap-4",
+
+    (block.data.choiceLayout ?? "stacked") === "grid"
+      ? "grid"
+      : (block.data.choiceLayout ?? "stacked") === "linear"
+        ? "flex flex-nowrap"
+        : "flex flex-col",
+  ].join(" ")}
   style={{
-    gridTemplateColumns:
-      options.length <= 1
-        ? "minmax(0, 1fr)"
-        : options.length === 2
-          ? "repeat(2, minmax(0, 1fr))"
-          : options.length === 3
-            ? "repeat(3, minmax(0, 1fr))"
-            : "repeat(4, minmax(0, 1fr))",
+    ...((block.data.choiceLayout ?? "stacked") === "grid"
+      ? {
+          gridTemplateColumns:
+            options.length <= 1
+              ? "minmax(0, 1fr)"
+              : options.length === 2
+                ? "repeat(2, minmax(0, 1fr))"
+                : options.length === 3
+                  ? "repeat(3, minmax(0, 1fr))"
+                  : "repeat(4, minmax(0, 1fr))",
+        }
+      : {}),
   }}
 >
             {options.map(
@@ -18448,7 +18472,13 @@ const selectedOptionTextStyle:
                     aria-pressed={
                       isSelected
                     }
-                    className="flex w-full min-w-0 max-w-full flex-col items-center overflow-hidden text-center outline-none transition disabled:cursor-not-allowed"
+className={[
+  "flex min-w-0 max-w-full flex-col items-center overflow-hidden text-center outline-none transition disabled:cursor-not-allowed",
+
+  (block.data.choiceLayout ?? "stacked") === "linear"
+    ? "flex-1"
+    : "w-full",
+].join(" ")}
                     style={{
                       backgroundColor:
                         optionFrameStyle.backgroundColor ??

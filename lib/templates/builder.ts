@@ -903,6 +903,17 @@ export type PollBlock = BaseBlock & {
 
     /*
      * ================================================================
+     * CHOICE LAYOUT
+     * ================================================================
+     */
+
+    choiceLayout?:
+      | "stacked"
+      | "grid"
+      | "linear";
+
+    /*
+     * ================================================================
      * SELECTION BEHAVIOR
      * ================================================================
      */
@@ -6746,63 +6757,72 @@ case "poll":
       question:
         "Your question here",
 
-options: [
-  {
-    id: makeId("opt"),
+      options: [
+        {
+          id: makeId("opt"),
 
-    text: "Option 1",
+          text: "Option 1",
 
-    imageUrl: "",
+          imageUrl: "",
 
-    imageAlt: "",
+          imageAlt: "",
 
-    imageStoragePath: "",
+          imageStoragePath: "",
 
-    imageSizeBytes: 0,
+          imageSizeBytes: 0,
 
-    imageOriginalSizeBytes: 0,
+          imageOriginalSizeBytes: 0,
 
-    imageMimeType: "",
+          imageMimeType: "",
 
-    imagePositionX: 50,
+          imagePositionX: 50,
 
-    imagePositionY: 50,
+          imagePositionY: 50,
 
-    imageZoom: 1,
+          imageZoom: 1,
 
-    imageRotation: 0,
+          imageRotation: 0,
 
-    imageOpacity: 1,
-  },
+          imageOpacity: 1,
+        },
 
-  {
-    id: makeId("opt"),
+        {
+          id: makeId("opt"),
 
-    text: "Option 2",
+          text: "Option 2",
 
-    imageUrl: "",
+          imageUrl: "",
 
-    imageAlt: "",
+          imageAlt: "",
 
-    imageStoragePath: "",
+          imageStoragePath: "",
 
-    imageSizeBytes: 0,
+          imageSizeBytes: 0,
 
-    imageOriginalSizeBytes: 0,
+          imageOriginalSizeBytes: 0,
 
-    imageMimeType: "",
+          imageMimeType: "",
 
-    imagePositionX: 50,
+          imagePositionX: 50,
 
-    imagePositionY: 50,
+          imagePositionY: 50,
 
-    imageZoom: 1,
+          imageZoom: 1,
 
-    imageRotation: 0,
+          imageRotation: 0,
 
-    imageOpacity: 1,
-  },
-],
+          imageOpacity: 1,
+        },
+      ],
+
+      /*
+       * ================================================================
+       * CHOICE LAYOUT
+       * ================================================================
+       */
+
+      choiceLayout:
+        "stacked",
 
       /*
        * ================================================================
@@ -6991,6 +7011,7 @@ options: [
     },
   };
 
+  
 case "rsvp":
   return {
     id:

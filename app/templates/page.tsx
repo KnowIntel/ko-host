@@ -585,7 +585,7 @@ function scrollToTemplates() {
       <h2 className="text-2xl font-bold tracking-tight text-neutral-950 sm:text-[28px]">
         What will you create?
       </h2>
-
+ 
       <p className="mt-1 text-[12px] text-neutral-500 sm:text-[13px]">
         Choose a template to get started. Every design is customizable.
       </p>
