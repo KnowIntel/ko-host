@@ -1443,19 +1443,17 @@ className={[
     >
       {[25, 50, 75].map(
         (percent) => (
-          <div
-            key={`top-marker-${percent}`}
-            className="absolute bottom-0 w-px bg-slate-700"
-            style={{
-              left: `${percent}%`,
-              height:
-                percent === 50
-                  ? 11
-                  : 8,
-              transform:
-                "translateX(-0.5px)",
-            }}
-          />
+<div
+  key={`top-marker-${percent}`}
+  className="absolute bottom-0 bg-slate-800"
+  style={{
+    left: `${percent}%`,
+    width: percent === 50 ? 4 : 3,
+    height: percent === 50 ? 14 : 11,
+    transform: "translateX(-50%)",
+    borderRadius: "2px 2px 0 0",
+  }}
+/>
         ),
       )}
     </div>
@@ -1475,19 +1473,17 @@ className={[
     >
       {[25, 50, 75].map(
         (percent) => (
-          <div
-            key={`left-marker-${percent}`}
-            className="absolute right-0 h-px bg-slate-700"
-            style={{
-              top: `${percent}%`,
-              width:
-                percent === 50
-                  ? 11
-                  : 8,
-              transform:
-                "translateY(-0.5px)",
-            }}
-          />
+<div
+  key={`left-marker-${percent}`}
+  className="absolute right-0 bg-slate-800"
+  style={{
+    top: `${percent}%`,
+    width: percent === 50 ? 14 : 11,
+    height: percent === 50 ? 4 : 3,
+    transform: "translateY(-50%)",
+    borderRadius: "2px 0 0 2px",
+  }}
+/>
         ),
       )}
     </div>
