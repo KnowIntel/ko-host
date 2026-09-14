@@ -325,8 +325,15 @@ export default function TemplateGrid(props: {
   category: Category;
   sort: Sort;
   onCountChange?: (count: number) => void;
+  onDesignPresetCountChange?: (count: number) => void;
 }) {
-  const { searchQuery, category, sort, onCountChange } = props;
+  const {
+    searchQuery,
+    category,
+    sort,
+    onCountChange,
+    onDesignPresetCountChange,
+  } = props;
 
   const allTemplates: TemplateDef[] = useMemo(() => {
     const defs = Array.isArray(TEMPLATE_DEFS) ? TEMPLATE_DEFS : [];
@@ -639,9 +646,33 @@ return {
     return moveCustomTemplateLast(sorted);
   }, [allTemplates, searchQuery, category, sort, favorites, recent]);
 
-  useEffect(() => {
-    onCountChange?.(filteredTemplates.length);
-  }, [filteredTemplates.length, onCountChange]);
+const designPresetCount = useMemo(
+  () =>
+    filteredTemplates.reduce(
+      (total, template) =>
+        total +
+        getDesignCount(
+          template.key,
+        ),
+      0,
+    ),
+  [filteredTemplates],
+);
+
+useEffect(() => {
+  onCountChange?.(
+    filteredTemplates.length,
+  );
+
+  onDesignPresetCountChange?.(
+    designPresetCount,
+  );
+}, [
+  filteredTemplates.length,
+  designPresetCount,
+  onCountChange,
+  onDesignPresetCountChange,
+]);
 
   const [isDesktop, setIsDesktop] = useState(false);
   const [isLandscapeMobile, setIsLandscapeMobile] = useState(false);

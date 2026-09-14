@@ -24,6 +24,8 @@ export default function TemplatesPage() {
   const [category, setCategory] = useState<Category>("All");
   const [sort, setSort] = useState<Sort>("Recommended");
   const [count, setCount] = useState<number>(0);
+  const [designPresetCount, setDesignPresetCount] =
+  useState<number>(0);
   const [recentSites, setRecentSites] = useState<RecentSiteCard[]>([]);
   const [recentSitesLoading, setRecentSitesLoading] = useState(true);
   const [recentSitesTrack, setRecentSitesTrack] = useState(0);
@@ -591,7 +593,9 @@ function scrollToTemplates() {
       </p>
 
       <div className="mt-2 text-[10px] font-medium text-neutral-400 sm:text-[11px]">
-        {count} template{count === 1 ? "" : "s"}
+{count} template categor{count === 1 ? "y" : "ies"}
+{" - "}
+{designPresetCount} design preset{designPresetCount === 1 ? "" : "s"}
         {category !== "All" ? ` • ${category}` : ""}
         {searchQuery.trim() ? ` • “${searchQuery.trim()}”` : ""}
         {sort !== "Recommended" ? ` • ${sort}` : ""}
@@ -1416,12 +1420,15 @@ function scrollToTemplates() {
   id="template-results"
   className="mt-8"
 >
-  <TemplateGrid
-    searchQuery={searchQuery}
-    category={category}
-    sort={sort}
-    onCountChange={setCount}
-  />
+<TemplateGrid
+  searchQuery={searchQuery}
+  category={category}
+  sort={sort}
+  onCountChange={setCount}
+  onDesignPresetCountChange={
+    setDesignPresetCount
+  }
+/>
 </div>
 
         {hasFilters ? (

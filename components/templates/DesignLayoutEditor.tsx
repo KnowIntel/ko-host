@@ -2775,6 +2775,7 @@ const [selectedOptionButtonOptionId, setSelectedOptionButtonOptionId] =
   const [activeCategory, setActiveCategory] = useState<BottomCategory>("Text");
   const [editorUploadError, setEditorUploadError] = useState("");
   const [toolSearchQuery, setToolSearchQuery] = useState("");
+const [iconSearchQuery, setIconSearchQuery] = useState("");
   const [flashedToolKey, setFlashedToolKey] = useState<string | null>(null);
   const [selectedGalleryImageId, setSelectedGalleryImageId] =
   useState<string | null>(null);
@@ -18742,8 +18743,10 @@ selectedBlock?.type === "cta" ? (
 {category === "Icons" ? (
   <input
     type="search"
-    value={toolSearchQuery}
-    onChange={(e) => setToolSearchQuery(e.target.value)}
+    value={iconSearchQuery}
+    onChange={(e) =>
+      setIconSearchQuery(e.target.value)
+    }
     placeholder="Search icons..."
     className="mb-3 h-10 w-full rounded-xl border border-neutral-300 bg-white px-3 text-sm outline-none transition placeholder:text-neutral-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
   />
@@ -18751,130 +18754,208 @@ selectedBlock?.type === "cta" ? (
 
 {categoryMenuView === "compact" ? (
   <div
-  className={
-    category === "Icons"
-      ? "flex max-h-[260px] max-w-[400px] flex-wrap gap-2 overflow-y-auto pr-1"
-      : "flex max-w-[400px] flex-wrap gap-2"
-  }
->
+    className={
+      category === "Icons"
+        ? "flex max-h-[260px] max-w-[400px] flex-wrap gap-2 overflow-y-auto pr-1"
+        : "flex max-w-[400px] flex-wrap gap-2"
+    }
+  >
     {CATEGORY_BUTTONS[category]
-  .filter((tool) => toolMatchesSearch(toolSearchQuery, category, tool))
-  .map((tool, index) => (
-      <button
-        key={`${category}-${tool.kind}-${tool.type}-${index}`}
-        type="button"
-        className={[
-  toolButtonClass(),
-  toolMatchesSearch(toolSearchQuery, category, tool)
-    ? flashedToolKey === getToolSearchKey(category, tool)
-      ? "border-blue-500 ring-2 ring-blue-300"
-      : "border-blue-300"
-    : "",
-].join(" ")}
-        onClick={() => {
-          if (tool.kind === "block") addBlock(
-  tool.type,
-  tool.label,
-  "iconName" in tool ? tool.iconName : undefined,
-);
-          if (tool.kind === "shape") addShape(tool.type);
-          if (tool.kind === "page") addPageBlock(tool.type);
-          setOpenToolMenu(null);
-        }}
-        draggable
-        onDragStart={(e) => {
-const payload: ToolDropPayload =
-  tool.kind === "block"
-    ? {
-        kind: "block",
-        type: tool.type,
-        label: tool.label,
-iconName: "iconName" in tool ? tool.iconName : undefined,
-iconUrl:
-  tool.type === "icon"
-    ? `/media-icons/${"iconName" in tool ? tool.iconName ?? "star" : "star"}.svg`
-    : undefined,
-      }
-    : tool.kind === "shape"
-      ? { kind: "shape", type: tool.type }
-      : { kind: "page", type: tool.type };
+      .filter((tool) =>
+        toolMatchesSearch(
+          category === "Icons"
+            ? iconSearchQuery
+            : toolSearchQuery,
+          category,
+          tool,
+        ),
+      )
+      .map((tool, index) => (
+        <button
+          key={`${category}-${tool.kind}-${tool.type}-${index}`}
+          type="button"
+          className={[
+            toolButtonClass(),
+            toolMatchesSearch(
+              category === "Icons"
+                ? iconSearchQuery
+                : toolSearchQuery,
+              category,
+              tool,
+            )
+              ? flashedToolKey === getToolSearchKey(category, tool)
+                ? "border-blue-500 ring-2 ring-blue-300"
+                : "border-blue-300"
+              : "",
+          ].join(" ")}
+          onClick={() => {
+            if (tool.kind === "block") {
+              addBlock(
+                tool.type,
+                tool.label,
+                "iconName" in tool
+                  ? tool.iconName
+                  : undefined,
+              );
+            }
 
-          e.dataTransfer.setData(
-            "application/kht-tool",
-            JSON.stringify(payload),
-          );
-        }}
-        title={tool.label}
-      >
-        {renderToolGlyph(tool, "h-6 w-6")}
-      </button>
-    ))}
+            if (tool.kind === "shape") {
+              addShape(tool.type);
+            }
+
+            if (tool.kind === "page") {
+              addPageBlock(tool.type);
+            }
+
+            setOpenToolMenu(null);
+          }}
+          draggable
+          onDragStart={(e) => {
+            const payload: ToolDropPayload =
+              tool.kind === "block"
+                ? {
+                    kind: "block",
+                    type: tool.type,
+                    label: tool.label,
+                    iconName:
+                      "iconName" in tool
+                        ? tool.iconName
+                        : undefined,
+                    iconUrl:
+                      tool.type === "icon"
+                        ? `/media-icons/${
+                            "iconName" in tool
+                              ? tool.iconName ?? "star"
+                              : "star"
+                          }.svg`
+                        : undefined,
+                  }
+                : tool.kind === "shape"
+                  ? {
+                      kind: "shape",
+                      type: tool.type,
+                    }
+                  : {
+                      kind: "page",
+                      type: tool.type,
+                    };
+
+            e.dataTransfer.setData(
+              "application/kht-tool",
+              JSON.stringify(payload),
+            );
+          }}
+          title={tool.label}
+        >
+          {renderToolGlyph(tool, "h-6 w-6")}
+        </button>
+      ))}
   </div>
 ) : (
   <div className="flex max-h-[252px] w-[360px] max-w-[calc(100vw-56px)] flex-col gap-2 overflow-y-auto pr-1">
     {CATEGORY_BUTTONS[category]
-  .filter((tool) => toolMatchesSearch(toolSearchQuery, category, tool))
-  .map((tool, index) => (
-      <button
-        key={`${category}-${tool.kind}-${tool.type}-${index}`}
-        type="button"
-        className={[
-  "flex w-full cursor-grab items-center gap-3 rounded-xl border bg-white px-3 py-2 text-left transition hover:border-blue-500 hover:bg-blue-50 active:cursor-grabbing",
-  toolMatchesSearch(toolSearchQuery, category, tool)
-    ? flashedToolKey === getToolSearchKey(category, tool)
-      ? "border-blue-500 ring-2 ring-blue-300"
-      : "border-blue-300"
-    : "border-neutral-200",
-].join(" ")}
-        onClick={() => {
-          if (tool.kind === "block") addBlock(
-  tool.type,
-  tool.label,
-  "iconName" in tool ? tool.iconName : undefined,
-);
-          if (tool.kind === "shape") addShape(tool.type);
-          if (tool.kind === "page") addPageBlock(tool.type);
-          setOpenToolMenu(null);
-        }}
-        draggable
-        onDragStart={(e) => {
-const payload: ToolDropPayload =
-  tool.kind === "block"
-    ? {
-        kind: "block",
-        type: tool.type,
-        label: tool.label,
-iconName: "iconName" in tool ? tool.iconName : undefined,
-iconUrl:
-  tool.type === "icon"
-    ? `/media-icons/${"iconName" in tool ? tool.iconName ?? "star" : "star"}.svg`
-    : undefined,
-      }
-    : tool.kind === "shape"
-      ? { kind: "shape", type: tool.type }
-      : { kind: "page", type: tool.type };
+      .filter((tool) =>
+        toolMatchesSearch(
+          category === "Icons"
+            ? iconSearchQuery
+            : toolSearchQuery,
+          category,
+          tool,
+        ),
+      )
+      .map((tool, index) => (
+        <button
+          key={`${category}-${tool.kind}-${tool.type}-${index}`}
+          type="button"
+          className={[
+            "flex w-full cursor-grab items-center gap-3 rounded-xl border bg-white px-3 py-2 text-left transition hover:border-blue-500 hover:bg-blue-50 active:cursor-grabbing",
+            toolMatchesSearch(
+              category === "Icons"
+                ? iconSearchQuery
+                : toolSearchQuery,
+              category,
+              tool,
+            )
+              ? flashedToolKey === getToolSearchKey(category, tool)
+                ? "border-blue-500 ring-2 ring-blue-300"
+                : "border-blue-300"
+              : "border-neutral-200",
+          ].join(" ")}
+          onClick={() => {
+            if (tool.kind === "block") {
+              addBlock(
+                tool.type,
+                tool.label,
+                "iconName" in tool
+                  ? tool.iconName
+                  : undefined,
+              );
+            }
 
-          e.dataTransfer.setData(
-            "application/kht-tool",
-            JSON.stringify(payload),
-          );
-        }}
-        title={tool.label}
-      >
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-neutral-200 bg-neutral-50 text-sm font-semibold text-neutral-800">
-          {renderToolGlyph(tool, "h-5 w-5")}
-        </span>
+            if (tool.kind === "shape") {
+              addShape(tool.type);
+            }
 
-        <span className="min-w-0">
-          <span className="block text-sm font-semibold text-neutral-900">
-            {tool.label}
+            if (tool.kind === "page") {
+              addPageBlock(tool.type);
+            }
+
+            setOpenToolMenu(null);
+          }}
+          draggable
+          onDragStart={(e) => {
+            const payload: ToolDropPayload =
+              tool.kind === "block"
+                ? {
+                    kind: "block",
+                    type: tool.type,
+                    label: tool.label,
+                    iconName:
+                      "iconName" in tool
+                        ? tool.iconName
+                        : undefined,
+                    iconUrl:
+                      tool.type === "icon"
+                        ? `/media-icons/${
+                            "iconName" in tool
+                              ? tool.iconName ?? "star"
+                              : "star"
+                          }.svg`
+                        : undefined,
+                  }
+                : tool.kind === "shape"
+                  ? {
+                      kind: "shape",
+                      type: tool.type,
+                    }
+                  : {
+                      kind: "page",
+                      type: tool.type,
+                    };
+
+            e.dataTransfer.setData(
+              "application/kht-tool",
+              JSON.stringify(payload),
+            );
+          }}
+          title={tool.label}
+        >
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-neutral-200 bg-neutral-50 text-sm font-semibold text-neutral-800">
+            {renderToolGlyph(tool, "h-5 w-5")}
           </span>
-          <span className="block truncate text-xs text-neutral-500">
-            {TOOL_DESCRIPTIONS[tool.label] ?? "Drag onto canvas to add"}
+
+          <span className="min-w-0">
+            <span className="block text-sm font-semibold text-neutral-900">
+              {tool.label}
+            </span>
+
+            <span className="block truncate text-xs text-neutral-500">
+              {TOOL_DESCRIPTIONS[tool.label] ??
+                "Drag onto canvas to add"}
+            </span>
           </span>
-        </span>
-      </button>
-    ))}
+        </button>
+      ))}
   </div>
 )}
             </div>
@@ -18897,10 +18978,26 @@ onChange={(e) => {
     return;
   }
 
-  const firstMatch = CATEGORY_ORDER.flatMap((category) =>
-    CATEGORY_BUTTONS[category].map((tool) => ({ category, tool })),
-  ).find(({ category, tool }) =>
-    toolMatchesSearch(normalizedQuery, category, tool),
+const firstMatch = CATEGORY_ORDER
+  .filter(
+    (category) =>
+      category !== "Icons",
+  )
+  .flatMap((category) =>
+    CATEGORY_BUTTONS[
+      category
+    ].map((tool) => ({
+      category,
+      tool,
+    })),
+  )
+  .find(
+    ({ category, tool }) =>
+      toolMatchesSearch(
+        normalizedQuery,
+        category,
+        tool,
+      ),
   );
 
 if (!firstMatch) return;
