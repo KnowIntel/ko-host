@@ -18146,16 +18146,39 @@ const selectedOptionTextStyle:
               "Poll"}
           </div>
 
-          <div
+<div
   className={[
     "mt-3",
 
     (block.data.choiceLayout ?? "stacked") === "grid"
-      ? "grid grid-cols-2 gap-2"
+      ? "grid gap-2"
       : (block.data.choiceLayout ?? "stacked") === "linear"
         ? "flex flex-nowrap gap-2"
         : "flex flex-col gap-2",
   ].join(" ")}
+  style={{
+    ...((block.data.choiceLayout ?? "stacked") === "grid"
+      ? {
+          gridTemplateColumns:
+            `repeat(${Math.max(
+              1,
+              Math.min(
+                12,
+                Number(block.data.gridColumns ?? 2),
+              ),
+            )}, minmax(0, 1fr))`,
+
+          gridTemplateRows:
+            `repeat(${Math.max(
+              1,
+              Math.min(
+                12,
+                Number(block.data.gridRows ?? 2),
+              ),
+            )}, auto)`,
+        }
+      : {}),
+  }}
 >
             {options.map(
               (
@@ -18355,13 +18378,22 @@ className={[
     ...((block.data.choiceLayout ?? "stacked") === "grid"
       ? {
           gridTemplateColumns:
-            options.length <= 1
-              ? "minmax(0, 1fr)"
-              : options.length === 2
-                ? "repeat(2, minmax(0, 1fr))"
-                : options.length === 3
-                  ? "repeat(3, minmax(0, 1fr))"
-                  : "repeat(4, minmax(0, 1fr))",
+            `repeat(${Math.max(
+              1,
+              Math.min(
+                12,
+                Number(block.data.gridColumns ?? 2),
+              ),
+            )}, minmax(0, 1fr))`,
+
+          gridTemplateRows:
+            `repeat(${Math.max(
+              1,
+              Math.min(
+                12,
+                Number(block.data.gridRows ?? 2),
+              ),
+            )}, auto)`,
         }
       : {}),
   }}

@@ -353,6 +353,136 @@ export function PollInspector({
           </select>
         </div>
 
+{/* CHOICE LAYOUT */}
+
+<div className="mt-4">
+  <div
+    className={
+      inspectorLabelClass()
+    }
+  >
+    Choice Layout
+  </div>
+
+  <select
+    value={
+      selectedBlock.data
+        .choiceLayout ??
+      "stacked"
+    }
+    onChange={(e) =>
+      updatePollData({
+        choiceLayout:
+          e.target.value ===
+          "grid"
+            ? "grid"
+            : e.target.value ===
+                "linear"
+              ? "linear"
+              : "stacked",
+      })
+    }
+    className={
+      inspectorInputClass()
+    }
+  >
+    <option value="stacked">
+      Stacked
+    </option>
+
+    <option value="grid">
+      Grid
+    </option>
+
+    <option value="linear">
+      Linear
+    </option>
+  </select>
+
+  {(selectedBlock.data.choiceLayout ??
+    "stacked") === "grid" ? (
+    <div className="mt-4 grid grid-cols-2 gap-3">
+      <div>
+        <div
+          className={
+            inspectorLabelClass()
+          }
+        >
+          Grid Columns
+        </div>
+
+        <input
+          type="number"
+          min={1}
+          max={12}
+          step={1}
+          value={
+            selectedBlock.data
+              .gridColumns ??
+            2
+          }
+          onChange={(e) =>
+            updatePollData({
+              gridColumns:
+                Math.max(
+                  1,
+                  Math.min(
+                    12,
+                    Number(
+                      e.target.value,
+                    ) || 1,
+                  ),
+                ),
+            })
+          }
+          className={
+            inspectorInputClass()
+          }
+        />
+      </div>
+
+      <div>
+        <div
+          className={
+            inspectorLabelClass()
+          }
+        >
+          Grid Rows
+        </div>
+
+        <input
+          type="number"
+          min={1}
+          max={12}
+          step={1}
+          value={
+            selectedBlock.data
+              .gridRows ??
+            2
+          }
+          onChange={(e) =>
+            updatePollData({
+              gridRows:
+                Math.max(
+                  1,
+                  Math.min(
+                    12,
+                    Number(
+                      e.target.value,
+                    ) || 1,
+                  ),
+                ),
+            })
+          }
+          className={
+            inspectorInputClass()
+          }
+        />
+      </div>
+    </div>
+  ) : null}
+</div>
+
         {/* FORMATTING */}
 
         <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
@@ -628,53 +758,6 @@ export function PollInspector({
                 </option>
               </select>
             </div>
-
-{/* CHOICE LAYOUT */}
-
-<div className="mt-4">
-  <div
-    className={
-      inspectorLabelClass()
-    }
-  >
-    Choice Layout
-  </div>
-
-  <select
-    value={
-      selectedBlock.data
-        .choiceLayout ??
-      "stacked"
-    }
-    onChange={(e) =>
-      updatePollData({
-        choiceLayout:
-          e.target.value ===
-          "grid"
-            ? "grid"
-            : e.target.value ===
-                "linear"
-              ? "linear"
-              : "stacked",
-      })
-    }
-    className={
-      inspectorInputClass()
-    }
-  >
-    <option value="stacked">
-      Stacked
-    </option>
-
-    <option value="grid">
-      Grid
-    </option>
-
-    <option value="linear">
-      Linear
-    </option>
-  </select>
-</div>
 
             {/* TITLE FRAME */}
 
