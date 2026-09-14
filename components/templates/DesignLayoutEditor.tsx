@@ -13579,60 +13579,78 @@ function nudgeSelectedBlock(
 
 
 const handleJumpToFullCanvasView = () => {
-  if (fullCanvasViewLocked) {
-    setFullCanvasViewLocked(false);
-    return;
-  }
+  setFullCanvasViewLocked((current) => {
+    const nextLocked = !current;
 
-  useEffect(() => {
+    if (nextLocked) {
+      window.requestAnimationFrame(() => {
+        topBarScrollRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      });
+    }
+
+    return nextLocked;
+  });
+};
+
+useEffect(() => {
   if (!fullCanvasViewLocked) {
     return;
   }
 
-  let lockArmed = false;
+  const getMinimumScrollY = () => {
+    const toolbar = topBarScrollRef.current;
 
-  const getLockTop = () => {
-    const element = topBarScrollRef.current;
-
-    if (!element) {
+    if (!toolbar) {
       return 0;
     }
 
-    return Math.max(
-      0,
-      element.getBoundingClientRect().top +
-        window.scrollY,
+    return (
+      toolbar.getBoundingClientRect().top +
+      window.scrollY
     );
   };
 
-  const enforceFullCanvasLock = () => {
-    if (!lockArmed) {
-      return;
+  let minimumScrollY = getMinimumScrollY();
+
+  const handleScroll = () => {
+    if (
+      fullCanvasViewLocked &&
+      window.scrollY < minimumScrollY
+    ) {
+      window.scrollTo(
+        window.scrollX,
+        minimumScrollY,
+      );
     }
+  };
 
-    const lockTop = getLockTop();
+  const handleResize = () => {
+    minimumScrollY = getMinimumScrollY();
+    handleScroll();
+  };
 
-    if (window.scrollY < lockTop) {
+  /*
+   * Recalculate once the smooth jump has had
+   * enough time to establish the toolbar position.
+   */
+  const timer = window.setTimeout(() => {
+    minimumScrollY = getMinimumScrollY();
+
+    if (window.scrollY < minimumScrollY) {
       window.scrollTo({
-        top: lockTop,
+        top: minimumScrollY,
         left: window.scrollX,
         behavior: "auto",
       });
     }
-  };
-
-  /*
-   * Allow the initial smooth scroll into full-canvas
-   * position to finish before enforcing the lock.
-   */
-  const armTimer = window.setTimeout(() => {
-    lockArmed = true;
-    enforceFullCanvasLock();
-  }, 500);
+  }, 400);
 
   window.addEventListener(
     "scroll",
-    enforceFullCanvasLock,
+    handleScroll,
     {
       passive: true,
     },
@@ -13640,31 +13658,23 @@ const handleJumpToFullCanvasView = () => {
 
   window.addEventListener(
     "resize",
-    enforceFullCanvasLock,
+    handleResize,
   );
 
   return () => {
-    window.clearTimeout(armTimer);
+    window.clearTimeout(timer);
 
     window.removeEventListener(
       "scroll",
-      enforceFullCanvasLock,
+      handleScroll,
     );
 
     window.removeEventListener(
       "resize",
-      enforceFullCanvasLock,
+      handleResize,
     );
   };
 }, [fullCanvasViewLocked]);
-
-  setFullCanvasViewLocked(true);
-
-  topBarScrollRef.current?.scrollIntoView({
-    behavior: "smooth",
-    block: "start",
-  });
-};
 
 const galleryImageCardRefs = useRef<
   Record<string, HTMLDivElement | null>
