@@ -658,7 +658,7 @@ type BottomCategory =
   | "Forms"
   | "Exchange"
   | "Utilities"
-  | "Data & Metrics"
+  | "Data"
   | "Scheduling"
   | "Infographics"
   | "Premium";
@@ -715,7 +715,7 @@ const CATEGORY_ORDER: BottomCategory[] = [
   "Forms",
   "Exchange",
   "Utilities",
-  "Data & Metrics",
+  "Data",
   "Scheduling",
   "Infographics",
   "Premium",
@@ -1218,7 +1218,7 @@ Utilities: [
   { kind: "block", label: "Puzzle", type: "puzzle" },
   { kind: "block", label: "Spin Wheel", type: "spin_wheel" },
 ],
-  "Data & Metrics": [
+  "Data": [
     { kind: "block", label: "Highlight", type: "highlight" },
     { kind: "block", label: "Summary", type: "summary" },
     { kind: "block", label: "Visitor Counter", type: "visitor_counter" },
@@ -2136,7 +2136,7 @@ function getCategoryIconPath(category: BottomCategory) {
   if (category === "Forms") return "/menu-icons/menu-forms.svg";
   if (category === "Exchange") return "/menu-icons/menu-exchange.svg";
   if (category === "Utilities") return "/menu-icons/menu-utilities.svg";
-  if (category === "Data & Metrics") return "/menu-icons/menu-data-metrics.svg";
+  if (category === "Data") return "/menu-icons/menu-data-metrics.svg";
   if (category === "Scheduling") return "/menu-icons/menu-scheduling.svg";
   if (category === "Infographics") return "/menu-icons/menu-infographics.svg";
   if (category === "Premium") return "/menu-icons/menu-premium.svg";
