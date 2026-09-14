@@ -1,6 +1,9 @@
 "use client";
 
-import type { RefObject } from "react";
+import {
+  useState,
+  type RefObject,
+} from "react";
 
 import type {
   PollStyleTarget,
@@ -87,6 +90,59 @@ export function PollInspector({
 
   toolSetButtonClass,
 }: PollInspectorProps) {
+const [
+  showcaseFramesExpanded,
+  setShowcaseFramesExpanded,
+] = useState(true);
+
+const [
+  choiceFrameExpanded,
+  setChoiceFrameExpanded,
+] = useState(true);
+
+const [
+  imageFrameExpanded,
+  setImageFrameExpanded,
+] = useState(true);
+
+const [
+  selectionIndicatorExpanded,
+  setSelectionIndicatorExpanded,
+] = useState(true);
+
+const [
+  submitButtonExpanded,
+  setSubmitButtonExpanded,
+] = useState(true);
+
+const [
+  expandedChoiceIds,
+  setExpandedChoiceIds,
+] = useState<Record<string, boolean>>({});
+
+function isChoiceExpanded(
+  optionId: string,
+) {
+  return expandedChoiceIds[
+    optionId
+  ] ?? true;
+}
+
+function toggleChoiceExpanded(
+  optionId: string,
+) {
+  setExpandedChoiceIds(
+    (current) => ({
+      ...current,
+
+      [optionId]:
+        !(current[
+          optionId
+        ] ?? true),
+    }),
+  );
+}
+
   const styleVariant =
     selectedBlock?.data
       ?.styleVariant ===
@@ -295,313 +351,311 @@ export function PollInspector({
     );
   }
 
-  
+return (
+  <div className="space-y-4">
+    {/* ================================================================ */}
+    {/* POLL */}
+    {/* ================================================================ */}
 
-        {/* FORMATTING */}
-
-        <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
-          <div
-            className={
-              inspectorLabelClass()
-            }
-          >
-            Formatting
-          </div>
-
-          <div className="mt-3">
-            <div
-              className={
-                inspectorLabelClass()
-              }
-            >
-              Text Target
-            </div>
-
-            <select
-              value={
-                pollTextTarget
-              }
-              onChange={(e) =>
-                setPollTextTarget(
-                  e.target
-                    .value as PollTextTarget,
-                )
-              }
-              className={
-                inspectorInputClass()
-              }
-            >
-<option value="question">
-  {isShowcase
-    ? "Poll Title"
-    : "Poll Question"}
-</option>
-
-<option value="optionText">
-  Choice Label
-</option>
-
-{isShowcase ? (
-  <>
-    <option value="selectedOptionText">
-      Selected Choice Label
-    </option>
-
-    <option value="submitButton">
-      Submit Button Label
-    </option>
-  </>
-) : null}
-            </select>
-          </div>
-
-          <div className="mt-3">
-            <div
-              className={
-                inspectorLabelClass()
-              }
-            >
-              Style Target
-            </div>
-
-            <select
-              value={
-                pollStyleTarget
-              }
-              onChange={(e) =>
-                setPollStyleTarget(
-                  e.target
-                    .value as PollStyleTarget,
-                )
-              }
-              className={
-                inspectorInputClass()
-              }
-            >
-{!isShowcase ? (
-  <option value="field">
-    Field
-  </option>
-) : null}
-
-<option value="block">
-  Block
-</option>
-
-{isShowcase ? (
-  <>
-    <option value="titleFrame">
-      Title Frame
-    </option>
-
-    <option value="optionFrame">
-      Choice Frame
-    </option>
-
-    <option value="imageFrame">
-      Image Frame
-    </option>
-
-    <option value="selectionIndicator">
-      Selection Indicator
-    </option>
-
-    <option value="submitButton">
-      Submit Button
-    </option>
-  </>
-) : null}
-            </select>
-          </div>
-        </div>
-
-  return (
-    <div className="space-y-4">
-      {/* ================================================================ */}
-      {/* POLL */}
-      {/* ================================================================ */}
-
+    <div
+      id="inspector-poll"
+      className={
+        inspectorCardClass()
+      }
+    >
       <div
-        id="inspector-poll"
         className={
-          inspectorCardClass()
+          inspectorLabelClass()
         }
       >
+        Poll
+      </div>
+
+      {/* FORMATTING */}
+
+      <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
         <div
           className={
             inspectorLabelClass()
           }
         >
-          Poll
+          Formatting
         </div>
 
-        {/* STYLE VARIANT */}
-
-        <div className="mt-4">
+        <div className="mt-3">
           <div
             className={
               inspectorLabelClass()
             }
           >
-            Style Variant
+            Text Target
           </div>
 
           <select
             value={
-              styleVariant
+              pollTextTarget
             }
             onChange={(e) =>
-              updatePollData({
-                styleVariant:
-                  e.target.value ===
-                  "showcase"
-                    ? "showcase"
-                    : "simple",
-              })
+              setPollTextTarget(
+                e.target
+                  .value as PollTextTarget,
+              )
             }
             className={
               inspectorInputClass()
             }
           >
-            <option value="simple">
-              Simple
+            <option value="question">
+              {isShowcase
+                ? "Poll Title"
+                : "Poll Question"}
             </option>
 
-            <option value="showcase">
-              Showcase
+            <option value="optionText">
+              Choice Label
             </option>
+
+            {isShowcase ? (
+              <>
+                <option value="selectedOptionText">
+                  Selected Choice Label
+                </option>
+
+                <option value="submitButton">
+                  Submit Button Label
+                </option>
+              </>
+            ) : null}
           </select>
         </div>
 
-{/* CHOICE LAYOUT */}
+        <div className="mt-3">
+          <div
+            className={
+              inspectorLabelClass()
+            }
+          >
+            Style Target
+          </div>
 
-<div className="mt-4">
-  <div
-    className={
-      inspectorLabelClass()
-    }
-  >
-    Choice Layout
-  </div>
+          <select
+            value={
+              pollStyleTarget
+            }
+            onChange={(e) =>
+              setPollStyleTarget(
+                e.target
+                  .value as PollStyleTarget,
+              )
+            }
+            className={
+              inspectorInputClass()
+            }
+          >
+            {!isShowcase ? (
+              <option value="field">
+                Field
+              </option>
+            ) : null}
 
-  <select
-    value={
-      selectedBlock.data
-        .choiceLayout ??
-      "stacked"
-    }
-    onChange={(e) =>
-      updatePollData({
-        choiceLayout:
-          e.target.value ===
-          "grid"
-            ? "grid"
-            : e.target.value ===
-                "linear"
-              ? "linear"
-              : "stacked",
-      })
-    }
-    className={
-      inspectorInputClass()
-    }
-  >
-    <option value="stacked">
-      Stacked
-    </option>
+            <option value="block">
+              Block
+            </option>
 
-    <option value="grid">
-      Grid
-    </option>
+            {isShowcase ? (
+              <>
+                <option value="titleFrame">
+                  Title Frame
+                </option>
 
-    <option value="linear">
-      Linear
-    </option>
-  </select>
+                <option value="optionFrame">
+                  Choice Frame
+                </option>
 
-  {(selectedBlock.data.choiceLayout ??
-    "stacked") === "grid" ? (
-    <div className="mt-4 grid grid-cols-2 gap-3">
-      <div>
+                <option value="imageFrame">
+                  Image Frame
+                </option>
+
+                <option value="selectionIndicator">
+                  Selection Indicator
+                </option>
+
+                <option value="submitButton">
+                  Submit Button
+                </option>
+              </>
+            ) : null}
+          </select>
+        </div>
+      </div>
+
+      {/* STYLE VARIANT */}
+
+      <div className="mt-4">
         <div
           className={
             inspectorLabelClass()
           }
         >
-          Grid Columns
+          Style Variant
         </div>
 
-        <input
-          type="number"
-          min={1}
-          max={12}
-          step={1}
+        <select
           value={
-            selectedBlock.data
-              .gridColumns ??
-            2
+            styleVariant
           }
           onChange={(e) =>
             updatePollData({
-              gridColumns:
-                Math.max(
-                  1,
-                  Math.min(
-                    12,
-                    Number(
-                      e.target.value,
-                    ) || 1,
-                  ),
-                ),
+              styleVariant:
+                e.target.value ===
+                "showcase"
+                  ? "showcase"
+                  : "simple",
             })
           }
           className={
             inspectorInputClass()
           }
-        />
+        >
+          <option value="simple">
+            Simple
+          </option>
+
+          <option value="showcase">
+            Showcase
+          </option>
+        </select>
       </div>
 
-      <div>
+      {/* CHOICE LAYOUT */}
+
+      <div className="mt-4">
         <div
           className={
             inspectorLabelClass()
           }
         >
-          Grid Rows
+          Choice Layout
         </div>
 
-        <input
-          type="number"
-          min={1}
-          max={12}
-          step={1}
+        <select
           value={
             selectedBlock.data
-              .gridRows ??
-            2
+              .choiceLayout ??
+            "stacked"
           }
           onChange={(e) =>
             updatePollData({
-              gridRows:
-                Math.max(
-                  1,
-                  Math.min(
-                    12,
-                    Number(
-                      e.target.value,
-                    ) || 1,
-                  ),
-                ),
+              choiceLayout:
+                e.target.value ===
+                "grid"
+                  ? "grid"
+                  : e.target.value ===
+                      "linear"
+                    ? "linear"
+                    : "stacked",
             })
           }
           className={
             inspectorInputClass()
           }
-        />
+        >
+          <option value="stacked">
+            Stacked
+          </option>
+
+          <option value="grid">
+            Grid
+          </option>
+
+          <option value="linear">
+            Linear
+          </option>
+        </select>
+
+        {(selectedBlock.data.choiceLayout ??
+          "stacked") === "grid" ? (
+          <div className="mt-4 grid grid-cols-2 gap-3">
+            <div>
+              <div
+                className={
+                  inspectorLabelClass()
+                }
+              >
+                Grid Columns
+              </div>
+
+              <input
+                type="number"
+                min={1}
+                max={12}
+                step={1}
+                value={
+                  selectedBlock.data
+                    .gridColumns ??
+                  2
+                }
+                onChange={(e) =>
+                  updatePollData({
+                    gridColumns:
+                      Math.max(
+                        1,
+                        Math.min(
+                          12,
+                          Number(
+                            e.target.value,
+                          ) || 1,
+                        ),
+                      ),
+                  })
+                }
+                className={
+                  inspectorInputClass()
+                }
+              />
+            </div>
+
+            <div>
+              <div
+                className={
+                  inspectorLabelClass()
+                }
+              >
+                Grid Rows
+              </div>
+
+              <input
+                type="number"
+                min={1}
+                max={12}
+                step={1}
+                value={
+                  selectedBlock.data
+                    .gridRows ??
+                  2
+                }
+                onChange={(e) =>
+                  updatePollData({
+                    gridRows:
+                      Math.max(
+                        1,
+                        Math.min(
+                          12,
+                          Number(
+                            e.target.value,
+                          ) || 1,
+                        ),
+                      ),
+                  })
+                }
+                className={
+                  inspectorInputClass()
+                }
+              />
+            </div>
+          </div>
+        ) : null}
       </div>
-    </div>
-  ) : null}
-</div>
 
         {/* QUESTION / TITLE */}
 
@@ -936,55 +990,45 @@ export function PollInspector({
   />
 </div>
 
-            {/* SUBMIT BUTTON */}
-
-            <div className="mt-5">
-              <div
-                className={
-                  inspectorLabelClass()
-                }
-              >
-                Submit Button Label
-              </div>
-
-              <input
-                type="text"
-                value={
-                  selectedBlock.data
-                    .submitButtonText ??
-                  "Submit Vote"
-                }
-                onChange={(e) =>
-                  updatePollData({
-                    submitButtonText:
-                      e.target.value,
-                  })
-                }
-                className={
-                  inspectorInputClass()
-                }
-              />
-            </div>
           </div>
 
           {/* ============================================================ */}
           {/* SHOWCASE FRAMES */}
           {/* ============================================================ */}
 
-          <div
-            className={
-              inspectorCardClass()
-            }
-          >
-            <div
-              className={
-                inspectorLabelClass()
-              }
-            >
-              Showcase Frames
-            </div>
+<div
+  className={
+    inspectorCardClass()
+  }
+>
+  <button
+    type="button"
+    onClick={() =>
+      setShowcaseFramesExpanded(
+        (current) =>
+          !current,
+      )
+    }
+    className="flex w-full items-center justify-between gap-3 text-left"
+  >
+    <div
+      className={
+        inspectorLabelClass()
+      }
+    >
+      Showcase Frames
+    </div>
 
-            {/* TITLE FRAME */}
+    <div className="text-xs font-medium text-neutral-500">
+      {showcaseFramesExpanded
+        ? "Collapse"
+        : "Expand"}
+    </div>
+  </button>
+
+  {showcaseFramesExpanded ? (
+    <>
+      {/* TITLE FRAME */}
 
             <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
               <div className="text-sm font-semibold text-neutral-800">
@@ -1138,12 +1182,32 @@ export function PollInspector({
               </div>
             </div>
 
-            {/* OPTION FRAME */}
+{/* OPTION FRAME */}
 
-            <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
-              <div className="text-sm font-semibold text-neutral-800">
-                Choice Frame
-              </div>
+<div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+  <button
+    type="button"
+    onClick={() =>
+      setChoiceFrameExpanded(
+        (current) =>
+          !current,
+      )
+    }
+    className="flex w-full items-center justify-between gap-3 text-left"
+  >
+    <div className="text-sm font-semibold text-neutral-800">
+      Choice Frame
+    </div>
+
+    <div className="text-xs font-medium text-neutral-500">
+      {choiceFrameExpanded
+        ? "Collapse"
+        : "Expand"}
+    </div>
+  </button>
+
+  {choiceFrameExpanded ? (
+    <>
 
               <div className="mt-3 grid grid-cols-2 gap-3">
                 <div>
@@ -1295,14 +1359,36 @@ export function PollInspector({
                   className="mt-2 w-full"
                 />
               </div>
-            </div>
+    </>
+  ) : null}
+</div>
 
-            {/* IMAGE FRAME */}
+{/* IMAGE FRAME */}
 
-            <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
-              <div className="text-sm font-semibold text-neutral-800">
-                Image Frame
-              </div>
+<div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+  <button
+    type="button"
+    onClick={() =>
+      setImageFrameExpanded(
+        (current) =>
+          !current,
+      )
+    }
+    className="flex w-full items-center justify-between gap-3 text-left"
+  >
+    <div className="text-sm font-semibold text-neutral-800">
+      Image Frame
+    </div>
+
+    <div className="text-xs font-medium text-neutral-500">
+      {imageFrameExpanded
+        ? "Collapse"
+        : "Expand"}
+    </div>
+  </button>
+
+  {imageFrameExpanded ? (
+    <>
 
               <div className="mt-3 grid grid-cols-2 gap-3">
                 <div>
@@ -1449,477 +1535,319 @@ export function PollInspector({
                   className="mt-2 w-full"
                 />
               </div>
-            </div>
-          </div>
-
-          {/* ============================================================ */}
-          {/* SELECTION INDICATOR */}
-          {/* ============================================================ */}
-
-          <div
-            className={
-              inspectorCardClass()
-            }
-          >
-            <div
-              className={
-                inspectorLabelClass()
-              }
-            >
-              Selection Indicator
-            </div>
-
-            <div className="mt-4">
-              <div className="flex items-center justify-between gap-3">
-                <div
-                  className={
-                    inspectorLabelClass()
-                  }
-                >
-                  Circle Size
-                </div>
-
-                <div className="text-xs text-neutral-500">
-                  {selectedBlock.data
-                    .selectionIndicatorStyle
-                    ?.size ??
-                    34}
-                  px
-                </div>
-              </div>
-
-              <input
-                type="range"
-                min={18}
-                max={72}
-                value={
-                  selectedBlock.data
-                    .selectionIndicatorStyle
-                    ?.size ??
-                  34
-                }
-                onChange={(e) =>
-                  updateSelectionIndicatorStyle({
-                    size:
-                      Number(
-                        e.target.value,
-                      ),
-                  })
-                }
-                className="mt-2 w-full"
-              />
-            </div>
-
-            <div className="mt-4 grid grid-cols-2 gap-3">
-              <div>
-                <div
-                  className={
-                    inspectorLabelClass()
-                  }
-                >
-                  Unselected Border
-                </div>
-
-                <input
-                  type="color"
-                  value={
-                    selectedBlock.data
-                      .selectionIndicatorStyle
-                      ?.borderColor ??
-                    "#FFFFFF"
-                  }
-                  onChange={(e) =>
-                    updateSelectionIndicatorStyle({
-                      borderColor:
-                        e.target.value,
-                    })
-                  }
-                  className={
-                    inspectorInputClass()
-                  }
-                />
-              </div>
-
-              <div>
-                <div
-                  className={
-                    inspectorLabelClass()
-                  }
-                >
-                  Selected Color
-                </div>
-
-                <input
-                  type="color"
-                  value={
-                    selectedBlock.data
-                      .selectionIndicatorStyle
-                      ?.selectedColor ??
-                    "#C9922E"
-                  }
-                  onChange={(e) =>
-                    updateSelectionIndicatorStyle({
-                      selectedColor:
-                        e.target.value,
-                    })
-                  }
-                  className={
-                    inspectorInputClass()
-                  }
-                />
-              </div>
-            </div>
-
-            <div className="mt-4">
-              <div className="flex items-center justify-between gap-3">
-                <div
-                  className={
-                    inspectorLabelClass()
-                  }
-                >
-                  Circle Border Width
-                </div>
-
-                <div className="text-xs text-neutral-500">
-                  {selectedBlock.data
-                    .selectionIndicatorStyle
-                    ?.borderWidth ??
-                    2}
-                  px
-                </div>
-              </div>
-
-              <input
-                type="range"
-                min={1}
-                max={10}
-                value={
-                  selectedBlock.data
-                    .selectionIndicatorStyle
-                    ?.borderWidth ??
-                  2
-                }
-                onChange={(e) =>
-                  updateSelectionIndicatorStyle({
-                    borderWidth:
-                      Number(
-                        e.target.value,
-                      ),
-                  })
-                }
-                className="mt-2 w-full"
-              />
-            </div>
-
-            {/* INDICATOR POSITION */}
-
-<div className="mt-5 border-t border-neutral-200 pt-4">
-  <div className="text-sm font-semibold text-neutral-800">
-    Position
-  </div>
-
-  {/* HORIZONTAL POSITION */}
-
-  <div className="mt-4">
-    <div className="flex items-center justify-between gap-3">
-      <div
-        className={
-          inspectorLabelClass()
-        }
-      >
-        Horizontal Position
-      </div>
-
-      <div className="text-xs text-neutral-500">
-        {selectedBlock.data
-          .selectionIndicatorStyle
-          ?.positionX ??
-          50}
-        %
-      </div>
-    </div>
-
-    <input
-      type="range"
-      min={0}
-      max={100}
-      step={1}
-      value={
-        selectedBlock.data
-          .selectionIndicatorStyle
-          ?.positionX ??
-        50
-      }
-      onChange={(e) =>
-        updateSelectionIndicatorStyle({
-          positionX:
-            Number(
-              e.target.value,
-            ),
-        })
-      }
-      className="mt-2 w-full"
-    />
-  </div>
-
-  {/* VERTICAL POSITION */}
-
-  <div className="mt-4">
-    <div className="flex items-center justify-between gap-3">
-      <div
-        className={
-          inspectorLabelClass()
-        }
-      >
-        Vertical Position
-      </div>
-
-      <div className="text-xs text-neutral-500">
-        {selectedBlock.data
-          .selectionIndicatorStyle
-          ?.positionY ??
-          50}
-        %
-      </div>
-    </div>
-
-    <input
-      type="range"
-      min={0}
-      max={100}
-      step={1}
-      value={
-        selectedBlock.data
-          .selectionIndicatorStyle
-          ?.positionY ??
-        50
-      }
-      onChange={(e) =>
-        updateSelectionIndicatorStyle({
-          positionY:
-            Number(
-              e.target.value,
-            ),
-        })
-      }
-      className="mt-2 w-full"
-    />
-  </div>
+    </>
+  ) : null}
 </div>
-          </div>
 
-          {/* ============================================================ */}
-          {/* SUBMIT BUTTON APPEARANCE */}
-          {/* ============================================================ */}
+    </>
+  ) : null}
+</div>
 
-          <div
-            className={
-              inspectorCardClass()
-            }
-          >
-            <div
-              className={
-                inspectorLabelClass()
-              }
-            >
-              Submit Button
-            </div>
+{/* ============================================================ */}
+{/* SELECTION INDICATOR */}
+{/* ============================================================ */}
 
-            <div className="mt-4 grid grid-cols-2 gap-3">
-              <div>
-                <div
-                  className={
-                    inspectorLabelClass()
-                  }
-                >
-                  Background
-                </div>
-
-                <input
-                  type="color"
-                  value={
-                    selectedBlock.data
-                      .submitButtonStyle
-                      ?.backgroundColor ??
-                    "#B91C1C"
-                  }
-                  onChange={(e) =>
-                    updateSubmitButtonStyle({
-                      backgroundColor:
-                        e.target.value,
-                    })
-                  }
-                  className={
-                    inspectorInputClass()
-                  }
-                />
-              </div>
-
-              <div>
-                <div
-                  className={
-                    inspectorLabelClass()
-                  }
-                >
-                  Border
-                </div>
-
-                <input
-                  type="color"
-                  value={
-                    selectedBlock.data
-                      .submitButtonStyle
-                      ?.borderColor ??
-                    "#EF4444"
-                  }
-                  onChange={(e) =>
-                    updateSubmitButtonStyle({
-                      borderColor:
-                        e.target.value,
-                    })
-                  }
-                  className={
-                    inspectorInputClass()
-                  }
-                />
-              </div>
-            </div>
-
-{/* CORNER RADIUS */}
-
-<div className="mt-4">
-  <div className="flex items-center justify-between gap-3">
+<div
+  className={
+    inspectorCardClass()
+  }
+>
+  <button
+    type="button"
+    onClick={() =>
+      setSelectionIndicatorExpanded(
+        (current) =>
+          !current,
+      )
+    }
+    className="flex w-full items-center justify-between gap-3 text-left"
+  >
     <div
       className={
         inspectorLabelClass()
       }
     >
-      Corner Radius
+      Selection Indicator
     </div>
 
-    <div className="text-xs text-neutral-500">
-      {selectedBlock.data
-        .submitButtonStyle
-        ?.borderRadius ??
-        10}
-      px
+    <div className="text-xs font-medium text-neutral-500">
+      {selectionIndicatorExpanded
+        ? "Collapse"
+        : "Expand"}
     </div>
-  </div>
+  </button>
 
-  <input
-    type="range"
-    min={0}
-    max={60}
-    step={1}
-    value={
-      selectedBlock.data
-        .submitButtonStyle
-        ?.borderRadius ??
-      10
-    }
-    onChange={(e) =>
-      updateSubmitButtonStyle({
-        borderRadius:
-          Number(
-            e.target.value,
-          ),
-      })
-    }
-    className="mt-2 w-full"
-  />
-</div>
-
-{/* BUTTON PADDING */}
-
-<div className="mt-4">
-  <div className="flex items-center justify-between gap-3">
-    <div
-      className={
-        inspectorLabelClass()
-      }
-    >
-      Padding Size
-    </div>
-
-    <div className="text-xs text-neutral-500">
-      {selectedBlock.data
-        .submitButtonStyle
-        ?.padding ??
-        14}
-      px
-    </div>
-  </div>
-
-  <input
-    type="range"
-    min={4}
-    max={40}
-    step={1}
-    value={
-      selectedBlock.data
-        .submitButtonStyle
-        ?.padding ??
-      14
-    }
-    onChange={(e) =>
-      updateSubmitButtonStyle({
-        padding:
-          Number(
-            e.target.value,
-          ),
-      })
-    }
-    className="mt-2 w-full"
-  />
-</div>
-          </div>
-        </>
-      ) : null}
-
-      {/* ================================================================ */}
-      {/* OPTIONS */}
-      {/* ================================================================ */}
-
-      <div
-        className={
-          inspectorCardClass()
-        }
-      >
+  {selectionIndicatorExpanded ? (
+    <>
+      <div className="mt-4">
         <div className="flex items-center justify-between gap-3">
           <div
             className={
               inspectorLabelClass()
             }
           >
-            Choices
+            Circle Size
           </div>
 
           <div className="text-xs text-neutral-500">
-            {options.length}{" "}
-            {options.length === 1
-              ? "choice"
-              : "choices"}
+            {selectedBlock.data
+              .selectionIndicatorStyle
+              ?.size ??
+              34}
+            px
           </div>
         </div>
 
-        <div className="mt-4 space-y-4">
-          {options.map(
-            (
-              option: any,
-              index: number,
-            ) => (
-              <div
-                key={
-                  option.id
-                }
-                className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4"
-              >
-                <div className="text-sm font-semibold text-neutral-900">
-                  Choice{" "}
-                  {index + 1}
-                </div>
+        <input
+          type="range"
+          min={18}
+          max={72}
+          value={
+            selectedBlock.data
+              .selectionIndicatorStyle
+              ?.size ??
+            34
+          }
+          onChange={(e) =>
+            updateSelectionIndicatorStyle({
+              size:
+                Number(
+                  e.target.value,
+                ),
+            })
+          }
+          className="mt-2 w-full"
+        />
+      </div>
 
-                {/* LABEL */}
+      <div className="mt-4 grid grid-cols-2 gap-3">
+        <div>
+          <div className="whitespace-nowrap text-[10px] font-medium text-neutral-600">
+            Unselected Border
+          </div>
+
+          <input
+            type="color"
+            value={
+              selectedBlock.data
+                .selectionIndicatorStyle
+                ?.borderColor ??
+              "#FFFFFF"
+            }
+            onChange={(e) =>
+              updateSelectionIndicatorStyle({
+                borderColor:
+                  e.target.value,
+              })
+            }
+            className={
+              inspectorInputClass()
+            }
+          />
+        </div>
+
+        <div>
+          <div className="whitespace-nowrap text-[10px] font-medium text-neutral-600">
+            Selected Color
+          </div>
+
+          <input
+            type="color"
+            value={
+              selectedBlock.data
+                .selectionIndicatorStyle
+                ?.selectedColor ??
+              "#C9922E"
+            }
+            onChange={(e) =>
+              updateSelectionIndicatorStyle({
+                selectedColor:
+                  e.target.value,
+              })
+            }
+            className={
+              inspectorInputClass()
+            }
+          />
+        </div>
+      </div>
+
+      <div className="mt-4">
+        <div className="flex items-center justify-between gap-3">
+          <div
+            className={
+              inspectorLabelClass()
+            }
+          >
+            Circle Border Width
+          </div>
+
+          <div className="text-xs text-neutral-500">
+            {selectedBlock.data
+              .selectionIndicatorStyle
+              ?.borderWidth ??
+              2}
+            px
+          </div>
+        </div>
+
+        <input
+          type="range"
+          min={1}
+          max={10}
+          value={
+            selectedBlock.data
+              .selectionIndicatorStyle
+              ?.borderWidth ??
+            2
+          }
+          onChange={(e) =>
+            updateSelectionIndicatorStyle({
+              borderWidth:
+                Number(
+                  e.target.value,
+                ),
+            })
+          }
+          className="mt-2 w-full"
+        />
+      </div>
+
+      {/* INDICATOR POSITION */}
+
+      <div className="mt-5 border-t border-neutral-200 pt-4">
+        <div className="text-sm font-semibold text-neutral-800">
+          Position
+        </div>
+
+        {/* HORIZONTAL POSITION */}
+
+        <div className="mt-4">
+          <div className="flex items-center justify-between gap-3">
+            <div
+              className={
+                inspectorLabelClass()
+              }
+            >
+              Horizontal Position
+            </div>
+
+            <div className="text-xs text-neutral-500">
+              {selectedBlock.data
+                .selectionIndicatorStyle
+                ?.positionX ??
+                50}
+              %
+            </div>
+          </div>
+
+          <input
+            type="range"
+            min={0}
+            max={100}
+            step={1}
+            value={
+              selectedBlock.data
+                .selectionIndicatorStyle
+                ?.positionX ??
+              50
+            }
+            onChange={(e) =>
+              updateSelectionIndicatorStyle({
+                positionX:
+                  Number(
+                    e.target.value,
+                  ),
+              })
+            }
+            className="mt-2 w-full"
+          />
+        </div>
+
+        {/* VERTICAL POSITION */}
+
+        <div className="mt-4">
+          <div className="flex items-center justify-between gap-3">
+            <div
+              className={
+                inspectorLabelClass()
+              }
+            >
+              Vertical Position
+            </div>
+
+            <div className="text-xs text-neutral-500">
+              {selectedBlock.data
+                .selectionIndicatorStyle
+                ?.positionY ??
+                50}
+              %
+            </div>
+          </div>
+
+          <input
+            type="range"
+            min={0}
+            max={100}
+            step={1}
+            value={
+              selectedBlock.data
+                .selectionIndicatorStyle
+                ?.positionY ??
+              50
+            }
+            onChange={(e) =>
+              updateSelectionIndicatorStyle({
+                positionY:
+                  Number(
+                    e.target.value,
+                  ),
+              })
+            }
+            className="mt-2 w-full"
+          />
+        </div>
+      </div>
+    </>
+  ) : null}
+</div>
+
+{/* ============================================================ */}
+{/* SUBMIT BUTTON APPEARANCE */}
+{/* ============================================================ */}
+          <div
+            className={
+              inspectorCardClass()
+            }
+          >
+            <button
+              type="button"
+              onClick={() =>
+                setSubmitButtonExpanded(
+                  (current) =>
+                    !current,
+                )
+              }
+              className="flex w-full items-center justify-between gap-3 text-left"
+            >
+              <div
+                className={
+                  inspectorLabelClass()
+                }
+              >
+                Submit Button
+              </div>
+
+              <div className="text-xs font-medium text-neutral-500">
+                {submitButtonExpanded
+                  ? "Collapse"
+                  : "Expand"}
+              </div>
+            </button>
+
+            {submitButtonExpanded ? (
+              <>
+                {/* SUBMIT BUTTON LABEL */}
 
                 <div className="mt-4">
                   <div
@@ -1927,28 +1855,21 @@ export function PollInspector({
                       inspectorLabelClass()
                     }
                   >
-                    Label
+                    Submit Button Label
                   </div>
 
                   <input
-                    ref={(el) => {
-                      pollOptionInputRefs.current[
-                        option.id
-                      ] = el;
-                    }}
                     type="text"
                     value={
-                      option.text
+                      selectedBlock.data
+                        .submitButtonText ??
+                      "Submit Vote"
                     }
                     onChange={(e) =>
-                      updatePollOption(
-                        option.id,
-                        {
-                          text:
-                            e.target
-                              .value,
-                        },
-                      )
+                      updatePollData({
+                        submitButtonText:
+                          e.target.value,
+                      })
                     }
                     className={
                       inspectorInputClass()
@@ -1956,343 +1877,675 @@ export function PollInspector({
                   />
                 </div>
 
-                {isShowcase ? (
-                  <>
-                    {/* IMAGE PREVIEW */}
+                {/* BACKGROUND / BORDER */}
 
-                    {option.imageUrl ? (
-                      <div className="mt-4 overflow-hidden rounded-xl border border-neutral-200 bg-white p-2">
-                        <div className="flex min-h-[100px] items-center justify-center">
-                          <img
-                            src={
-                              option.imageUrl
-                            }
-                            alt={
-                              option.imageAlt ||
-                              option.text ||
-                              ""
-                            }
-                            className="max-h-32 max-w-full object-contain"
-                          />
-                        </div>
-                      </div>
-                    ) : null}
-
-                    {/* IMAGE UPLOAD */}
-
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      <button
-                        type="button"
-                        className="inline-flex h-10 items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-700 hover:bg-neutral-100"
-                        onClick={() =>
-                          void uploadPollOptionImage(
-                            selectedBlock.id,
-                            option.id,
-                          )
-                        }
-                      >
-                        {option.imageUrl
-                          ? "Replace Image"
-                          : "Browse Image"}
-                      </button>
-
-                      {option.imageUrl ? (
-                        <button
-                          type="button"
-                          className="inline-flex h-10 items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-600 hover:bg-neutral-100"
-                          onClick={() =>
-                            updatePollOption(
-                              option.id,
-                              {
-                                imageUrl:
-                                  "",
-
-                                imageAlt:
-                                  "",
-
-                                imageStoragePath:
-                                  "",
-
-                                imageSizeBytes:
-                                  0,
-
-                                imageOriginalSizeBytes:
-                                  0,
-
-                                imageMimeType:
-                                  "",
-                              },
-                            )
-                          }
-                        >
-                          Remove
-                        </button>
-                      ) : null}
+                <div className="mt-4 grid grid-cols-2 gap-3">
+                  <div>
+                    <div
+                      className={
+                        inspectorLabelClass()
+                      }
+                    >
+                      Background
                     </div>
 
-                    {/* IMAGE ZOOM */}
+                    <input
+                      type="color"
+                      value={
+                        selectedBlock.data
+                          .submitButtonStyle
+                          ?.backgroundColor ??
+                        "#B91C1C"
+                      }
+                      onChange={(e) =>
+                        updateSubmitButtonStyle({
+                          backgroundColor:
+                            e.target.value,
+                        })
+                      }
+                      className={
+                        inspectorInputClass()
+                      }
+                    />
+                  </div>
 
-                    <div className="mt-4">
-                      <div className="flex items-center justify-between gap-3">
-                        <div
-                          className={
-                            inspectorLabelClass()
-                          }
-                        >
-                          Image Zoom
-                        </div>
+                  <div>
+                    <div
+                      className={
+                        inspectorLabelClass()
+                      }
+                    >
+                      Border
+                    </div>
 
-                        <div className="text-xs text-neutral-500">
-                          {Math.round(
-                            Number(
-                              option.imageZoom ??
-                                1,
-                            ) *
+                    <input
+                      type="color"
+                      value={
+                        selectedBlock.data
+                          .submitButtonStyle
+                          ?.borderColor ??
+                        "#EF4444"
+                      }
+                      onChange={(e) =>
+                        updateSubmitButtonStyle({
+                          borderColor:
+                            e.target.value,
+                        })
+                      }
+                      className={
+                        inspectorInputClass()
+                      }
+                    />
+                  </div>
+                </div>
+
+                {/* OPACITY */}
+
+                <div className="mt-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div
+                      className={
+                        inspectorLabelClass()
+                      }
+                    >
+                      Opacity
+                    </div>
+
+                    <div className="text-xs text-neutral-500">
+                      {Math.round(
+                        Number(
+                          selectedBlock.data
+                            .submitButtonStyle
+                            ?.opacity ??
+                            1,
+                        ) * 100,
+                      )}
+                      %
+                    </div>
+                  </div>
+
+                  <input
+                    type="range"
+                    min={0}
+                    max={100}
+                    step={1}
+                    value={Math.round(
+                      Number(
+                        selectedBlock.data
+                          .submitButtonStyle
+                          ?.opacity ??
+                          1,
+                      ) * 100,
+                    )}
+                    onChange={(e) =>
+                      updateSubmitButtonStyle({
+                        opacity:
+                          Math.max(
+                            0,
+                            Math.min(
                               100,
-                          )}
-                          %
-                        </div>
-                      </div>
+                              Number(
+                                e.target.value,
+                              ),
+                            ),
+                          ) / 100,
+                      })
+                    }
+                    className="mt-2 w-full"
+                  />
+                </div>
 
-                      <input
-                        type="range"
-                        min={50}
-                        max={200}
-                        step={1}
-                        value={Math.round(
+                {/* CORNER RADIUS */}
+
+                <div className="mt-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div
+                      className={
+                        inspectorLabelClass()
+                      }
+                    >
+                      Corner Radius
+                    </div>
+
+                    <div className="text-xs text-neutral-500">
+                      {selectedBlock.data
+                        .submitButtonStyle
+                        ?.borderRadius ??
+                        10}
+                      px
+                    </div>
+                  </div>
+
+                  <input
+                    type="range"
+                    min={0}
+                    max={60}
+                    step={1}
+                    value={
+                      selectedBlock.data
+                        .submitButtonStyle
+                        ?.borderRadius ??
+                      10
+                    }
+                    onChange={(e) =>
+                      updateSubmitButtonStyle({
+                        borderRadius:
                           Number(
-                            option.imageZoom ??
-                              1,
-                          ) *
-                            100,
-                        )}
-                        onChange={(e) =>
-                          updatePollOption(
-                            option.id,
-                            {
-                              imageZoom:
-                                Math.max(
-                                  50,
-                                  Math.min(
-                                    200,
-                                    Number(
-                                      e.target
-                                        .value,
-                                    ) ||
-                                      100,
-                                  ),
-                                ) /
-                                100,
-                            },
-                          )
-                        }
-                        className="mt-2 w-full"
-                      />
+                            e.target.value,
+                          ),
+                      })
+                    }
+                    className="mt-2 w-full"
+                  />
+                </div>
+
+                {/* BUTTON PADDING */}
+
+                <div className="mt-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div
+                      className={
+                        inspectorLabelClass()
+                      }
+                    >
+                      Padding Size
                     </div>
 
-                    {/* X POSITION */}
+                    <div className="text-xs text-neutral-500">
+                      {selectedBlock.data
+                        .submitButtonStyle
+                        ?.padding ??
+                        14}
+                      px
+                    </div>
+                  </div>
 
-                    <div className="mt-4">
-                      <div className="flex items-center justify-between gap-3">
-                        <div
-                          className={
-                            inspectorLabelClass()
-                          }
-                        >
-                          Horizontal Position
-                        </div>
+                  <input
+                    type="range"
+                    min={4}
+                    max={40}
+                    step={1}
+                    value={
+                      selectedBlock.data
+                        .submitButtonStyle
+                        ?.padding ??
+                      14
+                    }
+                    onChange={(e) =>
+                      updateSubmitButtonStyle({
+                        padding:
+                          Number(
+                            e.target.value,
+                          ),
+                      })
+                    }
+                    className="mt-2 w-full"
+                  />
+                </div>
 
-                        <div className="text-xs text-neutral-500">
-                          {option.imagePositionX ??
-                            50}
-                          %
-                        </div>
-                      </div>
+                {/* VERTICAL POSITION */}
 
-                      <input
-                        type="range"
-                        min={0}
-                        max={100}
-                        value={
-                          option.imagePositionX ??
-                          50
-                        }
-                        onChange={(e) =>
-                          updatePollOption(
-                            option.id,
-                            {
-                              imagePositionX:
-                                Number(
-                                  e.target
-                                    .value,
-                                ),
-                            },
-                          )
-                        }
-                        className="mt-2 w-full"
-                      />
+                <div className="mt-5 border-t border-neutral-200 pt-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div
+                      className={
+                        inspectorLabelClass()
+                      }
+                    >
+                      Vertical Position
                     </div>
 
-                    {/* Y POSITION */}
+                    <div className="text-xs text-neutral-500">
+                      {selectedBlock.data
+                        .submitButtonStyle
+                        ?.positionY ??
+                        0}
+                      px
+                    </div>
+                  </div>
 
-                    <div className="mt-4">
-                      <div className="flex items-center justify-between gap-3">
-                        <div
-                          className={
-                            inspectorLabelClass()
-                          }
-                        >
-                          Vertical Position
-                        </div>
+                  <input
+                    type="range"
+                    min={-100}
+                    max={100}
+                    step={1}
+                    value={
+                      selectedBlock.data
+                        .submitButtonStyle
+                        ?.positionY ??
+                      0
+                    }
+                    onChange={(e) =>
+                      updateSubmitButtonStyle({
+                        positionY:
+                          Number(
+                            e.target.value,
+                          ),
+                      })
+                    }
+                    className="mt-2 w-full"
+                  />
+                </div>
+              </>
+            ) : null}
+          </div>
+        </>
+      ) : null}
 
-                        <div className="text-xs text-neutral-500">
-                          {option.imagePositionY ??
-                            50}
-                          %
-                        </div>
-                      </div>
+<div className="mt-4 space-y-4">
+  {options.map(
+    (
+      option: any,
+      index: number,
+    ) => (
+      <div
+        key={
+          option.id
+        }
+        className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4"
+      >
+        <button
+          type="button"
+          onClick={() =>
+            toggleChoiceExpanded(
+              option.id,
+            )
+          }
+          className="flex w-full items-center justify-between gap-3 text-left"
+        >
+          <div className="text-sm font-semibold text-neutral-900">
+            Choice{" "}
+            {index + 1}
+          </div>
 
-                      <input
-                        type="range"
-                        min={0}
-                        max={100}
-                        value={
-                          option.imagePositionY ??
-                          50
+          <div className="text-xs font-medium text-neutral-500">
+            {isChoiceExpanded(
+              option.id,
+            )
+              ? "Collapse"
+              : "Expand"}
+          </div>
+        </button>
+
+        {isChoiceExpanded(
+          option.id,
+        ) ? (
+          <>
+            {/* LABEL */}
+
+            <div className="mt-4">
+              <div
+                className={
+                  inspectorLabelClass()
+                }
+              >
+                Label
+              </div>
+
+              <input
+                ref={(el) => {
+                  pollOptionInputRefs.current[
+                    option.id
+                  ] = el;
+                }}
+                type="text"
+                value={
+                  option.text
+                }
+                onChange={(e) =>
+                  updatePollOption(
+                    option.id,
+                    {
+                      text:
+                        e.target
+                          .value,
+                    },
+                  )
+                }
+                className={
+                  inspectorInputClass()
+                }
+              />
+            </div>
+
+            {isShowcase ? (
+              <>
+                {/* IMAGE PREVIEW */}
+
+                {option.imageUrl ? (
+                  <div className="mt-4 overflow-hidden rounded-xl border border-neutral-200 bg-white p-2">
+                    <div className="flex min-h-[100px] items-center justify-center">
+                      <img
+                        src={
+                          option.imageUrl
                         }
-                        onChange={(e) =>
-                          updatePollOption(
-                            option.id,
-                            {
-                              imagePositionY:
-                                Number(
-                                  e.target
-                                    .value,
-                                ),
-                            },
-                          )
+                        alt={
+                          option.imageAlt ||
+                          option.text ||
+                          ""
                         }
-                        className="mt-2 w-full"
+                        className="max-h-32 max-w-full object-contain"
                       />
                     </div>
-                  </>
+                  </div>
                 ) : null}
 
-                {/* REMOVE */}
+                {/* IMAGE UPLOAD */}
 
-<button
-  type="button"
-  className="mt-4 inline-flex min-h-8 items-center justify-center whitespace-nowrap rounded-lg border border-red-200 bg-white px-2.5 py-1.5 text-[11px] font-medium leading-none text-red-600 transition hover:bg-red-50"
-  onClick={() =>
-                    updateSelectedBlock(
-                      (
-                        block: any,
-                      ) =>
-                        block.type !==
-                        "poll"
-                          ? block
-                          : {
-                              ...block,
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    className="inline-flex h-10 items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-700 hover:bg-neutral-100"
+                    onClick={() =>
+                      void uploadPollOptionImage(
+                        selectedBlock.id,
+                        option.id,
+                      )
+                    }
+                  >
+                    {option.imageUrl
+                      ? "Replace Image"
+                      : "Browse Image"}
+                  </button>
 
-                              data: {
-                                ...block.data,
+                  {option.imageUrl ? (
+                    <button
+                      type="button"
+                      className="inline-flex h-10 items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-600 hover:bg-neutral-100"
+                      onClick={() =>
+                        updatePollOption(
+                          option.id,
+                          {
+                            imageUrl:
+                              "",
 
-                                options:
-                                  (
+                            imageAlt:
+                              "",
+
+                            imageStoragePath:
+                              "",
+
+                            imageSizeBytes:
+                              0,
+
+                            imageOriginalSizeBytes:
+                              0,
+
+                            imageMimeType:
+                              "",
+                          },
+                        )
+                      }
+                    >
+                      Remove
+                    </button>
+                  ) : null}
+                </div>
+
+                {/* IMAGE ZOOM */}
+
+                <div className="mt-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div
+                      className={
+                        inspectorLabelClass()
+                      }
+                    >
+                      Image Zoom
+                    </div>
+
+                    <div className="text-xs text-neutral-500">
+                      {Math.round(
+                        Number(
+                          option.imageZoom ??
+                            1,
+                        ) *
+                          100,
+                      )}
+                      %
+                    </div>
+                  </div>
+
+                  <input
+                    type="range"
+                    min={50}
+                    max={200}
+                    step={1}
+                    value={Math.round(
+                      Number(
+                        option.imageZoom ??
+                          1,
+                      ) *
+                        100,
+                    )}
+                    onChange={(e) =>
+                      updatePollOption(
+                        option.id,
+                        {
+                          imageZoom:
+                            Math.max(
+                              50,
+                              Math.min(
+                                200,
+                                Number(
+                                  e.target
+                                    .value,
+                                ) ||
+                                  100,
+                              ),
+                            ) /
+                            100,
+                        },
+                      )
+                    }
+                    className="mt-2 w-full"
+                  />
+                </div>
+
+                {/* X POSITION */}
+
+                <div className="mt-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div
+                      className={
+                        inspectorLabelClass()
+                      }
+                    >
+                      Horizontal Position
+                    </div>
+
+                    <div className="text-xs text-neutral-500">
+                      {option.imagePositionX ??
+                        50}
+                      %
+                    </div>
+                  </div>
+
+                  <input
+                    type="range"
+                    min={0}
+                    max={100}
+                    value={
+                      option.imagePositionX ??
+                      50
+                    }
+                    onChange={(e) =>
+                      updatePollOption(
+                        option.id,
+                        {
+                          imagePositionX:
+                            Number(
+                              e.target
+                                .value,
+                            ),
+                        },
+                      )
+                    }
+                    className="mt-2 w-full"
+                  />
+                </div>
+
+                {/* Y POSITION */}
+
+                <div className="mt-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div
+                      className={
+                        inspectorLabelClass()
+                      }
+                    >
+                      Vertical Position
+                    </div>
+
+                    <div className="text-xs text-neutral-500">
+                      {option.imagePositionY ??
+                        50}
+                      %
+                    </div>
+                  </div>
+
+                  <input
+                    type="range"
+                    min={0}
+                    max={100}
+                    value={
+                      option.imagePositionY ??
+                      50
+                    }
+                    onChange={(e) =>
+                      updatePollOption(
+                        option.id,
+                        {
+                          imagePositionY:
+                            Number(
+                              e.target
+                                .value,
+                            ),
+                        },
+                      )
+                    }
+                    className="mt-2 w-full"
+                  />
+                </div>
+              </>
+            ) : null}
+
+            {/* REMOVE */}
+
+            <button
+              type="button"
+              className="mt-4 inline-flex min-h-8 items-center justify-center whitespace-nowrap rounded-lg border border-red-200 bg-white px-2.5 py-1.5 text-[11px] font-medium leading-none text-red-600 transition hover:bg-red-50"
+              onClick={() =>
+                updateSelectedBlock(
+                  (
+                    block: any,
+                  ) =>
+                    block.type !==
+                    "poll"
+                      ? block
+                      : {
+                          ...block,
+
+                          data: {
+                            ...block.data,
+
+                            options:
+                              (
+                                block
+                                  .data
+                                  .options ??
+                                []
+                              ).length >
+                              2
+                                ? (
                                     block
                                       .data
                                       .options ??
                                     []
-                                  ).length >
-                                  2
-                                    ? (
-                                        block
-                                          .data
-                                          .options ??
-                                        []
-                                      ).filter(
-                                        (
-                                          item: any,
-                                        ) =>
-                                          item.id !==
-                                          option.id,
-                                      )
-                                    : block
-                                        .data
-                                        .options,
-                              },
-                            },
-                    )
-                  }
-                >
-                  Remove Choice
-                </button>
-              </div>
-            ),
-          )}
-
-          <button
-            type="button"
-            className={
-              toolSetButtonClass(
-                "front",
-              )
-            }
-            onClick={() =>
-              updatePollData({
-                options: [
-                  ...options,
-
-                  {
-                    id:
-                      makeClientId(
-                        "opt",
-                      ),
-
-                    text:
-                      "New option",
-
-                    imageUrl:
-                      "",
-
-                    imageAlt:
-                      "",
-
-                    imageStoragePath:
-                      "",
-
-                    imageSizeBytes:
-                      0,
-
-                    imageOriginalSizeBytes:
-                      0,
-
-                    imageMimeType:
-                      "",
-
-                    imagePositionX:
-                      50,
-
-                    imagePositionY:
-                      50,
-
-                    imageZoom:
-                      1,
-
-                    imageRotation:
-                      0,
-
-                    imageOpacity:
-                      1,
-                  },
-                ],
-              })
-            }
-          >
-            Add Choice
-          </button>
-        </div>
+                                  ).filter(
+                                    (
+                                      item: any,
+                                    ) =>
+                                      item.id !==
+                                      option.id,
+                                  )
+                                : block
+                                    .data
+                                    .options,
+                          },
+                        },
+                )
+              }
+            >
+              Remove Choice
+            </button>
+          </>
+        ) : null}
       </div>
+    ),
+  )}
+
+  <button
+    type="button"
+    className={
+      toolSetButtonClass(
+        "front",
+      )
+    }
+    onClick={() =>
+      updatePollData({
+        options: [
+          ...options,
+
+          {
+            id:
+              makeClientId(
+                "opt",
+              ),
+
+            text:
+              "New option",
+
+            imageUrl:
+              "",
+
+            imageAlt:
+              "",
+
+            imageStoragePath:
+              "",
+
+            imageSizeBytes:
+              0,
+
+            imageOriginalSizeBytes:
+              0,
+
+            imageMimeType:
+              "",
+
+            imagePositionX:
+              50,
+
+            imagePositionY:
+              50,
+
+            imageZoom:
+              1,
+
+            imageRotation:
+              0,
+
+            imageOpacity:
+              1,
+          },
+        ],
+      })
+    }
+  >
+    Add Choice
+  </button>
+</div>
     </div>
   );
 }

@@ -975,20 +975,29 @@ gridRows?: number;
       borderRadius?: number;
     };
 
-    selectionIndicatorStyle?: {
-      size?: number;
-      borderColor?: string;
-      borderWidth?: number;
-      backgroundColor?: string;
-      selectedColor?: string;
-    };
+selectionIndicatorStyle?: {
+  size?: number;
+  borderColor?: string;
+  borderWidth?: number;
+  backgroundColor?: string;
+  selectedColor?: string;
 
-    submitButtonStyle?: {
-      backgroundColor?: string;
-      borderColor?: string;
-      borderWidth?: number;
-      borderRadius?: number;
-    };
+  positionX?: number;
+  positionY?: number;
+};
+
+submitButtonStyle?: {
+  backgroundColor?: string;
+  borderColor?: string;
+  borderWidth?: number;
+  borderRadius?: number;
+
+  opacity?: number;
+
+  padding?: number;
+
+  positionY?: number;
+};
 
     /*
      * ================================================================

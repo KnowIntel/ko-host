@@ -17896,17 +17896,41 @@ const selectedOptionTextStyle:
      * ================================================================
      */
 
-    const submitButtonPadding =
-      Math.max(
-        4,
-        Math.min(
-          40,
-          Number(
-            submitButtonStyle.padding ??
-              14,
-          ),
-        ),
-      );
+const submitButtonPadding =
+  Math.max(
+    4,
+    Math.min(
+      40,
+      Number(
+        submitButtonStyle.padding ??
+          14,
+      ),
+    ),
+  );
+
+const submitButtonOpacity =
+  Math.max(
+    0,
+    Math.min(
+      1,
+      Number(
+        submitButtonStyle.opacity ??
+          1,
+      ),
+    ),
+  );
+
+const submitButtonPositionY =
+  Math.max(
+    -100,
+    Math.min(
+      100,
+      Number(
+        submitButtonStyle.positionY ??
+          0,
+      ),
+    ),
+  );
 
     /*
      * ================================================================
@@ -18792,7 +18816,7 @@ className={[
                 selectedOptionIds.length ===
                   0
               }
-              className="inline-flex items-center justify-center transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex items-center justify-center transition active:scale-[0.98] disabled:cursor-not-allowed"
               style={{
                 backgroundColor:
                   submitSuccess
@@ -18831,12 +18855,11 @@ className={[
                     ) || 0
                   }px`,
 
-                /*
-                 * Inspector Padding Size controls both axes.
-                 *
-                 * Horizontal padding is slightly wider so the
-                 * button retains a natural button proportion.
-                 */
+                opacity:
+                  submitButtonOpacity,
+
+                transform:
+                  `translateY(${submitButtonPositionY}px)`,
 
                 paddingTop:
                   `${submitButtonPadding}px`,

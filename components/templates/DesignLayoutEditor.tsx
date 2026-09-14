@@ -3671,12 +3671,41 @@ const selectedStyle =
       ? canvasItems.find((item) => item.id === selectedCanvasBlockId) ?? null
       : null;
 
-  const selectedBlock =
-    selectedContext.kind === "none" || selectedContext.kind === "pageText"
-      ? null
-      : draft.blocks.find((item) => item.id === selectedContext.blockId) ?? null;
+const selectedBlock =
+  selectedContext.kind === "none" || selectedContext.kind === "pageText"
+    ? null
+    : draft.blocks.find(
+        (item) => item.id === selectedContext.blockId,
+      ) ?? null;
 
-      useEffect(() => {
+/*
+ * Keep Poll Style Target synchronized with the targets
+ * actually available for the selected Poll variant.
+ *
+ * Showcase does not expose the Field target, so if Field
+ * is still stored when a Showcase Poll is selected,
+ * automatically switch the active target to Block.
+ */
+useEffect(() => {
+  if (selectedBlock?.type !== "poll") {
+    return;
+  }
+
+  const isShowcasePoll =
+    selectedBlock.data.styleVariant === "showcase";
+
+  if (
+    isShowcasePoll &&
+    pollStyleTarget === "field"
+  ) {
+    setPollStyleTarget("block");
+  }
+}, [
+  selectedBlock,
+  pollStyleTarget,
+]);
+
+useEffect(() => {
   if (selectedBlockFromDraft?.type !== "gallery") return;
 
   const nextTarget =
