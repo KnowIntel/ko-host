@@ -13577,35 +13577,6 @@ function nudgeSelectedBlock(
   });
 }
 
-function getScrollableParent(
-  element: HTMLElement | null,
-): HTMLElement | null {
-  if (!element) {
-    return null;
-  }
-
-  let parent = element.parentElement;
-
-  while (parent) {
-    const style = window.getComputedStyle(parent);
-
-    const overflowY = style.overflowY;
-
-    if (
-      (overflowY === "auto" ||
-        overflowY === "scroll") &&
-      parent.scrollHeight > parent.clientHeight
-    ) {
-      return parent;
-    }
-
-    parent = parent.parentElement;
-  }
-
-  return null;
-}
-
-
 const handleJumpToFullCanvasView = () => {
   setFullCanvasViewLocked((current) => {
     const nextLocked = !current;
@@ -13634,76 +13605,117 @@ useEffect(() => {
     return;
   }
 
-  const scrollContainer =
-    getScrollableParent(toolbar);
+  let lockReady = false;
+
+  let lockedWindowScrollY = 0;
+
+  const scrollableAncestors: Array<{
+    element: HTMLElement;
+    lockedScrollTop: number;
+  }> = [];
 
   /*
-   * Case 1:
-   * Builder is scrolling inside a parent DIV.
+   * Find every vertically-scrollable parent instead of
+   * assuming there is only one.
    */
-  if (scrollContainer) {
-    const toolbarTopWithinContainer =
-      toolbar.offsetTop;
+  let parent = toolbar.parentElement;
 
-    const enforceContainerLock = () => {
-      if (
-        scrollContainer.scrollTop <
-        toolbarTopWithinContainer
-      ) {
-        scrollContainer.scrollTop =
-          toolbarTopWithinContainer;
-      }
-    };
+  while (parent) {
+    const style =
+      window.getComputedStyle(parent);
 
-    /*
-     * Let scrollIntoView finish first.
-     */
-    const timer = window.setTimeout(() => {
-      enforceContainerLock();
-    }, 450);
-
-    scrollContainer.addEventListener(
-      "scroll",
-      enforceContainerLock,
-      {
-        passive: true,
-      },
-    );
-
-    return () => {
-      window.clearTimeout(timer);
-
-      scrollContainer.removeEventListener(
-        "scroll",
-        enforceContainerLock,
+    const canScrollVertically =
+      parent.scrollHeight >
+        parent.clientHeight &&
+      (
+        style.overflowY === "auto" ||
+        style.overflowY === "scroll" ||
+        style.overflowY === "overlay"
       );
-    };
+
+    if (canScrollVertically) {
+      scrollableAncestors.push({
+        element: parent,
+        lockedScrollTop: 0,
+      });
+    }
+
+    parent = parent.parentElement;
   }
 
-  /*
-   * Case 2:
-   * Normal document/window scrolling.
-   */
-  const minimumWindowScroll =
-    toolbar.getBoundingClientRect().top +
-    window.scrollY;
-
   const enforceWindowLock = () => {
+    if (!lockReady) {
+      return;
+    }
+
     if (
       window.scrollY <
-      minimumWindowScroll
+      lockedWindowScrollY
     ) {
       window.scrollTo({
-        top: minimumWindowScroll,
+        top: lockedWindowScrollY,
         left: window.scrollX,
         behavior: "auto",
       });
     }
   };
 
-  const timer = window.setTimeout(() => {
-    enforceWindowLock();
-  }, 450);
+  const ancestorHandlers =
+    new Map<
+      HTMLElement,
+      () => void
+    >();
+
+  /*
+   * Allow the existing smooth scrollIntoView()
+   * animation to finish first.
+   *
+   * Then record EXACTLY where the browser placed
+   * the page and all relevant scrolling parents.
+   */
+  const armTimer =
+    window.setTimeout(() => {
+      lockedWindowScrollY =
+        window.scrollY;
+
+      scrollableAncestors.forEach(
+        (entry) => {
+          entry.lockedScrollTop =
+            entry.element.scrollTop;
+
+          const handler = () => {
+            if (!lockReady) {
+              return;
+            }
+
+            if (
+              entry.element.scrollTop <
+              entry.lockedScrollTop
+            ) {
+              entry.element.scrollTop =
+                entry.lockedScrollTop;
+            }
+          };
+
+          ancestorHandlers.set(
+            entry.element,
+            handler,
+          );
+
+          entry.element.addEventListener(
+            "scroll",
+            handler,
+            {
+              passive: true,
+            },
+          );
+        },
+      );
+
+      lockReady = true;
+
+      enforceWindowLock();
+    }, 700);
 
   window.addEventListener(
     "scroll",
@@ -13714,11 +13726,22 @@ useEffect(() => {
   );
 
   return () => {
-    window.clearTimeout(timer);
+    window.clearTimeout(
+      armTimer,
+    );
 
     window.removeEventListener(
       "scroll",
       enforceWindowLock,
+    );
+
+    ancestorHandlers.forEach(
+      (handler, element) => {
+        element.removeEventListener(
+          "scroll",
+          handler,
+        );
+      },
     );
   };
 }, [fullCanvasViewLocked]);
