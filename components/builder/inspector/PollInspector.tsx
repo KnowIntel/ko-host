@@ -295,6 +295,126 @@ export function PollInspector({
     );
   }
 
+  
+
+        {/* FORMATTING */}
+
+        <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+          <div
+            className={
+              inspectorLabelClass()
+            }
+          >
+            Formatting
+          </div>
+
+          <div className="mt-3">
+            <div
+              className={
+                inspectorLabelClass()
+              }
+            >
+              Text Target
+            </div>
+
+            <select
+              value={
+                pollTextTarget
+              }
+              onChange={(e) =>
+                setPollTextTarget(
+                  e.target
+                    .value as PollTextTarget,
+                )
+              }
+              className={
+                inspectorInputClass()
+              }
+            >
+<option value="question">
+  {isShowcase
+    ? "Poll Title"
+    : "Poll Question"}
+</option>
+
+<option value="optionText">
+  Choice Label
+</option>
+
+{isShowcase ? (
+  <>
+    <option value="selectedOptionText">
+      Selected Choice Label
+    </option>
+
+    <option value="submitButton">
+      Submit Button Label
+    </option>
+  </>
+) : null}
+            </select>
+          </div>
+
+          <div className="mt-3">
+            <div
+              className={
+                inspectorLabelClass()
+              }
+            >
+              Style Target
+            </div>
+
+            <select
+              value={
+                pollStyleTarget
+              }
+              onChange={(e) =>
+                setPollStyleTarget(
+                  e.target
+                    .value as PollStyleTarget,
+                )
+              }
+              className={
+                inspectorInputClass()
+              }
+            >
+{!isShowcase ? (
+  <option value="field">
+    Field
+  </option>
+) : null}
+
+<option value="block">
+  Block
+</option>
+
+{isShowcase ? (
+  <>
+    <option value="titleFrame">
+      Title Frame
+    </option>
+
+    <option value="optionFrame">
+      Choice Frame
+    </option>
+
+    <option value="imageFrame">
+      Image Frame
+    </option>
+
+    <option value="selectionIndicator">
+      Selection Indicator
+    </option>
+
+    <option value="submitButton">
+      Submit Button
+    </option>
+  </>
+) : null}
+            </select>
+          </div>
+        </div>
+
   return (
     <div className="space-y-4">
       {/* ================================================================ */}
@@ -482,124 +602,6 @@ export function PollInspector({
     </div>
   ) : null}
 </div>
-
-        {/* FORMATTING */}
-
-        <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
-          <div
-            className={
-              inspectorLabelClass()
-            }
-          >
-            Formatting
-          </div>
-
-          <div className="mt-3">
-            <div
-              className={
-                inspectorLabelClass()
-              }
-            >
-              Text Target
-            </div>
-
-            <select
-              value={
-                pollTextTarget
-              }
-              onChange={(e) =>
-                setPollTextTarget(
-                  e.target
-                    .value as PollTextTarget,
-                )
-              }
-              className={
-                inspectorInputClass()
-              }
-            >
-<option value="question">
-  {isShowcase
-    ? "Poll Title"
-    : "Poll Question"}
-</option>
-
-<option value="optionText">
-  Choice Label
-</option>
-
-{isShowcase ? (
-  <>
-    <option value="selectedOptionText">
-      Selected Choice Label
-    </option>
-
-    <option value="submitButton">
-      Submit Button Label
-    </option>
-  </>
-) : null}
-            </select>
-          </div>
-
-          <div className="mt-3">
-            <div
-              className={
-                inspectorLabelClass()
-              }
-            >
-              Style Target
-            </div>
-
-            <select
-              value={
-                pollStyleTarget
-              }
-              onChange={(e) =>
-                setPollStyleTarget(
-                  e.target
-                    .value as PollStyleTarget,
-                )
-              }
-              className={
-                inspectorInputClass()
-              }
-            >
-{!isShowcase ? (
-  <option value="field">
-    Field
-  </option>
-) : null}
-
-<option value="block">
-  Block
-</option>
-
-{isShowcase ? (
-  <>
-    <option value="titleFrame">
-      Title Frame
-    </option>
-
-    <option value="optionFrame">
-      Choice Frame
-    </option>
-
-    <option value="imageFrame">
-      Image Frame
-    </option>
-
-    <option value="selectionIndicator">
-      Selection Indicator
-    </option>
-
-    <option value="submitButton">
-      Submit Button
-    </option>
-  </>
-) : null}
-            </select>
-          </div>
-        </div>
 
         {/* QUESTION / TITLE */}
 
