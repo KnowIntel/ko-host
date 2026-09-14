@@ -93,7 +93,7 @@ export function PollInspector({
 const [
   showcaseFramesExpanded,
   setShowcaseFramesExpanded,
-] = useState(true);
+] = useState(false);
 
 const [
   choiceFrameExpanded,
@@ -103,17 +103,17 @@ const [
 const [
   imageFrameExpanded,
   setImageFrameExpanded,
-] = useState(true);
+] = useState(false);
 
 const [
   selectionIndicatorExpanded,
   setSelectionIndicatorExpanded,
-] = useState(true);
+] = useState(false);
 
 const [
   submitButtonExpanded,
   setSubmitButtonExpanded,
-] = useState(true);
+] = useState(false);
 
 const [
   expandedChoiceIds,
@@ -125,7 +125,7 @@ function isChoiceExpanded(
 ) {
   return expandedChoiceIds[
     optionId
-  ] ?? true;
+  ] ?? false;
 }
 
 function toggleChoiceExpanded(
@@ -135,10 +135,10 @@ function toggleChoiceExpanded(
     (current) => ({
       ...current,
 
-      [optionId]:
-        !(current[
-          optionId
-        ] ?? true),
+[optionId]:
+  !(current[
+    optionId
+  ] ?? false),
     }),
   );
 }

@@ -158,6 +158,8 @@ const draftPageCountByTemplateDesignKey: Record<string, number> = {
 
   "surveys:movie": 1,
   "surveys:truth": 1,
+  "surveys:series": 1,
+
 
   "project:caffeine": 1,
 
