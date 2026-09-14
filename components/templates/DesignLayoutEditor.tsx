@@ -13577,6 +13577,34 @@ function nudgeSelectedBlock(
   });
 }
 
+function getScrollableParent(
+  element: HTMLElement | null,
+): HTMLElement | null {
+  if (!element) {
+    return null;
+  }
+
+  let parent = element.parentElement;
+
+  while (parent) {
+    const style = window.getComputedStyle(parent);
+
+    const overflowY = style.overflowY;
+
+    if (
+      (overflowY === "auto" ||
+        overflowY === "scroll") &&
+      parent.scrollHeight > parent.clientHeight
+    ) {
+      return parent;
+    }
+
+    parent = parent.parentElement;
+  }
+
+  return null;
+}
+
 
 const handleJumpToFullCanvasView = () => {
   setFullCanvasViewLocked((current) => {
@@ -13600,65 +13628,89 @@ useEffect(() => {
     return;
   }
 
-  const getMinimumScrollY = () => {
-    const toolbar = topBarScrollRef.current;
+  const toolbar = topBarScrollRef.current;
 
-    if (!toolbar) {
-      return 0;
-    }
+  if (!toolbar) {
+    return;
+  }
 
-    return (
-      toolbar.getBoundingClientRect().top +
-      window.scrollY
-    );
-  };
-
-  let minimumScrollY = getMinimumScrollY();
-
-  const handleScroll = () => {
-    if (
-      fullCanvasViewLocked &&
-      window.scrollY < minimumScrollY
-    ) {
-      window.scrollTo(
-        window.scrollX,
-        minimumScrollY,
-      );
-    }
-  };
-
-  const handleResize = () => {
-    minimumScrollY = getMinimumScrollY();
-    handleScroll();
-  };
+  const scrollContainer =
+    getScrollableParent(toolbar);
 
   /*
-   * Recalculate once the smooth jump has had
-   * enough time to establish the toolbar position.
+   * Case 1:
+   * Builder is scrolling inside a parent DIV.
    */
-  const timer = window.setTimeout(() => {
-    minimumScrollY = getMinimumScrollY();
+  if (scrollContainer) {
+    const toolbarTopWithinContainer =
+      toolbar.offsetTop;
 
-    if (window.scrollY < minimumScrollY) {
+    const enforceContainerLock = () => {
+      if (
+        scrollContainer.scrollTop <
+        toolbarTopWithinContainer
+      ) {
+        scrollContainer.scrollTop =
+          toolbarTopWithinContainer;
+      }
+    };
+
+    /*
+     * Let scrollIntoView finish first.
+     */
+    const timer = window.setTimeout(() => {
+      enforceContainerLock();
+    }, 450);
+
+    scrollContainer.addEventListener(
+      "scroll",
+      enforceContainerLock,
+      {
+        passive: true,
+      },
+    );
+
+    return () => {
+      window.clearTimeout(timer);
+
+      scrollContainer.removeEventListener(
+        "scroll",
+        enforceContainerLock,
+      );
+    };
+  }
+
+  /*
+   * Case 2:
+   * Normal document/window scrolling.
+   */
+  const minimumWindowScroll =
+    toolbar.getBoundingClientRect().top +
+    window.scrollY;
+
+  const enforceWindowLock = () => {
+    if (
+      window.scrollY <
+      minimumWindowScroll
+    ) {
       window.scrollTo({
-        top: minimumScrollY,
+        top: minimumWindowScroll,
         left: window.scrollX,
         behavior: "auto",
       });
     }
-  }, 400);
+  };
+
+  const timer = window.setTimeout(() => {
+    enforceWindowLock();
+  }, 450);
 
   window.addEventListener(
     "scroll",
-    handleScroll,
+    enforceWindowLock,
     {
       passive: true,
     },
-  );
-
-  window.addEventListener(
-    "resize",
-    handleResize,
   );
 
   return () => {
@@ -13666,12 +13718,7 @@ useEffect(() => {
 
     window.removeEventListener(
       "scroll",
-      handleScroll,
-    );
-
-    window.removeEventListener(
-      "resize",
-      handleResize,
+      enforceWindowLock,
     );
   };
 }, [fullCanvasViewLocked]);
