@@ -1309,12 +1309,15 @@ function scrollToTemplates() {
       Choose a template to get started. Every template is fully customizable.
     </p>
 
-    <div className="mt-2 text-[12px] font-medium text-neutral-400">
-      {count} template{count === 1 ? "" : "s"}
-      {category !== "All" ? ` • ${category}` : ""}
-      {searchQuery.trim() ? ` • “${searchQuery.trim()}”` : ""}
-      {sort !== "Recommended" ? ` • ${sort}` : ""}
-    </div>
+<div className="mt-2 text-[12px] font-medium text-neutral-400">
+  {count} template categor{count === 1 ? "y" : "ies"}
+  {" - "}
+  {designPresetCount} design preset
+  {designPresetCount === 1 ? "" : "s"}
+  {category !== "All" ? ` • ${category}` : ""}
+  {searchQuery.trim() ? ` • “${searchQuery.trim()}”` : ""}
+  {sort !== "Recommended" ? ` • ${sort}` : ""}
+</div>
     <div className="mt-4 border-t border-neutral-100 pt-4">
   <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[11px] font-semibold text-neutral-500">
     <span className="inline-flex items-center gap-1.5">
@@ -1425,9 +1428,7 @@ function scrollToTemplates() {
   category={category}
   sort={sort}
   onCountChange={setCount}
-  onDesignPresetCountChange={
-    setDesignPresetCount
-  }
+  onDesignPresetCountChange={setDesignPresetCount}
 />
 </div>
 
