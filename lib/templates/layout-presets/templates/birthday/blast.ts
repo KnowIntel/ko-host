@@ -11,5 +11,5 @@ export default createLayoutPreset({
   thumbnail:
     "/designs/design-cards/design-card_birthday_party_blast.webp",
 
-  recommended: true,
+  recommended: false,
 });
