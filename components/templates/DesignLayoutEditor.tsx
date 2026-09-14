@@ -2787,6 +2787,8 @@ const [iconSearchQuery, setIconSearchQuery] = useState("");
   const [openToolMenu, setOpenToolMenu] = useState<BottomCategory | null>(null);
 const [pageDragPreview, setPageDragPreview] = useState<typeof pages | null>(null);
   const [toolGuideModalOpen, setToolGuideModalOpen] = useState(false);
+  const [fullCanvasViewLocked, setFullCanvasViewLocked] =
+  useState(false);
   const [inspectorCollapsed, setInspectorCollapsed] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
 type SmartContentOption = {
@@ -13577,6 +13579,87 @@ function nudgeSelectedBlock(
 
 
 const handleJumpToFullCanvasView = () => {
+  if (fullCanvasViewLocked) {
+    setFullCanvasViewLocked(false);
+    return;
+  }
+
+  useEffect(() => {
+  if (!fullCanvasViewLocked) {
+    return;
+  }
+
+  let lockArmed = false;
+
+  const getLockTop = () => {
+    const element = topBarScrollRef.current;
+
+    if (!element) {
+      return 0;
+    }
+
+    return Math.max(
+      0,
+      element.getBoundingClientRect().top +
+        window.scrollY,
+    );
+  };
+
+  const enforceFullCanvasLock = () => {
+    if (!lockArmed) {
+      return;
+    }
+
+    const lockTop = getLockTop();
+
+    if (window.scrollY < lockTop) {
+      window.scrollTo({
+        top: lockTop,
+        left: window.scrollX,
+        behavior: "auto",
+      });
+    }
+  };
+
+  /*
+   * Allow the initial smooth scroll into full-canvas
+   * position to finish before enforcing the lock.
+   */
+  const armTimer = window.setTimeout(() => {
+    lockArmed = true;
+    enforceFullCanvasLock();
+  }, 500);
+
+  window.addEventListener(
+    "scroll",
+    enforceFullCanvasLock,
+    {
+      passive: true,
+    },
+  );
+
+  window.addEventListener(
+    "resize",
+    enforceFullCanvasLock,
+  );
+
+  return () => {
+    window.clearTimeout(armTimer);
+
+    window.removeEventListener(
+      "scroll",
+      enforceFullCanvasLock,
+    );
+
+    window.removeEventListener(
+      "resize",
+      enforceFullCanvasLock,
+    );
+  };
+}, [fullCanvasViewLocked]);
+
+  setFullCanvasViewLocked(true);
+
   topBarScrollRef.current?.scrollIntoView({
     behavior: "smooth",
     block: "start",
@@ -13953,21 +14036,36 @@ onDrop={async (e) => {
   <div className="flex w-full items-center bg-[#2f3541] px-2 py-2">
     {/* Permanently frozen left controls */}
     <div className="relative z-50 flex shrink-0 items-center gap-2 bg-[#2f3541] py-1 pr-4 shadow-[10px_0_12px_-12px_rgba(0,0,0,0.9)]">
-      <button
-        type="button"
-        className={topBarButtonClass(false)}
-        onClick={handleJumpToFullCanvasView}
-        title="Full canvas view"
-        aria-label="Full canvas view"
-      >
-        <Image
-          src="/icons/icon_full_page_canvas.png"
-          alt=""
-          width={30}
-          height={30}
-          className="pointer-events-none h-[30px] w-[30px] object-contain"
-        />
-      </button>
+<button
+  type="button"
+  className={topBarButtonClass(
+    fullCanvasViewLocked,
+  )}
+  onClick={handleJumpToFullCanvasView}
+  title={
+    fullCanvasViewLocked
+      ? "Unlock full canvas view"
+      : "Lock full canvas view"
+  }
+  aria-label={
+    fullCanvasViewLocked
+      ? "Unlock full canvas view"
+      : "Lock full canvas view"
+  }
+  aria-pressed={fullCanvasViewLocked}
+>
+  <Image
+    src={
+      fullCanvasViewLocked
+        ? "/icons/icon_full_page_lock_canvas.png"
+        : "/icons/icon_full_page_canvas.png"
+    }
+    alt=""
+    width={30}
+    height={30}
+    className="pointer-events-none h-[30px] w-[30px] object-contain"
+  />
+</button>
 
       <button
         type="button"
