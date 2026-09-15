@@ -2141,8 +2141,7 @@ function getCategoryIconPath(category: BottomCategory) {
   if (category === "MEDIA") return "/menu-icons/menu-media.svg";
   if (category === "ICONS") return "/media-icons/star.svg";
   if (category === "LAYOUT") return "/menu-icons/menu-layout.svg";
-  if (category === "FORMS") return "/menu-icons/menu-forms.svg";
-  if (category === "EXCHANGE") return "/menu-icons/menu-exchange.svg";
+  if (category === "CONNECTIONS") return "/menu-icons/menu-forms.svg";
   if (category === "UTILITIES") return "/menu-icons/menu-utilities.svg";
   if (category === "DATA") return "/menu-icons/menu-data-metrics.svg";
   if (category === "SCHEDULING") return "/menu-icons/menu-scheduling.svg";
