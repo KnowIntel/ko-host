@@ -660,7 +660,7 @@ type BottomCategory =
   | "UTILITIES"
   | "DATA"
   | "SCHEDULING"
-  | "INFORGRAPHICS"
+  | "INFOGRAPHICS"
   | "PREMIUM";
 
 /* 
@@ -722,17 +722,17 @@ type InspectorFocusTarget =
   | { type: "carousel-item-href"; blockId: string; itemId: string };
 
 const CATEGORY_ORDER: BottomCategory[] = [
-  "Text",
-  "Media",
-  "Icons",
-  "Layout",
-  "Forms",
-  "Exchange",
-  "Utilities",
-  "Data",
-  "Scheduling",
-  "Infographics",
-  "Premium",
+  "TEXT",
+  "MEDIA",
+  "ICONS",
+  "LAYOUT",
+  "FORMS",
+  "EXCHANGE",
+  "UTILITIES",
+  "DATA",
+  "SCHEDULING",
+  "INFOGRAPHICS",
+  "PREMIUM",
 ];
 
 const CATEGORY_BUTTONS: Record<
@@ -750,7 +750,7 @@ const CATEGORY_BUTTONS: Record<
     | { kind: "block"; label: "Input Field"; type: "form_field"; iconName?: string; icon?: string }
   >
 > = {
-Text: [
+TEXT: [
   {
     kind: "page",
     label: "Title",
@@ -787,14 +787,14 @@ Text: [
     type: "spreadsheet",
   },
 ],
-  Media: [
+  MEDIA: [
     { kind: "block", label: "Image", type: "image" },
     { kind: "block", label: "Video", type: "video" },
     { kind: "block", label: "Audio", type: "audio" },
     { kind: "block", label: "Gallery", type: "gallery" },
     { kind: "block", label: "Carousel", type: "image_carousel" },
   ],
-  Icons: [
+  ICONS: [
     { kind: "block", label: "Circle One", type: "icon", iconName: "circle-one" },
     { kind: "block", label: "Circle Two", type: "icon", iconName: "circle-two" },
     { kind: "block", label: "Circle Three", type: "icon", iconName: "circle-three" },
@@ -1127,7 +1127,7 @@ Text: [
 
     { kind: "block", label: "Photo Placeholder", type: "icon", iconName: "photo-placeholder" },
   ],
-Layout: [
+LAYOUT: [
   {
     kind: "shape",
     label: "Rectangle",
@@ -1171,7 +1171,7 @@ Layout: [
   // },
 ],
 
-Forms: [
+FORMS: [
   {
     kind: "block",
     label: "Input Field",
@@ -1214,7 +1214,7 @@ Forms: [
     type: "faq",
   },
 ],
-Exchange: [
+EXCHANGE: [
   { kind: "block", label: "Thread", type: "thread" },
   {
     kind: "block",
@@ -1224,7 +1224,7 @@ Exchange: [
   },
   { kind: "block", label: "File Share", type: "file_share" },
 ],
-Utilities: [
+UTILITIES: [
   { kind: "block", label: "Button", type: "cta" },
   { kind: "block", label: "Link", type: "links" },
   { kind: "block", label: "Link Hub", type: "link_hub" },
@@ -1232,13 +1232,13 @@ Utilities: [
   { kind: "block", label: "Puzzle", type: "puzzle" },
   { kind: "block", label: "Spin Wheel", type: "spin_wheel" },
 ],
-  "Data": [
+  "DATA": [
     { kind: "block", label: "Highlight", type: "highlight" },
     { kind: "block", label: "Summary", type: "summary" },
     { kind: "block", label: "Visitor Counter", type: "visitor_counter" },
     { kind: "block", label: "Progress Meter", type: "progress_bar" },
   ],
-Scheduling: [
+SCHEDULING: [
   { kind: "block", label: "Countdown", type: "countdown" },
   {
     kind: "block",
@@ -1256,7 +1256,7 @@ Scheduling: [
 },
   { kind: "block", label: "Map / Location", type: "map_location" },
 ],
-Infographics: [
+INFOGRAPHICS: [
   { kind: "block", label: "Process Flow", type: "process_flow" },
   { kind: "block", label: "Statistic Cards", type: "statistic_cards" },
   { kind: "block", label: "Chart", type: "chart" },
@@ -1268,7 +1268,7 @@ Infographics: [
   { kind: "block", label: "Interactive Hotspots", type: "interactive_hotspots" },
   { kind: "block", label: "Formula Board", type: "formula_board" },
 ],
-Premium: [
+PREMIUM: [
   { kind: "block", label: "Registry", type: "registry" },
   // { kind: "block", label: "Speed Dating", type: "speed_dating" },
   // { kind: "block", label: "Pop the Balloon", type: "pop_balloon" },
@@ -2099,7 +2099,7 @@ function bottomCategoryClass(active: boolean, category?: BottomCategory) {
     "inline-flex h-11 items-center gap-2 rounded-md border px-4 text-sm font-medium transition",
     active
       ? "border-blue-500 bg-blue-600 text-white"
-      : category === "Premium"
+      : category === "PREMIUM"
         ? "border-neutral-300 bg-white text-[rgb(0,0,255)] hover:bg-neutral-100"
         : "border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-100",
   ].join(" ");
@@ -2143,17 +2143,17 @@ function toolSetButtonClass(kind: "front" | "back" | "remove") {
 }
 
 function getCategoryIconPath(category: BottomCategory) {
-  if (category === "Text") return "/menu-icons/menu-text.svg";
-  if (category === "Media") return "/menu-icons/menu-media.svg";
-  if (category === "Icons") return "/media-icons/star.svg";
-  if (category === "Layout") return "/menu-icons/menu-layout.svg";
-  if (category === "Forms") return "/menu-icons/menu-forms.svg";
-  if (category === "Exchange") return "/menu-icons/menu-exchange.svg";
-  if (category === "Utilities") return "/menu-icons/menu-utilities.svg";
-  if (category === "Data") return "/menu-icons/menu-data-metrics.svg";
-  if (category === "Scheduling") return "/menu-icons/menu-scheduling.svg";
-  if (category === "Infographics") return "/menu-icons/menu-infographics.svg";
-  if (category === "Premium") return "/menu-icons/menu-premium.svg";
+  if (category === "TEXT") return "/menu-icons/menu-text.svg";
+  if (category === "MEDIA") return "/menu-icons/menu-media.svg";
+  if (category === "ICONS") return "/media-icons/star.svg";
+  if (category === "LAYOUT") return "/menu-icons/menu-layout.svg";
+  if (category === "FORMS") return "/menu-icons/menu-forms.svg";
+  if (category === "EXCHANGE") return "/menu-icons/menu-exchange.svg";
+  if (category === "UTILITIES") return "/menu-icons/menu-utilities.svg";
+  if (category === "DATA") return "/menu-icons/menu-data-metrics.svg";
+  if (category === "SCHEDULING") return "/menu-icons/menu-scheduling.svg";
+  if (category === "INFOGRAPHICS") return "/menu-icons/menu-infographics.svg";
+  if (category === "PREMIUM") return "/menu-icons/menu-premium.svg";
 
   return null;
 }
@@ -2786,7 +2786,7 @@ const [selectedOptionButtonOptionId, setSelectedOptionButtonOptionId] =
   const [buildPresetConfirmOpen, setBuildPresetConfirmOpen] = useState(false);
   const [pendingPresetDraft, setPendingPresetDraft] = useState<BuilderDraft | null>(null);
   const [registryLoadingMap, setRegistryLoadingMap] = useState<Record<string, boolean>>({});
-  const [activeCategory, setActiveCategory] = useState<BottomCategory>("Text");
+  const [activeCategory, setActiveCategory] = useState<BottomCategory>("TEXT");
   const [editorUploadError, setEditorUploadError] = useState("");
   const [toolSearchQuery, setToolSearchQuery] = useState("");
 const [iconSearchQuery, setIconSearchQuery] = useState("");
@@ -18940,7 +18940,7 @@ selectedBlock?.type === "cta" ? (
   </div>
 </div>
 
-{category === "Icons" ? (
+{category === "ICONS" ? (
   <input
     type="search"
     value={iconSearchQuery}
@@ -18955,7 +18955,7 @@ selectedBlock?.type === "cta" ? (
 {categoryMenuView === "compact" ? (
   <div
     className={
-      category === "Icons"
+      category === "ICONS"
         ? "flex max-h-[260px] max-w-[400px] flex-wrap gap-2 overflow-y-auto pr-1"
         : "flex max-w-[400px] flex-wrap gap-2"
     }
@@ -18963,7 +18963,7 @@ selectedBlock?.type === "cta" ? (
     {CATEGORY_BUTTONS[category]
       .filter((tool) =>
         toolMatchesSearch(
-          category === "Icons"
+          category === "ICONS"
             ? iconSearchQuery
             : toolSearchQuery,
           category,
@@ -18977,7 +18977,7 @@ selectedBlock?.type === "cta" ? (
           className={[
             toolButtonClass(),
             toolMatchesSearch(
-              category === "Icons"
+              category === "ICONS"
                 ? iconSearchQuery
                 : toolSearchQuery,
               category,
@@ -19056,7 +19056,7 @@ selectedBlock?.type === "cta" ? (
     {CATEGORY_BUTTONS[category]
       .filter((tool) =>
         toolMatchesSearch(
-          category === "Icons"
+          category === "ICONS"
             ? iconSearchQuery
             : toolSearchQuery,
           category,
@@ -19070,7 +19070,7 @@ selectedBlock?.type === "cta" ? (
           className={[
             "flex w-full cursor-grab items-center gap-3 rounded-xl border bg-white px-3 py-2 text-left transition hover:border-blue-500 hover:bg-blue-50 active:cursor-grabbing",
             toolMatchesSearch(
-              category === "Icons"
+              category === "ICONS"
                 ? iconSearchQuery
                 : toolSearchQuery,
               category,
@@ -19181,7 +19181,7 @@ onChange={(e) => {
 const firstMatch = CATEGORY_ORDER
   .filter(
     (category) =>
-      category !== "Icons",
+      category !== "ICONS",
   )
   .flatMap((category) =>
     CATEGORY_BUTTONS[
