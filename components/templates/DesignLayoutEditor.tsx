@@ -4891,6 +4891,7 @@ const allowedStyles = [
   return normalized;
 }
 
+
 function isRichTextHtmlEmpty(html?: string) {
   return normalizeRichTextHtml(html) === "";
 }
@@ -14112,7 +14113,7 @@ onDrop={async (e) => {
 </div>
 </div>
 
-<div className="sticky top-0 z-[100] w-full bg-[#2f3541] shadow-md">
+<div className="sticky top-16 z-[90] w-full bg-[#2f3541] shadow-md">
   <div className="flex w-full items-center bg-[#2f3541] px-2 py-2">
     {/* Permanently frozen left controls */}
     <div className="relative z-50 flex shrink-0 items-center gap-2 bg-[#2f3541] py-1 pr-4 shadow-[10px_0_12px_-12px_rgba(0,0,0,0.9)]">
