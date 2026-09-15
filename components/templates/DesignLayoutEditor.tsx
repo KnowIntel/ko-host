@@ -655,28 +655,13 @@ type BottomCategory =
   | "MEDIA"
   | "ICONS"
   | "LAYOUT"
-  | "FORMS"
-  | "EXCHANGE"
+  | "CONNECTIONS"
   | "UTILITIES"
   | "DATA"
   | "SCHEDULING"
   | "INFOGRAPHICS"
   | "PREMIUM";
-
-/* 
-type BottomCategory =
-  | "Text"
-  | "Media"
-  | "Icons"
-  | "Layout"
-  | "Forms"
-  | "Exchange"
-  | "Utilities"
-  | "Data"
-  | "Scheduling"
-  | "Infographics"
-  | "Premium";
- */
+  
 type PageBlockType = "title";
 
 type ToolDropPayload =
@@ -726,8 +711,7 @@ const CATEGORY_ORDER: BottomCategory[] = [
   "MEDIA",
   "ICONS",
   "LAYOUT",
-  "FORMS",
-  "EXCHANGE",
+  "CONNECTIONS",
   "UTILITIES",
   "DATA",
   "SCHEDULING",
@@ -1171,7 +1155,7 @@ LAYOUT: [
   // },
 ],
 
-FORMS: [
+CONNECTIONS: [
   {
     kind: "block",
     label: "Input Field",
@@ -1213,17 +1197,27 @@ FORMS: [
     label: "FAQ",
     type: "faq",
   },
-],
-EXCHANGE: [
-  { kind: "block", label: "Thread", type: "thread" },
+
+  {
+    kind: "block",
+    label: "Thread",
+    type: "thread",
+  },
+
   {
     kind: "block",
     label: "Post Board",
     type: "post_board",
     iconName: "message-thread",
   },
-  { kind: "block", label: "File Share", type: "file_share" },
+
+  {
+    kind: "block",
+    label: "File Share",
+    type: "file_share",
+  },
 ],
+
 UTILITIES: [
   { kind: "block", label: "Button", type: "cta" },
   { kind: "block", label: "Link", type: "links" },
