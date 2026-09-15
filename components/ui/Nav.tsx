@@ -143,9 +143,15 @@ export function Nav() {
               </div>
 
               {!isTemplatesPage ? (
-                <ButtonLink href="/templates" variant="secondary">
-                  Templates
-                </ButtonLink>
+<button
+  type="button"
+  onClick={() => {
+    alert("NAV CLICK WORKS");
+  }}
+  className="inline-flex items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm font-medium text-neutral-900"
+>
+  Templates
+</button>
               ) : null}
 
               {isCreateBuilderPage ? (
