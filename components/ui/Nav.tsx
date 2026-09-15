@@ -1,14 +1,12 @@
-// components\ui\Nav.tsx
+// components/ui/Nav.tsx
 
 "use client";
 
-import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { useParams, usePathname } from "next/navigation";
 import { UserButton, useAuth } from "@clerk/nextjs";
 import { Container } from "@/components/ui/Container";
-import { ButtonLink } from "@/components/ui/ButtonLink";
 import InstallButton from "@/components/pwa/InstallButton";
 
 function isMicrositeHostname(hostname: string) {
@@ -26,6 +24,7 @@ function isMicrositeHostname(hostname: string) {
 
   if (normalized.includes(".vercel.app")) {
     const firstLabel = normalized.split(".")[0] || "";
+
     if (firstLabel && firstLabel !== "www" && firstLabel !== "ko-host") {
       return true;
     }
@@ -38,11 +37,13 @@ export function Nav() {
   const pathname = usePathname() || "";
   const params = useParams();
   const { isSignedIn } = useAuth();
+
   const [hostname, setHostname] = useState("");
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
+
     if (typeof window !== "undefined") {
       setHostname(window.location.hostname || "");
     }
@@ -61,6 +62,7 @@ export function Nav() {
   }
 
   const isTemplatesPage = pathname.startsWith("/templates");
+
   const isCreateBuilderPage =
     pathname.startsWith("/create/") &&
     !pathname.includes("/publish") &&
@@ -73,12 +75,29 @@ export function Nav() {
     ? `/create/${encodeURIComponent(currentTemplate)}/design`
     : "/templates";
 
+  function navigateTo(href: string) {
+    if (typeof window === "undefined") return;
+
+    window.location.href = href;
+  }
+
+  const secondaryButtonClass =
+    "inline-flex items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm font-medium text-neutral-900 transition hover:bg-neutral-50";
+
+  const primaryButtonClass =
+    "inline-flex items-center justify-center rounded-xl border border-neutral-900 bg-neutral-900 px-3 py-2 text-sm font-medium text-white transition hover:bg-neutral-800";
+
   return (
     <header className="fixed inset-x-0 top-0 z-[100] border-b border-neutral-200 bg-white">
-      <Container fullWidth className="relative flex h-16 items-center justify-between gap-4 px-4">
-        <Link
-          href="/"
+      <Container
+        fullWidth
+        className="relative flex h-16 items-center justify-between gap-4 px-4"
+      >
+        <button
+          type="button"
+          onClick={() => navigateTo("/")}
           className="relative z-10 flex shrink-0 items-center gap-2 font-semibold tracking-tight"
+          aria-label="Go to Ko-Host home"
         >
           <img
             src="/KH_LOGO.png"
@@ -88,7 +107,7 @@ export function Nav() {
             className="h-[44px] w-[92px]"
             draggable={false}
           />
-        </Link>
+        </button>
 
         <div className="pointer-events-none absolute inset-0 hidden items-center justify-center md:flex">
           <Image
@@ -105,36 +124,58 @@ export function Nav() {
           {!mounted ? (
             <>
               {!isTemplatesPage ? (
-                <Link
-                  href="/templates"
-                  className="hidden text-sm text-neutral-700 hover:text-neutral-900 sm:inline-flex"
+                <button
+                  type="button"
+                  onClick={() => navigateTo("/templates")}
+                  className="hidden text-sm text-neutral-700 transition hover:text-neutral-900 sm:inline-flex"
                 >
                   Templates
-                </Link>
+                </button>
               ) : null}
 
-              <ButtonLink href="/sign-in" variant="secondary">
+              <button
+                type="button"
+                onClick={() => navigateTo("/sign-in")}
+                className={secondaryButtonClass}
+              >
                 Sign in
-              </ButtonLink>
+              </button>
 
-              <ButtonLink href="/templates">Get started</ButtonLink>
+              <button
+                type="button"
+                onClick={() => navigateTo("/templates")}
+                className={primaryButtonClass}
+              >
+                Get started
+              </button>
             </>
           ) : !isSignedIn ? (
             <>
               {!isTemplatesPage ? (
-                <Link
-                  href="/templates"
-                  className="hidden text-sm text-neutral-700 hover:text-neutral-900 sm:inline-flex"
+                <button
+                  type="button"
+                  onClick={() => navigateTo("/templates")}
+                  className="hidden text-sm text-neutral-700 transition hover:text-neutral-900 sm:inline-flex"
                 >
                   Templates
-                </Link>
+                </button>
               ) : null}
 
-              <ButtonLink href="/sign-in" variant="secondary">
+              <button
+                type="button"
+                onClick={() => navigateTo("/sign-in")}
+                className={secondaryButtonClass}
+              >
                 Sign in
-              </ButtonLink>
+              </button>
 
-              <ButtonLink href="/templates">Get started</ButtonLink>
+              <button
+                type="button"
+                onClick={() => navigateTo("/templates")}
+                className={primaryButtonClass}
+              >
+                Get started
+              </button>
             </>
           ) : (
             <>
@@ -143,26 +184,32 @@ export function Nav() {
               </div>
 
               {!isTemplatesPage ? (
-<button
-  type="button"
-  onClick={() => {
-    alert("NAV CLICK WORKS");
-  }}
-  className="inline-flex items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm font-medium text-neutral-900"
->
-  Templates
-</button>
+                <button
+                  type="button"
+                  onClick={() => navigateTo("/templates")}
+                  className={secondaryButtonClass}
+                >
+                  Templates
+                </button>
               ) : null}
 
               {isCreateBuilderPage ? (
-                <ButtonLink href={designsHref} variant="secondary">
+                <button
+                  type="button"
+                  onClick={() => navigateTo(designsHref)}
+                  className={secondaryButtonClass}
+                >
                   Designs
-                </ButtonLink>
+                </button>
               ) : null}
 
-              <ButtonLink href="/dashboard" variant="secondary">
+              <button
+                type="button"
+                onClick={() => navigateTo("/dashboard")}
+                className={secondaryButtonClass}
+              >
                 Dashboard
-              </ButtonLink>
+              </button>
 
               <UserButton />
             </>
