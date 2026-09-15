@@ -651,6 +651,20 @@ type AppearancePatch = Partial<
 >;
 
 type BottomCategory =
+  | "TEXT"
+  | "MEDIA"
+  | "ICONS"
+  | "LAYOUT"
+  | "FORMS"
+  | "EXCHANGE"
+  | "UTILITIES"
+  | "DATA"
+  | "SCHEDULING"
+  | "INFORGRAPHICS"
+  | "PREMIUM";
+
+/* 
+type BottomCategory =
   | "Text"
   | "Media"
   | "Icons"
@@ -662,7 +676,7 @@ type BottomCategory =
   | "Scheduling"
   | "Infographics"
   | "Premium";
-
+ */
 type PageBlockType = "title";
 
 type ToolDropPayload =
