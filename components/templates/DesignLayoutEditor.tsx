@@ -14115,8 +14115,10 @@ onDrop={async (e) => {
 
 <div
   ref={topBarScrollRef}
-  className={`sticky z-[90] w-full bg-[#2f3541] shadow-md ${
-    fullCanvasViewLocked ? "top-0" : "top-16"
+  className={`sticky w-full bg-[#2f3541] shadow-md ${
+    fullCanvasViewLocked
+      ? "top-0 z-[200]"
+      : "top-16 z-[90]"
   }`}
 >
   <div className="flex w-full items-center bg-[#2f3541] px-2 py-2">
