@@ -1,5 +1,7 @@
 "use client";
 
+// components\builder\inspector\IconInspector.tsx
+
 import { useMemo, useState } from "react";
 
 /**
@@ -36,15 +38,15 @@ export function IconInspector({
 }: IconInspectorProps) {
   const [iconSearch, setIconSearch] = useState("");
 
-  const iconTools = useMemo(
-    () =>
-      (CATEGORY_BUTTONS.Icons ?? []).filter(
-        (tool: any) =>
-          tool.kind === "block" &&
-          tool.type === "icon",
-      ),
-    [CATEGORY_BUTTONS],
-  );
+const iconTools = useMemo(
+  () =>
+    (CATEGORY_BUTTONS.ICONS ?? []).filter(
+      (tool: any) =>
+        tool.kind === "block" &&
+        tool.type === "icon",
+    ),
+  [CATEGORY_BUTTONS],
+);
 
   const filteredIconTools = useMemo(() => {
     const query = iconSearch.trim().toLowerCase();
