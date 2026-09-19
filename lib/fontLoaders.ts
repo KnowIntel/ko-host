@@ -1,14 +1,15 @@
 import {
   Aboreto,
-  Antonio,
-  Rubik_Wet_Paint,
   Abril_Fatface,
   Advent_Pro,
   Alfa_Slab_One,
   Allura,
+  Amarante,
   Amatic_SC,
   Anton,
+  Antonio,
   Architects_Daughter,
+  Ballet,
   Bangers,
   Barlow,
   Bebas_Neue,
@@ -29,24 +30,34 @@ import {
   DM_Sans,
   Exo_2,
   Faster_One,
+  Frijole,
+  Fruktur,
   Gloria_Hallelujah,
   Great_Vibes,
   Grenze_Gotisch,
   Indie_Flower,
   Inter,
+  Jim_Nightshade,
   Josefin_Slab,
   Kaushan_Script,
   Libre_Baskerville,
   Lora,
   Luckiest_Guy,
   Marcellus,
+  Mea_Culpa,
+  Megrim,
   Merriweather,
+  Metamorphous,
+  Monsieur_La_Doulaise,
   Montserrat,
+  Nabla,
+  Nosifer,
   Open_Sans,
   Orbitron,
   Oswald,
   Pacifico,
   Parisienne,
+  Passero_One,
   Patrick_Hand,
   Permanent_Marker,
   Playball,
@@ -58,6 +69,7 @@ import {
   Rajdhani,
   Righteous,
   Rock_Salt,
+  Rubik_Wet_Paint,
   Sacramento,
   Saira_Stencil_One,
   Satisfy,
@@ -72,7 +84,9 @@ import {
   Wallpoet,
 } from "next/font/google";
 
+// ============================================================
 // Core / Sans
+// ============================================================
 
 export const inter = Inter({
   subsets: ["latin"],
@@ -126,7 +140,9 @@ export const adventPro = Advent_Pro({
   variable: "--font-advent-pro",
 });
 
+// ============================================================
 // Script
+// ============================================================
 
 export const greatVibes = Great_Vibes({
   subsets: ["latin"],
@@ -150,6 +166,29 @@ export const allura = Allura({
   subsets: ["latin"],
   weight: "400",
   variable: "--font-allura",
+});
+
+export const ballet = Ballet({
+  subsets: ["latin"],
+  variable: "--font-ballet",
+});
+
+export const jimNightshade = Jim_Nightshade({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-jim-nightshade",
+});
+
+export const meaCulpa = Mea_Culpa({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-mea-culpa",
+});
+
+export const monsieurLaDoulaise = Monsieur_La_Doulaise({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-monsieur-la-doulaise",
 });
 
 export const parisienne = Parisienne({
@@ -200,7 +239,9 @@ export const styleScript = Style_Script({
   variable: "--font-style-script",
 });
 
+// ============================================================
 // Serif
+// ============================================================
 
 export const playfairDisplay = Playfair_Display({
   subsets: ["latin"],
@@ -269,7 +310,9 @@ export const grenzeGotisch = Grenze_Gotisch({
   variable: "--font-grenze-gotisch",
 });
 
+// ============================================================
 // Display / Decorative
+// ============================================================
 
 export const aboreto = Aboreto({
   subsets: ["latin"],
@@ -287,6 +330,12 @@ export const alfa = Alfa_Slab_One({
   subsets: ["latin"],
   weight: "400",
   variable: "--font-alfa-slab-one",
+});
+
+export const amarante = Amarante({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-amarante",
 });
 
 export const amaticSC = Amatic_SC({
@@ -376,6 +425,18 @@ export const fasterOne = Faster_One({
   variable: "--font-faster-one",
 });
 
+export const frijole = Frijole({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-frijole",
+});
+
+export const fruktur = Fruktur({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-fruktur",
+});
+
 export const gloriaHallelujah = Gloria_Hallelujah({
   subsets: ["latin"],
   weight: "400",
@@ -394,9 +455,38 @@ export const luckiestGuy = Luckiest_Guy({
   variable: "--font-luckiest-guy",
 });
 
+export const megrim = Megrim({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-megrim",
+});
+
+export const metamorphous = Metamorphous({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-metamorphous",
+});
+
+export const nabla = Nabla({
+  subsets: ["latin"],
+  variable: "--font-nabla",
+});
+
+export const nosifer = Nosifer({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-nosifer",
+});
+
 export const orbitron = Orbitron({
   subsets: ["latin"],
   variable: "--font-orbitron",
+});
+
+export const passeroOne = Passero_One({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-passero-one",
 });
 
 export const patrickHand = Patrick_Hand({
@@ -476,6 +566,10 @@ export const wallpoet = Wallpoet({
   variable: "--font-wallpoet",
 });
 
+// ============================================================
+// Monospace / Utility
+// ============================================================
+
 export const specialElite = Special_Elite({
   subsets: ["latin"],
   weight: "400",
@@ -487,6 +581,10 @@ export const courierPrime = Courier_Prime({
   weight: ["400", "700"],
   variable: "--font-courier-prime",
 });
+
+// ============================================================
+// App Font Variables
+// ============================================================
 
 export const APP_FONT_VARIABLES = [
   // Core
@@ -506,6 +604,10 @@ export const APP_FONT_VARIABLES = [
   dancingScript.variable,
   pacifico.variable,
   allura.variable,
+  ballet.variable,
+  jimNightshade.variable,
+  meaCulpa.variable,
+  monsieurLaDoulaise.variable,
   parisienne.variable,
   sacramento.variable,
   playball.variable,
@@ -533,6 +635,7 @@ export const APP_FONT_VARIABLES = [
   aboreto.variable,
   abril.variable,
   alfa.variable,
+  amarante.variable,
   amaticSC.variable,
   antonio.variable,
   anton.variable,
@@ -548,10 +651,17 @@ export const APP_FONT_VARIABLES = [
   creepster.variable,
   exo.variable,
   fasterOne.variable,
+  frijole.variable,
+  fruktur.variable,
   gloriaHallelujah.variable,
   indie.variable,
   luckiestGuy.variable,
+  megrim.variable,
+  metamorphous.variable,
+  nabla.variable,
+  nosifer.variable,
   orbitron.variable,
+  passeroOne.variable,
   patrickHand.variable,
   marker.variable,
   poiretOne.variable,

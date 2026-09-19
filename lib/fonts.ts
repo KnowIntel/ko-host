@@ -1,11 +1,13 @@
 export const FONT_FAMILY_OPTIONS = [
   "inherit",
 
-// Display / Decorative
+  // Display / Decorative
+
   "Aboreto",
   "Abril Fatface",
   "Advent Pro",
   "Alfa Slab One",
+  "Amarante",
   "Amatic SC",
   "Antonio",
   "Anton",
@@ -23,14 +25,21 @@ export const FONT_FAMILY_OPTIONS = [
   "Creepster",
   "Exo 2",
   "Faster One",
+  "Frijole",
+  "Fruktur",
   "Gloria Hallelujah",
   "Grenze Gotisch",
   "Indie Flower",
   "Josefin Slab",
   "Kaushan Script",
   "Luckiest Guy",
+  "Megrim",
+  "Metamorphous",
+  "Nabla",
+  "Nosifer",
   "Orbitron",
   "Oswald",
+  "Passero One",
   "Patrick Hand",
   "Permanent Marker",
   "Poiret One",
@@ -49,9 +58,14 @@ export const FONT_FAMILY_OPTIONS = [
   "Wallpoet",
 
   // Script
+
   "Allura",
+  "Ballet",
   "Dancing Script",
   "Great Vibes",
+  "Jim Nightshade",
+  "Mea Culpa",
+  "Monsieur La Doulaise",
   "Pacifico",
   "Parisienne",
   "Playball",
@@ -60,6 +74,7 @@ export const FONT_FAMILY_OPTIONS = [
   "Tangerine",
 
   // Serif
+
   "Bodoni Moda",
   "Cinzel",
   "Cormorant Garamond",
@@ -74,6 +89,7 @@ export const FONT_FAMILY_OPTIONS = [
   "Times New Roman",
 
   // Sans Serif
+
   "Arial",
   "DM Sans",
   "Helvetica",
@@ -88,6 +104,7 @@ export const FONT_FAMILY_OPTIONS = [
   "Verdana",
 
   // Monospace / Utility
+
   "Courier New",
   "Courier Prime",
   "Handwritten",
@@ -95,10 +112,14 @@ export const FONT_FAMILY_OPTIONS = [
   "Typewriter",
 ] as const;
 
-export type FontFamilyOption = (typeof FONT_FAMILY_OPTIONS)[number];
+export type FontFamilyOption =
+  (typeof FONT_FAMILY_OPTIONS)[number];
 
 export const FONT_FAMILY_MAP: Record<string, string> = {
-  // Core
+  // ============================================================
+  // CORE
+  // ============================================================
+
   Inter:
     'var(--font-inter), Inter, ui-sans-serif, system-ui, sans-serif',
 
@@ -123,7 +144,10 @@ export const FONT_FAMILY_MAP: Record<string, string> = {
   "Modern UI":
     'var(--font-open-sans), "Open Sans", var(--font-source-sans-3), "Source Sans 3", ui-sans-serif, system-ui, sans-serif',
 
-  // Script
+  // ============================================================
+  // SCRIPT
+  // ============================================================
+
   "Great Vibes":
     'var(--font-great-vibes), "Great Vibes", cursive',
 
@@ -135,6 +159,18 @@ export const FONT_FAMILY_MAP: Record<string, string> = {
 
   Allura:
     'var(--font-allura), Allura, cursive',
+
+  Ballet:
+    'var(--font-ballet), Ballet, cursive',
+
+  "Jim Nightshade":
+    'var(--font-jim-nightshade), "Jim Nightshade", cursive',
+
+  "Mea Culpa":
+    'var(--font-mea-culpa), "Mea Culpa", cursive',
+
+  "Monsieur La Doulaise":
+    'var(--font-monsieur-la-doulaise), "Monsieur La Doulaise", cursive',
 
   Parisienne:
     'var(--font-parisienne), Parisienne, cursive',
@@ -161,11 +197,15 @@ export const FONT_FAMILY_MAP: Record<string, string> = {
     'var(--font-style-script), "Style Script", cursive',
 
   // Brusher is not a next/font Google family.
-  // Keep the UI option, but resolve it through real loaded brush fonts.
+  // Keep the mapping as a legacy/fallback alias.
+
   Brusher:
     'var(--font-comforter-brush), "Comforter Brush", "Brush Script MT", cursive',
 
-  // Serif
+  // ============================================================
+  // SERIF
+  // ============================================================
+
   "Playfair Display":
     'var(--font-playfair-display), "Playfair Display", ui-serif, Georgia, serif',
 
@@ -203,9 +243,12 @@ export const FONT_FAMILY_MAP: Record<string, string> = {
     'var(--font-grenze-gotisch), "Grenze Gotisch", serif',
 
   Aboreto:
-  'var(--font-aboreto), Aboreto, serif',
+    'var(--font-aboreto), Aboreto, serif',
 
-  // Display / Decorative
+  // ============================================================
+  // DISPLAY / DECORATIVE
+  // ============================================================
+
   "Abril Fatface":
     'var(--font-abril-fatface), "Abril Fatface", serif',
 
@@ -215,11 +258,14 @@ export const FONT_FAMILY_MAP: Record<string, string> = {
   "Alfa Slab One":
     'var(--font-alfa-slab-one), "Alfa Slab One", serif',
 
+  Amarante:
+    'var(--font-amarante), Amarante, serif',
+
   "Amatic SC":
     'var(--font-amatic-sc), "Amatic SC", cursive',
 
   Antonio:
-  'var(--font-antonio), Antonio, ui-sans-serif, system-ui, sans-serif',
+    'var(--font-antonio), Antonio, ui-sans-serif, system-ui, sans-serif',
 
   Anton:
     'var(--font-anton), Anton, sans-serif',
@@ -263,6 +309,12 @@ export const FONT_FAMILY_MAP: Record<string, string> = {
   "Faster One":
     'var(--font-faster-one), "Faster One", cursive',
 
+  Frijole:
+    'var(--font-frijole), Frijole, cursive',
+
+  Fruktur:
+    'var(--font-fruktur), Fruktur, cursive',
+
   "Gloria Hallelujah":
     'var(--font-gloria-hallelujah), "Gloria Hallelujah", cursive',
 
@@ -272,11 +324,26 @@ export const FONT_FAMILY_MAP: Record<string, string> = {
   "Luckiest Guy":
     'var(--font-luckiest-guy), "Luckiest Guy", sans-serif',
 
+  Megrim:
+    'var(--font-megrim), Megrim, sans-serif',
+
+  Metamorphous:
+    'var(--font-metamorphous), Metamorphous, serif',
+
+  Nabla:
+    'var(--font-nabla), Nabla, cursive',
+
+  Nosifer:
+    'var(--font-nosifer), Nosifer, cursive',
+
   Orbitron:
     'var(--font-orbitron), Orbitron, sans-serif',
 
   Oswald:
     'var(--font-oswald), Oswald, ui-sans-serif, system-ui, sans-serif',
+
+  "Passero One":
+    'var(--font-passero-one), "Passero One", sans-serif',
 
   "Patrick Hand":
     'var(--font-patrick-hand), "Patrick Hand", cursive',
@@ -296,11 +363,11 @@ export const FONT_FAMILY_MAP: Record<string, string> = {
   Righteous:
     'var(--font-righteous), Righteous, cursive',
 
-  "Rubik Wet Paint":
-  'var(--font-rubik-wet-paint), "Rubik Wet Paint", cursive',
-
   "Rock Salt":
     'var(--font-rock-salt), "Rock Salt", cursive',
+
+  "Rubik Wet Paint":
+    'var(--font-rubik-wet-paint), "Rubik Wet Paint", cursive',
 
   "Saira Stencil":
     'var(--font-saira-stencil), "Saira Stencil One", sans-serif',
@@ -323,7 +390,10 @@ export const FONT_FAMILY_MAP: Record<string, string> = {
   Wallpoet:
     'var(--font-wallpoet), Wallpoet, sans-serif',
 
-  // Utility aliases
+  // ============================================================
+  // UTILITY ALIASES
+  // ============================================================
+
   Handwritten:
     'var(--font-patrick-hand), "Patrick Hand", var(--font-architects-daughter), "Architects Daughter", var(--font-gloria-hallelujah), "Gloria Hallelujah", var(--font-caveat), Caveat, cursive',
 
@@ -333,7 +403,10 @@ export const FONT_FAMILY_MAP: Record<string, string> = {
   "Courier Prime":
     'var(--font-courier-prime), "Courier Prime", "Courier New", monospace',
 
-  // System
+  // ============================================================
+  // SYSTEM
+  // ============================================================
+
   Arial:
     "Arial, Helvetica, sans-serif",
 
@@ -359,10 +432,18 @@ export const FONT_FAMILY_MAP: Record<string, string> = {
     "system-ui, sans-serif",
 };
 
-export function getFontFamily(fontFamily?: string | null): string {
-  if (!fontFamily || fontFamily === "inherit") {
+export function getFontFamily(
+  fontFamily?: string | null,
+): string {
+  if (
+    !fontFamily ||
+    fontFamily === "inherit"
+  ) {
     return "inherit";
   }
 
-  return FONT_FAMILY_MAP[fontFamily] ?? fontFamily;
+  return (
+    FONT_FAMILY_MAP[fontFamily] ??
+    fontFamily
+  );
 }
