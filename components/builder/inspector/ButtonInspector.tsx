@@ -703,10 +703,10 @@ const iconTools = useMemo(
 
               <input
                 type="color"
-                value={
-                  data.buttonIconColor ??
-                  "#111111"
-                }
+value={
+  data.buttonIconColor ??
+  "#ffffff"
+}
                 onChange={(e) =>
                   patchButtonData({
                     buttonIconColor:

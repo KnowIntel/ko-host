@@ -3286,12 +3286,12 @@ function CtaButtonLive() {
             "",
         );
 
-  const buttonIconColor =
-    String(
-      (block.data as any)
-        .buttonIconColor ??
-        "#111111",
-    );
+const buttonIconColor =
+  String(
+    (block.data as any)
+      .buttonIconColor ??
+      "#ffffff",
+  );
 
   const isMediaCircle =
     buttonStyleType ===
@@ -4184,23 +4184,52 @@ buttonImagePlacement !==
   "after" ? (
   buttonMediaType ===
   "icon" ? (
-<img
-  src={buttonMediaUrl}
-  alt=""
-  aria-hidden="true"
-  className="block shrink-0 object-contain"
-  style={{
-    width: `${
-      (block.data as any).buttonImageSize ??
-      20
-    }px`,
+    <span
+      aria-hidden="true"
+      className="block shrink-0"
+      style={{
+        width:
+          `${
+            (block.data as any)
+              .buttonImageSize ??
+            20
+          }px`,
 
-    height: `${
-      (block.data as any).buttonImageSize ??
-      20
-    }px`,
-  }}
-/>
+        height:
+          `${
+            (block.data as any)
+              .buttonImageSize ??
+            20
+          }px`,
+
+        backgroundColor:
+          buttonIconColor,
+
+        WebkitMaskImage:
+          `url("${buttonMediaUrl}")`,
+
+        maskImage:
+          `url("${buttonMediaUrl}")`,
+
+        WebkitMaskRepeat:
+          "no-repeat",
+
+        maskRepeat:
+          "no-repeat",
+
+        WebkitMaskPosition:
+          "center",
+
+        maskPosition:
+          "center",
+
+        WebkitMaskSize:
+          "contain",
+
+        maskSize:
+          "contain",
+      }}
+    />
   ) : (
     <img
       src={
@@ -4235,23 +4264,52 @@ buttonImagePlacement !==
 buttonMediaUrl ? (
   buttonMediaType ===
   "icon" ? (
-<img
-  src={buttonMediaUrl}
-  alt=""
-  aria-hidden="true"
-  className="block shrink-0 object-contain"
-  style={{
-    width: `${
-      (block.data as any).buttonImageSize ??
-      20
-    }px`,
+    <span
+      aria-hidden="true"
+      className="block shrink-0"
+      style={{
+        width:
+          `${
+            (block.data as any)
+              .buttonImageSize ??
+            20
+          }px`,
 
-    height: `${
-      (block.data as any).buttonImageSize ??
-      20
-    }px`,
-  }}
-/>
+        height:
+          `${
+            (block.data as any)
+              .buttonImageSize ??
+            20
+          }px`,
+
+        backgroundColor:
+          buttonIconColor,
+
+        WebkitMaskImage:
+          `url("${buttonMediaUrl}")`,
+
+        maskImage:
+          `url("${buttonMediaUrl}")`,
+
+        WebkitMaskRepeat:
+          "no-repeat",
+
+        maskRepeat:
+          "no-repeat",
+
+        WebkitMaskPosition:
+          "center",
+
+        maskPosition:
+          "center",
+
+        WebkitMaskSize:
+          "contain",
+
+        maskSize:
+          "contain",
+      }}
+    />
   ) : (
     <img
       src={
@@ -4304,23 +4362,52 @@ buttonImagePlacement ===
   "after" ? (
   buttonMediaType ===
   "icon" ? (
-<img
-  src={buttonMediaUrl}
-  alt=""
-  aria-hidden="true"
-  className="block shrink-0 object-contain"
-  style={{
-    width: `${
-      (block.data as any).buttonImageSize ??
-      20
-    }px`,
+    <span
+      aria-hidden="true"
+      className="block shrink-0"
+      style={{
+        width:
+          `${
+            (block.data as any)
+              .buttonImageSize ??
+            20
+          }px`,
 
-    height: `${
-      (block.data as any).buttonImageSize ??
-      20
-    }px`,
-  }}
-/>
+        height:
+          `${
+            (block.data as any)
+              .buttonImageSize ??
+            20
+          }px`,
+
+        backgroundColor:
+          buttonIconColor,
+
+        WebkitMaskImage:
+          `url("${buttonMediaUrl}")`,
+
+        maskImage:
+          `url("${buttonMediaUrl}")`,
+
+        WebkitMaskRepeat:
+          "no-repeat",
+
+        maskRepeat:
+          "no-repeat",
+
+        WebkitMaskPosition:
+          "center",
+
+        maskPosition:
+          "center",
+
+        WebkitMaskSize:
+          "contain",
+
+        maskSize:
+          "contain",
+      }}
+    />
   ) : (
     <img
       src={
