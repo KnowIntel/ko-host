@@ -1248,6 +1248,12 @@ activeBookmarkSlug ===
     const animation =
       (block.data as any).animation ?? "none";
 
+const animationColor =
+  String(
+    (block.data as any).animationColor ??
+      "#2563EB",
+  );
+
     if (animation === "none") {
       return null;
     }
@@ -1269,9 +1275,8 @@ activeBookmarkSlug ===
             width: 14,
             height: 14,
             borderRadius: "9999px",
-            backgroundColor: "#2563EB",
-            boxShadow:
-              "0 0 0 5px rgba(37, 99, 235, 0.18)",
+backgroundColor: animationColor,
+boxShadow: `0 0 0 5px color-mix(in srgb, ${animationColor} 18%, transparent)`,
             animation:
               "koBookmarkPulseDot 800ms ease-out forwards",
           }}
@@ -1288,7 +1293,7 @@ activeBookmarkSlug ===
             width: 22,
             height: 22,
             borderRadius: "9999px",
-            border: "3px solid #2563EB",
+            border: `3px solid ${animationColor}`,
             animation:
               "koBookmarkRipple 850ms ease-out forwards",
           }}
@@ -1305,10 +1310,8 @@ activeBookmarkSlug ===
             width: 52,
             height: 28,
             borderRadius: "9999px",
-            background:
-              "rgba(37, 99, 235, 0.22)",
-            boxShadow:
-              "0 0 22px rgba(37, 99, 235, 0.55)",
+background: `color-mix(in srgb, ${animationColor} 22%, transparent)`,
+boxShadow: `0 0 22px color-mix(in srgb, ${animationColor} 55%, transparent)`,
             animation:
               "koBookmarkFlashHighlight 850ms ease-out forwards",
           }}

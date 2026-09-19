@@ -129,59 +129,30 @@ export function BookmarkInspector({
     Animation Color
   </div>
 
-  <div className="mt-2 flex items-center gap-3">
-    <input
-      type="color"
-      value={
-        (selectedBlock.data as any).animationColor ??
-        "#2563EB"
-      }
-      onChange={(e) => {
-        const animationColor =
-          e.target.value;
+  <input
+    type="color"
+    value={
+      (selectedBlock.data as any).animationColor ??
+      "#2563EB"
+    }
+    onChange={(e) => {
+      const animationColor = e.target.value;
 
-        updateSelectedBlock((block: any) =>
-          block.type !== "bookmark"
-            ? block
-            : {
-                ...block,
-                data: {
-                  ...block.data,
-                  animationColor,
-                },
+      updateSelectedBlock((block: any) =>
+        block.type !== "bookmark"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                animationColor,
               },
-        );
-      }}
-      className="h-9 w-12 cursor-pointer rounded border border-neutral-300 bg-white p-1"
-      aria-label="Animation color"
-    />
-
-    <input
-      type="text"
-      value={
-        (selectedBlock.data as any).animationColor ??
-        "#2563EB"
-      }
-      onChange={(e) => {
-        const animationColor =
-          e.target.value;
-
-        updateSelectedBlock((block: any) =>
-          block.type !== "bookmark"
-            ? block
-            : {
-                ...block,
-                data: {
-                  ...block.data,
-                  animationColor,
-                },
-              },
-        );
-      }}
-      className={inspectorInputClass()}
-      placeholder="#2563EB"
-    />
-  </div>
+            },
+      );
+    }}
+    className="mt-2 h-9 w-12 cursor-pointer rounded border border-neutral-300 bg-white p-1"
+    aria-label="Animation color"
+  />
 </div>
 
       </div>

@@ -5490,8 +5490,8 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
         label: "Bookmark",
         grid: {
           ...grid,
-          colSpan: 2,
-          rowSpan: 1,
+          colSpan: 0.25,
+          rowSpan: 0.25,
         },
         appearance: {
           ...createDefaultBlockAppearance(),
