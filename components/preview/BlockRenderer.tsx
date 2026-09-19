@@ -40205,6 +40205,9 @@ useEffect(() => {
 function renderSpreadsheet(block: any, previewMode = false) {
   const data = block.data ?? {};
 
+const gridLineColor =
+  String(data.gridLineColor ?? "#d4d4d4");
+
   const [cells, setCells] = useState<Record<string, any>>(data.cells ?? {});
 const [activeCell, setActiveCell] = useState<string | null>(
   data.selectedCell ?? "0:0",
@@ -40391,17 +40394,32 @@ const moveToCell = (row: number, col: number) => {
           {data.showHeaders !== false ? (
             <thead>
               <tr>
-                <th className="sticky left-0 top-0 z-20 h-10 min-w-[50px] border border-neutral-200 bg-neutral-100" />
+                <th
+  className="sticky left-0 top-0 z-20 h-10 min-w-[50px] border bg-neutral-100"
+  style={{
+    borderColor:
+      data.showGridlines === false
+        ? "transparent"
+        : gridLineColor,
+  }}
+/>
 
                 {columnLabels.map((label, columnIndex) => {
                   const width = columnWidths[String(columnIndex)] ?? 120;
 
                   return (
-                    <th
-                      key={label}
-                      className="relative h-10 border border-neutral-200 bg-neutral-100 px-2 text-center text-xs font-semibold text-neutral-600"
-                      style={{ width, minWidth: width }}
-                    >
+<th
+  key={label}
+  className="relative h-10 border bg-neutral-100 px-2 text-center text-xs font-semibold text-neutral-600"
+  style={{
+    width,
+    minWidth: width,
+    borderColor:
+      data.showGridlines === false
+        ? "transparent"
+        : gridLineColor,
+  }}
+>
                       {label}
 
                       <span
@@ -40432,10 +40450,16 @@ const moveToCell = (row: number, col: number) => {
               return (
                 <tr key={rowIndex}>
                   {data.showHeaders !== false ? (
-                    <td
-                      className="sticky left-0 z-10 border border-neutral-200 bg-neutral-100 px-2 text-center text-xs font-semibold text-neutral-600"
-                      style={{ height }}
-                    >
+<td
+  className="sticky left-0 z-10 border bg-neutral-100 px-2 text-center text-xs font-semibold text-neutral-600"
+  style={{
+    height,
+    borderColor:
+      data.showGridlines === false
+        ? "transparent"
+        : gridLineColor,
+  }}
+>
                       <span>{rowIndex + 1}</span>
 
                       <span
@@ -40466,19 +40490,26 @@ const moveToCell = (row: number, col: number) => {
                     const isWrapped = format.wrapText === true;
 
                     return (
-                      <td
-                        key={cellKey}
-                        className={`relative p-0 text-sm ${
-                          data.showGridlines === false
-                            ? "border border-transparent"
-                            : "border border-neutral-200"
-                        }`}
-                        style={{
-                          width: columnWidths[String(columnIndex)] ?? 120,
-                          minWidth: columnWidths[String(columnIndex)] ?? 120,
-                          height,
-                          backgroundColor: format.backgroundColor ?? "#FFFFFF",
-                        }}
+<td
+  key={cellKey}
+  className="relative border p-0 text-sm"
+  style={{
+    width:
+      columnWidths[String(columnIndex)] ?? 120,
+
+    minWidth:
+      columnWidths[String(columnIndex)] ?? 120,
+
+    height,
+
+    backgroundColor:
+      format.backgroundColor ?? "#FFFFFF",
+
+    borderColor:
+      data.showGridlines === false
+        ? "transparent"
+        : gridLineColor,
+  }}
                         onPointerDownCapture={(event) => {
                           const multiSelect = event.ctrlKey || event.metaKey;
 
