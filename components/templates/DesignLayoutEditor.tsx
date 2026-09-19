@@ -7450,43 +7450,13 @@ if (selectedBlock?.type === "poll") {
 }
 
 if (selectedBlock?.type === "option_button") {
-  updateSelectedBlock((block) => {
-    if (block.type !== "option_button") {
-      return block;
-    }
-
-    /*
-     * Radius always controls the Option Button field itself,
-     * regardless of the currently selected Style Target.
-     */
-    if (patch.borderRadius !== undefined) {
-      const { borderRadius, ...remainingPatch } = patch;
-
-      let nextBlock = block;
-
-      if (Object.keys(remainingPatch).length > 0) {
-        nextBlock = applyOptionButtonStylePatch(
-          nextBlock,
-          optionButtonStyleTarget,
-          remainingPatch,
-        ) as typeof block;
-      }
-
-      nextBlock = applyOptionButtonStylePatch(
-        nextBlock,
-        "field",
-        { borderRadius },
-      ) as typeof block;
-
-      return nextBlock;
-    }
-
-    return applyOptionButtonStylePatch(
+  updateSelectedBlock((block) =>
+    applyOptionButtonStylePatch(
       block,
       optionButtonStyleTarget,
       patch,
-    );
-  });
+    ),
+  );
 
   return;
 }
@@ -16392,6 +16362,7 @@ title={
       />
     </button>
 
+{/* // RADIUS CONTROLS */}
 {showBorderWidthRadiusControls ? (
   <>
     <div className={topBarSliderWrapClass()}>
@@ -16493,92 +16464,40 @@ title={
       </span>
     </div>
 
-    <div className={topBarSliderWrapClass()}>
-      <span>Radius</span>
+<div className={topBarSliderWrapClass()}>
+  <span>Radius</span>
 
-      <input
-        type="range"
-        min={0}
-        max={100}
-        value={
-          selectedBlock?.type === "post_board" &&
-          postBoardStyleTarget === "card"
-            ? Number(
-                ((selectedBlock.data as any).cardStyle ?? {})
-                  .borderRadius ?? 0,
-              )
-            : selectedBlock?.type === "post_board" &&
-                postBoardStyleTarget === "buttons"
-              ? Number(
-                  ((selectedBlock.data as any).buttonStyle ?? {})
-                    .borderRadius ?? 0,
-                )
-              : selectedBlock?.type === "form_field" &&
-                  formFieldStyleTarget === "field"
-                ? Number(
-                    ((selectedBlock.data as any).inputStyle ?? {})
-                      .borderRadius ?? 0,
-                  )
-                : selectedBlock?.type === "enrollment_board" &&
-                    enrollmentBoardStyleTarget === "field"
-                  ? Number(
-                      ((selectedBlock.data as any).fieldStyle ?? {})
-                        .borderRadius ?? 0,
-                    )
-                  : Number(
-                      selectedAppearance.borderRadius ?? 0,
-                    )
-        }
-        onChange={(e) => {
-          const borderRadius =
-            Number(e.target.value) || 0;
-
-          if (selectedBlock?.type === "calendar_event") {
-            updateSelectedBlock((block) =>
-              block.type !== "calendar_event"
-                ? block
-                : applyCalendarEventStylePatch(
-                    block,
-                    calendarEventStyleTarget,
-                    {
-                      borderRadius,
-                    },
-                  ),
-            );
-
-            return;
-          }
-
-          applyAppearancePatch({
-            borderRadius,
-          });
-        }}
-        className={topBarSliderClass()}
-        title={
-          selectedBlock?.type === "calendar_event"
-            ? "Selected calendar style target corner radius"
-            : "Corner radius"
-        }
-      />
-
-      <span>
-        {selectedBlock?.type === "post_board" &&
-        postBoardStyleTarget === "card"
+  <input
+    type="range"
+    min={0}
+    max={100}
+    value={
+      selectedBlock?.type === "post_board" &&
+      postBoardStyleTarget === "card"
+        ? Number(
+            ((selectedBlock.data as any).cardStyle ?? {})
+              .borderRadius ?? 0,
+          )
+        : selectedBlock?.type === "post_board" &&
+            postBoardStyleTarget === "buttons"
           ? Number(
-              ((selectedBlock.data as any).cardStyle ?? {})
+              ((selectedBlock.data as any).buttonStyle ?? {})
                 .borderRadius ?? 0,
             )
-          : selectedBlock?.type === "post_board" &&
-              postBoardStyleTarget === "buttons"
+          : selectedBlock?.type === "form_field" &&
+              formFieldStyleTarget === "field"
             ? Number(
-                ((selectedBlock.data as any).buttonStyle ?? {})
-                  .borderRadius ?? 0,
+                ((selectedBlock.data as any).inputStyle ?? {})
+                  .borderRadius ??
+                  (selectedBlock.data as any).fieldBorderRadius ??
+                  0,
               )
-            : selectedBlock?.type === "form_field" &&
-                formFieldStyleTarget === "field"
+            : selectedBlock?.type === "option_button"
               ? Number(
-                  ((selectedBlock.data as any).inputStyle ?? {})
-                    .borderRadius ?? 0,
+                  ((selectedBlock.data as any).fieldStyle ?? {})
+                    .borderRadius ??
+                    (selectedBlock.data as any).fieldBorderRadius ??
+                    0,
                 )
               : selectedBlock?.type === "enrollment_board" &&
                   enrollmentBoardStyleTarget === "field"
@@ -16588,9 +16507,101 @@ title={
                   )
                 : Number(
                     selectedAppearance.borderRadius ?? 0,
-                  )}
-      </span>
-    </div>
+                  )
+    }
+    onChange={(e) => {
+      const borderRadius =
+        Number(e.target.value) || 0;
+
+      if (selectedBlock?.type === "calendar_event") {
+        updateSelectedBlock((block) =>
+          block.type !== "calendar_event"
+            ? block
+            : applyCalendarEventStylePatch(
+                block,
+                calendarEventStyleTarget,
+                {
+                  borderRadius,
+                },
+              ),
+        );
+
+        return;
+      }
+
+      /*
+       * Option Button radius always controls the field itself,
+       * regardless of the currently selected Style Target.
+       */
+      if (selectedBlock?.type === "option_button") {
+        updateSelectedBlock((block) =>
+          block.type !== "option_button"
+            ? block
+            : applyOptionButtonStylePatch(
+                block,
+                "field",
+                {
+                  borderRadius,
+                },
+              ),
+        );
+
+        return;
+      }
+
+      applyAppearancePatch({
+        borderRadius,
+      });
+    }}
+    className={topBarSliderClass()}
+    title={
+      selectedBlock?.type === "calendar_event"
+        ? "Selected calendar style target corner radius"
+        : selectedBlock?.type === "option_button"
+          ? "Option field corner radius"
+          : "Corner radius"
+    }
+  />
+
+  <span>
+    {selectedBlock?.type === "post_board" &&
+    postBoardStyleTarget === "card"
+      ? Number(
+          ((selectedBlock.data as any).cardStyle ?? {})
+            .borderRadius ?? 0,
+        )
+      : selectedBlock?.type === "post_board" &&
+          postBoardStyleTarget === "buttons"
+        ? Number(
+            ((selectedBlock.data as any).buttonStyle ?? {})
+              .borderRadius ?? 0,
+          )
+        : selectedBlock?.type === "form_field" &&
+            formFieldStyleTarget === "field"
+          ? Number(
+              ((selectedBlock.data as any).inputStyle ?? {})
+                .borderRadius ??
+                (selectedBlock.data as any).fieldBorderRadius ??
+                0,
+            )
+          : selectedBlock?.type === "option_button"
+            ? Number(
+                ((selectedBlock.data as any).fieldStyle ?? {})
+                  .borderRadius ??
+                  (selectedBlock.data as any).fieldBorderRadius ??
+                  0,
+              )
+            : selectedBlock?.type === "enrollment_board" &&
+                enrollmentBoardStyleTarget === "field"
+              ? Number(
+                  ((selectedBlock.data as any).fieldStyle ?? {})
+                    .borderRadius ?? 0,
+                )
+              : Number(
+                  selectedAppearance.borderRadius ?? 0,
+                )}
+  </span>
+</div>
   </>
 ) : null}
 
