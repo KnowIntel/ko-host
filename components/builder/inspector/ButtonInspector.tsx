@@ -72,21 +72,15 @@ export function ButtonInspector({
     styleType ===
     "media_circle";
 
-  const iconTools =
-    useMemo(
-      () =>
-        (
-          CATEGORY_BUTTONS
-            .Icons ?? []
-        ).filter(
-          (tool: any) =>
-            tool.kind ===
-              "block" &&
-            tool.type ===
-              "icon",
-        ),
-      [CATEGORY_BUTTONS],
-    );
+const iconTools = useMemo(
+  () =>
+    (CATEGORY_BUTTONS.ICONS ?? []).filter(
+      (tool: any) =>
+        tool.kind === "block" &&
+        tool.type === "icon",
+    ),
+  [CATEGORY_BUTTONS],
+);
 
   const filteredIconTools =
     useMemo(() => {
