@@ -96,9 +96,9 @@ export function OptionButtonInspector({
       <option value="subtitle">Subtitle</option>
       <option value="optionText">Option Text</option>
 
-      {(selectedBlock.data as any).styleVariant === "dropdown" ? (
-        <option value="placeholder">Placeholder</option>
-      ) : null}
+{((selectedBlock.data as any).variant ?? "push_button") === "dropdown" ? (
+  <option value="placeholder">Placeholder</option>
+) : null}
     </select>
   </div>
 

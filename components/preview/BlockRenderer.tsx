@@ -18896,6 +18896,7 @@ className={[
               </div>
             ) : null}
 
+
             {submitSuccess ? (
               <div className="mt-2 text-center text-xs opacity-70">
                 Thank you for voting.
@@ -27213,51 +27214,93 @@ const sharedDataAttrs = {
   "data-option-button-labels": selectedLabels,
 };
 
-    if (variant === "dropdown") {
-      return (
-        <div
-          className="pointer-events-auto h-full w-full p-2"
-          style={getAppearanceStyle(block)}
-        >
-          <div className="pointer-events-auto flex h-full flex-col gap-2">
-            {data.showHeading !== false ? (
-              <div style={headingStyle}>
-                {data.heading || "Choose an Option"}
-              </div>
-            ) : null}
+if (variant === "dropdown") {
+  const hasSelection = Boolean(selectedIds[0]);
 
-            {data.showSubtitle ? (
-<div className="text-sm opacity-75" style={subtitleStyle}>
-  {data.subtitle}
-</div>
-            ) : null}
+  const displayedSelectTextStyle = hasSelection
+    ? optionLabelStyle
+    : placeholderStyle;
 
-            <select
-className={
-  isLightDesign(designKey)
-    ? "pointer-events-auto h-[54px] w-full rounded border border-neutral-300 bg-white px-3 py-2"
-    : "pointer-events-auto h-[54px] w-full rounded border border-white/15 bg-white/5 px-3 py-2"
-}
-              value={selectedIds[0] ?? ""}
-              onChange={(e) =>
-                applySelection(e.target.value ? [e.target.value] : [])
-              }
-style={{
-  ...optionTextStyle,
-  color: selectedIds[0]
-    ? ((optionLabelStyle.color as string | undefined) ??
-        (optionTextStyle.color as string | undefined))
-    : placeholderColor,
-  WebkitTextFillColor: selectedIds[0]
-    ? ((optionLabelStyle as any).WebkitTextFillColor ??
-        (optionTextStyle as any).WebkitTextFillColor)
-    : placeholderColor,
-}}
-              {...sharedDataAttrs}
-            >
-              <option
+  return (
+    <div
+      className="pointer-events-auto h-full w-full p-2"
+      style={getAppearanceStyle(block)}
+    >
+      <div className="pointer-events-auto flex h-full flex-col gap-2">
+        {data.showHeading !== false ? (
+          <div style={headingStyle}>
+            {data.heading || "Choose an Option"}
+          </div>
+        ) : null}
+
+        {data.showSubtitle ? (
+          <div className="text-sm opacity-75" style={subtitleStyle}>
+            {data.subtitle}
+          </div>
+        ) : null}
+
+        <div className="relative w-full">
+          <select
+            className={
+              isLightDesign(designKey)
+                ? "pointer-events-auto h-[54px] w-full appearance-none bg-white py-2 pl-3 pr-12"
+                : "pointer-events-auto h-[54px] w-full appearance-none bg-white/5 py-2 pl-3 pr-12"
+            }
+            value={selectedIds[0] ?? ""}
+            onChange={(e) =>
+              applySelection(e.target.value ? [e.target.value] : [])
+            }
+            style={{
+              ...displayedSelectTextStyle,
+
+              backgroundColor:
+                fieldBackgroundColor !== undefined
+                  ? fieldBackgroundColor
+                  : isLightDesign(designKey)
+                    ? "#ffffff"
+                    : undefined,
+
+              border:
+                resolvedFieldBorderWidth === 0
+                  ? "none"
+                  : `${resolvedFieldBorderWidth}px solid ${fieldBorderColor}`,
+
+              borderWidth:
+                resolvedFieldBorderWidth === 0
+                  ? 0
+                  : resolvedFieldBorderWidth,
+
+              borderStyle:
+                resolvedFieldBorderWidth === 0 ? "none" : "solid",
+
+              borderColor:
+                resolvedFieldBorderWidth === 0
+                  ? "transparent"
+                  : fieldBorderColor,
+
+              borderRadius: `${Number(fieldBorderRadius) || 0}px`,
+
+              color: hasSelection
+                ? ((optionLabelStyle.color as string | undefined) ??
+                  (optionTextStyle.color as string | undefined))
+                : placeholderColor,
+
+              WebkitTextFillColor: hasSelection
+                ? ((optionLabelStyle as any).WebkitTextFillColor ??
+                  (optionLabelStyle.color as string | undefined) ??
+                  (optionTextStyle as any).WebkitTextFillColor ??
+                  (optionTextStyle.color as string | undefined))
+                : placeholderColor,
+
+              outline: "none",
+              boxShadow: "none",
+            }}
+            {...sharedDataAttrs}
+          >
+            <option
               value=""
               style={{
+                ...placeholderStyle,
                 color: placeholderColor,
                 WebkitTextFillColor: placeholderColor,
               }}
@@ -27265,21 +27308,52 @@ style={{
               {data.placeholder || "Select"}
             </option>
 
-              {options.map((option: any) => (
-<option
-  key={option.id}
-  value={option.id}
-  disabled={Boolean(option.disabled)}
-  style={optionLabelStyle}
->
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
+            {options.map((option: any) => (
+              <option
+                key={option.id}
+                value={option.id}
+                disabled={Boolean(option.disabled)}
+                style={{
+                  ...optionLabelStyle,
+                  color:
+                    (optionLabelStyle.color as string | undefined) ??
+                    undefined,
+                  WebkitTextFillColor:
+                    (optionLabelStyle as any).WebkitTextFillColor ??
+                    (optionLabelStyle.color as string | undefined) ??
+                    undefined,
+                }}
+              >
+                {option.label}
+              </option>
+            ))}
+          </select>
+
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-neutral-500"
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 14 14"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M3 5.25L7 9L11 5.25"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
         </div>
-      );
-    }
+      </div>
+    </div>
+  );
+}
 
     return (
       <div
