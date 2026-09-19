@@ -26706,16 +26706,55 @@ borderStyle:
         : undefined,
   };
 
-  const placeholderStyle = "placeholder:opacity-100";
+const placeholderTextStyle = getContainerTextStyle(
+  (block.data as any).placeholderStyle ??
+    (block.data as any).inputStyle ??
+    block.data.style ??
+    {},
+  designKey,
+);
 
-  const placeholderColor =
-    ((block.data as any).placeholderStyle?.color as string | undefined) ||
-    "rgb(186, 186, 186)";
+const placeholderColor =
+  (placeholderTextStyle.color as string | undefined) ??
+  "rgb(186, 186, 186)";
 
-  const safePlaceholderClassName = `ko-form-placeholder-${block.id.replace(
-    /[^a-zA-Z0-9_-]/g,
-    "",
-  )}`;
+const placeholderFontFamily =
+  placeholderTextStyle.fontFamily as string | undefined;
+
+const placeholderFontSize =
+  typeof placeholderTextStyle.fontSize === "number"
+    ? `${placeholderTextStyle.fontSize}px`
+    : placeholderTextStyle.fontSize;
+
+const placeholderFontWeight =
+  placeholderTextStyle.fontWeight as
+    | React.CSSProperties["fontWeight"]
+    | undefined;
+
+const placeholderFontStyle =
+  placeholderTextStyle.fontStyle as
+    | React.CSSProperties["fontStyle"]
+    | undefined;
+
+const placeholderTextDecoration =
+  placeholderTextStyle.textDecoration as
+    | React.CSSProperties["textDecoration"]
+    | undefined;
+
+const placeholderLetterSpacing =
+  typeof placeholderTextStyle.letterSpacing === "number"
+    ? `${placeholderTextStyle.letterSpacing}px`
+    : placeholderTextStyle.letterSpacing;
+
+const placeholderLineHeight =
+  placeholderTextStyle.lineHeight as
+    | React.CSSProperties["lineHeight"]
+    | undefined;
+
+const safePlaceholderClassName = `ko-form-placeholder-${block.id.replace(
+  /[^a-zA-Z0-9_-]/g,
+  "",
+)}`;
 
   const showLabel = block.data.showLabel !== false;
   const showPlaceholder = block.data.showPlaceholder !== false;
@@ -26862,22 +26901,93 @@ borderStyle:
 
   return (
     <div className="h-full w-full p-2" style={getAppearanceStyle(block)}>
-      <style
-        dangerouslySetInnerHTML={{
-          __html: `
-            .${safePlaceholderClassName}::placeholder {
-              color: ${placeholderColor} !important;
-              opacity: 1 !important;
-              -webkit-text-fill-color: ${placeholderColor} !important;
-            }
-            .${safePlaceholderClassName}::-webkit-input-placeholder {
-              color: ${placeholderColor} !important;
-              opacity: 1 !important;
-              -webkit-text-fill-color: ${placeholderColor} !important;
-            }
-          `,
-        }}
-      />
+<style
+  dangerouslySetInnerHTML={{
+    __html: `
+      .${safePlaceholderClassName}::placeholder {
+        color: ${placeholderColor} !important;
+        opacity: 1 !important;
+        -webkit-text-fill-color: ${placeholderColor} !important;
+        ${
+          placeholderFontFamily
+            ? `font-family: ${placeholderFontFamily} !important;`
+            : ""
+        }
+        ${
+          placeholderFontSize
+            ? `font-size: ${placeholderFontSize} !important;`
+            : ""
+        }
+        ${
+          placeholderFontWeight !== undefined
+            ? `font-weight: ${placeholderFontWeight} !important;`
+            : ""
+        }
+        ${
+          placeholderFontStyle
+            ? `font-style: ${placeholderFontStyle} !important;`
+            : ""
+        }
+        ${
+          placeholderTextDecoration
+            ? `text-decoration: ${placeholderTextDecoration} !important;`
+            : ""
+        }
+        ${
+          placeholderLetterSpacing !== undefined
+            ? `letter-spacing: ${placeholderLetterSpacing} !important;`
+            : ""
+        }
+        ${
+          placeholderLineHeight !== undefined
+            ? `line-height: ${placeholderLineHeight} !important;`
+            : ""
+        }
+      }
+
+      .${safePlaceholderClassName}::-webkit-input-placeholder {
+        color: ${placeholderColor} !important;
+        opacity: 1 !important;
+        -webkit-text-fill-color: ${placeholderColor} !important;
+        ${
+          placeholderFontFamily
+            ? `font-family: ${placeholderFontFamily} !important;`
+            : ""
+        }
+        ${
+          placeholderFontSize
+            ? `font-size: ${placeholderFontSize} !important;`
+            : ""
+        }
+        ${
+          placeholderFontWeight !== undefined
+            ? `font-weight: ${placeholderFontWeight} !important;`
+            : ""
+        }
+        ${
+          placeholderFontStyle
+            ? `font-style: ${placeholderFontStyle} !important;`
+            : ""
+        }
+        ${
+          placeholderTextDecoration
+            ? `text-decoration: ${placeholderTextDecoration} !important;`
+            : ""
+        }
+        ${
+          placeholderLetterSpacing !== undefined
+            ? `letter-spacing: ${placeholderLetterSpacing} !important;`
+            : ""
+        }
+        ${
+          placeholderLineHeight !== undefined
+            ? `line-height: ${placeholderLineHeight} !important;`
+            : ""
+        }
+      }
+    `,
+  }}
+/>
 
       <div className="flex h-full flex-col gap-2">
         {showRating && ratingPosition === "high" ? ratingStars : null}
@@ -26896,7 +27006,7 @@ borderStyle:
 
         {fieldType === "textarea" ? (
           <textarea
-            className={`${inputClass} ${placeholderStyle} ${safePlaceholderClassName} min-h-[96px] resize-none`}
+            className={`${inputClass} ${safePlaceholderClassName} min-h-[96px] resize-none`}
             placeholder={showPlaceholder ? block.data.placeholder : ""}
             defaultValue={block.data.value || ""}
             style={inputVisualStyle}
@@ -26905,7 +27015,7 @@ borderStyle:
           />
         ) : fieldType === "state" ? (
           <select
-            className={`${inputClass} ${placeholderStyle} ${safePlaceholderClassName}`}
+            className={`${inputClass} ${safePlaceholderClassName}`}
             value={stateValue}
             style={{
               ...inputVisualStyle,
@@ -27013,7 +27123,7 @@ borderStyle:
                 setDateInputType("text");
               }
             }}
-            className={`${inputClass} ${placeholderStyle} ${safePlaceholderClassName}`}
+            className={`${inputClass} ${safePlaceholderClassName}`}
             placeholder={showPlaceholder ? block.data.placeholder : ""}
             defaultValue={block.data.value || ""}
             style={inputVisualStyle}
