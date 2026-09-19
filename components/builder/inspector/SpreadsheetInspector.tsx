@@ -412,15 +412,38 @@ onClick={() =>
   </button>
 </div>
 
-          <div className="mt-4">
-  <div className={inspectorLabelClass()}>Selected Row Height</div>
+{/* Selected Row Height */}
+<div className="mt-4">
+  <div className="mb-1 flex items-center justify-between">
+    <div className={inspectorLabelClass()}>
+      Selected Row Height
+    </div>
+
+    <div className="text-xs text-neutral-500">
+      {(selectedBlock.data as any).rowHeights?.[
+        String(selectedRowIndex)
+      ] ?? 36}px
+    </div>
+  </div>
+
   <input
-    type="number"
+    type="range"
     min={24}
     max={200}
-    value={(selectedBlock.data as any).rowHeights?.[String(selectedRowIndex)] ?? 36}
+    step={1}
+    value={
+      (selectedBlock.data as any).rowHeights?.[
+        String(selectedRowIndex)
+      ] ?? 36
+    }
     onChange={(e) => {
-      const nextHeight = Math.max(24, Math.min(200, Number(e.target.value) || 36));
+      const nextHeight = Math.max(
+        24,
+        Math.min(
+          200,
+          Number(e.target.value) || 36,
+        ),
+      );
 
       updateSelectedBlock((block: any) =>
         block.type !== "spreadsheet"
@@ -431,25 +454,49 @@ onClick={() =>
                 ...block.data,
                 rowHeights: {
                   ...block.data.rowHeights,
-                  [String(selectedRowIndex)]: nextHeight,
+                  [String(selectedRowIndex)]:
+                    nextHeight,
                 },
               },
             },
       );
     }}
-    className={inspectorInputClass()}
+    className="w-full"
   />
 </div>
 
+{/* Selected Column Width */}
 <div className="mt-4">
-  <div className={inspectorLabelClass()}>Selected Column Width</div>
+  <div className="mb-1 flex items-center justify-between">
+    <div className={inspectorLabelClass()}>
+      Selected Column Width
+    </div>
+
+    <div className="text-xs text-neutral-500">
+      {(selectedBlock.data as any).columnWidths?.[
+        String(selectedColumnIndex)
+      ] ?? 120}px
+    </div>
+  </div>
+
   <input
-    type="number"
+    type="range"
     min={48}
     max={400}
-    value={(selectedBlock.data as any).columnWidths?.[String(selectedColumnIndex)] ?? 120}
+    step={1}
+    value={
+      (selectedBlock.data as any).columnWidths?.[
+        String(selectedColumnIndex)
+      ] ?? 120
+    }
     onChange={(e) => {
-      const nextWidth = Math.max(48, Math.min(400, Number(e.target.value) || 120));
+      const nextWidth = Math.max(
+        48,
+        Math.min(
+          400,
+          Number(e.target.value) || 120,
+        ),
+      );
 
       updateSelectedBlock((block: any) =>
         block.type !== "spreadsheet"
@@ -460,13 +507,46 @@ onClick={() =>
                 ...block.data,
                 columnWidths: {
                   ...block.data.columnWidths,
-                  [String(selectedColumnIndex)]: nextWidth,
+                  [String(selectedColumnIndex)]:
+                    nextWidth,
                 },
               },
             },
       );
     }}
-    className={inspectorInputClass()}
+    className="w-full"
+  />
+</div>
+
+{/* Grid Line Color */}
+<div className="mt-4">
+  <div className={inspectorLabelClass()}>
+    Grid Line Color
+  </div>
+
+  <input
+    type="color"
+    value={
+      (selectedBlock.data as any).gridLineColor ??
+      "#d4d4d4"
+    }
+    onChange={(e) => {
+      const gridLineColor = e.target.value;
+
+      updateSelectedBlock((block: any) =>
+        block.type !== "spreadsheet"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                gridLineColor,
+              },
+            },
+      );
+    }}
+    className="mt-2 h-10 w-12 cursor-pointer rounded-xl border border-neutral-300 bg-white p-1"
+    aria-label="Grid line color"
   />
 </div>
 
