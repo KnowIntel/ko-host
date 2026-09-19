@@ -1091,21 +1091,16 @@ const itemStyle =
     ? {
         ...baseItemStyle,
 
-        // Bookmark is only a location reference.
-        // Keep its grid position, but render its footprint
-        // at 1/10 of the normal calculated dimensions.
-        width:
-          typeof baseItemStyle.width === "number"
-            ? baseItemStyle.width / 10
-            : `calc(${baseItemStyle.width} / 10)`,
-
-        height:
-          typeof baseItemStyle.height === "number"
-            ? baseItemStyle.height / 10
-            : `calc(${baseItemStyle.height} / 10)`,
-
-        minWidth: 1,
-        minHeight: 1,
+        /*
+         * Bookmark is only a location anchor.
+         *
+         * Preserve its calculated grid position,
+         * but keep its actual canvas footprint tiny.
+         */
+        width: 4,
+        height: 4,
+        minWidth: 4,
+        minHeight: 4,
       }
     : baseItemStyle;
 const showVerticalScrollbar =

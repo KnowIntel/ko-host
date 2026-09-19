@@ -548,6 +548,7 @@ export type BookmarkBlock = BaseBlock & {
       | "pulse_dot"
       | "ripple"
       | "flash_highlight";
+    animationColor?: string;
   };
 };
 
@@ -5503,6 +5504,7 @@ data: {
   name: "New Bookmark",
   slug: "new-bookmark",
   animation: "none",
+  animationColor: "#2563EB",
 },
       };
 
