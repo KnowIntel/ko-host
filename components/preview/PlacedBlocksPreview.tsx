@@ -274,78 +274,139 @@ const [activeBookmarkSlug, setActiveBookmarkSlug] =
 useEffect(() => {
   let timeoutId: number | null = null;
 
-  function triggerBookmarkAnimation() {
-    const slug = decodeURIComponent(
-      window.location.hash.replace(/^#/, ""),
-    ).trim();
+  function activateBookmarkAnimation(
+    slug: string,
+  ) {
+    const cleanSlug =
+      decodeURIComponent(slug).trim();
 
-    if (!slug) {
+    if (!cleanSlug) {
       return;
     }
 
-    const bookmark = (draft.blocks ?? []).find(
-      (candidate) =>
-        candidate.type === "bookmark" &&
-        String(
-          (candidate.data as any).slug ||
-            candidate.id,
-        ) === slug,
-    );
+    const bookmark =
+      (draft.blocks ?? []).find(
+        (candidate) =>
+          candidate.type === "bookmark" &&
+          String(
+            (candidate.data as any).slug ||
+              candidate.id,
+          ) === cleanSlug,
+      );
 
     if (!bookmark) {
       return;
     }
 
     const animation =
-      (bookmark.data as any).animation ?? "none";
+      (bookmark.data as any).animation ??
+      "none";
 
     if (animation === "none") {
       return;
     }
 
     /*
-     * Clear first so clicking the same bookmark repeatedly
-     * restarts its animation.
+     * Clear first so the animation can restart
+     * when the same bookmark is clicked again.
      */
     setActiveBookmarkSlug(null);
-
-    window.requestAnimationFrame(() => {
-      window.requestAnimationFrame(() => {
-        setActiveBookmarkSlug(slug);
-      });
-    });
 
     if (timeoutId !== null) {
       window.clearTimeout(timeoutId);
     }
 
-    timeoutId = window.setTimeout(() => {
-      setActiveBookmarkSlug(null);
-    }, 900);
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        setActiveBookmarkSlug(
+          cleanSlug,
+        );
+
+        timeoutId =
+          window.setTimeout(() => {
+            setActiveBookmarkSlug(
+              null,
+            );
+          }, 900);
+      });
+    });
   }
 
   /*
-   * Handles normal #bookmark navigation.
+   * Native hash navigation.
    */
+  function handleHashChange() {
+    activateBookmarkAnimation(
+      window.location.hash.replace(
+        /^#/,
+        "",
+      ),
+    );
+  }
+
+  /*
+   * Ko-Host Button / Link navigation.
+   *
+   * CTA navigation uses history.replaceState(),
+   * which intentionally does not produce a
+   * native hashchange event.
+   */
+  function handleKoHostBookmarkTarget(
+    event: Event,
+  ) {
+    const customEvent =
+      event as CustomEvent<{
+        slug?: string;
+      }>;
+
+    const slug =
+      String(
+        customEvent.detail?.slug ??
+          "",
+      ).trim();
+
+    if (!slug) {
+      return;
+    }
+
+    activateBookmarkAnimation(
+      slug,
+    );
+  }
+
   window.addEventListener(
     "hashchange",
-    triggerBookmarkAnimation,
+    handleHashChange,
+  );
+
+  window.addEventListener(
+    "ko-host-bookmark-target",
+    handleKoHostBookmarkTarget,
   );
 
   /*
-   * Also check the initial URL. This handles arriving on
-   * another microsite page whose URL already contains #slug.
+   * Handles arriving on a page whose URL
+   * already contains the bookmark hash.
    */
-  triggerBookmarkAnimation();
+  if (window.location.hash) {
+    handleHashChange();
+  }
 
   return () => {
     window.removeEventListener(
       "hashchange",
-      triggerBookmarkAnimation,
+      handleHashChange,
+    );
+
+    window.removeEventListener(
+      "ko-host-bookmark-target",
+      handleKoHostBookmarkTarget,
     );
 
     if (timeoutId !== null) {
-      window.clearTimeout(timeoutId);
+      window.clearTimeout(
+        timeoutId,
+      );
     }
   };
 }, [draft.blocks]);

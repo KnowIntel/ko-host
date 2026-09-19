@@ -3574,29 +3574,53 @@ function navigateCtaDestination() {
     /*
      * Same-page hash.
      */
-    if (destination.startsWith("#")) {
-      const target =
-        document.querySelector(
-          destination,
-        );
+if (destination.startsWith("#")) {
+  const target =
+    document.querySelector(
+      destination,
+    );
 
-      if (!target) {
-        return;
-      }
+  if (!target) {
+    return;
+  }
 
-      target.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
+  target.scrollIntoView({
+    behavior: "smooth",
+    block: "start",
+  });
 
-      window.history.replaceState(
-        null,
-        "",
-        destination,
-      );
+  window.history.replaceState(
+    null,
+    "",
+    destination,
+  );
 
-      return;
-    }
+  /*
+   * Tell the Bookmark renderer that this bookmark
+   * was intentionally targeted.
+   *
+   * replaceState() does not fire the browser's
+   * hashchange event, so we dispatch our own
+   * Ko-Host bookmark event.
+   */
+  window.dispatchEvent(
+    new CustomEvent(
+      "ko-host-bookmark-target",
+      {
+        detail: {
+          slug: decodeURIComponent(
+            destination.replace(
+              /^#/,
+              "",
+            ),
+          ),
+        },
+      },
+    ),
+  );
+
+  return;
+}
 
     /*
      * Complete bookmark URL.
@@ -3631,30 +3655,49 @@ function navigateCtaDestination() {
       /*
        * Bookmark is on the page already displayed.
        */
-      if (
-        isSamePage &&
-        targetUrl.hash
-      ) {
-        const target =
-          document.querySelector(
-            targetUrl.hash,
-          );
+if (
+  isSamePage &&
+  targetUrl.hash
+) {
+  const target =
+    document.querySelector(
+      targetUrl.hash,
+    );
 
-        if (target) {
-          target.scrollIntoView({
-            behavior: "smooth",
-            block: "start",
-          });
+  if (target) {
+    target.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
 
-          window.history.replaceState(
-            null,
-            "",
-            targetUrl.hash,
-          );
+    window.history.replaceState(
+      null,
+      "",
+      targetUrl.hash,
+    );
 
-          return;
-        }
-      }
+    /*
+     * Trigger the Bookmark's visual response.
+     */
+    window.dispatchEvent(
+      new CustomEvent(
+        "ko-host-bookmark-target",
+        {
+          detail: {
+            slug: decodeURIComponent(
+              targetUrl.hash.replace(
+                /^#/,
+                "",
+              ),
+            ),
+          },
+        },
+      ),
+    );
+
+    return;
+  }
+}
 
       /*
        * Bookmark is on another page of this same microsite.
