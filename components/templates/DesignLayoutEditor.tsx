@@ -1223,8 +1223,8 @@ UTILITIES: [
   { kind: "block", label: "Link", type: "links" },
   { kind: "block", label: "Link Hub", type: "link_hub" },
   { kind: "block", label: "Bookmark", type: "bookmark" },
-  { kind: "block", label: "Puzzle", type: "puzzle" },
-  { kind: "block", label: "Spin Wheel", type: "spin_wheel" },
+  // { kind: "block", label: "Puzzle", type: "puzzle" },
+  // { kind: "block", label: "Spin Wheel", type: "spin_wheel" },
 ],
   "DATA": [
     { kind: "block", label: "Highlight", type: "highlight" },
