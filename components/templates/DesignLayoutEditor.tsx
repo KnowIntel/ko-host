@@ -7450,13 +7450,43 @@ if (selectedBlock?.type === "poll") {
 }
 
 if (selectedBlock?.type === "option_button") {
-  updateSelectedBlock((block) =>
-    applyOptionButtonStylePatch(
+  updateSelectedBlock((block) => {
+    if (block.type !== "option_button") {
+      return block;
+    }
+
+    /*
+     * Radius always controls the Option Button field itself,
+     * regardless of the currently selected Style Target.
+     */
+    if (patch.borderRadius !== undefined) {
+      const { borderRadius, ...remainingPatch } = patch;
+
+      let nextBlock = block;
+
+      if (Object.keys(remainingPatch).length > 0) {
+        nextBlock = applyOptionButtonStylePatch(
+          nextBlock,
+          optionButtonStyleTarget,
+          remainingPatch,
+        ) as typeof block;
+      }
+
+      nextBlock = applyOptionButtonStylePatch(
+        nextBlock,
+        "field",
+        { borderRadius },
+      ) as typeof block;
+
+      return nextBlock;
+    }
+
+    return applyOptionButtonStylePatch(
       block,
       optionButtonStyleTarget,
       patch,
-    ),
-  );
+    );
+  });
 
   return;
 }
