@@ -137,9 +137,11 @@ const draftPageCountByTemplateDesignKey: Record<string, number> = {
 
   "game_day_central:championship": 1,
 
-  "service_ad:repair": 3,
-  "service_ad:vibes": 1,
-  "service_ad:clear": 2,
+  "local_classified_ad:repair": 3,
+  "local_classified_ad:vibes": 1,
+  "local_classified_ad:clear": 2,
+  "local_classified_ad:dog": 1,
+
 
   "game_night:roll": 1,
 
