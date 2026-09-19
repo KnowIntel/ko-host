@@ -344,20 +344,6 @@ const DEMO_PAGES: Record<
     "You opened the registry page. In a real wedding microsite, this could connect guests to gift registries, honeymoon funds, wish lists, home essentials, and the surprisingly difficult decision of whether anyone truly needs another set of wine glasses.",
 },
 
-"service-ad-facebook": {
-  title: "Demo Facebook",
-  eyebrow: "Service Ad Demo",
-  message:
-    "You opened the Facebook page. In a real service microsite, this could connect visitors to business updates, customer reviews, photos, promotions, and the occasional post reminding everyone that appointments fill up fast.",
-},
-
-"service-ad-instagram": {
-  title: "Demo Instagram",
-  eyebrow: "Service Ad Demo",
-  message:
-    "You opened the Instagram page. In a real service microsite, this could showcase happy clients, behind-the-scenes moments, service highlights, customer stories, and enough adorable photos to keep visitors scrolling much longer than planned.",
-},
-
 "service-ad-whatsapp": {
   title: "Demo WhatsApp",
   eyebrow: "Service Ad Demo",
