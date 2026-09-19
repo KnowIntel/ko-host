@@ -89,6 +89,58 @@ const HIDE_PREVIEW_SCROLLBAR_STYLE: React.CSSProperties = {
   msOverflowStyle: "none",
 };
 
+const BOOKMARK_ANIMATION_STYLES = `
+  @keyframes koBookmarkPulseDot {
+    0% {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.35);
+    }
+
+    20% {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    65% {
+      opacity: 0.9;
+      transform: translate(-50%, -50%) scale(1.35);
+    }
+
+    100% {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(1.7);
+    }
+  }
+
+  @keyframes koBookmarkRipple {
+    0% {
+      opacity: 0.9;
+      transform: translate(-50%, -50%) scale(0.2);
+    }
+
+    100% {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(3);
+    }
+  }
+
+  @keyframes koBookmarkFlashHighlight {
+    0% {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.7);
+    }
+
+    20% {
+      opacity: 0.9;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    100% {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(1.35);
+    }
+  }
+`;
 
 function getPageLengthConfig(
   length?: unknown,
@@ -215,6 +267,88 @@ export default function PlacedBlocksPreview({
   const metadata = getMetadata(templateKey, designKey);
   const containerRef = useRef<HTMLDivElement | null>(null);
 const [containerWidth, setContainerWidth] = useState<number>(0);
+
+const [activeBookmarkSlug, setActiveBookmarkSlug] =
+  useState<string | null>(null);
+
+useEffect(() => {
+  let timeoutId: number | null = null;
+
+  function triggerBookmarkAnimation() {
+    const slug = decodeURIComponent(
+      window.location.hash.replace(/^#/, ""),
+    ).trim();
+
+    if (!slug) {
+      return;
+    }
+
+    const bookmark = (draft.blocks ?? []).find(
+      (candidate) =>
+        candidate.type === "bookmark" &&
+        String(
+          (candidate.data as any).slug ||
+            candidate.id,
+        ) === slug,
+    );
+
+    if (!bookmark) {
+      return;
+    }
+
+    const animation =
+      (bookmark.data as any).animation ?? "none";
+
+    if (animation === "none") {
+      return;
+    }
+
+    /*
+     * Clear first so clicking the same bookmark repeatedly
+     * restarts its animation.
+     */
+    setActiveBookmarkSlug(null);
+
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        setActiveBookmarkSlug(slug);
+      });
+    });
+
+    if (timeoutId !== null) {
+      window.clearTimeout(timeoutId);
+    }
+
+    timeoutId = window.setTimeout(() => {
+      setActiveBookmarkSlug(null);
+    }, 900);
+  }
+
+  /*
+   * Handles normal #bookmark navigation.
+   */
+  window.addEventListener(
+    "hashchange",
+    triggerBookmarkAnimation,
+  );
+
+  /*
+   * Also check the initial URL. This handles arriving on
+   * another microsite page whose URL already contains #slug.
+   */
+  triggerBookmarkAnimation();
+
+  return () => {
+    window.removeEventListener(
+      "hashchange",
+      triggerBookmarkAnimation,
+    );
+
+    if (timeoutId !== null) {
+      window.clearTimeout(timeoutId);
+    }
+  };
+}, [draft.blocks]);
 
   const pageLengthConfig = useMemo(
     () => getPageLengthConfig(typedDraft.pageLength),
@@ -701,8 +835,11 @@ const scaledContentWidthPercent =
     : 100;
 
 return (
-<div
-  ref={containerRef}
+  <>
+    <style>{BOOKMARK_ANIMATION_STYLES}</style>
+
+    <div
+      ref={containerRef}
   data-ko-preview-scrollbar-hidden="true"
   className="m-0 block w-full max-w-none p-0"
   style={{
@@ -882,7 +1019,34 @@ return (
     if (isSlideOwned) {
       return null;
     }
-const itemStyle = getItemStyle(grid, logicalPageWidth, logicalRowHeight);
+const baseItemStyle = getItemStyle(
+  grid,
+  logicalPageWidth,
+  logicalRowHeight,
+);
+
+const itemStyle =
+  block.type === "bookmark"
+    ? {
+        ...baseItemStyle,
+
+        // Bookmark is only a location reference.
+        // Keep its grid position, but render its footprint
+        // at 1/10 of the normal calculated dimensions.
+        width:
+          typeof baseItemStyle.width === "number"
+            ? baseItemStyle.width / 10
+            : `calc(${baseItemStyle.width} / 10)`,
+
+        height:
+          typeof baseItemStyle.height === "number"
+            ? baseItemStyle.height / 10
+            : `calc(${baseItemStyle.height} / 10)`,
+
+        minWidth: 1,
+        minHeight: 1,
+      }
+    : baseItemStyle;
 const showVerticalScrollbar =
   (block as any).showVerticalScrollbar === true ||
   (block.data as any)?.showVerticalScrollbar === true;
@@ -1020,6 +1184,86 @@ zIndex:
   isolation: "isolate",
 }}
     >
+
+    {block.type === "bookmark" &&
+activeBookmarkSlug ===
+  String((block.data as any).slug || block.id) ? (
+  (() => {
+    const animation =
+      (block.data as any).animation ?? "none";
+
+    if (animation === "none") {
+      return null;
+    }
+
+    const commonStyle: React.CSSProperties = {
+      position: "absolute",
+      left: "50%",
+      top: "50%",
+      pointerEvents: "none",
+      zIndex: 9999,
+    };
+
+    if (animation === "pulse_dot") {
+      return (
+        <span
+          aria-hidden="true"
+          style={{
+            ...commonStyle,
+            width: 14,
+            height: 14,
+            borderRadius: "9999px",
+            backgroundColor: "#2563EB",
+            boxShadow:
+              "0 0 0 5px rgba(37, 99, 235, 0.18)",
+            animation:
+              "koBookmarkPulseDot 800ms ease-out forwards",
+          }}
+        />
+      );
+    }
+
+    if (animation === "ripple") {
+      return (
+        <span
+          aria-hidden="true"
+          style={{
+            ...commonStyle,
+            width: 22,
+            height: 22,
+            borderRadius: "9999px",
+            border: "3px solid #2563EB",
+            animation:
+              "koBookmarkRipple 850ms ease-out forwards",
+          }}
+        />
+      );
+    }
+
+    if (animation === "flash_highlight") {
+      return (
+        <span
+          aria-hidden="true"
+          style={{
+            ...commonStyle,
+            width: 52,
+            height: 28,
+            borderRadius: "9999px",
+            background:
+              "rgba(37, 99, 235, 0.22)",
+            boxShadow:
+              "0 0 22px rgba(37, 99, 235, 0.55)",
+            animation:
+              "koBookmarkFlashHighlight 850ms ease-out forwards",
+          }}
+        />
+      );
+    }
+
+    return null;
+  })()
+) : null}
+
 <div
   data-ko-preview-scrollbar-hidden={
     showVerticalScrollbar || showHorizontalScrollbar ? "false" : "true"
@@ -1155,6 +1399,7 @@ return (
     </div>
   </div>
 </div>
+</>
 );
 } 
 

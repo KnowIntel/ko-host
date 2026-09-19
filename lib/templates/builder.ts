@@ -538,11 +538,16 @@ export type SpreadsheetBlock = BaseBlock & {
   };
 };
 
-   export type BookmarkBlock = BaseBlock & {
+export type BookmarkBlock = BaseBlock & {
   type: "bookmark";
   data: {
     name: string;
     slug: string;
+    animation?:
+      | "none"
+      | "pulse_dot"
+      | "ripple"
+      | "flash_highlight";
   };
 };
 
@@ -5494,10 +5499,11 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
           borderWidth: 1,
           borderRadius: 12,
         },
-        data: {
-          name: "New Bookmark",
-          slug: "new-bookmark",
-        },
+data: {
+  name: "New Bookmark",
+  slug: "new-bookmark",
+  animation: "none",
+},
       };
 
           case "puzzle":
