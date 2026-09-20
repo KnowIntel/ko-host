@@ -489,12 +489,21 @@ if (insertServicesError) {
 }
 
 /*
- * Backfill currently active requests whenever
- * this provider enables/saves Ko-Host Connect.
+ * Reconcile this provider's active request matches
+ * whenever Ko-Host Connect settings are saved.
  *
- * This allows a newly linked provider to see
- * requests that were submitted BEFORE the
- * provider joined Connect.
+ * Rules:
+ *
+ * - New / Viewed matches should exist only while
+ *   the request still matches the provider's
+ *   current Connect settings.
+ *
+ * - Responded / Closed matches are preserved
+ *   because they represent an existing interaction
+ *   or historical activity.
+ *
+ * - When Connect is disabled, New / Viewed matches
+ *   are removed from the provider's active queue.
  *
  * IMPORTANT:
  * Geographic matching is temporarily exact-ZIP
@@ -502,28 +511,253 @@ if (insertServicesError) {
  * be used once ZIP-coordinate distance matching
  * is added.
  */
-if (enabled) {
-  /*
-   * Resolve the selected service IDs to their
-   * controlled service names because
-   * connect_requests currently stores the
-   * service name rather than service_id.
-   */
-  const {
-    data: selectedServices,
-    error: selectedServicesError,
-  } = await sb
-    .from("connect_services")
-    .select("id, name")
-    .eq("active", true)
-    .in("id", validServiceIds);
 
-  if (selectedServicesError) {
+// =====================================================
+// Resolve currently selected service names
+// =====================================================
+
+const {
+  data: selectedServices,
+  error: selectedServicesError,
+} = await sb
+  .from("connect_services")
+  .select("id, name")
+  .eq("active", true)
+  .in("id", validServiceIds);
+
+if (selectedServicesError) {
+  console.error(
+    "Connect provider service lookup failed:",
+    {
+      providerProfileId: profile.id,
+      selectedServicesError,
+    },
+  );
+
+  return NextResponse.json(
+    {
+      ok: false,
+      error:
+        "Provider settings were saved, but Connect requests could not be updated.",
+    },
+    { status: 500 },
+  );
+}
+
+const selectedServiceNames =
+  (selectedServices ?? [])
+    .map((service) =>
+      String(service.name || "").trim(),
+    )
+    .filter(Boolean);
+
+// =====================================================
+// Load existing New / Viewed matches
+// =====================================================
+
+const {
+  data: pendingMatches,
+  error: pendingMatchesError,
+} = await sb
+  .from("connect_request_matches")
+  .select(
+    `
+      id,
+      status,
+      request_id,
+      connect_requests!inner (
+        id,
+        service,
+        zip_code,
+        status,
+        expires_at
+      )
+    `,
+  )
+  .eq(
+    "provider_profile_id",
+    profile.id,
+  )
+  .in("status", [
+    "new",
+    "viewed",
+  ]);
+
+if (pendingMatchesError) {
+  console.error(
+    "Connect provider pending match lookup failed:",
+    {
+      providerProfileId: profile.id,
+      pendingMatchesError,
+    },
+  );
+
+  return NextResponse.json(
+    {
+      ok: false,
+      error:
+        "Provider settings were saved, but existing Connect requests could not be updated.",
+    },
+    { status: 500 },
+  );
+}
+
+// =====================================================
+// Remove stale New / Viewed matches
+// =====================================================
+
+const nowMs = Date.now();
+
+const staleMatchIds =
+  (pendingMatches ?? [])
+    .filter((match) => {
+      const request = Array.isArray(
+        match.connect_requests,
+      )
+        ? match.connect_requests[0]
+        : match.connect_requests;
+
+      /*
+       * If the joined request cannot be resolved,
+       * the pending assignment should not remain
+       * in the active provider queue.
+       */
+      if (!request) {
+        return true;
+      }
+
+      /*
+       * Disabling Connect removes all uncommitted
+       * New / Viewed assignments.
+       */
+      if (!enabled) {
+        return true;
+      }
+
+      /*
+       * Only open requests remain eligible.
+       */
+      if (request.status !== "open") {
+        return true;
+      }
+
+      /*
+       * Exact ZIP matching for V1.
+       */
+      if (
+        String(request.zip_code) !==
+        serviceZipCode
+      ) {
+        return true;
+      }
+
+      /*
+       * Request service must still be one of the
+       * provider's currently selected services.
+       */
+      if (
+        !selectedServiceNames.includes(
+          String(request.service),
+        )
+      ) {
+        return true;
+      }
+
+      /*
+       * Expired requests should no longer remain
+       * in the active provider queue.
+       */
+      if (request.expires_at) {
+        const expiresAt = new Date(
+          request.expires_at,
+        ).getTime();
+
+        if (
+          !Number.isFinite(expiresAt) ||
+          expiresAt <= nowMs
+        ) {
+          return true;
+        }
+      }
+
+      return false;
+    })
+    .map((match) =>
+      String(match.id),
+    )
+    .filter(Boolean);
+
+if (staleMatchIds.length > 0) {
+  const {
+    error: staleDeleteError,
+  } = await sb
+    .from("connect_request_matches")
+    .delete()
+    .in("id", staleMatchIds);
+
+  if (staleDeleteError) {
     console.error(
-      "Connect provider backfill service lookup failed:",
+      "Connect provider stale match cleanup failed:",
       {
         providerProfileId: profile.id,
-        selectedServicesError,
+        staleMatchIds,
+        staleDeleteError,
+      },
+    );
+
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          "Provider settings were saved, but outdated Connect requests could not be removed.",
+      },
+      { status: 500 },
+    );
+  }
+}
+
+// =====================================================
+// Backfill currently matching active requests
+// =====================================================
+
+if (
+  enabled &&
+  selectedServiceNames.length > 0
+) {
+  const nowIso =
+    new Date().toISOString();
+
+  const {
+    data: candidateRequests,
+    error: candidateRequestsError,
+  } = await sb
+    .from("connect_requests")
+    .select(
+      `
+        id,
+        service,
+        zip_code,
+        status,
+        expires_at
+      `,
+    )
+    .eq("status", "open")
+    .eq(
+      "zip_code",
+      serviceZipCode,
+    )
+    .in(
+      "service",
+      selectedServiceNames,
+    );
+
+  if (candidateRequestsError) {
+    console.error(
+      "Connect provider request backfill lookup failed:",
+      {
+        providerProfileId:
+          profile.id,
+        candidateRequestsError,
       },
     );
 
@@ -537,50 +771,63 @@ if (enabled) {
     );
   }
 
-  const selectedServiceNames =
-    (selectedServices ?? [])
-      .map((service) =>
-        String(service.name || "").trim(),
-      )
-      .filter(Boolean);
+  const activeRequests =
+    (candidateRequests ?? []).filter(
+      (request) => {
+        if (!request.expires_at) {
+          return true;
+        }
 
-  if (selectedServiceNames.length > 0) {
-    const nowIso =
-      new Date().toISOString();
+        const expiresAt =
+          new Date(
+            request.expires_at,
+          ).getTime();
+
+        return (
+          Number.isFinite(expiresAt) &&
+          expiresAt > nowMs
+        );
+      },
+    );
+
+  if (activeRequests.length > 0) {
+    const matchRows =
+      activeRequests.map(
+        (request) => ({
+          request_id: request.id,
+          provider_profile_id:
+            profile.id,
+          status: "new",
+          matched_at: nowIso,
+          updated_at: nowIso,
+        }),
+      );
 
     /*
-     * Only currently open requests qualify.
+     * Do not overwrite an existing match.
      *
-     * A null expires_at means the request has
-     * no explicit request expiration date.
-     *
-     * We load the exact-ZIP open candidates
-     * first, then remove expired rows below.
+     * This preserves Viewed / Responded / Closed
+     * state when settings are saved repeatedly.
      */
     const {
-      data: candidateRequests,
-      error: candidateRequestsError,
+      error: matchInsertError,
     } = await sb
-      .from("connect_requests")
-      .select(
-        `
-          id,
-          service,
-          zip_code,
-          status,
-          expires_at
-        `,
+      .from(
+        "connect_request_matches",
       )
-      .eq("status", "open")
-      .eq("zip_code", serviceZipCode)
-      .in("service", selectedServiceNames);
+      .upsert(matchRows, {
+        onConflict:
+          "request_id,provider_profile_id",
+        ignoreDuplicates: true,
+      });
 
-    if (candidateRequestsError) {
+    if (matchInsertError) {
       console.error(
-        "Connect provider request backfill lookup failed:",
+        "Connect provider request backfill failed:",
         {
-          providerProfileId: profile.id,
-          candidateRequestsError,
+          providerProfileId:
+            profile.id,
+          matchInsertError,
         },
       );
 
@@ -592,82 +839,6 @@ if (enabled) {
         },
         { status: 500 },
       );
-    }
-
-    const nowMs = Date.now();
-
-    const activeRequests =
-      (candidateRequests ?? []).filter(
-        (request) => {
-          if (!request.expires_at) {
-            return true;
-          }
-
-          const expiresAt =
-            new Date(
-              request.expires_at,
-            ).getTime();
-
-          return (
-            Number.isFinite(expiresAt) &&
-            expiresAt > nowMs
-          );
-        },
-      );
-
-    if (activeRequests.length > 0) {
-      const matchRows =
-        activeRequests.map(
-          (request) => ({
-            request_id: request.id,
-            provider_profile_id:
-              profile.id,
-            status: "new",
-            matched_at: nowIso,
-            updated_at: nowIso,
-          }),
-        );
-
-      /*
-       * The database has:
-       *
-       * unique(request_id, provider_profile_id)
-       *
-       * ignoreDuplicates prevents an existing
-       * Viewed/Responded/Closed match from being
-       * reset back to New when settings are saved.
-       */
-      const {
-        error: matchInsertError,
-      } = await sb
-        .from(
-          "connect_request_matches",
-        )
-        .upsert(matchRows, {
-          onConflict:
-            "request_id,provider_profile_id",
-          ignoreDuplicates: true,
-        });
-
-      if (matchInsertError) {
-        console.error(
-          "Connect provider request backfill failed:",
-          {
-            providerProfileId:
-              profile.id,
-            matchInsertError,
-          },
-        );
-
-        return NextResponse.json(
-          {
-            ok: false,
-            error:
-              "Provider settings were saved, but existing Connect requests could not be matched.",
-          },
-          { status: 500 },
-        );
-      }
     }
   }
 }
