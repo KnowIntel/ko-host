@@ -471,37 +471,221 @@ export async function POST(
         service_id: serviceId,
       }));
 
-    const {
-      error: insertServicesError,
-    } = await sb
-      .from("connect_provider_services")
-      .insert(serviceRows);
+const {
+  error: insertServicesError,
+} = await sb
+  .from("connect_provider_services")
+  .insert(serviceRows);
 
-    if (insertServicesError) {
+if (insertServicesError) {
+  return NextResponse.json(
+    {
+      ok: false,
+      error:
+        "Provider settings were saved, but service selections could not be saved.",
+    },
+    { status: 500 },
+  );
+}
+
+/*
+ * Backfill currently active requests whenever
+ * this provider enables/saves Ko-Host Connect.
+ *
+ * This allows a newly linked provider to see
+ * requests that were submitted BEFORE the
+ * provider joined Connect.
+ *
+ * IMPORTANT:
+ * Geographic matching is temporarily exact-ZIP
+ * only. The stored 5/10/25/50-mile radius will
+ * be used once ZIP-coordinate distance matching
+ * is added.
+ */
+if (enabled) {
+  /*
+   * Resolve the selected service IDs to their
+   * controlled service names because
+   * connect_requests currently stores the
+   * service name rather than service_id.
+   */
+  const {
+    data: selectedServices,
+    error: selectedServicesError,
+  } = await sb
+    .from("connect_services")
+    .select("id, name")
+    .eq("active", true)
+    .in("id", validServiceIds);
+
+  if (selectedServicesError) {
+    console.error(
+      "Connect provider backfill service lookup failed:",
+      {
+        providerProfileId: profile.id,
+        selectedServicesError,
+      },
+    );
+
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          "Provider settings were saved, but existing Connect requests could not be matched.",
+      },
+      { status: 500 },
+    );
+  }
+
+  const selectedServiceNames =
+    (selectedServices ?? [])
+      .map((service) =>
+        String(service.name || "").trim(),
+      )
+      .filter(Boolean);
+
+  if (selectedServiceNames.length > 0) {
+    const nowIso =
+      new Date().toISOString();
+
+    /*
+     * Only currently open requests qualify.
+     *
+     * A null expires_at means the request has
+     * no explicit request expiration date.
+     *
+     * We load the exact-ZIP open candidates
+     * first, then remove expired rows below.
+     */
+    const {
+      data: candidateRequests,
+      error: candidateRequestsError,
+    } = await sb
+      .from("connect_requests")
+      .select(
+        `
+          id,
+          service,
+          zip_code,
+          status,
+          expires_at
+        `,
+      )
+      .eq("status", "open")
+      .eq("zip_code", serviceZipCode)
+      .in("service", selectedServiceNames);
+
+    if (candidateRequestsError) {
+      console.error(
+        "Connect provider request backfill lookup failed:",
+        {
+          providerProfileId: profile.id,
+          candidateRequestsError,
+        },
+      );
+
       return NextResponse.json(
         {
           ok: false,
           error:
-            "Provider settings were saved, but service selections could not be saved.",
+            "Provider settings were saved, but existing Connect requests could not be matched.",
         },
         { status: 500 },
       );
     }
 
-    return NextResponse.json({
-      ok: true,
+    const nowMs = Date.now();
 
-      provider: {
-        linked: true,
-        id: profile.id,
-        enabled: Boolean(profile.enabled),
-        serviceZipCode:
-          profile.service_zip_code,
-        serviceRadiusMiles:
-          profile.service_radius_miles,
-        serviceIds: validServiceIds,
-      },
-    });
+    const activeRequests =
+      (candidateRequests ?? []).filter(
+        (request) => {
+          if (!request.expires_at) {
+            return true;
+          }
+
+          const expiresAt =
+            new Date(
+              request.expires_at,
+            ).getTime();
+
+          return (
+            Number.isFinite(expiresAt) &&
+            expiresAt > nowMs
+          );
+        },
+      );
+
+    if (activeRequests.length > 0) {
+      const matchRows =
+        activeRequests.map(
+          (request) => ({
+            request_id: request.id,
+            provider_profile_id:
+              profile.id,
+            status: "new",
+            matched_at: nowIso,
+            updated_at: nowIso,
+          }),
+        );
+
+      /*
+       * The database has:
+       *
+       * unique(request_id, provider_profile_id)
+       *
+       * ignoreDuplicates prevents an existing
+       * Viewed/Responded/Closed match from being
+       * reset back to New when settings are saved.
+       */
+      const {
+        error: matchInsertError,
+      } = await sb
+        .from(
+          "connect_request_matches",
+        )
+        .upsert(matchRows, {
+          onConflict:
+            "request_id,provider_profile_id",
+          ignoreDuplicates: true,
+        });
+
+      if (matchInsertError) {
+        console.error(
+          "Connect provider request backfill failed:",
+          {
+            providerProfileId:
+              profile.id,
+            matchInsertError,
+          },
+        );
+
+        return NextResponse.json(
+          {
+            ok: false,
+            error:
+              "Provider settings were saved, but existing Connect requests could not be matched.",
+          },
+          { status: 500 },
+        );
+      }
+    }
+  }
+}
+
+return NextResponse.json({
+  ok: true,
+
+  provider: {
+    linked: true,
+    id: profile.id,
+    enabled: Boolean(profile.enabled),
+    serviceZipCode:
+      profile.service_zip_code,
+    serviceRadiusMiles:
+      profile.service_radius_miles,
+    serviceIds: validServiceIds,
+  },
+});
   } catch (error) {
     console.error(
       "Connect provider POST error:",
