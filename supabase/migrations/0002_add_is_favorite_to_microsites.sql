@@ -1,3 +1,6 @@
+// supabase\migrations\0002_add_is_favorite_to_microsites.sql
+
+
 begin;
 
 -- Existing feature

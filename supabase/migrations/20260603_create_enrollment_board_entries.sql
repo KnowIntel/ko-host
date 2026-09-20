@@ -1,3 +1,5 @@
+// supabase\migrations\20260603_create_enrollment_board_entries.sql
+
 begin;
 
 create table if not exists public.enrollment_board_entries (

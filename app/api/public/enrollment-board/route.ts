@@ -1,3 +1,5 @@
+// app\api\public\enrollment-board\route.ts
+
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
