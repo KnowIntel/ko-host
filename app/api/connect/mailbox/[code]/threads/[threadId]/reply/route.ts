@@ -334,93 +334,125 @@ export async function POST(
       )
       .maybeSingle();
 
-    const thread =
-      threadData as unknown as
-        | ThreadRow
-        | null;
+const thread =
+  threadData as unknown as
+    | ThreadRow
+    | null;
 
-    if (
-      threadError ||
-      !thread
-    ) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error:
-            "Conversation not found",
-        },
-        { status: 404 },
-      );
-    }
+if (
+  threadError ||
+  !thread
+) {
+  return NextResponse.json(
+    {
+      ok: false,
+      error: "Conversation not found",
+    },
+    { status: 404 },
+  );
+}
 
-    if (
-      thread.status !== "active"
-    ) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error:
-            "This conversation is closed",
-        },
-        { status: 409 },
-      );
-    }
+if (
+  thread.status !== "active"
+) {
+  return NextResponse.json(
+    {
+      ok: false,
+      error:
+        "This conversation is closed",
+    },
+    { status: 409 },
+  );
+}
 
-    /*
-     * Store the consumer reply.
-     */
-    const {
-      error: messageError,
-    } = await supabase
-      .from(
-        "connect_mailbox_messages",
-      )
-      .insert({
-        thread_id: thread.id,
-        sender_type: "consumer",
-        message,
-      });
+/*
+ * Store the consumer reply.
+ *
+ * Return the inserted row so we can
+ * verify that Supabase actually created
+ * the message before redirecting.
+ */
+const {
+  data: insertedMessage,
+  error: messageError,
+} = await supabase
+  .from(
+    "connect_mailbox_messages",
+  )
+  .insert({
+    thread_id: thread.id,
+    sender_type: "consumer",
+    message,
+  })
+  .select(
+    `
+      id,
+      thread_id,
+      sender_type,
+      message,
+      created_at
+    `,
+  )
+  .single();
 
-    if (messageError) {
-      console.error(
-        "Connect consumer reply creation failed",
-        {
-          mailboxId:
-            mailbox.id,
-          threadId:
-            thread.id,
-          messageError,
-        },
-      );
+if (
+  messageError ||
+  !insertedMessage
+) {
+  console.error(
+    "Connect consumer reply creation failed",
+    {
+      mailboxId: mailbox.id,
+      threadId: thread.id,
+      messageError,
+      insertedMessage,
+    },
+  );
 
-      return NextResponse.json(
-        {
-          ok: false,
-          error:
-            "Failed to send message",
-        },
-        { status: 500 },
-      );
-    }
+  return NextResponse.json(
+    {
+      ok: false,
+      error:
+        "Failed to send message",
+    },
+    { status: 500 },
+  );
+}
 
-    /*
-     * Return to the authenticated
-     * consumer mailbox.
-     */
-    return NextResponse.redirect(
-      new URL(
-        `/mailbox/${encodeURIComponent(
-          mailboxCode,
-        )}`,
-        req.url,
-      ),
-      303,
-    );
-  } catch (error) {
-    console.error(
-      "Connect consumer mailbox reply handler failed",
-      error,
-    );
+/*
+ * Temporary diagnostic logging.
+ *
+ * If this appears in the deployment
+ * logs, Supabase returned the actual
+ * newly inserted message row.
+ */
+console.log(
+  "Connect consumer reply created",
+  {
+    mailboxId: mailbox.id,
+    threadId: thread.id,
+    insertedMessage,
+  },
+);
+
+/*
+ * Return to the authenticated
+ * consumer mailbox.
+ */
+return NextResponse.redirect(
+  new URL(
+    `/mailbox/${encodeURIComponent(
+      mailboxCode,
+    )}`,
+    req.url,
+  ),
+  303,
+);
+} catch (error) {
+  console.error(
+    "Connect consumer mailbox reply handler failed",
+    error,
+  );
 
     return NextResponse.json(
       {
