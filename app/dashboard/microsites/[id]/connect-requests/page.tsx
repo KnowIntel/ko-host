@@ -436,11 +436,15 @@ const providerProfile =
     ...visibleMatches,
   ].sort((a, b) => {
     switch (sortMode) {
-      case "oldest":
-        return (
-          getTimestamp(a.matched_at) -
-          getTimestamp(b.matched_at)
-        );
+case "oldest":
+  return (
+    getTimestamp(
+      a.connect_requests?.created_at,
+    ) -
+    getTimestamp(
+      b.connect_requests?.created_at,
+    )
+  );
 
       case "service_date_asc":
         return (
@@ -466,12 +470,16 @@ const providerProfile =
           )
         );
 
-      case "newest":
-      default:
-        return (
-          getTimestamp(b.matched_at) -
-          getTimestamp(a.matched_at)
-        );
+case "newest":
+default:
+  return (
+    getTimestamp(
+      b.connect_requests?.created_at,
+    ) -
+    getTimestamp(
+      a.connect_requests?.created_at,
+    )
+  );
     }
   });
 
@@ -780,10 +788,10 @@ const providerProfile =
                         return null;
                       }
 
-                      const receivedDate =
-                        new Date(
-                          match.matched_at,
-                        );
+const receivedDate =
+  new Date(
+    request.created_at,
+  );
 
                       return (
                         <tr key={match.id}>
