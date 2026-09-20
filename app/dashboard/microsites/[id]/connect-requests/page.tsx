@@ -796,17 +796,23 @@ const receivedDate =
                       return (
                         <tr key={match.id}>
                           <td className="whitespace-nowrap px-4 py-3 text-neutral-800">
-                            {receivedDate.toLocaleDateString()}
+                            {receivedDate.toLocaleDateString(
+  "en-US",
+  {
+    timeZone: "America/New_York",
+  },
+)}
                           </td>
 
                           <td className="whitespace-nowrap px-4 py-3 text-neutral-700">
-                            {receivedDate.toLocaleTimeString(
-                              [],
-                              {
-                                hour: "numeric",
-                                minute: "2-digit",
-                              },
-                            )}
+{receivedDate.toLocaleTimeString(
+  "en-US",
+  {
+    timeZone: "America/New_York",
+    hour: "numeric",
+    minute: "2-digit",
+  },
+)}
                           </td>
 
                           <td className="px-4 py-3 font-medium text-neutral-900">
