@@ -443,6 +443,8 @@ return NextResponse.redirect(
   new URL(
     `/mailbox/${encodeURIComponent(
       mailboxCode,
+    )}?consumerReply=${encodeURIComponent(
+      insertedMessage.id,
     )}`,
     req.url,
   ),
