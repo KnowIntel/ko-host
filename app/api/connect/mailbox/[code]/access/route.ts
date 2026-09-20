@@ -270,21 +270,21 @@ export async function POST(
     303,
   );
 
-  response.cookies.set(
-    buildMailboxAccessCookieName(safeCode),
-    buildMailboxAccessCookieValue(
-      safeCode,
-      String(mailbox.pin_hash),
-    ),
-    {
-      httpOnly: true,
-      sameSite: "lax",
-      secure:
-        process.env.NODE_ENV === "production",
-      path: `/mailbox/${safeCode}`,
-      maxAge: MAILBOX_SESSION_MAX_AGE,
-    },
-  );
+response.cookies.set(
+  buildMailboxAccessCookieName(safeCode),
+  buildMailboxAccessCookieValue(
+    safeCode,
+    String(mailbox.pin_hash),
+  ),
+  {
+    httpOnly: true,
+    sameSite: "lax",
+    secure:
+      process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: MAILBOX_SESSION_MAX_AGE,
+  },
+);
 
   return response;
 }
