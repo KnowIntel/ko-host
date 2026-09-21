@@ -1,7 +1,10 @@
+// app\dashboard\microsites\[id]\connect-requests\page.tsx
+
 import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { notFound } from "next/navigation";
+import CopyConnectRequestLink from "@/components/connect/CopyConnectRequestLink";
 
 export const dynamic = "force-dynamic";
 
@@ -860,16 +863,11 @@ const receivedDate =
                             </Link>
                           </td>
 
-                          <td className="px-4 py-3">
-                            <button
-                              type="button"
-                              disabled
-                              title="Copy link will be enabled with the request detail page."
-                              className="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-xs font-medium text-neutral-400"
-                            >
-                              Copy Link
-                            </button>
-                          </td>
+<td className="px-4 py-3">
+  <CopyConnectRequestLink
+    path={`/dashboard/microsites/${site.id}/connect-requests/${request.request_code}`}
+  />
+</td>
                         </tr>
                       );
                     },
