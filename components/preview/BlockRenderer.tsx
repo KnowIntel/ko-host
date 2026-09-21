@@ -33176,6 +33176,42 @@ const buttonGroupJustifyContent =
 
   const buttonBaseStyle:
     React.CSSProperties = {
+paddingLeft:
+  `${Math.max(
+    0,
+    Number(
+      buttonStyle.paddingX ??
+        20,
+    ),
+  )}px`,
+
+paddingRight:
+  `${Math.max(
+    0,
+    Number(
+      buttonStyle.paddingX ??
+        20,
+    ),
+  )}px`,
+
+paddingTop:
+  `${Math.max(
+    0,
+    Number(
+      buttonStyle.paddingY ??
+        8,
+    ),
+  )}px`,
+
+paddingBottom:
+  `${Math.max(
+    0,
+    Number(
+      buttonStyle.paddingY ??
+        8,
+    ),
+  )}px`,
+  
     marginLeft:
       `${buttonSpacing / 2}px`,
 

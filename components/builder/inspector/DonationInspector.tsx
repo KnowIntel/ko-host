@@ -1716,6 +1716,85 @@ onChange={(e) => {
           </button>
         </div>
 
+{/* BUTTON PADDING */}
+
+<div className="mt-4">
+  <div className="flex items-center justify-between gap-3">
+    <div className={inspectorLabelClass()}>
+      Horizontal Padding
+    </div>
+
+    <div className="text-xs text-neutral-500">
+      {Number(
+        data.buttonStyle?.paddingX ??
+          20,
+      )}
+      px
+    </div>
+  </div>
+
+  <input
+    type="range"
+    min={0}
+    max={64}
+    step={1}
+    value={Number(
+      data.buttonStyle?.paddingX ??
+        20,
+    )}
+    onChange={(e) =>
+      patchDonationData({
+        buttonStyle: {
+          ...(data.buttonStyle ?? {}),
+          paddingX: Number(
+            e.target.value,
+          ),
+        },
+      })
+    }
+    className="mt-2 w-full"
+  />
+</div>
+
+<div className="mt-4">
+  <div className="flex items-center justify-between gap-3">
+    <div className={inspectorLabelClass()}>
+      Vertical Padding
+    </div>
+
+    <div className="text-xs text-neutral-500">
+      {Number(
+        data.buttonStyle?.paddingY ??
+          8,
+      )}
+      px
+    </div>
+  </div>
+
+  <input
+    type="range"
+    min={0}
+    max={48}
+    step={1}
+    value={Number(
+      data.buttonStyle?.paddingY ??
+        8,
+    )}
+    onChange={(e) =>
+      patchDonationData({
+        buttonStyle: {
+          ...(data.buttonStyle ?? {}),
+          paddingY: Number(
+            e.target.value,
+          ),
+        },
+      })
+    }
+    className="mt-2 w-full"
+  />
+</div>
+
+
         {/* SPACING */}
 
         <div className="mt-4">
