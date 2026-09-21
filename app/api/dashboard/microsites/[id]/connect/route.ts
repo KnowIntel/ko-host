@@ -8,6 +8,39 @@ export const dynamic = "force-dynamic";
 const ALLOWED_RADII = new Set([5, 10, 25, 50]);
 const ZIP_PATTERN = /^\d{5}$/;
 
+function calculateDistanceMiles(
+  latitude1: number,
+  longitude1: number,
+  latitude2: number,
+  longitude2: number,
+) {
+  const EARTH_RADIUS_MILES = 3958.8;
+
+  const toRadians = (degrees: number) =>
+    (degrees * Math.PI) / 180;
+
+  const lat1 = toRadians(latitude1);
+  const lat2 = toRadians(latitude2);
+
+  const deltaLat = toRadians(latitude2 - latitude1);
+  const deltaLon = toRadians(longitude2 - longitude1);
+
+  const a =
+    Math.sin(deltaLat / 2) ** 2 +
+    Math.cos(lat1) *
+      Math.cos(lat2) *
+      Math.sin(deltaLon / 2) ** 2;
+
+  const c =
+    2 *
+    Math.atan2(
+      Math.sqrt(a),
+      Math.sqrt(1 - a),
+    );
+
+  return EARTH_RADIUS_MILES * c;
+}
+
 async function getOwnedMicrosite(
   micrositeId: string,
   userId: string,
@@ -496,7 +529,7 @@ if (insertServicesError) {
  *
  * - New / Viewed matches should exist only while
  *   the request still matches the provider's
- *   current Connect settings.
+ *   current Connect settings and geographic radius.
  *
  * - Responded / Closed matches are preserved
  *   because they represent an existing interaction
@@ -505,11 +538,9 @@ if (insertServicesError) {
  * - When Connect is disabled, New / Viewed matches
  *   are removed from the provider's active queue.
  *
- * IMPORTANT:
- * Geographic matching is temporarily exact-ZIP
- * only. The stored 5/10/25/50-mile radius will
- * be used once ZIP-coordinate distance matching
- * is added.
+ * - Geographic eligibility is determined using
+ *   ZIP/ZCTA representative coordinates and the
+ *   provider's configured 5/10/25/50-mile radius.
  */
 
 // =====================================================
@@ -544,12 +575,86 @@ if (selectedServicesError) {
   );
 }
 
-const selectedServiceNames =
-  (selectedServices ?? [])
-    .map((service) =>
-      String(service.name || "").trim(),
-    )
-    .filter(Boolean);
+const selectedServiceNames = (selectedServices ?? [])
+  .map((service) =>
+    String(service.name || "").trim(),
+  )
+  .filter(Boolean);
+
+// =====================================================
+// Resolve provider ZIP coordinates
+// =====================================================
+
+const {
+  data: providerZipRow,
+  error: providerZipError,
+} = await sb
+  .from("connect_zip_codes")
+  .select("zip_code, latitude, longitude")
+  .eq("zip_code", serviceZipCode)
+  .maybeSingle();
+
+if (providerZipError) {
+  console.error(
+    "Connect provider ZIP lookup failed:",
+    {
+      providerProfileId: profile.id,
+      serviceZipCode,
+      providerZipError,
+    },
+  );
+
+  return NextResponse.json(
+    {
+      ok: false,
+      error:
+        "Provider settings were saved, but the service area could not be resolved.",
+    },
+    { status: 500 },
+  );
+}
+
+if (!providerZipRow) {
+  return NextResponse.json(
+    {
+      ok: false,
+      error:
+        "That ZIP code is not available for Connect service-area matching.",
+    },
+    { status: 400 },
+  );
+}
+
+const providerLatitude = Number(
+  providerZipRow.latitude,
+);
+
+const providerLongitude = Number(
+  providerZipRow.longitude,
+);
+
+if (
+  !Number.isFinite(providerLatitude) ||
+  !Number.isFinite(providerLongitude)
+) {
+  console.error(
+    "Connect provider ZIP has invalid coordinates:",
+    {
+      providerProfileId: profile.id,
+      serviceZipCode,
+      providerZipRow,
+    },
+  );
+
+  return NextResponse.json(
+    {
+      ok: false,
+      error:
+        "Provider settings were saved, but the service area coordinates are invalid.",
+    },
+    { status: 500 },
+  );
+}
 
 // =====================================================
 // Load existing New / Viewed matches
@@ -603,89 +708,184 @@ if (pendingMatchesError) {
 }
 
 // =====================================================
+// Collect ZIPs needed for reconciliation
+// =====================================================
+
+const pendingRequestZipCodes = Array.from(
+  new Set(
+    (pendingMatches ?? [])
+      .map((match) => {
+        const request = Array.isArray(
+          match.connect_requests,
+        )
+          ? match.connect_requests[0]
+          : match.connect_requests;
+
+        return request
+          ? String(request.zip_code || "")
+          : "";
+      })
+      .filter((zipCode) =>
+        ZIP_PATTERN.test(zipCode),
+      ),
+  ),
+);
+
+const {
+  data: pendingZipRows,
+  error: pendingZipError,
+} =
+  pendingRequestZipCodes.length > 0
+    ? await sb
+        .from("connect_zip_codes")
+        .select(
+          "zip_code, latitude, longitude",
+        )
+        .in(
+          "zip_code",
+          pendingRequestZipCodes,
+        )
+    : {
+        data: [],
+        error: null,
+      };
+
+if (pendingZipError) {
+  console.error(
+    "Connect pending request ZIP lookup failed:",
+    {
+      providerProfileId: profile.id,
+      pendingZipError,
+    },
+  );
+
+  return NextResponse.json(
+    {
+      ok: false,
+      error:
+        "Provider settings were saved, but existing Connect request locations could not be resolved.",
+    },
+    { status: 500 },
+  );
+}
+
+const pendingCoordinatesByZip = new Map(
+  (pendingZipRows ?? []).map((row) => [
+    String(row.zip_code),
+    {
+      latitude: Number(row.latitude),
+      longitude: Number(row.longitude),
+    },
+  ]),
+);
+
+// =====================================================
 // Remove stale New / Viewed matches
 // =====================================================
 
 const nowMs = Date.now();
 
-const staleMatchIds =
-  (pendingMatches ?? [])
-    .filter((match) => {
-      const request = Array.isArray(
-        match.connect_requests,
-      )
-        ? match.connect_requests[0]
-        : match.connect_requests;
-
-      /*
-       * If the joined request cannot be resolved,
-       * the pending assignment should not remain
-       * in the active provider queue.
-       */
-      if (!request) {
-        return true;
-      }
-
-      /*
-       * Disabling Connect removes all uncommitted
-       * New / Viewed assignments.
-       */
-      if (!enabled) {
-        return true;
-      }
-
-      /*
-       * Only open requests remain eligible.
-       */
-      if (request.status !== "open") {
-        return true;
-      }
-
-      /*
-       * Exact ZIP matching for V1.
-       */
-      if (
-        String(request.zip_code) !==
-        serviceZipCode
-      ) {
-        return true;
-      }
-
-      /*
-       * Request service must still be one of the
-       * provider's currently selected services.
-       */
-      if (
-        !selectedServiceNames.includes(
-          String(request.service),
-        )
-      ) {
-        return true;
-      }
-
-      /*
-       * Expired requests should no longer remain
-       * in the active provider queue.
-       */
-      if (request.expires_at) {
-        const expiresAt = new Date(
-          request.expires_at,
-        ).getTime();
-
-        if (
-          !Number.isFinite(expiresAt) ||
-          expiresAt <= nowMs
-        ) {
-          return true;
-        }
-      }
-
-      return false;
-    })
-    .map((match) =>
-      String(match.id),
+const staleMatchIds = (pendingMatches ?? [])
+  .filter((match) => {
+    const request = Array.isArray(
+      match.connect_requests,
     )
-    .filter(Boolean);
+      ? match.connect_requests[0]
+      : match.connect_requests;
+
+    /*
+     * If the joined request cannot be resolved,
+     * the pending assignment should not remain
+     * in the active provider queue.
+     */
+    if (!request) {
+      return true;
+    }
+
+    /*
+     * Disabling Connect removes all uncommitted
+     * New / Viewed assignments.
+     */
+    if (!enabled) {
+      return true;
+    }
+
+    /*
+     * Only open requests remain eligible.
+     */
+    if (request.status !== "open") {
+      return true;
+    }
+
+    /*
+     * Request service must still be one of the
+     * provider's currently selected services.
+     */
+    if (
+      !selectedServiceNames.includes(
+        String(request.service),
+      )
+    ) {
+      return true;
+    }
+
+    /*
+     * Expired requests should no longer remain
+     * in the active provider queue.
+     */
+    if (request.expires_at) {
+      const expiresAt = new Date(
+        request.expires_at,
+      ).getTime();
+
+      if (
+        !Number.isFinite(expiresAt) ||
+        expiresAt <= nowMs
+      ) {
+        return true;
+      }
+    }
+
+    /*
+     * The request ZIP must resolve to coordinates.
+     * If it cannot be resolved, it cannot remain
+     * an active geographic match.
+     */
+    const requestZipCode = String(
+      request.zip_code || "",
+    );
+
+    const requestCoordinates =
+      pendingCoordinatesByZip.get(
+        requestZipCode,
+      );
+
+    if (!requestCoordinates) {
+      return true;
+    }
+
+    const distanceMiles =
+      calculateDistanceMiles(
+        providerLatitude,
+        providerLongitude,
+        requestCoordinates.latitude,
+        requestCoordinates.longitude,
+      );
+
+    /*
+     * Remove the uncommitted assignment if the
+     * request is now outside the provider's
+     * configured service radius.
+     */
+    return (
+      distanceMiles >
+      serviceRadiusMiles
+    );
+  })
+  .map((match) =>
+    String(match.id),
+  )
+  .filter(Boolean);
 
 if (staleMatchIds.length > 0) {
   const {
@@ -727,6 +927,13 @@ if (
   const nowIso =
     new Date().toISOString();
 
+  /*
+   * First load open requests for the provider's
+   * selected services.
+   *
+   * Do NOT filter by ZIP here. Geographic distance
+   * is evaluated below.
+   */
   const {
     data: candidateRequests,
     error: candidateRequestsError,
@@ -742,10 +949,6 @@ if (
       `,
     )
     .eq("status", "open")
-    .eq(
-      "zip_code",
-      serviceZipCode,
-    )
     .in(
       "service",
       selectedServiceNames,
@@ -771,21 +974,138 @@ if (
     );
   }
 
-  const activeRequests =
+  /*
+   * Remove expired requests before doing geographic
+   * work.
+   */
+  const activeCandidateRequests =
     (candidateRequests ?? []).filter(
       (request) => {
         if (!request.expires_at) {
           return true;
         }
 
-        const expiresAt =
-          new Date(
-            request.expires_at,
-          ).getTime();
+        const expiresAt = new Date(
+          request.expires_at,
+        ).getTime();
 
         return (
           Number.isFinite(expiresAt) &&
           expiresAt > nowMs
+        );
+      },
+    );
+
+  /*
+   * Resolve all candidate request ZIP coordinates
+   * in one database query.
+   */
+  const candidateZipCodes = Array.from(
+    new Set(
+      activeCandidateRequests
+        .map((request) =>
+          String(
+            request.zip_code || "",
+          ),
+        )
+        .filter((zipCode) =>
+          ZIP_PATTERN.test(zipCode),
+        ),
+    ),
+  );
+
+  const {
+    data: candidateZipRows,
+    error: candidateZipError,
+  } =
+    candidateZipCodes.length > 0
+      ? await sb
+          .from("connect_zip_codes")
+          .select(
+            "zip_code, latitude, longitude",
+          )
+          .in(
+            "zip_code",
+            candidateZipCodes,
+          )
+      : {
+          data: [],
+          error: null,
+        };
+
+  if (candidateZipError) {
+    console.error(
+      "Connect candidate request ZIP lookup failed:",
+      {
+        providerProfileId:
+          profile.id,
+        candidateZipError,
+      },
+    );
+
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          "Provider settings were saved, but request locations could not be resolved.",
+      },
+      { status: 500 },
+    );
+  }
+
+  const candidateCoordinatesByZip =
+    new Map(
+      (candidateZipRows ?? []).map(
+        (row) => [
+          String(row.zip_code),
+          {
+            latitude: Number(
+              row.latitude,
+            ),
+            longitude: Number(
+              row.longitude,
+            ),
+          },
+        ],
+      ),
+    );
+
+  /*
+   * Keep only requests whose ZIP representative
+   * coordinate falls inside this provider's
+   * configured service radius.
+   */
+  const activeRequests =
+    activeCandidateRequests.filter(
+      (request) => {
+        const requestZipCode = String(
+          request.zip_code || "",
+        );
+
+        const requestCoordinates =
+          candidateCoordinatesByZip.get(
+            requestZipCode,
+          );
+
+        if (!requestCoordinates) {
+          console.error(
+            `Connect request ZIP ${requestZipCode} was not found in connect_zip_codes.`,
+          );
+
+          return false;
+        }
+
+        const distanceMiles =
+          calculateDistanceMiles(
+            providerLatitude,
+            providerLongitude,
+            requestCoordinates.latitude,
+            requestCoordinates.longitude,
+          );
+
+        return (
+          distanceMiles <=
+          serviceRadiusMiles
         );
       },
     );
