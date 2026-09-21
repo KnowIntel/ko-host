@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
+import { generateMicrositePreview } from "@/lib/connect/generateMicrositePreview";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -1160,6 +1161,34 @@ if (
         { status: 500 },
       );
     }
+  }
+}
+
+/*
+ * Generate/update the public provider preview when
+ * Connect is enabled.
+ *
+ * Preview generation is best-effort. A screenshot
+ * failure must not prevent valid Connect settings
+ * from being saved.
+ */
+if (
+  enabled &&
+  ownership.site.slug?.trim()
+) {
+  try {
+    await generateMicrositePreview({
+      micrositeId,
+      slug: ownership.site.slug,
+    });
+  } catch (previewError) {
+    console.error(
+      "Connect provider preview generation failed:",
+      {
+        micrositeId,
+        previewError,
+      },
+    );
   }
 }
 
