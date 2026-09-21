@@ -62,6 +62,8 @@ export function Nav() {
   }
 
   const isTemplatesPage = pathname.startsWith("/templates");
+  const isConnectPage =
+  pathname === "/connect" || pathname.startsWith("/connect/");
 
   const isCreateBuilderPage =
     pathname.startsWith("/create/") &&
@@ -99,25 +101,33 @@ export function Nav() {
           className="relative z-10 flex shrink-0 items-center gap-2 font-semibold tracking-tight"
           aria-label="Go to Ko-Host home"
         >
-          <img
-            src="/KH_LOGO.png"
-            alt="Ko-Host"
-            width={92}
-            height={44}
-            className="h-[44px] w-[92px]"
-            draggable={false}
-          />
+<img
+  src={isConnectPage ? "/KHC_LOGO.png" : "/KH_LOGO.png"}
+  alt={isConnectPage ? "Ko-Host Connect" : "Ko-Host"}
+  width={92}
+  height={44}
+  className="h-[44px] w-[92px] object-contain"
+  draggable={false}
+/>
         </button>
 
         <div className="pointer-events-none absolute inset-0 hidden items-center justify-center md:flex">
-          <Image
-            src="/SLOGAN BANNER.png"
-            alt="Ko-Host slogan"
-            width={420}
-            height={40}
-            className="h-auto max-h-10 w-auto object-contain"
-            priority
-          />
+<Image
+  src={
+    isConnectPage
+      ? "/CONNECT_BANNER.png"
+      : "/SLOGAN BANNER.png"
+  }
+  alt={
+    isConnectPage
+      ? "Ko-Host Connect"
+      : "Ko-Host slogan"
+  }
+  width={420}
+  height={40}
+  className="h-auto max-h-10 w-auto object-contain"
+  priority
+/>
         </div>
 
         <nav className="relative z-10 flex shrink-0 items-center gap-2">
