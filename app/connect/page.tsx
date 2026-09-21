@@ -272,6 +272,101 @@ export default async function ConnectPage() {
     </div>
   </section>
 )}
+
+{/* TRUST & PRIVACY */}
+<section className="border-t border-black/10 bg-white px-5 py-16 sm:py-20">
+  <div className="mx-auto w-full max-w-5xl">
+    <div className="mx-auto max-w-2xl text-center">
+      <div className="text-sm font-semibold uppercase tracking-[0.16em] text-[#65745b]">
+        Private by Design
+      </div>
+
+      <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
+        Connect without giving out your contact information.
+      </h2>
+
+      <p className="mt-4 leading-7 text-neutral-600">
+        Ko-Host Connect keeps the conversation inside your
+        private mailbox while you decide who you want to work
+        with.
+      </p>
+    </div>
+
+    <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="rounded-3xl border border-[#78856e]/20 bg-[#f7f5ef] p-6">
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#78856e]/10 text-lg text-[#596650]">
+          🔒
+        </div>
+
+        <h3 className="mt-5 text-lg font-semibold tracking-tight">
+          Contact Info Stays Private
+        </h3>
+
+        <p className="mt-3 text-sm leading-6 text-neutral-600">
+          Your phone number and email address are not shared
+          with matched providers.
+        </p>
+      </div>
+
+      <div className="rounded-3xl border border-[#78856e]/20 bg-[#f7f5ef] p-6">
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#78856e]/10 text-lg text-[#596650]">
+          💬
+        </div>
+
+        <h3 className="mt-5 text-lg font-semibold tracking-tight">
+          Private Mailbox
+        </h3>
+
+        <p className="mt-3 text-sm leading-6 text-neutral-600">
+          Providers respond through your private Ko-Host
+          Mailbox instead of contacting you directly.
+        </p>
+      </div>
+
+      <div className="rounded-3xl border border-[#78856e]/20 bg-[#f7f5ef] p-6">
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#78856e]/10 text-lg text-[#596650]">
+          👤
+        </div>
+
+        <h3 className="mt-5 text-lg font-semibold tracking-tight">
+          Separate Conversations
+        </h3>
+
+        <p className="mt-3 text-sm leading-6 text-neutral-600">
+          Each provider gets a separate conversation and
+          cannot see your discussions with other providers.
+        </p>
+      </div>
+
+      <div className="rounded-3xl border border-[#78856e]/20 bg-[#f7f5ef] p-6">
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#78856e]/10 text-lg text-[#596650]">
+          ⏱
+        </div>
+
+        <h3 className="mt-5 text-lg font-semibold tracking-tight">
+          Temporary by Default
+        </h3>
+
+        <p className="mt-3 text-sm leading-6 text-neutral-600">
+          Your temporary mailbox remains available for 12
+          days and is then automatically removed.
+        </p>
+      </div>
+    </div>
+
+    <div className="mx-auto mt-10 max-w-2xl rounded-3xl border border-[#b59b73]/25 bg-[#eee8dc] px-6 py-5 text-center sm:px-8">
+      <p className="text-sm leading-6 text-neutral-700">
+        <span className="font-semibold text-neutral-900">
+          You stay in control.
+        </span>{" "}
+        Review provider responses, ask questions privately,
+        and decide who you want to continue doing business
+        with.
+      </p>
+    </div>
+  </div>
+</section>
+
     </main>
   );
 }
