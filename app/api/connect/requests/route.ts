@@ -99,6 +99,39 @@ async function removeCreatedRequest(
     .eq("id", requestId);
 }
 
+function calculateDistanceMiles(
+  latitude1: number,
+  longitude1: number,
+  latitude2: number,
+  longitude2: number,
+) {
+  const EARTH_RADIUS_MILES = 3958.8;
+
+  const toRadians = (degrees: number) =>
+    (degrees * Math.PI) / 180;
+
+  const lat1 = toRadians(latitude1);
+  const lat2 = toRadians(latitude2);
+
+  const deltaLat = toRadians(latitude2 - latitude1);
+  const deltaLon = toRadians(longitude2 - longitude1);
+
+  const a =
+    Math.sin(deltaLat / 2) ** 2 +
+    Math.cos(lat1) *
+      Math.cos(lat2) *
+      Math.sin(deltaLon / 2) ** 2;
+
+  const c =
+    2 *
+    Math.atan2(
+      Math.sqrt(a),
+      Math.sqrt(1 - a),
+    );
+
+  return EARTH_RADIUS_MILES * c;
+}
+
 export async function POST(request: NextRequest) {
   const uploadedPaths: string[] = [];
 
@@ -459,104 +492,248 @@ export async function POST(request: NextRequest) {
     // Match request to eligible Connect providers
     // =====================================================
     //
-    // V1 routing:
+    // Provider eligibility:
     //
     // 1. Provider must be enabled.
     // 2. Provider's microsite must be published and active.
     // 3. Provider must offer the requested service.
-    // 4. Provider must currently have the SAME ZIP code.
+    // 4. Request ZIP must fall within the provider's
+    //    configured 5 / 10 / 25 / 50-mile service radius.
     //
-    // The provider's configured radius is already stored, but true
-    // radius matching requires ZIP -> geographic coordinates. Until
-    // that geographic layer is added, we deliberately use exact ZIP
-    // matching rather than pretending ZIP codes represent mileage.
+    // Distance is calculated between Census ZIP/ZCTA
+    // representative coordinates using the Haversine formula.
     //
     // Matches are persisted in connect_request_matches.
     // =====================================================
 
     const {
-      data: providerServiceRows,
-      error: providerServiceError,
+      data: requestZipRow,
+      error: requestZipError,
     } = await supabase
-      .from("connect_provider_services")
-      .select(
-        `
-          provider_profile_id,
-          connect_provider_profiles!inner (
-            id,
-            enabled,
-            service_zip_code,
-            microsite_id,
-            microsites!inner (
-              id,
-              is_published,
-              is_active
-            )
-          )
-        `,
-      )
-      .eq("service_id", serviceRow.id)
-      .eq("connect_provider_profiles.enabled", true)
-      .eq(
-        "connect_provider_profiles.service_zip_code",
-        zipCode,
-      )
-      .eq(
-        "connect_provider_profiles.microsites.is_published",
-        true,
-      )
-      .neq(
-        "connect_provider_profiles.microsites.is_active",
-        false,
-      );
+      .from("connect_zip_codes")
+      .select("latitude, longitude")
+      .eq("zip_code", zipCode)
+      .maybeSingle();
 
-    if (providerServiceError) {
+    if (requestZipError) {
       console.error(
-        "Connect provider matching failed:",
-        providerServiceError,
+        "Connect request ZIP lookup failed:",
+        requestZipError,
       );
-
-      /*
-       * The consumer's request and mailbox are still valid.
-       * Do not destroy the request merely because provider
-       * routing encountered an internal error.
-       *
-       * This can later be retried administratively.
-       */
+    } else if (!requestZipRow) {
+      console.error(
+        `Connect request ZIP ${zipCode} was not found in connect_zip_codes.`,
+      );
     } else {
-      const providerProfileIds = Array.from(
-        new Set(
-          (providerServiceRows ?? [])
-            .map((row) =>
-              String(row.provider_profile_id || ""),
+      const {
+        data: providerServiceRows,
+        error: providerServiceError,
+      } = await supabase
+        .from("connect_provider_services")
+        .select(
+          `
+            provider_profile_id,
+            connect_provider_profiles!inner (
+              id,
+              enabled,
+              service_zip_code,
+              service_radius_miles,
+              microsite_id,
+              microsites!inner (
+                id,
+                is_published,
+                is_active
+              )
             )
-            .filter(Boolean),
-        ),
-      );
-
-      if (providerProfileIds.length > 0) {
-        const matchRows = providerProfileIds.map(
-          (providerProfileId) => ({
-            request_id: requestRow.id,
-            provider_profile_id: providerProfileId,
-            status: "new",
-          }),
+          `,
+        )
+        .eq("service_id", serviceRow.id)
+        .eq(
+          "connect_provider_profiles.enabled",
+          true,
+        )
+        .eq(
+          "connect_provider_profiles.microsites.is_published",
+          true,
+        )
+        .neq(
+          "connect_provider_profiles.microsites.is_active",
+          false,
         );
 
-        const { error: matchInsertError } =
-          await supabase
-            .from("connect_request_matches")
-            .upsert(matchRows, {
-              onConflict:
-                "request_id,provider_profile_id",
-              ignoreDuplicates: true,
-            });
+      if (providerServiceError) {
+        console.error(
+          "Connect provider matching failed:",
+          providerServiceError,
+        );
+      } else {
+type EligibleProvider = {
+  providerProfileId: string;
+  zipCode: string;
+  radiusMiles: number;
+};
 
-        if (matchInsertError) {
-          console.error(
-            "Connect request match insert failed:",
-            matchInsertError,
-          );
+const eligibleProviders: EligibleProvider[] = [];
+
+for (const row of providerServiceRows ?? []) {
+  const profile = Array.isArray(
+    row.connect_provider_profiles,
+  )
+    ? row.connect_provider_profiles[0]
+    : row.connect_provider_profiles;
+
+  if (!profile) {
+    continue;
+  }
+
+  const providerProfileId = String(
+    row.provider_profile_id ?? "",
+  );
+
+  const providerZipCode = String(
+    profile.service_zip_code ?? "",
+  );
+
+  const radiusMiles = Number(
+    profile.service_radius_miles ?? 0,
+  );
+
+  if (!providerProfileId) {
+    continue;
+  }
+
+  if (!ZIP_CODE_PATTERN.test(providerZipCode)) {
+    continue;
+  }
+
+  if (![5, 10, 25, 50].includes(radiusMiles)) {
+    continue;
+  }
+
+  eligibleProviders.push({
+    providerProfileId,
+    zipCode: providerZipCode,
+    radiusMiles,
+  });
+}
+
+        const providerZipCodes = Array.from(
+          new Set(
+            eligibleProviders.map(
+              (provider) => provider.zipCode,
+            ),
+          ),
+        );
+
+        if (providerZipCodes.length > 0) {
+          const {
+            data: providerZipRows,
+            error: providerZipError,
+          } = await supabase
+            .from("connect_zip_codes")
+            .select(
+              "zip_code, latitude, longitude",
+            )
+            .in("zip_code", providerZipCodes);
+
+          if (providerZipError) {
+            console.error(
+              "Connect provider ZIP lookup failed:",
+              providerZipError,
+            );
+          } else {
+            const coordinatesByZip = new Map(
+              (providerZipRows ?? []).map(
+                (row) => [
+                  String(row.zip_code),
+                  {
+                    latitude: Number(
+                      row.latitude,
+                    ),
+                    longitude: Number(
+                      row.longitude,
+                    ),
+                  },
+                ],
+              ),
+            );
+
+            const providerProfileIds =
+              Array.from(
+                new Set(
+                  eligibleProviders
+                    .filter((provider) => {
+                      const coordinates =
+                        coordinatesByZip.get(
+                          provider.zipCode,
+                        );
+
+                      if (!coordinates) {
+                        console.error(
+                          `Connect provider ZIP ${provider.zipCode} was not found in connect_zip_codes.`,
+                        );
+
+                        return false;
+                      }
+
+                      const distanceMiles =
+                        calculateDistanceMiles(
+                          Number(
+                            requestZipRow.latitude,
+                          ),
+                          Number(
+                            requestZipRow.longitude,
+                          ),
+                          coordinates.latitude,
+                          coordinates.longitude,
+                        );
+
+                      return (
+                        distanceMiles <=
+                        provider.radiusMiles
+                      );
+                    })
+                    .map(
+                      (provider) =>
+                        provider.providerProfileId,
+                    ),
+                ),
+              );
+
+            if (
+              providerProfileIds.length > 0
+            ) {
+              const matchRows =
+                providerProfileIds.map(
+                  (providerProfileId) => ({
+                    request_id:
+                      requestRow.id,
+                    provider_profile_id:
+                      providerProfileId,
+                    status: "new",
+                  }),
+                );
+
+              const {
+                error: matchInsertError,
+              } = await supabase
+                .from(
+                  "connect_request_matches",
+                )
+                .upsert(matchRows, {
+                  onConflict:
+                    "request_id,provider_profile_id",
+                  ignoreDuplicates: true,
+                });
+
+              if (matchInsertError) {
+                console.error(
+                  "Connect request match insert failed:",
+                  matchInsertError,
+                );
+              }
+            }
+          }
         }
       }
     }
