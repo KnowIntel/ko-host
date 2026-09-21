@@ -449,7 +449,7 @@ export default function ConnectRequestPage() {
                 Ko-Host Connect
               </div>
 
-              <h1 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">
+              <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
                 Your request is live.
               </h1>
 
@@ -466,7 +466,7 @@ export default function ConnectRequestPage() {
                   Request Code
                 </div>
 
-                <div className="mt-2 break-all text-lg font-black text-neutral-950">
+                <div className="mt-2 break-all text-lg font-semibold text-neutral-950">
                   {submissionSuccess.requestCode}
                 </div>
               </div>
@@ -479,7 +479,7 @@ export default function ConnectRequestPage() {
                     </div>
 
                     <div>
-                      <div className="text-base font-black text-[#173f35]">
+                      <div className="text-base font-semibold text-[#173f35]">
                         Your Private Mailbox
                       </div>
 
@@ -494,7 +494,7 @@ export default function ConnectRequestPage() {
 
                 <div className="space-y-4 p-5 sm:p-6">
                   <div>
-                    <div className="text-[10px] font-black uppercase tracking-[0.14em] text-[#6d8a7d]">
+                    <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#6d8a7d]">
                       Mailbox Link
                     </div>
 
@@ -521,13 +521,13 @@ export default function ConnectRequestPage() {
                   </div>
 
                   <div>
-                    <div className="text-[10px] font-black uppercase tracking-[0.14em] text-[#6d8a7d]">
+                    <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#6d8a7d]">
                       Private PIN
                     </div>
 
                     <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center">
                       <div className="flex-1 rounded-xl border border-[#d7e2dc] bg-white px-4 py-3">
-                        <div className="font-mono text-2xl font-black tracking-[0.22em] text-[#173f35]">
+                        <div className="font-mono text-2xl font-semibold tracking-[0.22em] text-[#173f35]">
                           {submissionSuccess.mailboxPin}
                         </div>
                       </div>
@@ -550,7 +550,7 @@ export default function ConnectRequestPage() {
                   </div>
 
                   <div className="rounded-xl border border-[#d6c99f] bg-[#fff9e8] px-4 py-3">
-                    <div className="text-xs font-black text-[#705d22]">
+                    <div className="text-xs font-semibold text-[#705d22]">
                       Save your PIN now.
                     </div>
 
@@ -565,7 +565,7 @@ export default function ConnectRequestPage() {
                   <div className="rounded-xl border border-[#d7e2dc] bg-white/70 px-4 py-3 text-[11px] leading-5 text-[#52665d]">
                     This temporary mailbox remains active
                     for{" "}
-                    <strong className="font-black text-[#284c3e]">
+                    <strong className="font-semibold text-[#284c3e]">
                       12 days
                     </strong>
                     . Each provider conversation will stay
@@ -577,7 +577,7 @@ export default function ConnectRequestPage() {
               <div className="mt-6 grid gap-3 sm:grid-cols-2">
                 <Link
                   href={submissionSuccess.mailboxPath}
-                  className="inline-flex items-center justify-center rounded-xl bg-[#173f35] px-5 py-3.5 text-sm font-black text-white transition hover:bg-[#0f3028]"
+                  className="inline-flex items-center justify-center rounded-xl bg-[#173f35] px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-[#0f3028]"
                 >
                   Open My Mailbox →
                 </Link>
@@ -610,12 +610,12 @@ export default function ConnectRequestPage() {
             <div className="flex flex-col justify-center px-6 py-9 sm:px-9 lg:px-12 lg:py-12">
               <Link
                 href="/connect"
-                className="w-fit text-xs font-black uppercase tracking-[0.18em] text-[#55786a]"
+                className="w-fit text-xs font-semibold uppercase tracking-[0.18em] text-[#55786a]"
               >
                 Ko-Host Connect
               </Link>
 
-              <h1 className="mt-4 max-w-xl text-4xl font-black leading-[0.98] tracking-[-0.04em] text-[#173f35] sm:text-5xl">
+              <h1 className="mt-4 max-w-xl text-4xl font-semibold leading-[0.98] tracking-tight text-[#173f35] sm:text-5xl">
                 Need Something Done?
               </h1>
 
@@ -665,11 +665,11 @@ export default function ConnectRequestPage() {
           className="mx-auto max-w-3xl overflow-visible rounded-[28px] border border-[#d9d4c7] bg-white shadow-lg shadow-black/5"
         >
           <div className="border-b border-[#e7e2d8] px-5 py-6 sm:px-8">
-            <div className="text-xs font-black uppercase tracking-[0.16em] text-[#6d8a7d]">
+            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[#6d8a7d]">
               Local Service Request
             </div>
 
-            <h2 className="mt-2 text-2xl font-black tracking-tight text-neutral-950 sm:text-3xl">
+            <h2 className="mt-2 text-2xl font-semibold tracking-tight text-neutral-950 sm:text-3xl">
               Tell us what you need
             </h2>
 
@@ -839,17 +839,18 @@ export default function ConnectRequestPage() {
                 subtitle="Describe the job and optionally include up to 5 photos."
               />
 
-              <div className="mt-4">
-                <div className="flex flex-wrap items-center gap-3">
-                  <div className="mr-1 text-xs font-bold text-neutral-600">
-                    Add photos
-                  </div>
+<div className="mt-4">
+  <div className="text-xs font-bold text-neutral-600">
+    Add photos
+  </div>
+
+  <div className="mt-3 flex items-center gap-2 sm:gap-3">
 
                   {imagePreviews.map(
                     (preview, index) => (
                       <div
                         key={preview}
-                        className="group relative h-14 w-14 overflow-hidden rounded-xl border border-[#d8d4ca] bg-neutral-100"
+                        className="group relative aspect-square min-w-0 flex-1 overflow-hidden rounded-xl border border-[#d8d4ca] bg-neutral-100 sm:h-14 sm:w-14 sm:flex-none"
                       >
                         <Image
                           src={preview}
@@ -889,7 +890,7 @@ export default function ConnectRequestPage() {
                       onClick={() =>
                         fileInputRef.current?.click()
                       }
-                      className="flex h-14 w-14 items-center justify-center rounded-xl border border-dashed border-[#a9b8af] bg-[#f7faf8] text-xl font-light text-[#55786a] transition hover:border-[#6e9583] hover:bg-[#eef5f0]"
+                      className="flex aspect-square min-w-0 flex-1 items-center justify-center rounded-xl border border-dashed border-[#a9b8af] bg-[#f7faf8] text-xl font-light text-[#55786a] transition hover:border-[#6e9583] hover:bg-[#eef5f0] sm:h-14 sm:w-14 sm:flex-none"
                       aria-label="Add photo"
                     >
                       +
@@ -929,13 +930,17 @@ export default function ConnectRequestPage() {
 
             <Divider />
 
-            {/* STEP 5 */}
-            <section>
-              <StepHeading
-                number="5"
-                title="Your Private Ko-Host Mailbox"
-                subtitle="Provider responses stay private."
-              />
+{/* PRIVATE MAILBOX */}
+<section>
+  <div>
+    <h3 className="text-base font-semibold text-neutral-950 sm:text-lg">
+      Your Private Ko-Host Mailbox
+    </h3>
+
+    <p className="mt-0.5 text-xs leading-5 text-neutral-500">
+      Provider responses stay private.
+    </p>
+  </div>
 
               <div className="mt-4 overflow-hidden rounded-[22px] border border-[#cddbd3] bg-[#f1f6f3]">
                 <div className="p-5 sm:p-6">
@@ -945,7 +950,7 @@ export default function ConnectRequestPage() {
                     </div>
 
                     <div>
-                      <div className="text-sm font-black text-[#173f35]">
+                      <div className="text-sm font-semibold text-[#173f35]">
                         No need to share your personal
                         contact information.
                       </div>
@@ -971,7 +976,7 @@ export default function ConnectRequestPage() {
                         key={item}
                         className="rounded-xl border border-[#d7e2dc] bg-white px-3 py-3 text-center"
                       >
-                        <div className="text-[9px] font-black uppercase tracking-[0.12em] text-[#7b9589]">
+                        <div className="text-[9px] font-semibold uppercase tracking-[0.12em] text-[#7b9589]">
                           Step {index + 1}
                         </div>
 
@@ -983,9 +988,8 @@ export default function ConnectRequestPage() {
                   </div>
 
                   <div className="mt-4 rounded-xl border border-[#d7e2dc] bg-white/70 px-4 py-3 text-[11px] leading-5 text-[#52665d]">
-                    Your temporary mailbox will remain
-                    available for
-                    <strong className="font-black text-[#284c3e]">
+Your mailbox will remain available for
+                    <strong className="font-semibold text-[#284c3e]">
                       {" "}
                       12 days
                     </strong>
@@ -1038,7 +1042,7 @@ export default function ConnectRequestPage() {
                 servicesLoading ||
                 Boolean(servicesError)
               }
-              className="flex w-full items-center justify-center rounded-2xl bg-[#173f35] px-5 py-4 text-sm font-black text-white shadow-sm transition hover:bg-[#0f3028] disabled:cursor-not-allowed disabled:opacity-60"
+              className="flex w-full items-center justify-center rounded-2xl bg-[#173f35] px-5 py-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0f3028] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {submitting
                 ? "Submitting..."
@@ -1047,13 +1051,10 @@ export default function ConnectRequestPage() {
                   : "Submit My Request →"}
             </button>
 
-            <div className="mt-3 flex items-center justify-center gap-2 text-center text-[11px] font-semibold text-neutral-500">
-              <span className="text-[#55786a]">
-                ●
-              </span>
-              Your personal contact information is never
-              shared with providers.
-            </div>
+<div className="mt-3 text-center text-[11px] font-semibold text-neutral-500">
+  Your personal contact information is never
+  shared with providers.
+</div>
           </div>
         </form>
       </section>
@@ -1082,12 +1083,12 @@ function StepHeading({
 }) {
   return (
     <div className="flex items-start gap-3">
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#173f35] text-xs font-black text-white">
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#173f35] text-xs font-semibold text-white">
         {number}
       </div>
 
       <div>
-        <h3 className="text-base font-black text-neutral-950 sm:text-lg">
+        <h3 className="text-base font-semibold text-neutral-950 sm:text-lg">
           {title}
         </h3>
 
