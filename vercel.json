@@ -11,5 +11,11 @@
       "destination": "https://ko-host.com/:path*",
       "permanent": true
     }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/connect-cleanup",
+      "schedule": "0 6 * * *"
+    }
   ]
 }
