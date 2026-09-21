@@ -104,6 +104,65 @@ export default function ConnectPage() {
           </div>
         </div>
       </section>
+{/* HOW IT WORKS */}
+<section className="border-t border-black/10 bg-white px-5 py-16 sm:py-20">
+  <div className="mx-auto w-full max-w-5xl">
+    <div className="mx-auto max-w-2xl text-center">
+      <div className="text-sm font-semibold uppercase tracking-[0.16em] text-[#65745b]">
+        How It Works
+      </div>
+
+      <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
+        From request to connection.
+      </h2>
+
+      <p className="mt-4 leading-7 text-neutral-600">
+        Tell us what you need and let relevant local
+        providers come to you.
+      </p>
+    </div>
+
+    <div className="mt-10 grid gap-4 md:grid-cols-3">
+      {[
+        {
+          number: "1",
+          title: "Submit Your Request",
+          description:
+            "Choose a service, enter your location, and tell providers what you need.",
+        },
+        {
+          number: "2",
+          title: "Hear From Providers",
+          description:
+            "Matched local providers can respond privately through your Ko-Host mailbox.",
+        },
+        {
+          number: "3",
+          title: "Choose Who Fits",
+          description:
+            "Review your private conversations and decide which provider you want to work with.",
+        },
+      ].map((step) => (
+        <div
+          key={step.number}
+          className="rounded-3xl border border-[#78856e]/20 bg-[#f7f5ef] p-6"
+        >
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#596650] text-sm font-semibold text-white">
+            {step.number}
+          </div>
+
+          <h3 className="mt-5 text-xl font-semibold tracking-tight">
+            {step.title}
+          </h3>
+
+          <p className="mt-3 text-sm leading-6 text-neutral-600">
+            {step.description}
+          </p>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
     </main>
   );
 }
