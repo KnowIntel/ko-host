@@ -721,23 +721,31 @@ function scrollToTemplates() {
       announcement, profile, product, or anything else.
     </p>
 
-    <div className="mt-5 flex flex-wrap items-center gap-3">
-      <a
-        href="/get-started"
-        className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
-      >
-        Create Your Site
-        <span aria-hidden="true">→</span>
-      </a>
+<div className="mt-5 flex flex-wrap items-center gap-3">
+  <a
+    href="/get-started"
+    className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+  >
+    Create Your Site
+    <span aria-hidden="true">→</span>
+  </a>
 
-<button
-  type="button"
-  onClick={scrollToTemplates}
-  className="inline-flex items-center justify-center rounded-xl border border-neutral-300 bg-white px-5 py-3 text-sm font-bold text-neutral-900 shadow-sm transition hover:bg-neutral-50"
->
-  Browse Templates
-</button>
-    </div>
+  <button
+    type="button"
+    onClick={scrollToTemplates}
+    className="inline-flex items-center justify-center rounded-xl border border-neutral-300 bg-white px-5 py-3 text-sm font-bold text-neutral-900 shadow-sm transition hover:bg-neutral-50"
+  >
+    Browse Templates
+  </button>
+
+  <Link
+    href="/connect"
+    className="inline-flex items-center justify-center gap-2 rounded-xl border border-green-200 bg-green-50 px-5 py-3 text-sm font-bold text-green-800 shadow-sm transition hover:border-green-300 hover:bg-green-100"
+  >
+    Ko-Host Connect
+    <span aria-hidden="true">→</span>
+  </Link>
+</div>
 
 <div className="mt-5 grid max-w-[760px] grid-cols-2 gap-x-5 gap-y-4 xl:grid-cols-4">
   <div className="flex items-start gap-2.5">
