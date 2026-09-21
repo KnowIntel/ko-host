@@ -221,24 +221,13 @@ export function Nav() {
                 </button>
               ) : null}
 
-{!isConnectPage ? (
-  <button
-    type="button"
-    onClick={() => navigateTo("/connect")}
-    className="inline-flex items-center justify-center gap-2 rounded-xl border border-green-200 bg-green-50 px-3 py-2 text-sm font-semibold text-green-800 transition hover:border-green-300 hover:bg-green-100"
-  >
-    <span className="hidden sm:inline">Ko-Host</span> Connect
-    <span aria-hidden="true">→</span>
-  </button>
-) : null}
-
-<button
-  type="button"
-  onClick={() => navigateTo("/dashboard")}
-  className={secondaryButtonClass}
->
-  Dashboard
-</button>
+              <button
+                type="button"
+                onClick={() => navigateTo("/dashboard")}
+                className={secondaryButtonClass}
+              >
+                Dashboard
+              </button>
 
               <UserButton />
             </>
