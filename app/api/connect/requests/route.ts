@@ -3,8 +3,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
+import { Resend } from "resend";
 
 const BUCKET = "connect-request-images";
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const MAX_IMAGES = 5;
 const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
@@ -737,6 +739,118 @@ for (const row of providerServiceRows ?? []) {
         }
       }
     }
+
+// =====================================================
+// Send consumer confirmation email
+// =====================================================
+//
+// Email is best-effort. A temporary email failure must
+// not destroy an otherwise valid Connect request/mailbox.
+// The mailbox URL and PIN are also returned on-screen.
+// =====================================================
+
+if (notificationEmail) {
+  const mailboxUrl =
+    `${request.nextUrl.origin}/mailbox/${mailboxCode}`;
+
+  try {
+    const confirmationSend = await resend.emails.send({
+      from: "Ko-Host Connect <support@ko-host.com>",
+      to: [notificationEmail],
+      subject: `Your Ko-Host Connect request: ${serviceRow.name}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #171717; max-width: 600px; margin: 0 auto;">
+          <h2 style="margin-bottom: 8px;">
+            Your Ko-Host Connect request is live
+          </h2>
+
+          <p>
+            Your request has been submitted and eligible local providers
+            can now respond privately through your Ko-Host Mailbox.
+          </p>
+
+          <div style="margin: 24px 0; padding: 20px; background: #f5f5f4; border-radius: 12px;">
+            <p style="margin: 0 0 8px;">
+              <strong>Service:</strong> ${serviceRow.name}
+            </p>
+
+            <p style="margin: 0 0 8px;">
+              <strong>ZIP Code:</strong> ${zipCode}
+            </p>
+
+            <p style="margin: 0 0 8px;">
+              <strong>Service Needed:</strong> ${
+                serviceNeededDate || "Not specified"
+              }
+            </p>
+
+            <p style="margin: 0;">
+              <strong>Request Code:</strong> ${requestRow.request_code}
+            </p>
+          </div>
+
+          <h3>Your private mailbox</h3>
+
+          <p>
+            Providers will communicate with you through this private mailbox.
+            Your email address is not shared with providers.
+          </p>
+
+          <p>
+            <strong>Mailbox:</strong><br />
+            <a href="${mailboxUrl}">${mailboxUrl}</a>
+          </p>
+
+          <p>
+            <strong>Mailbox PIN:</strong><br />
+            <span style="font-size: 24px; font-weight: bold; letter-spacing: 4px;">
+              ${mailboxPin}
+            </span>
+          </p>
+
+          <p>
+            Keep this PIN private. You will need it to access your mailbox.
+          </p>
+
+          <p>
+            Your Ko-Host Connect mailbox is available for 12 days.
+          </p>
+
+          <div style="margin-top: 28px;">
+            <a
+              href="${mailboxUrl}"
+              style="display: inline-block; background: #171717; color: #ffffff; text-decoration: none; padding: 12px 20px; border-radius: 999px; font-weight: bold;"
+            >
+              Open My Mailbox
+            </a>
+          </div>
+
+          <p style="margin-top: 32px; color: #737373; font-size: 13px;">
+            Ko-Host Connect keeps provider conversations private and
+            separate. Providers cannot see your conversations with other
+            providers.
+          </p>
+
+          <p style="margin-top: 24px;">
+            — Ko-Host Connect
+          </p>
+        </div>
+      `,
+    });
+
+    if (confirmationSend.error) {
+      console.error(
+        "Connect confirmation email failed:",
+        confirmationSend.error,
+      );
+    }
+  } catch (emailError) {
+    console.error(
+      "Connect confirmation email failed:",
+      emailError,
+    );
+  }
+}
 
     // =====================================================
     // Successful request + mailbox creation
