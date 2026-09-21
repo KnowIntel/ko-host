@@ -350,54 +350,56 @@ export async function POST(
       );
     }
 
-if (
-  !displayName ||
-  displayName.length > 100
-) {
-  return NextResponse.json(
-    {
-      ok: false,
-      error:
-        "Enter a provider display name between 1 and 100 characters.",
-    },
-    { status: 400 },
-  );
+if (enabled) {
+  if (
+    !displayName ||
+    displayName.length > 100
+  ) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          "Enter a provider display name between 1 and 100 characters.",
+      },
+      { status: 400 },
+    );
+  }
+
+  if (!ZIP_PATTERN.test(serviceZipCode)) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          "Enter a valid 5-digit service ZIP code.",
+      },
+      { status: 400 },
+    );
+  }
+
+  if (
+    !ALLOWED_RADII.has(serviceRadiusMiles)
+  ) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          "Service radius must be 5, 10, 25, or 50 miles.",
+      },
+      { status: 400 },
+    );
+  }
+
+  if (requestedServiceIds.length === 0) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          "Select at least one service.",
+      },
+      { status: 400 },
+    );
+  }
 }
-
-    if (!ZIP_PATTERN.test(serviceZipCode)) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error:
-            "Enter a valid 5-digit service ZIP code.",
-        },
-        { status: 400 },
-      );
-    }
-
-    if (
-      !ALLOWED_RADII.has(serviceRadiusMiles)
-    ) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error:
-            "Service radius must be 5, 10, 25, or 50 miles.",
-        },
-        { status: 400 },
-      );
-    }
-
-    if (requestedServiceIds.length === 0) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error:
-            "Select at least one service.",
-        },
-        { status: 400 },
-      );
-    }
 
     const { sb } = ownership;
 
