@@ -127,11 +127,11 @@ export function Nav() {
       ? "Ko-Host Connect"
       : "Ko-Host slogan"
   }
-  width={isConnectPage ? 1050 : 420}
-  height={isConnectPage ? 100 : 40}
+  width={isConnectPage ? 840 : 420}
+  height={isConnectPage ? 80 : 40}
   className={
     isConnectPage
-      ? "h-auto max-h-[100px] w-auto object-contain"
+      ? "h-auto max-h-[80px] w-auto object-contain"
       : "h-auto max-h-10 w-auto object-contain"
   }
   priority
