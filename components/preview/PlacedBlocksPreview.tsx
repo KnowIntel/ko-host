@@ -551,9 +551,9 @@ const logicalPageWidth = BASE_PAGE_WIDTH;
     metadata?.page.description?.value,
   );
 
-  const showTitle =
-    typedDraft.pageVisibility?.title !== false &&
-    (hasMeaningfulText(titleValue) || !!typedDraft.pageElements?.title);
+const showTitle =
+  typedDraft.pageVisibility?.title === true &&
+  (hasMeaningfulText(titleValue) || !!typedDraft.pageElements?.title);
 
   const showSubtitle =
     typedDraft.pageVisibility?.subtitle !== false &&
