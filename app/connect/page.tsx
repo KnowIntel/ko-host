@@ -6,7 +6,38 @@ export const metadata = {
     "Connect with local service providers through Ko-Host Connect.",
 };
 
-export default function ConnectPage() {
+type ConnectProvider = {
+  title: string;
+  slug: string;
+  imageUrl: string | null;
+  services: string[];
+};
+
+export default async function ConnectPage() {
+  let providers: ConnectProvider[] = [];
+
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_APP_URL ?? "https://ko-host.com"}/api/connect/providers`,
+      {
+        cache: "no-store",
+      },
+    );
+
+    if (response.ok) {
+      const data = await response.json();
+
+      if (data?.ok && Array.isArray(data.providers)) {
+        providers = data.providers;
+      }
+    }
+  } catch (error) {
+    console.error(
+      "Failed to load Connect providers:",
+      error,
+    );
+  }
+
   return (
     <main className="min-h-screen bg-[#f7f5ef] text-neutral-900">
       {/* HEADER */}
@@ -163,6 +194,84 @@ export default function ConnectPage() {
     </div>
   </div>
 </section>
+{/* CONNECT PROVIDERS */}
+{providers.length > 0 && (
+  <section className="border-t border-black/10 bg-[#f7f5ef] px-5 py-16 sm:py-20">
+    <div className="mx-auto w-full max-w-5xl">
+      <div className="mx-auto max-w-2xl text-center">
+        <div className="text-sm font-semibold uppercase tracking-[0.16em] text-[#65745b]">
+          Local Providers
+        </div>
+
+        <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
+          Meet providers on Ko-Host Connect.
+        </h2>
+
+        <p className="mt-4 leading-7 text-neutral-600">
+          Explore participating providers and the services
+          they offer.
+        </p>
+      </div>
+
+      <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {providers.map((provider) => (
+          <Link
+            key={provider.slug}
+            href={`/s/${provider.slug}`}
+            className="group flex flex-col overflow-hidden rounded-3xl border border-[#78856e]/20 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+          >
+            <div className="aspect-[16/10] overflow-hidden bg-[#e8e5dc]">
+              {provider.imageUrl ? (
+                <img
+                  src={provider.imageUrl}
+                  alt=""
+                  className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02]"
+                />
+              ) : (
+                <div className="flex h-full items-center justify-center px-6 text-center">
+                  <span className="text-xl font-semibold text-[#65745b]">
+                    {provider.title}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <div className="flex flex-1 flex-col p-6">
+              <h3 className="text-xl font-semibold tracking-tight">
+                {provider.title}
+              </h3>
+
+              {provider.services.length > 0 && (
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {provider.services
+                    .slice(0, 3)
+                    .map((service) => (
+                      <span
+                        key={service}
+                        className="rounded-full bg-[#78856e]/10 px-3 py-1 text-xs font-medium text-[#56624e]"
+                      >
+                        {service}
+                      </span>
+                    ))}
+
+                  {provider.services.length > 3 && (
+                    <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-medium text-neutral-600">
+                      +{provider.services.length - 3} more
+                    </span>
+                  )}
+                </div>
+              )}
+
+              <div className="mt-auto pt-6 text-sm font-semibold text-[#596650]">
+                View Provider →
+              </div>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </div>
+  </section>
+)}
     </main>
   );
 }
