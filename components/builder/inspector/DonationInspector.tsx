@@ -1,3 +1,5 @@
+// components\builder\inspector\DonationInspector.tsx
+
 "use client";
 
 import {
