@@ -208,7 +208,7 @@ function MailboxAccessForm({
 
       <label
         htmlFor="mailbox-pin"
-        className="text-xs font-black uppercase tracking-[0.12em] text-[#52665d]"
+        className="text-xs font-semibold uppercase tracking-[0.12em] text-[#52665d]"
       >
         6-Digit PIN
       </label>
@@ -229,7 +229,7 @@ function MailboxAccessForm({
 
       <button
         type="submit"
-        className="mt-4 flex h-13 w-full items-center justify-center rounded-2xl bg-[#173f35] px-5 py-3.5 text-sm font-black text-white shadow-sm transition hover:bg-[#0f3028]"
+        className="mt-4 flex h-13 w-full items-center justify-center rounded-2xl bg-[#173f35] px-5 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0f3028]"
       >
         Open My Mailbox →
       </button>
@@ -249,11 +249,11 @@ function MailboxUnavailable({
       <div className="mx-auto max-w-xl">
         <div className="overflow-hidden rounded-[28px] border border-[#d9d4c7] bg-white shadow-xl shadow-black/5">
           <div className="bg-[#173f35] px-6 py-8 text-white sm:px-9">
-            <div className="text-xs font-black uppercase tracking-[0.18em] text-[#b8d7c9]">
+            <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[#b8d7c9]">
               Ko-Host Connect
             </div>
 
-            <h1 className="mt-3 text-3xl font-black tracking-tight">
+            <h1 className="mt-3 text-3xl font-semibold tracking-tight">
               {title}
             </h1>
           </div>
@@ -411,11 +411,11 @@ export default async function MailboxPage({
         <div className="mx-auto max-w-xl">
           <div className="overflow-hidden rounded-[28px] border border-[#d9d4c7] bg-white shadow-xl shadow-black/5">
             <div className="bg-[#173f35] px-6 py-8 text-white sm:px-9">
-              <div className="text-xs font-black uppercase tracking-[0.18em] text-[#b8d7c9]">
+              <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[#b8d7c9]">
                 Ko-Host Connect
               </div>
 
-              <h1 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">
+              <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
                 Private Mailbox
               </h1>
 
@@ -432,7 +432,7 @@ export default async function MailboxPage({
                 </div>
 
                 <div>
-                  <div className="text-sm font-black text-neutral-950">
+                  <div className="text-sm font-semibold text-neutral-950">
                     Mailbox {safeCode}
                   </div>
 
@@ -653,11 +653,11 @@ return (
           <div className="bg-[#173f35] px-6 py-7 text-white sm:px-9">
             <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <div className="text-xs font-black uppercase tracking-[0.18em] text-[#b8d7c9]">
+                <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[#b8d7c9]">
                   Ko-Host Connect
                 </div>
 
-                <h1 className="mt-2 text-3xl font-black tracking-tight">
+                <h1 className="mt-2 text-3xl font-semibold tracking-tight">
                   Your Private Mailbox
                 </h1>
 
@@ -675,11 +675,11 @@ return (
           <div className="grid gap-0 lg:grid-cols-[0.85fr_1.15fr]">
             {/* REQUEST SUMMARY */}
             <section className="border-b border-[#e7e2d8] p-6 sm:p-8 lg:border-b-0 lg:border-r">
-              <div className="text-xs font-black uppercase tracking-[0.14em] text-[#6d8a7d]">
+              <div className="text-xs font-semibold uppercase tracking-[0.14em] text-[#6d8a7d]">
                 Your Request
               </div>
 
-              <h2 className="mt-2 text-2xl font-black tracking-tight text-neutral-950">
+              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-neutral-950">
                 {request.service}
               </h2>
 
@@ -717,7 +717,7 @@ return (
               </div>
 
               <div className="mt-5 rounded-2xl border border-[#e1ddd4] bg-[#faf9f5] p-4">
-                <div className="text-[10px] font-black uppercase tracking-[0.12em] text-neutral-500">
+                <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-neutral-500">
                   Request Details
                 </div>
 
@@ -728,7 +728,7 @@ return (
 
               <div className="mt-5 rounded-xl border border-[#d7e2dc] bg-[#f1f6f3] px-4 py-3 text-[11px] leading-5 text-[#52665d]">
                 Mailbox expires{" "}
-                <strong className="font-black text-[#284c3e]">
+                <strong className="font-semibold text-[#284c3e]">
                   {formatDate(mailbox.expires_at)}
                 </strong>
                 .
@@ -739,16 +739,16 @@ return (
 <section className="p-6 sm:p-8">
   <div className="flex items-start justify-between gap-4">
     <div>
-      <div className="text-xs font-black uppercase tracking-[0.14em] text-[#6d8a7d]">
+      <div className="text-xs font-semibold uppercase tracking-[0.14em] text-[#6d8a7d]">
         Provider Responses
       </div>
 
-      <h2 className="mt-2 text-xl font-black text-neutral-950">
+      <h2 className="mt-2 text-xl font-semibold text-neutral-950">
         Your conversations
       </h2>
     </div>
 
-    <div className="rounded-full bg-[#eaf2ed] px-3 py-1.5 text-[10px] font-black text-[#315847]">
+    <div className="rounded-full bg-[#eaf2ed] px-3 py-1.5 text-[10px] font-semibold text-[#315847]">
       {conversations.length}{" "}
       {conversations.length === 1
         ? "Response"
@@ -762,7 +762,7 @@ return (
         ✉
       </div>
 
-      <h3 className="mt-4 text-base font-black text-neutral-900">
+      <h3 className="mt-4 text-base font-semibold text-neutral-900">
         No provider responses yet
       </h3>
 
@@ -799,7 +799,7 @@ return (
               {/* PROVIDER HEADER */}
               <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#e1ddd4] bg-white px-4 py-4">
                 <div className="min-w-0">
-                  <div className="text-sm font-black text-neutral-950">
+                  <div className="text-sm font-semibold text-neutral-950">
                     {providerName}
                   </div>
 
@@ -816,7 +816,7 @@ return (
                     )}`}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex shrink-0 items-center justify-center rounded-xl border border-[#cdd5cf] bg-white px-3 py-2 text-[11px] font-black text-[#315847] transition hover:border-[#6e9583] hover:bg-[#f1f6f3]"
+                    className="inline-flex shrink-0 items-center justify-center rounded-xl border border-[#cdd5cf] bg-white px-3 py-2 text-[11px] font-semibold text-[#315847] transition hover:border-[#6e9583] hover:bg-[#f1f6f3]"
                   >
                     View Provider →
                   </Link>
@@ -853,7 +853,7 @@ return (
                           >
                             <div
                               className={[
-                                "mb-1 text-[10px] font-black uppercase tracking-[0.08em]",
+                                "mb-1 text-[10px] font-semibold uppercase tracking-[0.08em]",
                                 isConsumer
                                   ? "text-[#b8d7c9]"
                                   : "text-[#6d8a7d]",
@@ -916,7 +916,7 @@ return (
       <div>
         <label
           htmlFor={`reply-${conversation.thread.id}`}
-          className="mb-1.5 block text-[10px] font-black uppercase tracking-[0.1em] text-[#6d8a7d]"
+          className="mb-1.5 block text-[10px] font-semibold uppercase tracking-[0.1em] text-[#6d8a7d]"
         >
           Reply to {providerName}
         </label>
@@ -943,7 +943,7 @@ return (
 
         <button
           type="submit"
-          className="inline-flex items-center justify-center rounded-xl bg-[#173f35] px-4 py-2.5 text-xs font-black text-white shadow-sm transition hover:bg-[#0f3028]"
+          className="inline-flex items-center justify-center rounded-xl bg-[#173f35] px-4 py-2.5 text-xs font-semibold text-white shadow-sm transition hover:bg-[#0f3028]"
         >
           Send Reply →
         </button>
@@ -998,7 +998,7 @@ function RequestDetail({
 }) {
   return (
     <div className="rounded-xl border border-[#e1ddd4] bg-white px-3 py-3">
-      <div className="text-[9px] font-black uppercase tracking-[0.12em] text-neutral-400">
+      <div className="text-[9px] font-semibold uppercase tracking-[0.12em] text-neutral-400">
         {label}
       </div>
 
