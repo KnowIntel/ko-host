@@ -721,30 +721,43 @@ function scrollToTemplates() {
       announcement, profile, product, or anything else.
     </p>
 
-<div className="mt-5 flex flex-wrap items-center gap-3">
-  <a
-    href="/get-started"
-    className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
-  >
-    Create Your Site
-    <span aria-hidden="true">→</span>
-  </a>
+<div className="mt-5">
+  <div className="flex flex-wrap items-center gap-3">
+    <a
+      href="/get-started"
+      className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+    >
+      Create Your Site
+      <span aria-hidden="true">→</span>
+    </a>
 
-  <button
-    type="button"
-    onClick={scrollToTemplates}
-    className="inline-flex items-center justify-center rounded-xl border border-neutral-300 bg-white px-5 py-3 text-sm font-bold text-neutral-900 shadow-sm transition hover:bg-neutral-50"
-  >
-    Browse Templates
-  </button>
+    <button
+      type="button"
+      onClick={scrollToTemplates}
+      className="inline-flex items-center justify-center rounded-xl border border-neutral-300 bg-white px-5 py-3 text-sm font-bold text-neutral-900 shadow-sm"
+    >
+      Browse Templates
+    </button>
+  </div>
 
-  <Link
-    href="/connect"
-    className="inline-flex items-center justify-center gap-2 rounded-xl border border-green-200 bg-green-50 px-5 py-3 text-sm font-bold text-green-800 shadow-sm transition hover:border-green-300 hover:bg-green-100"
-  >
-    Ko-Host Connect
-    <span aria-hidden="true">→</span>
-  </Link>
+<Link
+  href="/connect"
+  className="group flex min-w-[290px] items-center justify-between gap-4 rounded-2xl border border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 px-4 py-3 shadow-sm transition hover:-translate-y-0.5 hover:border-green-300 hover:shadow-md"
+>
+  <div className="min-w-0 text-left">
+    <div className="text-sm font-bold text-green-900">
+      Ko-Host Connect
+    </div>
+
+    <div className="mt-0.5 text-[11px] leading-4 text-green-800/70">
+      Find local help or connect with customers.
+    </div>
+  </div>
+
+  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-green-700 text-lg text-white transition group-hover:translate-x-0.5">
+    →
+  </div>
+</Link>
 </div>
 
 <div className="mt-5 grid max-w-[760px] grid-cols-2 gap-x-5 gap-y-4 xl:grid-cols-4">
