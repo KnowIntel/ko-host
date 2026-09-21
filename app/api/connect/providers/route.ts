@@ -140,22 +140,38 @@ export async function GET() {
             a.localeCompare(b),
           );
 
-return {
-  title:
-    provider.display_name?.trim() ||
-    site.title ||
-    "Local Provider",
-  slug: site.slug,
-imageUrl:
-  site.share_preview_mode === "custom" &&
-  site.share_preview_custom_image_url
-    ? site.share_preview_custom_image_url
-    : site.share_preview_auto_image_url ||
-      site.homepage_thumbnail_url ||
-      null,
+        // Do not publicly list providers who
+        // currently have no Connect services selected.
+        if (offeredServices.length === 0) {
+          return null;
+        }
+
+        return {
+          title:
+            provider.display_name?.trim() ||
+            site.title ||
+            "Local Provider",
+
+          slug: site.slug,
+
+          imageUrl:
+            site.share_preview_mode === "custom" &&
+            site.share_preview_custom_image_url
+              ? site.share_preview_custom_image_url
+              : site.share_preview_auto_image_url ||
+                site.homepage_thumbnail_url ||
+                null,
+
           services: offeredServices,
         };
-      });
+      })
+      .filter(
+        (
+          provider,
+        ): provider is NonNullable<
+          typeof provider
+        > => provider !== null,
+      );
 
     return NextResponse.json({
       ok: true,
