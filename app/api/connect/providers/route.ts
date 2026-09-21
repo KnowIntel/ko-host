@@ -6,7 +6,8 @@ export const dynamic = "force-dynamic";
 
 type ProviderProfileRow = {
   id: string;
-microsites: {
+  display_name: string | null;
+  microsites: {
   title: string;
   slug: string;
   homepage_thumbnail_url: string | null;
@@ -38,10 +39,11 @@ export async function GET() {
       error: providerError,
     } = await sb
       .from("connect_provider_profiles")
-      .select(
-        `
-          id,
-microsites!inner (
+.select(
+  `
+    id,
+    display_name,
+    microsites!inner (
   title,
   slug,
   homepage_thumbnail_url,
@@ -138,10 +140,12 @@ microsites!inner (
             a.localeCompare(b),
           );
 
-        return {
-          title:
-            site.title || "Local Provider",
-          slug: site.slug,
+return {
+  title:
+    provider.display_name?.trim() ||
+    site.title ||
+    "Local Provider",
+  slug: site.slug,
 imageUrl:
   site.share_preview_mode === "custom" &&
   site.share_preview_custom_image_url

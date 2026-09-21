@@ -148,10 +148,11 @@ export async function GET(
         .from("connect_provider_profiles")
         .select(
           `
-            id,
-            microsite_id,
-            enabled,
-            service_zip_code,
+id,
+microsite_id,
+display_name,
+enabled,
+service_zip_code,
             service_radius_miles,
             created_at,
             updated_at
@@ -231,21 +232,27 @@ export async function GET(
 
       services: services ?? [],
 
-      provider: profile
-        ? {
-            linked: true,
-            id: profile.id,
-            enabled: Boolean(profile.enabled),
+provider: profile
+  ? {
+      linked: true,
+      id: profile.id,
+      displayName:
+        profile.display_name ||
+        ownership.site.title ||
+        "",
+      enabled: Boolean(profile.enabled),
             serviceZipCode:
               profile.service_zip_code,
             serviceRadiusMiles:
               profile.service_radius_miles,
             serviceIds: selectedServiceIds,
           }
-        : {
-            linked: false,
-            id: null,
-            enabled: false,
+: {
+    linked: false,
+    id: null,
+    displayName:
+      ownership.site.title || "",
+    enabled: false,
             serviceZipCode: "",
             serviceRadiusMiles: 10,
             serviceIds: [],
@@ -299,6 +306,9 @@ export async function POST(
 
     const enabled =
       body?.enabled === true;
+      const displayName = String(
+  body?.displayName || "",
+).trim();
 
     const serviceZipCode = String(
       body?.serviceZipCode || "",
@@ -339,6 +349,20 @@ export async function POST(
         { status: ownership.status },
       );
     }
+
+if (
+  !displayName ||
+  displayName.length > 100
+) {
+  return NextResponse.json(
+    {
+      ok: false,
+      error:
+        "Enter a provider display name between 1 and 100 characters.",
+    },
+    { status: 400 },
+  );
+}
 
     if (!ZIP_PATTERN.test(serviceZipCode)) {
       return NextResponse.json(
@@ -435,9 +459,10 @@ export async function POST(
     } = await sb
       .from("connect_provider_profiles")
       .upsert(
-        {
-          microsite_id: micrositeId,
-          enabled,
+{
+  microsite_id: micrositeId,
+  display_name: displayName,
+  enabled,
           service_zip_code: serviceZipCode,
           service_radius_miles:
             serviceRadiusMiles,
@@ -452,6 +477,7 @@ export async function POST(
         `
           id,
           microsite_id,
+    display_name,
           enabled,
           service_zip_code,
           service_radius_miles,
@@ -1195,10 +1221,13 @@ if (
 return NextResponse.json({
   ok: true,
 
-  provider: {
-    linked: true,
-    id: profile.id,
-    enabled: Boolean(profile.enabled),
+provider: {
+  linked: true,
+  id: profile.id,
+  displayName:
+    profile.display_name ||
+    displayName,
+  enabled: Boolean(profile.enabled),
     serviceZipCode:
       profile.service_zip_code,
     serviceRadiusMiles:

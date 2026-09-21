@@ -51,6 +51,7 @@ type ConnectService = {
 type ConnectProviderSettings = {
   linked: boolean;
   id: string | null;
+  displayName: string;
   enabled: boolean;
   serviceZipCode: string;
   serviceRadiusMiles: number;
@@ -83,6 +84,7 @@ const [connectLoading, setConnectLoading] = useState(true);
 const [connectSaving, setConnectSaving] = useState(false);
 const [connectMessage, setConnectMessage] = useState("");
 
+const [connectDisplayName, setConnectDisplayName] = useState("");
 const [connectEnabled, setConnectEnabled] = useState(false);
 const [connectZipCode, setConnectZipCode] = useState("");
 const [connectRadiusMiles, setConnectRadiusMiles] = useState(10);
@@ -140,12 +142,13 @@ async function saveConnectSettings() {
         headers: {
           "content-type": "application/json",
         },
-        body: JSON.stringify({
-          enabled: connectEnabled,
-          serviceZipCode: connectZipCode,
-          serviceRadiusMiles: connectRadiusMiles,
-          serviceIds: connectServiceIds,
-        }),
+body: JSON.stringify({
+  displayName: connectDisplayName,
+  enabled: connectEnabled,
+  serviceZipCode: connectZipCode,
+  serviceRadiusMiles: connectRadiusMiles,
+  serviceIds: connectServiceIds,
+}),
       },
     );
 
@@ -167,6 +170,9 @@ async function saveConnectSettings() {
 
     if (provider) {
       setConnectProvider(provider);
+      setConnectDisplayName(
+  String(provider.displayName || ""),
+);
 
       setConnectEnabled(
         Boolean(provider.enabled),
@@ -360,6 +366,9 @@ async function loadConnectSettings() {
 
     setConnectServices(services);
     setConnectProvider(provider);
+    setConnectDisplayName(
+  String(provider?.displayName || ""),
+);
 
     setConnectEnabled(
       Boolean(provider?.enabled),
@@ -802,11 +811,32 @@ async function sendBulkEmail() {
               on the services and service area you select below.
             </div>
           </div>
-        </label>
+</label>
 
-        <div className="mt-5">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
-            Services You Provide
+<div className="mt-5">
+  <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
+    Provider Display Name
+  </div>
+
+  <input
+    type="text"
+    maxLength={100}
+    value={connectDisplayName}
+    onChange={(e) =>
+      setConnectDisplayName(e.target.value)
+    }
+    placeholder="Your Lawn Guy"
+    className="mt-2 h-11 w-full rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-900 outline-none"
+  />
+
+  <div className="mt-2 text-xs text-neutral-500">
+    This is the business or provider name customers will see on Ko-Host Connect.
+  </div>
+</div>
+
+<div className="mt-5">
+  <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
+    Services You Provide
           </div>
 
           <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
