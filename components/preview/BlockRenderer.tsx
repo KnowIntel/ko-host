@@ -33565,6 +33565,22 @@ const buttonGroupJustifyContent =
     data.metricCardStyle ??
     {};
 
+const showDonors =
+  data.showDonors !== false;
+
+const showGoalPercentage =
+  data.showGoalPercentage !== false;
+
+const showDaysLeft =
+  data.showDaysLeft !== false;
+
+const visibleMetricCount =
+  [
+    showDonors,
+    showGoalPercentage,
+    showDaysLeft,
+  ].filter(Boolean).length;
+
   function renderMetricIcon(
     iconUrl:
       string | undefined,
@@ -33835,131 +33851,142 @@ const buttonGroupJustifyContent =
               </div>
             </div>
 
-            {/* ====================================================== */}
-            {/* 6–8. IMPACT STATS */}
-            {/* ====================================================== */}
+{/* ====================================================== */}
+{/* 6–8. IMPACT STATS */}
+{/* ====================================================== */}
 
-            <div
-              className="mt-6 grid grid-cols-3"
-              style={{
-                gap:
-                  `${Number(
-                    metricCardStyle.gap ??
-                      16,
-                  )}px`,
-              }}
-            >
-              {/* DONORS */}
+{visibleMetricCount > 0 ? (
+  <div
+    className="mt-6 grid"
+    style={{
+      gridTemplateColumns:
+        `repeat(${visibleMetricCount}, minmax(0, 1fr))`,
 
-              <div
-                className="text-center"
-                style={
-                  metricCardAppearance()
-                }
-              >
-                {renderMetricIcon(
-                  data.donorIcon,
-                  "Donors",
-                )}
+      gap:
+        `${Number(
+          metricCardStyle.gap ??
+            16,
+        )}px`,
+    }}
+  >
+    {/* DONORS */}
 
-                <div
-                  className="mt-2"
-                  style={getContainerTextStyle(
-                    data.donorValueStyle ??
-                      data.style,
-                    designKey,
-                  )}
-                >
-                  {donorCount}
-                </div>
+    {showDonors ? (
+      <div
+        className="text-center"
+        style={
+          metricCardAppearance()
+        }
+      >
+        {renderMetricIcon(
+          data.donorIcon,
+          "Donors",
+        )}
 
-                <div
-                  style={getContainerTextStyle(
-                    data.donorLabelStyle ??
-                      data.style,
-                    designKey,
-                  )}
-                >
-                  {data.donorLabel ||
-                    "Donors"}
-                </div>
-              </div>
+        <div
+          className="mt-2"
+          style={getContainerTextStyle(
+            data.donorValueStyle ??
+              data.style,
+            designKey,
+          )}
+        >
+          {donorCount}
+        </div>
 
-              {/* GOAL PERCENTAGE */}
+        <div
+          style={getContainerTextStyle(
+            data.donorLabelStyle ??
+              data.style,
+            designKey,
+          )}
+        >
+          {data.donorLabel ||
+            "Donors"}
+        </div>
+      </div>
+    ) : null}
 
-              <div
-                className="text-center"
-                style={
-                  metricCardAppearance()
-                }
-              >
-                {renderMetricIcon(
-                  data.percentageIcon,
-                  "Goal Percentage",
-                )}
+    {/* GOAL PERCENTAGE */}
 
-                <div
-                  className="mt-2"
-                  style={getContainerTextStyle(
-                    data.percentageValueStyle ??
-                      data.style,
-                    designKey,
-                  )}
-                >
-                  {
-                    roundedGoalPercentage
-                  }
-                  %
-                </div>
+    {showGoalPercentage ? (
+      <div
+        className="text-center"
+        style={
+          metricCardAppearance()
+        }
+      >
+        {renderMetricIcon(
+          data.percentageIcon,
+          "Goal Percentage",
+        )}
 
-                <div
-                  style={getContainerTextStyle(
-                    data.percentageLabelStyle ??
-                      data.style,
-                    designKey,
-                  )}
-                >
-                  {data.percentageLabel ||
-                    "of Goal"}
-                </div>
-              </div>
+        <div
+          className="mt-2"
+          style={getContainerTextStyle(
+            data.percentageValueStyle ??
+              data.style,
+            designKey,
+          )}
+        >
+          {
+            roundedGoalPercentage
+          }
+          %
+        </div>
 
-              {/* DAYS LEFT */}
+        <div
+          style={getContainerTextStyle(
+            data.percentageLabelStyle ??
+              data.style,
+            designKey,
+          )}
+        >
+          {data.percentageLabel ||
+            "of Goal"}
+        </div>
+      </div>
+    ) : null}
 
-              <div
-                className="text-center"
-                style={
-                  metricCardAppearance()
-                }
-              >
-                {renderMetricIcon(
-                  data.daysLeftIcon,
-                  "Days Left",
-                )}
+    {/* DAYS LEFT */}
 
-                <div
-                  className="mt-2"
-                  style={getContainerTextStyle(
-                    data.daysValueStyle ??
-                      data.style,
-                    designKey,
-                  )}
-                >
-                  {daysLeft}
-                </div>
+    {showDaysLeft ? (
+      <div
+        className="text-center"
+        style={
+          metricCardAppearance()
+        }
+      >
+        {renderMetricIcon(
+          data.daysLeftIcon,
+          "Days Left",
+        )}
 
-                <div
-                  style={getContainerTextStyle(
-                    data.daysLabelStyle ??
-                      data.style,
-                    designKey,
-                  )}
-                >
-                  {data.daysLeftLabel ||
-                    "Days Left"}
-                </div>
-              </div>
-            </div>
+        <div
+          className="mt-2"
+          style={getContainerTextStyle(
+            data.daysValueStyle ??
+              data.style,
+            designKey,
+          )}
+        >
+          {daysLeft}
+        </div>
+
+        <div
+          style={getContainerTextStyle(
+            data.daysLabelStyle ??
+              data.style,
+            designKey,
+          )}
+        >
+          {data.daysLeftLabel ||
+            "Days Left"}
+        </div>
+      </div>
+    ) : null}
+  </div>
+) : null}
 
             {/* ====================================================== */}
             {/* DONATION BUTTONS */}

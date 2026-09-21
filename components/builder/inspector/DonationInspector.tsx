@@ -1023,6 +1023,56 @@ onChange={(e) => {
               These three cards appear beneath the campaign progress.
             </p>
 
+            <div className="mt-3 space-y-2">
+  <label className="flex items-center gap-2 text-sm text-neutral-700">
+    <input
+      type="checkbox"
+      checked={
+        data.showDonors !== false
+      }
+      onChange={(e) =>
+        patchDonationData({
+          showDonors:
+            e.target.checked,
+        })
+      }
+    />
+    Donors
+  </label>
+
+  <label className="flex items-center gap-2 text-sm text-neutral-700">
+    <input
+      type="checkbox"
+      checked={
+        data.showGoalPercentage !== false
+      }
+      onChange={(e) =>
+        patchDonationData({
+          showGoalPercentage:
+            e.target.checked,
+        })
+      }
+    />
+    Goal Percentage
+  </label>
+
+  <label className="flex items-center gap-2 text-sm text-neutral-700">
+    <input
+      type="checkbox"
+      checked={
+        data.showDaysLeft !== false
+      }
+      onChange={(e) =>
+        patchDonationData({
+          showDaysLeft:
+            e.target.checked,
+        })
+      }
+    />
+    Days Left
+  </label>
+</div>
+
             {/* DONORS CARD */}
 
             <div className="mt-4 rounded-xl border border-neutral-200 bg-white p-3">
