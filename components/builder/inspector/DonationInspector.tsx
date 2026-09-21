@@ -72,7 +72,7 @@ const [
 
 const iconTools = useMemo(
   () =>
-    (CATEGORY_BUTTONS.Icons ?? []).filter(
+    (CATEGORY_BUTTONS.ICONS ?? []).filter(
       (tool: any) =>
         tool.kind === "block" &&
         tool.type === "icon",
