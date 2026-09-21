@@ -6,13 +6,16 @@ export const dynamic = "force-dynamic";
 
 type ProviderProfileRow = {
   id: string;
-  microsites: {
-    title: string;
-    slug: string;
-    homepage_thumbnail_url: string | null;
-    is_published: boolean;
-    is_active: boolean | null;
-  } | null;
+microsites: {
+  title: string;
+  slug: string;
+  homepage_thumbnail_url: string | null;
+  share_preview_auto_image_url: string | null;
+  share_preview_custom_image_url: string | null;
+  share_preview_mode: string | null;
+  is_published: boolean;
+  is_active: boolean | null;
+} | null;
 };
 
 type ProviderServiceRow = {
@@ -38,13 +41,16 @@ export async function GET() {
       .select(
         `
           id,
-          microsites!inner (
-            title,
-            slug,
-            homepage_thumbnail_url,
-            is_published,
-            is_active
-          )
+microsites!inner (
+  title,
+  slug,
+  homepage_thumbnail_url,
+  share_preview_auto_image_url,
+  share_preview_custom_image_url,
+  share_preview_mode,
+  is_published,
+  is_active
+)
         `,
       )
       .eq("enabled", true)
@@ -136,8 +142,13 @@ export async function GET() {
           title:
             site.title || "Local Provider",
           slug: site.slug,
-          imageUrl:
-            site.homepage_thumbnail_url,
+imageUrl:
+  site.share_preview_mode === "custom" &&
+  site.share_preview_custom_image_url
+    ? site.share_preview_custom_image_url
+    : site.share_preview_auto_image_url ||
+      site.homepage_thumbnail_url ||
+      null,
           services: offeredServices,
         };
       });

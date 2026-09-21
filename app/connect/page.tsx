@@ -213,12 +213,12 @@ export default async function ConnectPage() {
         </p>
       </div>
 
-      <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-10 flex flex-wrap justify-center gap-5">
         {providers.map((provider) => (
           <Link
             key={provider.slug}
             href={`/s/${provider.slug}`}
-            className="group flex flex-col overflow-hidden rounded-3xl border border-[#78856e]/20 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+            className="group flex w-full flex-col overflow-hidden rounded-3xl border border-[#78856e]/20 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:w-[calc(50%-10px)] lg:w-[calc(33.333%-14px)]"
           >
             <div className="aspect-[16/10] overflow-hidden bg-[#e8e5dc]">
               {provider.imageUrl ? (
