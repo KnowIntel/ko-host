@@ -104,9 +104,13 @@ export function Nav() {
 <img
   src={isConnectPage ? "/KHC_LOGO.png" : "/KH_LOGO.png"}
   alt={isConnectPage ? "Ko-Host Connect" : "Ko-Host"}
-  width={92}
-  height={44}
-  className="h-[44px] w-[92px] object-contain"
+  width={isConnectPage ? 101 : 92}
+  height={isConnectPage ? 48 : 44}
+  className={
+    isConnectPage
+      ? "h-[48px] w-[101px] object-contain"
+      : "h-[44px] w-[92px] object-contain"
+  }
   draggable={false}
 />
         </button>
@@ -123,9 +127,13 @@ export function Nav() {
       ? "Ko-Host Connect"
       : "Ko-Host slogan"
   }
-  width={420}
-  height={40}
-  className="h-auto max-h-10 w-auto object-contain"
+  width={isConnectPage ? 1050 : 420}
+  height={isConnectPage ? 100 : 40}
+  className={
+    isConnectPage
+      ? "h-auto max-h-[100px] w-auto object-contain"
+      : "h-auto max-h-10 w-auto object-contain"
+  }
   priority
 />
         </div>
