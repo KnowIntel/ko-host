@@ -244,7 +244,7 @@ useEffect(() => {
 
             <p className="mx-auto mt-5 max-w-2xl text-base leading-8 text-white/70">
               Purchase a Ko-Host microsite and submit your ideal design request.
-              We’ll help customize your site with a 48–72 hour turnaround.
+              We’ll review your request and respond within 48 hours with next steps for customizing your site.
             </p>
           </div>
 
