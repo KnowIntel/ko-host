@@ -42,6 +42,7 @@ import groupLayouts from "./templates/group_trip";
 import merchantLayouts from "./templates/merchant_drop";
 import surveysLayouts from "./templates/surveys";
 import projectLayouts from "./templates/project";
+import schoolLayouts from "./templates/school_fundraiser";
 
 
 
@@ -89,6 +90,7 @@ const registry: Record<string, TemplateLayoutRegistry> = {
   merchant_drop: merchantLayouts,
   surveys: surveysLayouts,
   project: projectLayouts,
+  school_fundraiser: schoolLayouts,
 
   
 };

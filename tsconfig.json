@@ -36,7 +36,7 @@
     ".next\\dev/types/**/*.ts",
     ".next\\dev/types/**/*.ts",
     ".next/dev/types/**/*.ts"
-  ],
+, "lib/templates/layout-presets/templates/school_fundraiser/futures"  ],
   "exclude": [
     "node_modules"
   ]

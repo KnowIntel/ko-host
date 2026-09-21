@@ -142,6 +142,8 @@ const draftPageCountByTemplateDesignKey: Record<string, number> = {
   "local_classified_ad:clear": 2,
   "local_classified_ad:dog": 1,
 
+  "school_fundraiser:futures": 1,
+
 
   "game_night:roll": 1,
 
