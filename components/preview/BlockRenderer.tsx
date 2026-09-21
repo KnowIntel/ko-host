@@ -33208,10 +33208,10 @@ const buttonGroupJustifyContent =
         ? `${buttonStyle.fontSize}px`
         : undefined,
 
-    fontWeight:
-      buttonStyle.bold
-        ? 700
-        : 600,
+        fontWeight:
+  buttonStyle.bold
+    ? 700
+    : 400,
 
     fontStyle:
       buttonStyle.italic
