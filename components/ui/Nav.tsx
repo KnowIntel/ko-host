@@ -159,13 +159,13 @@ export function Nav() {
                 Sign in
               </button>
 
-              <button
-                type="button"
-                onClick={() => navigateTo("/templates")}
-                className={primaryButtonClass}
-              >
-                Get started
-              </button>
+<button
+  type="button"
+  onClick={() => navigateTo("/connect")}
+  className={primaryButtonClass}
+>
+  Connect
+</button>
             </>
           ) : !isSignedIn ? (
             <>
