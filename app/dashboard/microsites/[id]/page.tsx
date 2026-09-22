@@ -815,6 +815,27 @@ async function sendBulkEmail() {
 </label>
 
 <div className="mt-5">
+  <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
+    Provider Display Name
+  </div>
+
+  <input
+    type="text"
+    maxLength={100}
+    value={connectDisplayName}
+    onChange={(e) =>
+      setConnectDisplayName(e.target.value)
+    }
+    placeholder="Your Lawn Guy"
+    className="mt-2 h-11 w-full rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-900 outline-none"
+  />
+
+  <div className="mt-2 text-xs text-neutral-500">
+    This is the business or provider name customers will see on Ko-Host Connect.
+  </div>
+</div>
+
+<div className="mt-5">
   <button
     type="button"
     onClick={() =>
@@ -880,38 +901,6 @@ async function sendBulkEmail() {
     </div>
   ) : null}
 </div>
-
-<div className="mt-5">
-  <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
-    Services You Provide
-          </div>
-
-          <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            {connectServices.map((service) => {
-              const checked = connectServiceIds.includes(service.id);
-
-              return (
-                <label
-                  key={service.id}
-                  className={[
-                    "flex cursor-pointer items-center gap-3 rounded-xl border px-3 py-2.5 text-sm transition",
-                    checked
-                      ? "border-emerald-400 bg-emerald-50 text-neutral-900"
-                      : "border-neutral-200 bg-white text-neutral-700 hover:border-neutral-300",
-                  ].join(" ")}
-                >
-                  <input
-                    type="checkbox"
-                    checked={checked}
-                    onChange={() => toggleConnectService(service.id)}
-                  />
-
-                  <span>{service.name}</span>
-                </label>
-              );
-            })}
-          </div>
-        </div>
 
         <div className="mt-5 grid gap-4 md:grid-cols-2">
           <div>
