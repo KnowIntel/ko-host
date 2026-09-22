@@ -722,29 +722,105 @@ function getImageFadeMaskStyle(
     return {};
   }
 
-  const transparentTop = top ? `${size}%` : "0%";
-  const opaqueTopStart = top ? `${size}%` : "0%";
-  const opaqueTopEnd = bottom ? `${100 - size}%` : "100%";
-  const transparentBottom = bottom ? `${100 - size}%` : "100%";
+  const clampStop = (value: number) =>
+    Math.max(0, Math.min(100, value));
 
-  const transparentLeft = left ? `${size}%` : "0%";
-  const opaqueLeftStart = left ? `${size}%` : "0%";
-  const opaqueLeftEnd = right ? `${100 - size}%` : "100%";
-  const transparentRight = right ? `${100 - size}%` : "100%";
+  const verticalStops: string[] = [];
+  const horizontalStops: string[] = [];
 
-  const verticalMask = `linear-gradient(to bottom,
-    ${top ? "transparent" : "black"} 0%,
-    black ${opaqueTopStart},
-    black ${opaqueTopEnd},
-    ${bottom ? "transparent" : "black"} 100%
+  // -------------------------------------------------------
+  // TOP EDGE
+  // -------------------------------------------------------
+
+  if (top) {
+    verticalStops.push(
+      "rgba(0, 0, 0, 0) 0%",
+      `rgba(0, 0, 0, 0.05) ${clampStop(size * 0.1)}%`,
+      `rgba(0, 0, 0, 0.15) ${clampStop(size * 0.22)}%`,
+      `rgba(0, 0, 0, 0.32) ${clampStop(size * 0.38)}%`,
+      `rgba(0, 0, 0, 0.55) ${clampStop(size * 0.56)}%`,
+      `rgba(0, 0, 0, 0.76) ${clampStop(size * 0.72)}%`,
+      `rgba(0, 0, 0, 0.92) ${clampStop(size * 0.88)}%`,
+      `rgba(0, 0, 0, 1) ${clampStop(size)}%`,
+    );
+  } else {
+    verticalStops.push("rgba(0, 0, 0, 1) 0%");
+  }
+
+  // -------------------------------------------------------
+  // BOTTOM EDGE
+  // -------------------------------------------------------
+
+  if (bottom) {
+    verticalStops.push(
+      `rgba(0, 0, 0, 1) ${clampStop(100 - size)}%`,
+      `rgba(0, 0, 0, 0.92) ${clampStop(100 - size * 0.88)}%`,
+      `rgba(0, 0, 0, 0.76) ${clampStop(100 - size * 0.72)}%`,
+      `rgba(0, 0, 0, 0.55) ${clampStop(100 - size * 0.56)}%`,
+      `rgba(0, 0, 0, 0.32) ${clampStop(100 - size * 0.38)}%`,
+      `rgba(0, 0, 0, 0.15) ${clampStop(100 - size * 0.22)}%`,
+      `rgba(0, 0, 0, 0.05) ${clampStop(100 - size * 0.1)}%`,
+      "rgba(0, 0, 0, 0) 100%",
+    );
+  } else {
+    verticalStops.push("rgba(0, 0, 0, 1) 100%");
+  }
+
+  // -------------------------------------------------------
+  // LEFT EDGE
+  // -------------------------------------------------------
+
+  if (left) {
+    horizontalStops.push(
+      "rgba(0, 0, 0, 0) 0%",
+      `rgba(0, 0, 0, 0.05) ${clampStop(size * 0.1)}%`,
+      `rgba(0, 0, 0, 0.15) ${clampStop(size * 0.22)}%`,
+      `rgba(0, 0, 0, 0.32) ${clampStop(size * 0.38)}%`,
+      `rgba(0, 0, 0, 0.55) ${clampStop(size * 0.56)}%`,
+      `rgba(0, 0, 0, 0.76) ${clampStop(size * 0.72)}%`,
+      `rgba(0, 0, 0, 0.92) ${clampStop(size * 0.88)}%`,
+      `rgba(0, 0, 0, 1) ${clampStop(size)}%`,
+    );
+  } else {
+    horizontalStops.push("rgba(0, 0, 0, 1) 0%");
+  }
+
+  // -------------------------------------------------------
+  // RIGHT EDGE
+  // -------------------------------------------------------
+
+  if (right) {
+    horizontalStops.push(
+      `rgba(0, 0, 0, 1) ${clampStop(100 - size)}%`,
+      `rgba(0, 0, 0, 0.92) ${clampStop(100 - size * 0.88)}%`,
+      `rgba(0, 0, 0, 0.76) ${clampStop(100 - size * 0.72)}%`,
+      `rgba(0, 0, 0, 0.55) ${clampStop(100 - size * 0.56)}%`,
+      `rgba(0, 0, 0, 0.32) ${clampStop(100 - size * 0.38)}%`,
+      `rgba(0, 0, 0, 0.15) ${clampStop(100 - size * 0.22)}%`,
+      `rgba(0, 0, 0, 0.05) ${clampStop(100 - size * 0.1)}%`,
+      "rgba(0, 0, 0, 0) 100%",
+    );
+  } else {
+    horizontalStops.push("rgba(0, 0, 0, 1) 100%");
+  }
+
+  // -------------------------------------------------------
+  // BUILD MASKS
+  // -------------------------------------------------------
+
+  const verticalMask = `linear-gradient(
+    to bottom,
+    ${verticalStops.join(", ")}
   )`;
 
-  const horizontalMask = `linear-gradient(to right,
-    ${left ? "transparent" : "black"} 0%,
-    black ${opaqueLeftStart},
-    black ${opaqueLeftEnd},
-    ${right ? "transparent" : "black"} 100%
+  const horizontalMask = `linear-gradient(
+    to right,
+    ${horizontalStops.join(", ")}
   )`;
+
+  // -------------------------------------------------------
+  // VERTICAL + HORIZONTAL EDGES
+  // -------------------------------------------------------
 
   if ((top || bottom) && (left || right)) {
     return {
@@ -755,36 +831,24 @@ function getImageFadeMaskStyle(
     };
   }
 
+  // -------------------------------------------------------
+  // TOP / BOTTOM ONLY
+  // -------------------------------------------------------
+
   if (top || bottom) {
     return {
-      WebkitMaskImage: `linear-gradient(to bottom,
-        ${top ? "transparent" : "black"} 0%,
-        black ${transparentTop},
-        black ${transparentBottom},
-        ${bottom ? "transparent" : "black"} 100%
-      )`,
-      maskImage: `linear-gradient(to bottom,
-        ${top ? "transparent" : "black"} 0%,
-        black ${transparentTop},
-        black ${transparentBottom},
-        ${bottom ? "transparent" : "black"} 100%
-      )`,
+      WebkitMaskImage: verticalMask,
+      maskImage: verticalMask,
     };
   }
 
+  // -------------------------------------------------------
+  // LEFT / RIGHT ONLY
+  // -------------------------------------------------------
+
   return {
-    WebkitMaskImage: `linear-gradient(to right,
-      ${left ? "transparent" : "black"} 0%,
-      black ${transparentLeft},
-      black ${transparentRight},
-      ${right ? "transparent" : "black"} 100%
-    )`,
-    maskImage: `linear-gradient(to right,
-      ${left ? "transparent" : "black"} 0%,
-      black ${transparentLeft},
-      black ${transparentRight},
-      ${right ? "transparent" : "black"} 100%
-    )`,
+    WebkitMaskImage: horizontalMask,
+    maskImage: horizontalMask,
   };
 }
 
@@ -33211,7 +33275,7 @@ paddingBottom:
         8,
     ),
   )}px`,
-  
+
     marginLeft:
       `${buttonSpacing / 2}px`,
 
