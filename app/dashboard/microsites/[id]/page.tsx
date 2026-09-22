@@ -89,6 +89,7 @@ const [connectEnabled, setConnectEnabled] = useState(false);
 const [connectZipCode, setConnectZipCode] = useState("");
 const [connectRadiusMiles, setConnectRadiusMiles] = useState(10);
 const [connectServiceIds, setConnectServiceIds] = useState<string[]>([]);
+const [connectServicesExpanded, setConnectServicesExpanded] = useState(true);
 
   const [title, setTitle] = useState("");
   const [siteVisibility, setSiteVisibility] = useState<"public" | "private">("public");
@@ -814,24 +815,70 @@ async function sendBulkEmail() {
 </label>
 
 <div className="mt-5">
-  <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
-    Provider Display Name
-  </div>
-
-  <input
-    type="text"
-    maxLength={100}
-    value={connectDisplayName}
-    onChange={(e) =>
-      setConnectDisplayName(e.target.value)
+  <button
+    type="button"
+    onClick={() =>
+      setConnectServicesExpanded((current) => !current)
     }
-    placeholder="Your Lawn Guy"
-    className="mt-2 h-11 w-full rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-900 outline-none"
-  />
+    className="flex w-full items-center justify-between gap-4 rounded-xl border border-neutral-200 bg-white px-4 py-3 text-left transition hover:border-neutral-300"
+    aria-expanded={connectServicesExpanded}
+  >
+    <div>
+      <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
+        Services You Provide
+      </div>
 
-  <div className="mt-2 text-xs text-neutral-500">
-    This is the business or provider name customers will see on Ko-Host Connect.
-  </div>
+      <div className="mt-1 text-xs text-neutral-500">
+        {connectServiceIds.length === 0
+          ? "No services selected"
+          : `${connectServiceIds.length} ${
+              connectServiceIds.length === 1
+                ? "service"
+                : "services"
+            } selected`}
+      </div>
+    </div>
+
+    <span
+      className={[
+        "flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-sm text-neutral-600 transition-transform duration-200",
+        connectServicesExpanded ? "rotate-180" : "",
+      ].join(" ")}
+      aria-hidden="true"
+    >
+      ▼
+    </span>
+  </button>
+
+  {connectServicesExpanded ? (
+    <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+      {connectServices.map((service) => {
+        const checked = connectServiceIds.includes(service.id);
+
+        return (
+          <label
+            key={service.id}
+            className={[
+              "flex cursor-pointer items-center gap-3 rounded-xl border px-3 py-2.5 text-sm transition",
+              checked
+                ? "border-emerald-400 bg-emerald-50 text-neutral-900"
+                : "border-neutral-200 bg-white text-neutral-700 hover:border-neutral-300",
+            ].join(" ")}
+          >
+            <input
+              type="checkbox"
+              checked={checked}
+              onChange={() =>
+                toggleConnectService(service.id)
+              }
+            />
+
+            <span>{service.name}</span>
+          </label>
+        );
+      })}
+    </div>
+  ) : null}
 </div>
 
 <div className="mt-5">
