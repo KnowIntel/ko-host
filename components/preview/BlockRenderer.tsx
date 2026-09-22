@@ -662,14 +662,6 @@ function getImageFrameStyle(
   const frame = block.data.image.frame ?? "square";
   const base = getAppearanceStyle(block);
 
-  const fade = block.data.image.fade;
-
-  const hasFade =
-    Boolean(fade?.top) ||
-    Boolean(fade?.bottom) ||
-    Boolean(fade?.left) ||
-    Boolean(fade?.right);
-
   if (frame === "circle") {
     return {
       ...base,
@@ -688,7 +680,7 @@ function getImageFrameStyle(
 
   return {
     ...base,
-    overflow: hasFade ? "visible" : "hidden",
+    overflow: "hidden",
   };
 }
 
@@ -730,105 +722,29 @@ function getImageFadeMaskStyle(
     return {};
   }
 
-  const clampStop = (value: number) =>
-    Math.max(0, Math.min(100, value));
+  const transparentTop = top ? `${size}%` : "0%";
+  const opaqueTopStart = top ? `${size}%` : "0%";
+  const opaqueTopEnd = bottom ? `${100 - size}%` : "100%";
+  const transparentBottom = bottom ? `${100 - size}%` : "100%";
 
-  const verticalStops: string[] = [];
-  const horizontalStops: string[] = [];
+  const transparentLeft = left ? `${size}%` : "0%";
+  const opaqueLeftStart = left ? `${size}%` : "0%";
+  const opaqueLeftEnd = right ? `${100 - size}%` : "100%";
+  const transparentRight = right ? `${100 - size}%` : "100%";
 
-  // -------------------------------------------------------
-  // TOP EDGE
-  // -------------------------------------------------------
-
-  if (top) {
-    verticalStops.push(
-      "rgba(0, 0, 0, 0) 0%",
-      `rgba(0, 0, 0, 0.05) ${clampStop(size * 0.1)}%`,
-      `rgba(0, 0, 0, 0.15) ${clampStop(size * 0.22)}%`,
-      `rgba(0, 0, 0, 0.32) ${clampStop(size * 0.38)}%`,
-      `rgba(0, 0, 0, 0.55) ${clampStop(size * 0.56)}%`,
-      `rgba(0, 0, 0, 0.76) ${clampStop(size * 0.72)}%`,
-      `rgba(0, 0, 0, 0.92) ${clampStop(size * 0.88)}%`,
-      `rgba(0, 0, 0, 1) ${clampStop(size)}%`,
-    );
-  } else {
-    verticalStops.push("rgba(0, 0, 0, 1) 0%");
-  }
-
-  // -------------------------------------------------------
-  // BOTTOM EDGE
-  // -------------------------------------------------------
-
-  if (bottom) {
-    verticalStops.push(
-      `rgba(0, 0, 0, 1) ${clampStop(100 - size)}%`,
-      `rgba(0, 0, 0, 0.92) ${clampStop(100 - size * 0.88)}%`,
-      `rgba(0, 0, 0, 0.76) ${clampStop(100 - size * 0.72)}%`,
-      `rgba(0, 0, 0, 0.55) ${clampStop(100 - size * 0.56)}%`,
-      `rgba(0, 0, 0, 0.32) ${clampStop(100 - size * 0.38)}%`,
-      `rgba(0, 0, 0, 0.15) ${clampStop(100 - size * 0.22)}%`,
-      `rgba(0, 0, 0, 0.05) ${clampStop(100 - size * 0.1)}%`,
-      "rgba(0, 0, 0, 0) 100%",
-    );
-  } else {
-    verticalStops.push("rgba(0, 0, 0, 1) 100%");
-  }
-
-  // -------------------------------------------------------
-  // LEFT EDGE
-  // -------------------------------------------------------
-
-  if (left) {
-    horizontalStops.push(
-      "rgba(0, 0, 0, 0) 0%",
-      `rgba(0, 0, 0, 0.05) ${clampStop(size * 0.1)}%`,
-      `rgba(0, 0, 0, 0.15) ${clampStop(size * 0.22)}%`,
-      `rgba(0, 0, 0, 0.32) ${clampStop(size * 0.38)}%`,
-      `rgba(0, 0, 0, 0.55) ${clampStop(size * 0.56)}%`,
-      `rgba(0, 0, 0, 0.76) ${clampStop(size * 0.72)}%`,
-      `rgba(0, 0, 0, 0.92) ${clampStop(size * 0.88)}%`,
-      `rgba(0, 0, 0, 1) ${clampStop(size)}%`,
-    );
-  } else {
-    horizontalStops.push("rgba(0, 0, 0, 1) 0%");
-  }
-
-  // -------------------------------------------------------
-  // RIGHT EDGE
-  // -------------------------------------------------------
-
-  if (right) {
-    horizontalStops.push(
-      `rgba(0, 0, 0, 1) ${clampStop(100 - size)}%`,
-      `rgba(0, 0, 0, 0.92) ${clampStop(100 - size * 0.88)}%`,
-      `rgba(0, 0, 0, 0.76) ${clampStop(100 - size * 0.72)}%`,
-      `rgba(0, 0, 0, 0.55) ${clampStop(100 - size * 0.56)}%`,
-      `rgba(0, 0, 0, 0.32) ${clampStop(100 - size * 0.38)}%`,
-      `rgba(0, 0, 0, 0.15) ${clampStop(100 - size * 0.22)}%`,
-      `rgba(0, 0, 0, 0.05) ${clampStop(100 - size * 0.1)}%`,
-      "rgba(0, 0, 0, 0) 100%",
-    );
-  } else {
-    horizontalStops.push("rgba(0, 0, 0, 1) 100%");
-  }
-
-  // -------------------------------------------------------
-  // BUILD MASKS
-  // -------------------------------------------------------
-
-  const verticalMask = `linear-gradient(
-    to bottom,
-    ${verticalStops.join(", ")}
+  const verticalMask = `linear-gradient(to bottom,
+    ${top ? "transparent" : "black"} 0%,
+    black ${opaqueTopStart},
+    black ${opaqueTopEnd},
+    ${bottom ? "transparent" : "black"} 100%
   )`;
 
-  const horizontalMask = `linear-gradient(
-    to right,
-    ${horizontalStops.join(", ")}
+  const horizontalMask = `linear-gradient(to right,
+    ${left ? "transparent" : "black"} 0%,
+    black ${opaqueLeftStart},
+    black ${opaqueLeftEnd},
+    ${right ? "transparent" : "black"} 100%
   )`;
-
-  // -------------------------------------------------------
-  // VERTICAL + HORIZONTAL EDGES
-  // -------------------------------------------------------
 
   if ((top || bottom) && (left || right)) {
     return {
@@ -839,24 +755,36 @@ function getImageFadeMaskStyle(
     };
   }
 
-  // -------------------------------------------------------
-  // TOP / BOTTOM ONLY
-  // -------------------------------------------------------
-
   if (top || bottom) {
     return {
-      WebkitMaskImage: verticalMask,
-      maskImage: verticalMask,
+      WebkitMaskImage: `linear-gradient(to bottom,
+        ${top ? "transparent" : "black"} 0%,
+        black ${transparentTop},
+        black ${transparentBottom},
+        ${bottom ? "transparent" : "black"} 100%
+      )`,
+      maskImage: `linear-gradient(to bottom,
+        ${top ? "transparent" : "black"} 0%,
+        black ${transparentTop},
+        black ${transparentBottom},
+        ${bottom ? "transparent" : "black"} 100%
+      )`,
     };
   }
 
-  // -------------------------------------------------------
-  // LEFT / RIGHT ONLY
-  // -------------------------------------------------------
-
   return {
-    WebkitMaskImage: horizontalMask,
-    maskImage: horizontalMask,
+    WebkitMaskImage: `linear-gradient(to right,
+      ${left ? "transparent" : "black"} 0%,
+      black ${transparentLeft},
+      black ${transparentRight},
+      ${right ? "transparent" : "black"} 100%
+    )`,
+    maskImage: `linear-gradient(to right,
+      ${left ? "transparent" : "black"} 0%,
+      black ${transparentLeft},
+      black ${transparentRight},
+      ${right ? "transparent" : "black"} 100%
+    )`,
   };
 }
 
@@ -1558,50 +1486,21 @@ style={{
   opacity: block.data.image.opacity ?? 1,
 }}
         >
-<div
-  className="relative h-full w-full"
+<img
+  src={imageUrl}
+  alt={block.data.image.alt || ""}
+  className="h-full w-full"
   style={{
+    objectFit: getImageObjectFit(block),
+    objectPosition: "center center",
+    transform: "none",
+    opacity: 1,
     borderRadius: "inherit",
+    display: "block",
+    backgroundColor: "transparent",
+    ...fadeMaskStyle,
   }}
->
-  {/* Feathered image layer extending beyond the original bounds */}
-  <img
-    src={imageUrl}
-    alt=""
-    aria-hidden="true"
-    className="pointer-events-none absolute"
-    style={{
-      width: "112%",
-      height: "112%",
-      left: "-6%",
-      top: "-6%",
-      objectFit: getImageObjectFit(block),
-      objectPosition: "center center",
-      borderRadius: "inherit",
-      display: "block",
-      backgroundColor: "transparent",
-      filter: "blur(22px)",
-      opacity: 0.65,
-    }}
-  />
-
-  {/* Main image */}
-  <img
-    src={imageUrl}
-    alt={block.data.image.alt || ""}
-    className="relative h-full w-full"
-    style={{
-      objectFit: getImageObjectFit(block),
-      objectPosition: "center center",
-      transform: "none",
-      opacity: 1,
-      borderRadius: "inherit",
-      display: "block",
-      backgroundColor: "transparent",
-      ...fadeMaskStyle,
-    }}
-  />
-</div>
+/>
         </div>
       </div>
 
@@ -33312,7 +33211,7 @@ paddingBottom:
         8,
     ),
   )}px`,
-
+  
     marginLeft:
       `${buttonSpacing / 2}px`,
 
