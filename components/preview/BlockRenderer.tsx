@@ -1550,21 +1550,49 @@ style={{
   opacity: block.data.image.opacity ?? 1,
 }}
         >
-<img
-  src={imageUrl}
-  alt={block.data.image.alt || ""}
-  className="h-full w-full"
+<div
+  className="relative h-full w-full"
   style={{
-    objectFit: getImageObjectFit(block),
-    objectPosition: "center center",
-    transform: "none",
-    opacity: 1,
     borderRadius: "inherit",
-    display: "block",
-    backgroundColor: "transparent",
-    ...fadeMaskStyle,
   }}
-/>
+>
+  {/* Soft blurred edge layer */}
+  <img
+    src={imageUrl}
+    alt=""
+    aria-hidden="true"
+    className="absolute inset-0 h-full w-full"
+    style={{
+      objectFit: getImageObjectFit(block),
+      objectPosition: "center center",
+      transform: "scale(1.06)",
+      transformOrigin: "center center",
+      opacity: 0.72,
+      borderRadius: "inherit",
+      display: "block",
+      backgroundColor: "transparent",
+      filter: "blur(18px)",
+      ...fadeMaskStyle,
+    }}
+  />
+
+  {/* Main sharp image */}
+  <img
+    src={imageUrl}
+    alt={block.data.image.alt || ""}
+    className="relative h-full w-full"
+    style={{
+      objectFit: getImageObjectFit(block),
+      objectPosition: "center center",
+      transform: "none",
+      opacity: 1,
+      borderRadius: "inherit",
+      display: "block",
+      backgroundColor: "transparent",
+      ...fadeMaskStyle,
+    }}
+  />
+</div>
         </div>
       </div>
 
