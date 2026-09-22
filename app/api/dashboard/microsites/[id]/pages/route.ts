@@ -321,8 +321,13 @@ export async function POST(
         slugSuggestion: micrositeResult.microsite.slug || "",
         blocks: [],
         pageScale: 85,
-        pageVisibility: {},
-        pageElements: {},
+pageVisibility: {
+  title: false,
+  subtitle: false,
+  subtext: false,
+  description: false,
+},
+pageElements: {},
       });
 
   const { data, error } = await sb
