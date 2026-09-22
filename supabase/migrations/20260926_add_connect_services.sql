@@ -33,7 +33,6 @@ values
   ('dj-services', 'DJ Services', 480),
   ('tax-preparation', 'Tax Preparation', 490),
   ('notary-services', 'Notary Services', 500)
-  ('companion', 'Companion', 510)
 on conflict (slug) do nothing;
 
 commit;
