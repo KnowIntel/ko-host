@@ -671,21 +671,13 @@ draft: {
   pageBackgroundImage: "",
   pageBackgroundImageFit: "zoom",
   pageScale: initialDraft.pageScale ?? 85,
-  pageVisibility: {
-    title: true,
-    subtitle: false,
-    subtext: false,
-    description: false,
-  },
-  pageElements: {
-    title: {
-      colStart: 1,
-      rowStart: 1,
-      colSpan: 12,
-      rowSpan: 1.5,
-      zIndex: 1,
-    },
-  },
+pageVisibility: {
+  title: false,
+  subtitle: false,
+  subtext: false,
+  description: false,
+},
+pageElements: {},
   pageBlockAppearance: {},
 },
   };
