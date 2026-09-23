@@ -271,10 +271,10 @@ useEffect(() => {
             onSubmit={handleSubmit}
             className="mx-auto mt-12 max-w-2xl rounded-[32px] border border-white/10 bg-white p-6 text-neutral-950 shadow-2xl transition duration-300 sm:p-8"
           >
-            <div className="text-2xl font-black">Claim your offer</div>
+            <div className="text-2xl font-black">Need help with your Ko-Host site?</div>
 
             <p className="mt-2 text-sm leading-6 text-neutral-600">
-              Tell us what you need and how to reach you.
+              Tell us what you’d like to create, and we’ll help bring your Ko-Host site to life.
             </p>
 
             <div className="mt-6 grid gap-4">
@@ -346,22 +346,22 @@ useEffect(() => {
   </div>
 </div>
 
-              <button
-                type="submit"
-                disabled={status === "sending"}
-                className="mt-2 h-12 rounded-full bg-neutral-950 px-6 text-sm font-black text-white transition hover:-translate-y-0.5 hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {status === "sending" ? "Submitting..." : "Submit Request"}
-              </button>
+<button
+  type="submit"
+  disabled={status === "sending"}
+  className="mt-2 h-12 rounded-full bg-neutral-950 px-6 text-sm font-black text-white transition hover:-translate-y-0.5 hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-60"
+>
+  {status === "sending" ? "Sending..." : "Request Assistance"}
+</button>
 
-              {status === "sent" ? (
-                <div className="animate-[successPop_0.35s_ease-out] rounded-2xl border border-green-200 bg-green-50 px-4 py-4 text-sm font-semibold text-green-700">
-                  <div className="text-base">Request sent ✅</div>
-                  <div className="mt-1 font-medium text-green-700/80">
-                    Check your email for confirmation.
-                  </div>
-                </div>
-              ) : null}
+{status === "sent" ? (
+  <div className="animate-[successPop_0.35s_ease-out] rounded-2xl border border-green-200 bg-green-50 px-4 py-4 text-sm font-semibold text-green-700">
+    <div className="text-base">Assistance request sent ✅</div>
+    <div className="mt-1 font-medium text-green-700/80">
+      Check your email for confirmation.
+    </div>
+  </div>
+) : null}
 
               {status === "error" ? (
                 <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
