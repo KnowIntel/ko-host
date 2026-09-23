@@ -73,11 +73,10 @@ export default async function ConnectPage() {
             What do you need help with?
           </h1>
 
-          <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-neutral-600 sm:text-lg">
-            Tell Ko-Host Connect what you need and give
-            local providers an opportunity to respond
-            privately.
-          </p>
+<p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-neutral-600 sm:text-lg">
+  Whether you need a service or provide one, Ko-Host Connect
+  brings local customers and service providers together in one place.
+</p>
         </div>
 
         {/* TWO PATHS */}
@@ -145,7 +144,7 @@ export default async function ConnectPage() {
 
     <div className="mx-auto max-w-2xl text-center">
       <div className="text-sm font-semibold uppercase tracking-[0.16em] text-[#65745b]">
-        How It Works
+        How It Works: For Customers
       </div>
 
       <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
@@ -205,7 +204,7 @@ export default async function ConnectPage() {
     <div className="mt-16 border-t border-black/10 pt-16 sm:mt-20 sm:pt-20">
       <div className="mx-auto max-w-2xl text-center">
         <div className="text-sm font-semibold uppercase tracking-[0.16em] text-[#79684f]">
-          For Service Providers
+          How It Works: For Service Providers
         </div>
 
         <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
@@ -334,14 +333,24 @@ export default async function ConnectPage() {
           </div>
         </div>
 
-        <div className="mt-7 flex justify-center">
-          <Link
-            href="/templates"
-            className="inline-flex items-center justify-center rounded-2xl bg-[#596650] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#4b5744]"
-          >
-            Create My Ko-Host Site
-          </Link>
-        </div>
+<div className="mt-7 flex flex-col items-center justify-center">
+  <Link
+    href="/templates"
+    className="inline-flex items-center justify-center rounded-2xl bg-[#596650] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#4b5744]"
+  >
+    Create My Ko-Host Site
+  </Link>
+
+  <p className="mt-3 text-center text-xs leading-5 text-neutral-500">
+    Need help creating your site?{" "}
+    <Link
+      href="/claim-offer"
+      className="font-semibold text-[#596650] underline decoration-[#596650]/40 underline-offset-2 transition hover:text-[#3f4939]"
+    >
+      Get custom development assistance
+    </Link>
+  </p>
+</div>
       </div>
     </div>
   </div>
