@@ -997,7 +997,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     {
     key: "game_day_central",
     title: "Game Day Central",
-    description: "Manage schedules, tournaments, and team discussions.",
+    description: "Manage tournaments, schedules, and team discussions.",
     thumb: "gamedaycentral",
     setupMins: 2,
     demoSlug: "gameday",
