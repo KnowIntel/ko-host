@@ -138,6 +138,11 @@ export default async function ConnectPage() {
 {/* HOW IT WORKS */}
 <section className="border-t border-black/10 bg-white px-5 py-16 sm:py-20">
   <div className="mx-auto w-full max-w-5xl">
+
+    {/* ===================================================== */}
+    {/* CUSTOMER FLOW */}
+    {/* ===================================================== */}
+
     <div className="mx-auto max-w-2xl text-center">
       <div className="text-sm font-semibold uppercase tracking-[0.16em] text-[#65745b]">
         How It Works
@@ -148,8 +153,8 @@ export default async function ConnectPage() {
       </h2>
 
       <p className="mt-4 leading-7 text-neutral-600">
-        Tell us what you need and let relevant local
-        providers come to you.
+        Tell us what you need and let relevant local providers
+        come to you.
       </p>
     </div>
 
@@ -192,8 +197,156 @@ export default async function ConnectPage() {
         </div>
       ))}
     </div>
+
+    {/* ===================================================== */}
+    {/* PROVIDER FLOW */}
+    {/* ===================================================== */}
+
+    <div className="mt-16 border-t border-black/10 pt-16 sm:mt-20 sm:pt-20">
+      <div className="mx-auto max-w-2xl text-center">
+        <div className="text-sm font-semibold uppercase tracking-[0.16em] text-[#79684f]">
+          For Service Providers
+        </div>
+
+        <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
+          From opportunity to new customer.
+        </h2>
+
+        <p className="mt-4 leading-7 text-neutral-600">
+          Tell Ko-Host what you provide and connect with local
+          people looking for your services.
+        </p>
+      </div>
+
+      <div className="mt-10 grid gap-4 md:grid-cols-3">
+        {[
+          {
+            number: "1",
+            title: "Set Up Your Services",
+            description:
+              "Create your Ko-Host page, choose the services you provide, and set your service area.",
+          },
+          {
+            number: "2",
+            title: "See Local Requests",
+            description:
+              "View matching requests from people in your area who are actively looking for the services you provide.",
+          },
+          {
+            number: "3",
+            title: "Connect Privately",
+            description:
+              "Respond through Ko-Host, discuss the job privately, and decide which opportunities are right for you.",
+          },
+        ].map((step) => (
+          <div
+            key={step.number}
+            className="rounded-3xl border border-[#b59b73]/25 bg-[#eee8dc] p-6"
+          >
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#79684f] text-sm font-semibold text-white">
+              {step.number}
+            </div>
+
+            <h3 className="mt-5 text-xl font-semibold tracking-tight">
+              {step.title}
+            </h3>
+
+            <p className="mt-3 text-sm leading-6 text-neutral-600">
+              {step.description}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-8 flex justify-center">
+        <Link
+          href="/dashboard"
+          className="inline-flex items-center justify-center rounded-2xl bg-[#596650] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#4b5744]"
+        >
+          Set Up My Services
+        </Link>
+      </div>
+
+      {/* NEW PROVIDER SETUP SECTION */}
+      <div className="mx-auto mt-10 max-w-3xl rounded-3xl border border-[#b59b73]/30 bg-white p-6 shadow-sm sm:p-8">
+        <div className="text-center">
+          <div className="text-sm font-semibold uppercase tracking-[0.16em] text-[#79684f]">
+            New to Ko-Host?
+          </div>
+
+          <h3 className="mt-3 text-2xl font-semibold tracking-tight sm:text-3xl">
+            Don&apos;t have a Ko-Host site for customers to connect to?
+          </h3>
+
+          <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-neutral-600 sm:text-base sm:leading-7">
+            No problem. Start by creating a Ko-Host microsite for your
+            business or service. Choose a template, customize your page,
+            and publish it when you&apos;re ready. Once your site is live,
+            open it from your Dashboard, turn on Ko-Host Connect, choose
+            the services you provide, and set your service area.
+          </p>
+        </div>
+
+        <div className="mt-7 grid gap-3 sm:grid-cols-3">
+          <div className="rounded-2xl bg-[#f7f5ef] p-4 text-center">
+            <div className="mx-auto flex h-8 w-8 items-center justify-center rounded-full bg-[#596650] text-xs font-semibold text-white">
+              1
+            </div>
+
+            <div className="mt-3 text-sm font-semibold text-neutral-900">
+              Create Your Site
+            </div>
+
+            <p className="mt-1.5 text-xs leading-5 text-neutral-600">
+              Choose a template and create a simple microsite for your
+              business or service.
+            </p>
+          </div>
+
+          <div className="rounded-2xl bg-[#f7f5ef] p-4 text-center">
+            <div className="mx-auto flex h-8 w-8 items-center justify-center rounded-full bg-[#596650] text-xs font-semibold text-white">
+              2
+            </div>
+
+            <div className="mt-3 text-sm font-semibold text-neutral-900">
+              Go Public
+            </div>
+
+            <p className="mt-1.5 text-xs leading-5 text-neutral-600">
+              Publish your microsite so customers can learn more about
+              you and the services you offer.
+            </p>
+          </div>
+
+          <div className="rounded-2xl bg-[#f7f5ef] p-4 text-center">
+            <div className="mx-auto flex h-8 w-8 items-center justify-center rounded-full bg-[#596650] text-xs font-semibold text-white">
+              3
+            </div>
+
+            <div className="mt-3 text-sm font-semibold text-neutral-900">
+              Turn On Connect
+            </div>
+
+            <p className="mt-1.5 text-xs leading-5 text-neutral-600">
+              Select your services and service area to start seeing
+              matching local requests.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-7 flex justify-center">
+          <Link
+            href="/templates"
+            className="inline-flex items-center justify-center rounded-2xl bg-[#596650] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#4b5744]"
+          >
+            Create My Ko-Host Site
+          </Link>
+        </div>
+      </div>
+    </div>
   </div>
 </section>
+
 {/* CONNECT PROVIDERS */}
 {providers.length > 0 && (
   <section className="border-t border-black/10 bg-[#f7f5ef] px-5 py-16 sm:py-20">
