@@ -14,6 +14,7 @@ type ConnectService = {
   id: string;
   slug: string;
   name: string;
+  search_tags: string[];
 };
 
 type SubmissionSuccess = {
@@ -23,40 +24,440 @@ type SubmissionSuccess = {
   mailboxPath: string;
 };
 
+type RankedService = ConnectService & {
+  searchScore: number;
+};
+
 const MAX_IMAGES = 5;
 const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
 
+/*
+ * Words that usually add little value when determining
+ * which service a consumer is looking for.
+ *
+ * We do NOT remove meaningful action words such as:
+ * cut, clean, repair, remove, install, walk, etc.
+ */
+const SEARCH_STOP_WORDS = new Set([
+  "a",
+  "an",
+  "and",
+  "are",
+  "at",
+  "be",
+  "can",
+  "do",
+  "for",
+  "from",
+  "get",
+  "have",
+  "i",
+  "id",
+  "i'd",
+  "im",
+  "i'm",
+  "in",
+  "is",
+  "it",
+  "me",
+  "my",
+  "need",
+  "of",
+  "on",
+  "please",
+  "some",
+  "someone",
+  "that",
+  "the",
+  "this",
+  "to",
+  "want",
+  "with",
+]);
+
+function normalizeSearchText(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[’']/g, "")
+    .replace(/&/g, " and ")
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function getSearchTokens(value: string) {
+  return normalizeSearchText(value)
+    .split(" ")
+    .filter(
+      (token) =>
+        token.length > 0 &&
+        !SEARCH_STOP_WORDS.has(token),
+    );
+}
+
+/*
+ * Lightweight stemming for common customer phrasing.
+ *
+ * This lets related words such as:
+ *
+ * cleaning -> clean
+ * chopped  -> chop
+ * trimming -> trim
+ * repairs  -> repair
+ *
+ * contribute to the same service match without requiring
+ * every grammatical variation to exist as a database tag.
+ */
+function stemSearchToken(token: string) {
+  let value = token;
+
+  if (
+    value.length > 5 &&
+    value.endsWith("ies")
+  ) {
+    value = `${value.slice(0, -3)}y`;
+  } else if (
+    value.length > 5 &&
+    value.endsWith("ing")
+  ) {
+    value = value.slice(0, -3);
+
+    /*
+     * trimming -> trimm -> trim
+     * sitting -> sitt -> sit
+     */
+    if (
+      value.length >= 4 &&
+      value[value.length - 1] ===
+        value[value.length - 2]
+    ) {
+      value = value.slice(0, -1);
+    }
+  } else if (
+    value.length > 4 &&
+    value.endsWith("ed")
+  ) {
+    value = value.slice(0, -2);
+
+    /*
+     * chopped -> chopp -> chop
+     */
+    if (
+      value.length >= 4 &&
+      value[value.length - 1] ===
+        value[value.length - 2]
+    ) {
+      value = value.slice(0, -1);
+    }
+  } else if (
+    value.length > 4 &&
+    value.endsWith("es")
+  ) {
+    value = value.slice(0, -2);
+  } else if (
+    value.length > 3 &&
+    value.endsWith("s")
+  ) {
+    value = value.slice(0, -1);
+  }
+
+  return value;
+}
+
+function getStemmedTokens(value: string) {
+  return getSearchTokens(value).map(
+    stemSearchToken,
+  );
+}
+
+function countTokenOverlap(
+  queryTokens: string[],
+  candidateTokens: string[],
+) {
+  const candidateSet = new Set(
+    candidateTokens,
+  );
+
+  return queryTokens.filter((token) =>
+    candidateSet.has(token),
+  ).length;
+}
+
+function scoreSearchCandidate(
+  query: string,
+  candidate: string,
+  isCanonicalName: boolean,
+) {
+  const normalizedQuery =
+    normalizeSearchText(query);
+
+  const normalizedCandidate =
+    normalizeSearchText(candidate);
+
+  if (
+    !normalizedQuery ||
+    !normalizedCandidate
+  ) {
+    return 0;
+  }
+
+  /*
+   * Highest confidence:
+   * exact canonical service name.
+   */
+  if (
+    normalizedQuery ===
+    normalizedCandidate
+  ) {
+    return isCanonicalName
+      ? 10000
+      : 9000;
+  }
+
+  /*
+   * Very strong phrase match.
+   *
+   * Example:
+   * "I need a tree chopped down"
+   * contains tag "tree chopped down".
+   */
+  if (
+    normalizedQuery.includes(
+      normalizedCandidate,
+    )
+  ) {
+    return (
+      (isCanonicalName ? 7000 : 6500) +
+      normalizedCandidate.length
+    );
+  }
+
+  /*
+   * Useful while typing.
+   *
+   * Example:
+   * "tree rem" begins matching
+   * "tree removal".
+   */
+  if (
+    normalizedCandidate.startsWith(
+      normalizedQuery,
+    )
+  ) {
+    return (
+      (isCanonicalName ? 6000 : 5500) +
+      normalizedQuery.length
+    );
+  }
+
+  const queryTokens =
+    getStemmedTokens(normalizedQuery);
+
+  const candidateTokens =
+    getStemmedTokens(
+      normalizedCandidate,
+    );
+
+  if (
+    queryTokens.length === 0 ||
+    candidateTokens.length === 0
+  ) {
+    return 0;
+  }
+
+  const overlap = countTokenOverlap(
+    queryTokens,
+    candidateTokens,
+  );
+
+  if (overlap === 0) {
+    /*
+     * Last-resort partial token matching,
+     * primarily useful while the user is
+     * still typing a word.
+     */
+    let partialMatches = 0;
+
+    for (const queryToken of queryTokens) {
+      if (queryToken.length < 3) {
+        continue;
+      }
+
+      const hasPartial =
+        candidateTokens.some(
+          (candidateToken) =>
+            candidateToken.startsWith(
+              queryToken,
+            ) ||
+            queryToken.startsWith(
+              candidateToken,
+            ),
+        );
+
+      if (hasPartial) {
+        partialMatches += 1;
+      }
+    }
+
+    if (partialMatches === 0) {
+      return 0;
+    }
+
+    return (
+      partialMatches * 250 +
+      (isCanonicalName ? 100 : 0)
+    );
+  }
+
+  const queryCoverage =
+    overlap / queryTokens.length;
+
+  const candidateCoverage =
+    overlap /
+    candidateTokens.length;
+
+  let score =
+    overlap * 700 +
+    queryCoverage * 500 +
+    candidateCoverage * 300;
+
+  /*
+   * Give canonical service names a modest
+   * preference when otherwise equally relevant.
+   */
+  if (isCanonicalName) {
+    score += 150;
+  }
+
+  /*
+   * Matching multiple meaningful words is
+   * significantly stronger than matching one
+   * generic word.
+   */
+  if (overlap >= 2) {
+    score += 900;
+  }
+
+  if (
+    overlap === queryTokens.length &&
+    queryTokens.length > 1
+  ) {
+    score += 700;
+  }
+
+  return score;
+}
+
+function getServiceSearchScore(
+  service: ConnectService,
+  query: string,
+) {
+  let bestScore =
+    scoreSearchCandidate(
+      query,
+      service.name,
+      true,
+    );
+
+  for (const tag of service.search_tags) {
+    const tagScore =
+      scoreSearchCandidate(
+        query,
+        tag,
+        false,
+      );
+
+    if (tagScore > bestScore) {
+      bestScore = tagScore;
+    }
+  }
+
+  return bestScore;
+}
+
 export default function ConnectRequestPage() {
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const fileInputRef =
+    useRef<HTMLInputElement | null>(null);
 
-  const [services, setServices] = useState<ConnectService[]>([]);
-  const [servicesLoading, setServicesLoading] = useState(true);
-  const [servicesError, setServicesError] = useState("");
+  const [
+    services,
+    setServices,
+  ] = useState<ConnectService[]>([]);
 
-  const [service, setService] = useState("");
-  const [serviceSearch, setServiceSearch] = useState("");
-  const [showServices, setShowServices] = useState(false);
+  const [
+    servicesLoading,
+    setServicesLoading,
+  ] = useState(true);
 
-  const [zipCode, setZipCode] = useState("");
-  const [serviceNeededDate, setServiceNeededDate] = useState("");
-  const [details, setDetails] = useState("");
-  const [notificationEmail, setNotificationEmail] = useState("");
+  const [
+    servicesError,
+    setServicesError,
+  ] = useState("");
 
-  const [images, setImages] = useState<File[]>([]);
-  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [service, setService] =
+    useState("");
 
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState("");
+  const [
+    serviceSearch,
+    setServiceSearch,
+  ] = useState("");
 
-  const [submissionSuccess, setSubmissionSuccess] =
-    useState<SubmissionSuccess | null>(null);
+  const [
+    showServices,
+    setShowServices,
+  ] = useState(false);
 
-  const [copiedField, setCopiedField] = useState<
+  const [zipCode, setZipCode] =
+    useState("");
+
+  const [
+    serviceNeededDate,
+    setServiceNeededDate,
+  ] = useState("");
+
+  const [details, setDetails] =
+    useState("");
+
+  const [
+    notificationEmail,
+    setNotificationEmail,
+  ] = useState("");
+
+  const [images, setImages] =
+    useState<File[]>([]);
+
+  const [
+    imagePreviews,
+    setImagePreviews,
+  ] = useState<string[]>([]);
+
+  const [
+    submitting,
+    setSubmitting,
+  ] = useState(false);
+
+  const [error, setError] =
+    useState("");
+
+  const [
+    submissionSuccess,
+    setSubmissionSuccess,
+  ] =
+    useState<SubmissionSuccess | null>(
+      null,
+    );
+
+  const [
+    copiedField,
+    setCopiedField,
+  ] = useState<
     "link" | "pin" | ""
   >("");
 
   /*
-   * Load active Ko-Host Connect services.
+   * Load active Ko-Host Connect services,
+   * including their natural-language
+   * search vocabulary.
    */
   useEffect(() => {
     let cancelled = false;
@@ -66,43 +467,79 @@ export default function ConnectRequestPage() {
         setServicesLoading(true);
         setServicesError("");
 
-        const response = await fetch("/api/connect/services", {
-          method: "GET",
-          cache: "no-store",
-        });
+        const response = await fetch(
+          "/api/connect/services",
+          {
+            method: "GET",
+            cache: "no-store",
+          },
+        );
 
-        const result = await response.json().catch(() => ({}));
+        const result = await response
+          .json()
+          .catch(() => ({}));
 
-        if (!response.ok || !result?.ok) {
+        if (
+          !response.ok ||
+          !result?.ok
+        ) {
           throw new Error(
             result?.error ||
               "Unable to load Ko-Host Connect services.",
           );
         }
 
-        const loadedServices = Array.isArray(result?.services)
-          ? result.services.filter(
-              (item: unknown): item is ConnectService => {
-                if (!item || typeof item !== "object") {
-                  return false;
-                }
+        const loadedServices =
+          Array.isArray(
+            result?.services,
+          )
+            ? result.services.filter(
+                (
+                  item: unknown,
+                ): item is ConnectService => {
+                  if (
+                    !item ||
+                    typeof item !==
+                      "object"
+                  ) {
+                    return false;
+                  }
 
-                const candidate = item as Record<string, unknown>;
+                  const candidate =
+                    item as Record<
+                      string,
+                      unknown
+                    >;
 
-                return (
-                  typeof candidate.id === "string" &&
-                  typeof candidate.slug === "string" &&
-                  typeof candidate.name === "string"
-                );
-              },
-            )
-          : [];
+                  return (
+                    typeof candidate.id ===
+                      "string" &&
+                    typeof candidate.slug ===
+                      "string" &&
+                    typeof candidate.name ===
+                      "string" &&
+                    Array.isArray(
+                      candidate.search_tags,
+                    ) &&
+                    candidate.search_tags.every(
+                      (tag) =>
+                        typeof tag ===
+                        "string",
+                    )
+                  );
+                },
+              )
+            : [];
 
         if (cancelled) return;
 
-        setServices(loadedServices);
+        setServices(
+          loadedServices,
+        );
 
-        if (loadedServices.length === 0) {
+        if (
+          loadedServices.length === 0
+        ) {
           setServicesError(
             "No Ko-Host Connect services are currently available.",
           );
@@ -132,26 +569,70 @@ export default function ConnectRequestPage() {
   }, []);
 
   /*
-   * Filter services as the consumer types.
+   * Rank services by customer intent.
+   *
+   * Empty search:
+   * preserve the database/catalog order.
+   *
+   * Search entered:
+   * compare the query against both the
+   * canonical service name and all
+   * database search tags.
    */
-  const filteredServices = useMemo(() => {
-    const query = serviceSearch.trim().toLowerCase();
+  const filteredServices =
+    useMemo(() => {
+      const query =
+        serviceSearch.trim();
 
-    if (!query) {
-      return services;
-    }
+      if (!query) {
+        return services;
+      }
 
-    return services.filter((item) =>
-      item.name.toLowerCase().includes(query),
-    );
-  }, [serviceSearch, services]);
+      return services
+        .map(
+          (
+            item,
+          ): RankedService => ({
+            ...item,
+            searchScore:
+              getServiceSearchScore(
+                item,
+                query,
+              ),
+          }),
+        )
+        .filter(
+          (item) =>
+            item.searchScore > 0,
+        )
+        .sort((a, b) => {
+          if (
+            b.searchScore !==
+            a.searchScore
+          ) {
+            return (
+              b.searchScore -
+              a.searchScore
+            );
+          }
+
+          return a.name.localeCompare(
+            b.name,
+          );
+        });
+    }, [
+      serviceSearch,
+      services,
+    ]);
 
   /*
-   * Build temporary browser preview URLs for selected images.
+   * Build temporary browser preview URLs
+   * for selected images.
    */
   useEffect(() => {
-    const previews = images.map((file) =>
-      URL.createObjectURL(file),
+    const previews = images.map(
+      (file) =>
+        URL.createObjectURL(file),
     );
 
     setImagePreviews(previews);
@@ -163,34 +644,45 @@ export default function ConnectRequestPage() {
     };
   }, [images]);
 
-  function chooseService(item: ConnectService) {
+  function chooseService(
+    item: ConnectService,
+  ) {
     setService(item.name);
     setServiceSearch(item.name);
     setShowServices(false);
     setError("");
   }
 
-  function handleImageSelection(files: FileList | null) {
+  function handleImageSelection(
+    files: FileList | null,
+  ) {
     if (!files) return;
 
-    const incoming = Array.from(files);
+    const incoming =
+      Array.from(files);
 
-    const validFiles = incoming.filter((file) => {
-      const validType = [
-        "image/jpeg",
-        "image/png",
-        "image/webp",
-      ].includes(file.type);
+    const validFiles =
+      incoming.filter((file) => {
+        const validType = [
+          "image/jpeg",
+          "image/png",
+          "image/webp",
+        ].includes(file.type);
 
-      const validSize =
-        file.size <= MAX_IMAGE_SIZE_BYTES;
+        const validSize =
+          file.size <=
+          MAX_IMAGE_SIZE_BYTES;
 
-      return validType && validSize;
-    });
+        return (
+          validType &&
+          validSize
+        );
+      });
 
     setImages((current) => {
       const available =
-        MAX_IMAGES - current.length;
+        MAX_IMAGES -
+        current.length;
 
       if (available <= 0) {
         return current;
@@ -198,16 +690,23 @@ export default function ConnectRequestPage() {
 
       return [
         ...current,
-        ...validFiles.slice(0, available),
+        ...validFiles.slice(
+          0,
+          available,
+        ),
       ];
     });
 
-    if (incoming.length !== validFiles.length) {
+    if (
+      incoming.length !==
+      validFiles.length
+    ) {
       setError(
         "Photos must be JPG, PNG, or WebP and 5MB or smaller.",
       );
     } else if (
-      images.length + validFiles.length >
+      images.length +
+        validFiles.length >
       MAX_IMAGES
     ) {
       setError(
@@ -217,16 +716,22 @@ export default function ConnectRequestPage() {
       setError("");
     }
 
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
+    if (
+      fileInputRef.current
+    ) {
+      fileInputRef.current.value =
+        "";
     }
   }
 
-  function removeImage(index: number) {
+  function removeImage(
+    index: number,
+  ) {
     setImages((current) =>
       current.filter(
         (_, currentIndex) =>
-          currentIndex !== index,
+          currentIndex !==
+          index,
       ),
     );
 
@@ -238,13 +743,18 @@ export default function ConnectRequestPage() {
     field: "link" | "pin",
   ) {
     try {
-      await navigator.clipboard.writeText(value);
+      await navigator.clipboard.writeText(
+        value,
+      );
 
       setCopiedField(field);
 
       window.setTimeout(() => {
-        setCopiedField((current) =>
-          current === field ? "" : current,
+        setCopiedField(
+          (current) =>
+            current === field
+              ? ""
+              : current,
         );
       }, 1800);
     } catch {
@@ -252,8 +762,13 @@ export default function ConnectRequestPage() {
     }
   }
 
-  function getMailboxUrl(path: string) {
-    if (typeof window === "undefined") {
+  function getMailboxUrl(
+    path: string,
+  ) {
+    if (
+      typeof window ===
+      "undefined"
+    ) {
       return path;
     }
 
@@ -284,13 +799,17 @@ export default function ConnectRequestPage() {
     }
 
     if (!service) {
-      setError("Select the service you need.");
+      setError(
+        "Select the service you need.",
+      );
       return;
     }
 
-    const selectedService = services.find(
-      (item) => item.name === service,
-    );
+    const selectedService =
+      services.find(
+        (item) =>
+          item.name === service,
+      );
 
     if (!selectedService) {
       setError(
@@ -299,7 +818,11 @@ export default function ConnectRequestPage() {
       return;
     }
 
-    if (!/^\d{5}$/.test(zipCode.trim())) {
+    if (
+      !/^\d{5}$/.test(
+        zipCode.trim(),
+      )
+    ) {
       setError(
         "Enter a valid 5-digit ZIP code.",
       );
@@ -328,7 +851,8 @@ export default function ConnectRequestPage() {
     try {
       setSubmitting(true);
 
-      const formData = new FormData();
+      const formData =
+        new FormData();
 
       formData.append(
         "service",
@@ -356,43 +880,59 @@ export default function ConnectRequestPage() {
       );
 
       images.forEach((image) => {
-        formData.append("images", image);
+        formData.append(
+          "images",
+          image,
+        );
       });
 
-      const response = await fetch(
-        "/api/connect/requests",
-        {
-          method: "POST",
-          body: formData,
-        },
-      );
+      const response =
+        await fetch(
+          "/api/connect/requests",
+          {
+            method: "POST",
+            body: formData,
+          },
+        );
 
-      const result = await response
-        .json()
-        .catch(() => ({}));
+      const result =
+        await response
+          .json()
+          .catch(() => ({}));
 
-      if (!response.ok || !result?.ok) {
+      if (
+        !response.ok ||
+        !result?.ok
+      ) {
         throw new Error(
           result?.error ||
             "Unable to submit your request.",
         );
       }
 
-      const requestCode = String(
-        result?.request?.code ?? "",
-      );
+      const requestCode =
+        String(
+          result?.request?.code ??
+            "",
+        );
 
-      const mailboxCode = String(
-        result?.mailbox?.code ?? "",
-      );
+      const mailboxCode =
+        String(
+          result?.mailbox?.code ??
+            "",
+        );
 
-      const mailboxPin = String(
-        result?.mailbox?.pin ?? "",
-      );
+      const mailboxPin =
+        String(
+          result?.mailbox?.pin ??
+            "",
+        );
 
-      const mailboxPath = String(
-        result?.mailbox?.path ?? "",
-      );
+      const mailboxPath =
+        String(
+          result?.mailbox?.path ??
+            "",
+        );
 
       if (!requestCode) {
         throw new Error(
@@ -423,7 +963,8 @@ export default function ConnectRequestPage() {
       });
     } catch (submitError) {
       setError(
-        submitError instanceof Error
+        submitError instanceof
+          Error
           ? submitError.message
           : "Unable to submit your request.",
       );
@@ -436,9 +977,10 @@ export default function ConnectRequestPage() {
    * Successful request + private mailbox.
    */
   if (submissionSuccess) {
-    const mailboxUrl = getMailboxUrl(
-      submissionSuccess.mailboxPath,
-    );
+    const mailboxUrl =
+      getMailboxUrl(
+        submissionSuccess.mailboxPath,
+      );
 
     return (
       <main className="min-h-screen bg-[#f7f5ef] px-4 py-12 sm:px-6">
@@ -454,9 +996,11 @@ export default function ConnectRequestPage() {
               </h1>
 
               <p className="mt-3 max-w-xl text-sm leading-6 text-white/75">
-                Your private Ko-Host Mailbox has been
-                created. Provider responses for this
-                request will be kept there.
+                Your private Ko-Host
+                Mailbox has been created.
+                Provider responses for
+                this request will be kept
+                there.
               </p>
             </div>
 
@@ -467,7 +1011,9 @@ export default function ConnectRequestPage() {
                 </div>
 
                 <div className="mt-2 break-all text-lg font-semibold text-neutral-950">
-                  {submissionSuccess.requestCode}
+                  {
+                    submissionSuccess.requestCode
+                  }
                 </div>
               </div>
 
@@ -480,13 +1026,17 @@ export default function ConnectRequestPage() {
 
                     <div>
                       <div className="text-base font-semibold text-[#173f35]">
-                        Your Private Mailbox
+                        Your Private
+                        Mailbox
                       </div>
 
                       <p className="mt-1 text-xs leading-5 text-[#52665d]">
-                        Save your mailbox link and PIN.
-                        You&apos;ll need the PIN to access
-                        provider responses.
+                        Save your mailbox
+                        link and PIN.
+                        You&apos;ll need
+                        the PIN to access
+                        provider
+                        responses.
                       </p>
                     </div>
                   </div>
@@ -514,7 +1064,8 @@ export default function ConnectRequestPage() {
                       }
                       className="mt-2 inline-flex items-center justify-center rounded-lg border border-[#b9cbc1] bg-white px-3 py-2 text-xs font-bold text-[#315847] transition hover:bg-[#f7faf8]"
                     >
-                      {copiedField === "link"
+                      {copiedField ===
+                      "link"
                         ? "Copied!"
                         : "Copy Mailbox Link"}
                     </button>
@@ -528,7 +1079,9 @@ export default function ConnectRequestPage() {
                     <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center">
                       <div className="flex-1 rounded-xl border border-[#d7e2dc] bg-white px-4 py-3">
                         <div className="font-mono text-2xl font-semibold tracking-[0.22em] text-[#173f35]">
-                          {submissionSuccess.mailboxPin}
+                          {
+                            submissionSuccess.mailboxPin
+                          }
                         </div>
                       </div>
 
@@ -542,7 +1095,8 @@ export default function ConnectRequestPage() {
                         }
                         className="inline-flex min-h-[50px] items-center justify-center rounded-xl border border-[#b9cbc1] bg-white px-4 text-xs font-bold text-[#315847] transition hover:bg-[#f7faf8]"
                       >
-                        {copiedField === "pin"
+                        {copiedField ===
+                        "pin"
                           ? "Copied!"
                           : "Copy PIN"}
                       </button>
@@ -555,28 +1109,36 @@ export default function ConnectRequestPage() {
                     </div>
 
                     <p className="mt-1 text-[11px] leading-5 text-[#75683e]">
-                      For your privacy, Ko-Host does not
-                      store your PIN in readable form. Keep
-                      this PIN somewhere safe so you can
-                      access this mailbox later.
+                      For your privacy,
+                      Ko-Host does not
+                      store your PIN in
+                      readable form. Keep
+                      this PIN somewhere
+                      safe so you can
+                      access this mailbox
+                      later.
                     </p>
                   </div>
 
                   <div className="rounded-xl border border-[#d7e2dc] bg-white/70 px-4 py-3 text-[11px] leading-5 text-[#52665d]">
-                    This temporary mailbox remains active
-                    for{" "}
+                    This temporary mailbox
+                    remains active for{" "}
                     <strong className="font-semibold text-[#284c3e]">
                       12 days
                     </strong>
-                    . Each provider conversation will stay
-                    private from other providers.
+                    . Each provider
+                    conversation will stay
+                    private from other
+                    providers.
                   </div>
                 </div>
               </div>
 
               <div className="mt-6 grid gap-3 sm:grid-cols-2">
                 <Link
-                  href={submissionSuccess.mailboxPath}
+                  href={
+                    submissionSuccess.mailboxPath
+                  }
                   className="inline-flex items-center justify-center rounded-xl bg-[#173f35] px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-[#0f3028]"
                 >
                   Open My Mailbox →
@@ -591,7 +1153,8 @@ export default function ConnectRequestPage() {
               </div>
 
               <p className="mt-5 text-center text-[11px] leading-5 text-neutral-500">
-                Your personal contact information is never
+                Your personal contact
+                information is never
                 shared with providers.
               </p>
             </div>
@@ -620,10 +1183,13 @@ export default function ConnectRequestPage() {
               </h1>
 
               <p className="mt-5 max-w-lg text-[15px] leading-7 text-neutral-600">
-                Tell us what you need. Ko-Host Connect
-                helps your request reach relevant local
-                service providers without posting your
-                personal contact information publicly.
+                Tell us what you need.
+                Ko-Host Connect helps your
+                request reach relevant
+                local service providers
+                without posting your
+                personal contact
+                information publicly.
               </p>
 
               <div className="mt-6 flex flex-wrap gap-2">
@@ -674,8 +1240,9 @@ export default function ConnectRequestPage() {
             </h2>
 
             <p className="mt-2 text-sm leading-6 text-neutral-500">
-              A few details help Ko-Host Connect route your
-              request to the right providers.
+              A few details help Ko-Host
+              Connect route your request
+              to the right providers.
             </p>
           </div>
 
@@ -685,7 +1252,7 @@ export default function ConnectRequestPage() {
               <StepHeading
                 number="1"
                 title="What service do you need?"
-                subtitle="Search or choose a service."
+                subtitle="Describe what you need or choose a service."
               />
 
               <div className="relative mt-4">
@@ -694,22 +1261,29 @@ export default function ConnectRequestPage() {
                   value={serviceSearch}
                   disabled={
                     servicesLoading ||
-                    Boolean(servicesError)
+                    Boolean(
+                      servicesError,
+                    )
                   }
                   onChange={(event) => {
                     setServiceSearch(
-                      event.target.value,
+                      event.target
+                        .value,
                     );
 
                     setService("");
-                    setShowServices(true);
+                    setShowServices(
+                      true,
+                    );
                   }}
                   onFocus={() => {
                     if (
                       !servicesLoading &&
                       !servicesError
                     ) {
-                      setShowServices(true);
+                      setShowServices(
+                        true,
+                      );
                     }
                   }}
                   placeholder={
@@ -717,7 +1291,7 @@ export default function ConnectRequestPage() {
                       ? "Loading services..."
                       : servicesError
                         ? "Services unavailable"
-                        : "Search services..."
+                        : "Describe what you need..."
                   }
                   autoComplete="off"
                   className="w-full rounded-2xl border border-[#d8d4ca] bg-white px-4 py-3.5 text-sm text-neutral-950 outline-none transition placeholder:text-neutral-400 focus:border-[#6e9583] focus:ring-4 focus:ring-[#6e9583]/10 disabled:cursor-not-allowed disabled:bg-neutral-50 disabled:text-neutral-400"
@@ -731,15 +1305,21 @@ export default function ConnectRequestPage() {
                       filteredServices.map(
                         (item) => (
                           <button
-                            key={item.id}
+                            key={
+                              item.id
+                            }
                             type="button"
                             onClick={() =>
-                              chooseService(item)
+                              chooseService(
+                                item,
+                              )
                             }
                             className="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-neutral-800 transition hover:bg-[#f2f6f3]"
                           >
                             <span>
-                              {item.name}
+                              {
+                                item.name
+                              }
                             </span>
 
                             <span className="text-[#6e9583]">
@@ -750,7 +1330,8 @@ export default function ConnectRequestPage() {
                       )
                     ) : (
                       <div className="px-3 py-5 text-center text-sm text-neutral-500">
-                        No matching services.
+                        No matching
+                        services.
                       </div>
                     )}
                   </div>
@@ -759,7 +1340,8 @@ export default function ConnectRequestPage() {
 
               {servicesLoading ? (
                 <p className="mt-2 text-[11px] text-neutral-400">
-                  Loading available services...
+                  Loading available
+                  services...
                 </p>
               ) : null}
 
@@ -795,7 +1377,10 @@ export default function ConnectRequestPage() {
                   onChange={(event) =>
                     setZipCode(
                       event.target.value
-                        .replace(/\D/g, "")
+                        .replace(
+                          /\D/g,
+                          "",
+                        )
                         .slice(0, 5),
                     )
                   }
@@ -818,10 +1403,13 @@ export default function ConnectRequestPage() {
               <div className="mt-4 max-w-xs">
                 <input
                   type="date"
-                  value={serviceNeededDate}
+                  value={
+                    serviceNeededDate
+                  }
                   onChange={(event) =>
                     setServiceNeededDate(
-                      event.target.value,
+                      event.target
+                        .value,
                     )
                   }
                   className="w-full rounded-2xl border border-[#d8d4ca] bg-white px-4 py-3.5 text-sm text-neutral-950 outline-none transition focus:border-[#6e9583] focus:ring-4 focus:ring-[#6e9583]/10"
@@ -839,23 +1427,30 @@ export default function ConnectRequestPage() {
                 subtitle="Describe the job and optionally include up to 5 photos."
               />
 
-<div className="mt-4">
-  <div className="text-xs font-bold text-neutral-600">
-    Add photos
-  </div>
+              <div className="mt-4">
+                <div className="text-xs font-bold text-neutral-600">
+                  Add photos
+                </div>
 
-  <div className="mt-3 flex items-center gap-2 sm:gap-3">
-
+                <div className="mt-3 flex items-center gap-2 sm:gap-3">
                   {imagePreviews.map(
-                    (preview, index) => (
+                    (
+                      preview,
+                      index,
+                    ) => (
                       <div
-                        key={preview}
+                        key={
+                          preview
+                        }
                         className="group relative aspect-square min-w-0 flex-1 overflow-hidden rounded-xl border border-[#d8d4ca] bg-neutral-100 sm:h-14 sm:w-14 sm:flex-none"
                       >
                         <Image
-                          src={preview}
+                          src={
+                            preview
+                          }
                           alt={`Selected photo ${
-                            index + 1
+                            index +
+                            1
                           }`}
                           fill
                           unoptimized
@@ -865,11 +1460,14 @@ export default function ConnectRequestPage() {
                         <button
                           type="button"
                           onClick={() =>
-                            removeImage(index)
+                            removeImage(
+                              index,
+                            )
                           }
                           className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-black/70 text-[11px] font-bold text-white opacity-100 sm:opacity-0 sm:transition sm:group-hover:opacity-100"
                           aria-label={`Remove photo ${
-                            index + 1
+                            index +
+                            1
                           }`}
                         >
                           ×
@@ -879,32 +1477,42 @@ export default function ConnectRequestPage() {
                   )}
 
                   {Array.from({
-                    length: Math.max(
-                      0,
-                      MAX_IMAGES - images.length,
+                    length:
+                      Math.max(
+                        0,
+                        MAX_IMAGES -
+                          images.length,
+                      ),
+                  }).map(
+                    (_, index) => (
+                      <button
+                        key={`empty-photo-${index}`}
+                        type="button"
+                        onClick={() =>
+                          fileInputRef.current?.click()
+                        }
+                        className="flex aspect-square min-w-0 flex-1 items-center justify-center rounded-xl border border-dashed border-[#a9b8af] bg-[#f7faf8] text-xl font-light text-[#55786a] transition hover:border-[#6e9583] hover:bg-[#eef5f0] sm:h-14 sm:w-14 sm:flex-none"
+                        aria-label="Add photo"
+                      >
+                        +
+                      </button>
                     ),
-                  }).map((_, index) => (
-                    <button
-                      key={`empty-photo-${index}`}
-                      type="button"
-                      onClick={() =>
-                        fileInputRef.current?.click()
-                      }
-                      className="flex aspect-square min-w-0 flex-1 items-center justify-center rounded-xl border border-dashed border-[#a9b8af] bg-[#f7faf8] text-xl font-light text-[#55786a] transition hover:border-[#6e9583] hover:bg-[#eef5f0] sm:h-14 sm:w-14 sm:flex-none"
-                      aria-label="Add photo"
-                    >
-                      +
-                    </button>
-                  ))}
+                  )}
 
                   <input
-                    ref={fileInputRef}
+                    ref={
+                      fileInputRef
+                    }
                     type="file"
                     accept="image/jpeg,image/png,image/webp"
                     multiple
-                    onChange={(event) =>
+                    onChange={(
+                      event,
+                    ) =>
                       handleImageSelection(
-                        event.target.files,
+                        event
+                          .target
+                          .files,
                       )
                     }
                     className="hidden"
@@ -914,7 +1522,10 @@ export default function ConnectRequestPage() {
                 <textarea
                   value={details}
                   onChange={(event) =>
-                    setDetails(event.target.value)
+                    setDetails(
+                      event.target
+                        .value,
+                    )
                   }
                   rows={6}
                   maxLength={3000}
@@ -923,24 +1534,27 @@ export default function ConnectRequestPage() {
                 />
 
                 <div className="mt-1.5 text-right text-[10px] text-neutral-400">
-                  {details.length}/3000
+                  {details.length}
+                  /3000
                 </div>
               </div>
             </section>
 
             <Divider />
 
-{/* PRIVATE MAILBOX */}
-<section>
-  <div>
-    <h3 className="text-base font-semibold text-neutral-950 sm:text-lg">
-      Your Private Ko-Host Mailbox
-    </h3>
+            {/* PRIVATE MAILBOX */}
+            <section>
+              <div>
+                <h3 className="text-base font-semibold text-neutral-950 sm:text-lg">
+                  Your Private Ko-Host
+                  Mailbox
+                </h3>
 
-    <p className="mt-0.5 text-xs leading-5 text-neutral-500">
-      Provider responses stay private.
-    </p>
-  </div>
+                <p className="mt-0.5 text-xs leading-5 text-neutral-500">
+                  Provider responses stay
+                  private.
+                </p>
+              </div>
 
               <div className="mt-4 overflow-hidden rounded-[22px] border border-[#cddbd3] bg-[#f1f6f3]">
                 <div className="p-5 sm:p-6">
@@ -951,16 +1565,23 @@ export default function ConnectRequestPage() {
 
                     <div>
                       <div className="text-sm font-semibold text-[#173f35]">
-                        No need to share your personal
-                        contact information.
+                        No need to share
+                        your personal
+                        contact
+                        information.
                       </div>
 
                       <p className="mt-1.5 text-xs leading-5 text-[#52665d]">
-                        Providers respond through a
-                        temporary Ko-Host Mailbox created
-                        for this request. You&apos;ll
-                        receive a private mailbox link and
-                        PIN after submitting.
+                        Providers respond
+                        through a
+                        temporary Ko-Host
+                        Mailbox created
+                        for this request.
+                        You&apos;ll
+                        receive a private
+                        mailbox link and
+                        PIN after
+                        submitting.
                       </p>
                     </div>
                   </div>
@@ -971,24 +1592,34 @@ export default function ConnectRequestPage() {
                       "Get Private Mailbox",
                       "Review Responses",
                       "Choose Who to Connect With",
-                    ].map((item, index) => (
-                      <div
-                        key={item}
-                        className="rounded-xl border border-[#d7e2dc] bg-white px-3 py-3 text-center"
-                      >
-                        <div className="text-[9px] font-semibold uppercase tracking-[0.12em] text-[#7b9589]">
-                          Step {index + 1}
-                        </div>
+                    ].map(
+                      (
+                        item,
+                        index,
+                      ) => (
+                        <div
+                          key={
+                            item
+                          }
+                          className="rounded-xl border border-[#d7e2dc] bg-white px-3 py-3 text-center"
+                        >
+                          <div className="text-[9px] font-semibold uppercase tracking-[0.12em] text-[#7b9589]">
+                            Step{" "}
+                            {index +
+                              1}
+                          </div>
 
-                        <div className="mt-1 text-[10px] font-bold leading-4 text-[#284c3e]">
-                          {item}
+                          <div className="mt-1 text-[10px] font-bold leading-4 text-[#284c3e]">
+                            {item}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ),
+                    )}
                   </div>
 
                   <div className="mt-4 rounded-xl border border-[#d7e2dc] bg-white/70 px-4 py-3 text-[11px] leading-5 text-[#52665d]">
-Your mailbox will remain available for
+                    Your mailbox will
+                    remain available for
                     <strong className="font-semibold text-[#284c3e]">
                       {" "}
                       12 days
@@ -1000,7 +1631,8 @@ Your mailbox will remain available for
 
               <div className="mt-5">
                 <label className="text-xs font-bold text-neutral-700">
-                  Email me when providers respond{" "}
+                  Email me when providers
+                  respond{" "}
                   <span className="font-medium text-neutral-400">
                     (optional)
                   </span>
@@ -1008,10 +1640,13 @@ Your mailbox will remain available for
 
                 <input
                   type="email"
-                  value={notificationEmail}
+                  value={
+                    notificationEmail
+                  }
                   onChange={(event) =>
                     setNotificationEmail(
-                      event.target.value,
+                      event.target
+                        .value,
                     )
                   }
                   placeholder="you@example.com"
@@ -1019,9 +1654,11 @@ Your mailbox will remain available for
                 />
 
                 <p className="mt-2 text-[11px] leading-5 text-neutral-500">
-                  This email is used by Ko-Host for request
-                  and mailbox notifications only. It is
-                  never shown to providers.
+                  This email is used by
+                  Ko-Host for request and
+                  mailbox notifications
+                  only. It is never shown
+                  to providers.
                 </p>
               </div>
             </section>
@@ -1040,7 +1677,9 @@ Your mailbox will remain available for
               disabled={
                 submitting ||
                 servicesLoading ||
-                Boolean(servicesError)
+                Boolean(
+                  servicesError,
+                )
               }
               className="flex w-full items-center justify-center rounded-2xl bg-[#173f35] px-5 py-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0f3028] disabled:cursor-not-allowed disabled:opacity-60"
             >
@@ -1051,10 +1690,11 @@ Your mailbox will remain available for
                   : "Submit My Request →"}
             </button>
 
-<div className="mt-3 text-center text-[11px] font-semibold text-neutral-500">
-  Your personal contact information is never
-  shared with providers.
-</div>
+            <div className="mt-3 text-center text-[11px] font-semibold text-neutral-500">
+              Your personal contact
+              information is never shared
+              with providers.
+            </div>
           </div>
         </form>
       </section>
@@ -1062,10 +1702,18 @@ Your mailbox will remain available for
       {/* TRUST STRIP */}
       <section className="border-t border-[#ddd8cc] bg-[#eee9de] px-4 py-8 sm:px-6">
         <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-center gap-x-7 gap-y-3 text-xs font-bold text-[#53665d]">
-          <span>✓ Free to submit</span>
-          <span>✓ Local matching</span>
-          <span>✓ Private responses</span>
-          <span>✓ Temporary mailbox</span>
+          <span>
+            ✓ Free to submit
+          </span>
+          <span>
+            ✓ Local matching
+          </span>
+          <span>
+            ✓ Private responses
+          </span>
+          <span>
+            ✓ Temporary mailbox
+          </span>
         </div>
       </section>
     </main>
