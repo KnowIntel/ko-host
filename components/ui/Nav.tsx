@@ -104,8 +104,8 @@ export function Nav() {
 <img
   src={isConnectPage ? "/KHC_LOGO.png" : "/KH_LOGO.png"}
   alt={isConnectPage ? "Ko-Host Connect" : "Ko-Host"}
-  width={isConnectPage ? 101 : 92}
-  height={isConnectPage ? 48 : 44}
+width={isConnectPage ? 131 : 120}
+height={isConnectPage ? 62 : 57}
   className={
     isConnectPage
       ? "h-[48px] w-[101px] object-contain"
