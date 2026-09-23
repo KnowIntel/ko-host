@@ -1490,14 +1490,22 @@ return NextResponse.json({ ok: true });
         );
       }
 
-      const nextPaidUntil = addDaysIsoFrom(
-        typeof micrositeRow.paid_until === "string"
-          ? micrositeRow.paid_until
-          : null,
-        90,
-      );
+const now = new Date();
+const nowIso = now.toISOString();
 
-      const nowIso = new Date().toISOString();
+const currentPaidUntil =
+  typeof micrositeRow.paid_until === "string"
+    ? new Date(micrositeRow.paid_until)
+    : null;
+
+const extensionBase =
+  currentPaidUntil &&
+  !Number.isNaN(currentPaidUntil.getTime()) &&
+  currentPaidUntil.getTime() > now.getTime()
+    ? currentPaidUntil.toISOString()
+    : nowIso;
+
+const nextPaidUntil = addDaysIsoFrom(extensionBase, 90);
 
       const pollIdMap = new Map<string, string>();
 
