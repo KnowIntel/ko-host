@@ -1,5 +1,3 @@
-// app\dashboard\microsites\[id]\connect-requests\page.tsx
-
 import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
@@ -12,6 +10,8 @@ type MatchStatus =
   | "new"
   | "viewed"
   | "responded"
+  | "scheduled"
+  | "completed"
   | "closed";
 
 type RequestStatus =
@@ -42,6 +42,8 @@ type ConnectRequestRow = {
   matched_at: string;
   viewed_at: string | null;
   responded_at: string | null;
+  scheduled_at: string | null;
+  completed_at: string | null;
   closed_at: string | null;
   connect_requests: {
     id: string;
@@ -74,20 +76,27 @@ function firstParam(
 function formatDate(value?: string | null) {
   if (!value) return "—";
 
-  const parsed = new Date(`${value}T00:00:00`);
+  const parsed = new Date(
+    `${value}T00:00:00`,
+  );
 
   if (Number.isNaN(parsed.getTime())) {
     return value;
   }
 
-  return parsed.toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  return parsed.toLocaleDateString(
+    undefined,
+    {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    },
+  );
 }
 
-function formatDateTime(value?: string | null) {
+function formatDateTime(
+  value?: string | null,
+) {
   if (!value) return "—";
 
   const parsed = new Date(value);
@@ -99,10 +108,13 @@ function formatDateTime(value?: string | null) {
   return parsed.toLocaleString();
 }
 
-function getTimestamp(value?: string | null) {
+function getTimestamp(
+  value?: string | null,
+) {
   if (!value) return 0;
 
-  const timestamp = new Date(value).getTime();
+  const timestamp =
+    new Date(value).getTime();
 
   return Number.isNaN(timestamp)
     ? 0
@@ -112,7 +124,9 @@ function getTimestamp(value?: string | null) {
 function getServiceDateTimestamp(
   value?: string | null,
 ) {
-  if (!value) return Number.MAX_SAFE_INTEGER;
+  if (!value) {
+    return Number.MAX_SAFE_INTEGER;
+  }
 
   const timestamp = new Date(
     `${value}T00:00:00`,
@@ -136,6 +150,12 @@ function getMatchStatusLabel(
     case "responded":
       return "Responded";
 
+    case "scheduled":
+      return "Scheduled";
+
+    case "completed":
+      return "Completed";
+
     case "closed":
       return "Closed";
 
@@ -152,6 +172,7 @@ export default async function ConnectRequestsPage({
   searchParams: Promise<SearchParams>;
 }) {
   const { id } = await params;
+
   const resolvedSearchParams =
     await searchParams;
 
@@ -168,8 +189,9 @@ export default async function ConnectRequestsPage({
   );
 
   const sortMode =
-    firstParam(resolvedSearchParams.sort) ||
-    "newest";
+    firstParam(
+      resolvedSearchParams.sort,
+    ) || "newest";
 
   const { userId } = await auth();
 
@@ -187,26 +209,28 @@ export default async function ConnectRequestsPage({
   // Verify microsite ownership
   // =====================================================
 
-const {
-  data: siteData,
-  error: siteError,
-} = await sb
-  .from("microsites")
-  .select(
-    [
-      "id",
-      "owner_clerk_user_id",
-      "slug",
-      "title",
-      "is_published",
-      "is_active",
-    ].join(","),
-  )
-  .eq("id", id)
-  .maybeSingle();
+  const {
+    data: siteData,
+    error: siteError,
+  } = await sb
+    .from("microsites")
+    .select(
+      [
+        "id",
+        "owner_clerk_user_id",
+        "slug",
+        "title",
+        "is_published",
+        "is_active",
+      ].join(","),
+    )
+    .eq("id", id)
+    .maybeSingle();
 
-const site =
-  siteData as unknown as MicrositeRow | null;
+  const site =
+    siteData as unknown as
+      | MicrositeRow
+      | null;
 
   if (siteError || !site) {
     return notFound();
@@ -226,26 +250,26 @@ const site =
   // Load provider profile
   // =====================================================
 
-const {
-  data: providerProfileData,
-  error: providerError,
-} = await sb
-  .from("connect_provider_profiles")
-  .select(
-    [
-      "id",
-      "enabled",
-      "service_zip_code",
-      "service_radius_miles",
-    ].join(","),
-  )
-  .eq("microsite_id", site.id)
-  .maybeSingle();
+  const {
+    data: providerProfileData,
+    error: providerError,
+  } = await sb
+    .from("connect_provider_profiles")
+    .select(
+      [
+        "id",
+        "enabled",
+        "service_zip_code",
+        "service_radius_miles",
+      ].join(","),
+    )
+    .eq("microsite_id", site.id)
+    .maybeSingle();
 
-const providerProfile =
-  providerProfileData as unknown as
-    | ConnectProviderProfileRow
-    | null;
+  const providerProfile =
+    providerProfileData as unknown as
+      | ConnectProviderProfileRow
+      | null;
 
   if (providerError) {
     console.error(
@@ -270,8 +294,9 @@ const providerProfile =
           </h1>
 
           <p className="mt-2 text-sm text-neutral-600">
-            This microsite has not been linked
-            to Ko-Host Connect yet.
+            This microsite has not been
+            linked to Ko-Host Connect
+            yet.
           </p>
 
           <Link
@@ -293,7 +318,9 @@ const providerProfile =
     data: matchRows,
     error: matchesError,
   } = await sb
-    .from("connect_request_matches")
+    .from(
+      "connect_request_matches",
+    )
     .select(
       `
         id,
@@ -301,6 +328,8 @@ const providerProfile =
         matched_at,
         viewed_at,
         responded_at,
+        scheduled_at,
+        completed_at,
         closed_at,
         connect_requests!inner (
           id,
@@ -336,7 +365,8 @@ const providerProfile =
 
   const matches =
     (matchRows ??
-      []) as unknown as ConnectRequestRow[];
+      []) as unknown as
+      ConnectRequestRow[];
 
   // =====================================================
   // Summary
@@ -350,9 +380,11 @@ const providerProfile =
     (row) => row.status === "viewed",
   ).length;
 
-  const respondedCount = matches.filter(
-    (row) => row.status === "responded",
-  ).length;
+  const respondedCount =
+    matches.filter(
+      (row) =>
+        row.status === "responded",
+    ).length;
 
   const openCount = matches.filter(
     (row) =>
@@ -364,21 +396,25 @@ const providerProfile =
   // Service filter options
   // =====================================================
 
-  const availableServices = Array.from(
-    new Set(
-      matches
-        .map(
-          (row) =>
-            row.connect_requests?.service,
-        )
-        .filter(
-          (value): value is string =>
-            Boolean(value),
-        ),
-    ),
-  ).sort((a, b) =>
-    a.localeCompare(b),
-  );
+  const availableServices =
+    Array.from(
+      new Set(
+        matches
+          .map(
+            (row) =>
+              row.connect_requests
+                ?.service,
+          )
+          .filter(
+            (
+              value,
+            ): value is string =>
+              Boolean(value),
+          ),
+      ),
+    ).sort((a, b) =>
+      a.localeCompare(b),
+    );
 
   // =====================================================
   // Search + filters
@@ -387,8 +423,8 @@ const providerProfile =
   const normalizedSearch =
     searchQuery.toLowerCase();
 
-  let visibleMatches = matches.filter(
-    (row) => {
+  let visibleMatches =
+    matches.filter((row) => {
       const request =
         row.connect_requests;
 
@@ -405,7 +441,8 @@ const providerProfile =
 
       if (
         serviceFilter &&
-        request.service !== serviceFilter
+        request.service !==
+          serviceFilter
       ) {
         return false;
       }
@@ -426,10 +463,11 @@ const providerProfile =
         (value) =>
           String(value ?? "")
             .toLowerCase()
-            .includes(normalizedSearch),
+            .includes(
+              normalizedSearch,
+            ),
       );
-    },
-  );
+    });
 
   // =====================================================
   // Sorting
@@ -439,15 +477,17 @@ const providerProfile =
     ...visibleMatches,
   ].sort((a, b) => {
     switch (sortMode) {
-case "oldest":
-  return (
-    getTimestamp(
-      a.connect_requests?.created_at,
-    ) -
-    getTimestamp(
-      b.connect_requests?.created_at,
-    )
-  );
+      case "oldest":
+        return (
+          getTimestamp(
+            a.connect_requests
+              ?.created_at,
+          ) -
+          getTimestamp(
+            b.connect_requests
+              ?.created_at,
+          )
+        );
 
       case "service_date_asc":
         return (
@@ -473,16 +513,18 @@ case "oldest":
           )
         );
 
-case "newest":
-default:
-  return (
-    getTimestamp(
-      b.connect_requests?.created_at,
-    ) -
-    getTimestamp(
-      a.connect_requests?.created_at,
-    )
-  );
+      case "newest":
+      default:
+        return (
+          getTimestamp(
+            b.connect_requests
+              ?.created_at,
+          ) -
+          getTimestamp(
+            a.connect_requests
+              ?.created_at,
+          )
+        );
     }
   });
 
@@ -524,7 +566,9 @@ default:
                   <span className="font-medium">
                     Service Area:
                   </span>{" "}
-                  {providerProfile.service_zip_code}
+                  {
+                    providerProfile.service_zip_code
+                  }
                   {" · "}
                   {
                     providerProfile.service_radius_miles
@@ -606,13 +650,15 @@ default:
 
                 <div className="mt-1 text-sm text-neutral-500">
                   Review service requests
-                  matched to this provider.
+                  matched to this
+                  provider.
                 </div>
               </div>
 
               <div className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold text-neutral-600">
                 {visibleMatches.length}{" "}
-                {visibleMatches.length === 1
+                {visibleMatches.length ===
+                1
                   ? "request"
                   : "requests"}
               </div>
@@ -626,28 +672,44 @@ default:
               <input
                 type="search"
                 name="q"
-                defaultValue={searchQuery}
+                defaultValue={
+                  searchQuery
+                }
                 placeholder="Search requests..."
                 className="h-11 w-full rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-900 outline-none focus:border-neutral-900"
               />
 
               <select
                 name="status"
-                defaultValue={statusFilter}
+                defaultValue={
+                  statusFilter
+                }
                 className="h-11 rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-900 outline-none"
               >
                 <option value="">
                   All Statuses
                 </option>
+
                 <option value="new">
                   New
                 </option>
+
                 <option value="viewed">
                   Viewed
                 </option>
+
                 <option value="responded">
                   Responded
                 </option>
+
+                <option value="scheduled">
+                  Scheduled
+                </option>
+
+                <option value="completed">
+                  Completed
+                </option>
+
                 <option value="closed">
                   Closed
                 </option>
@@ -655,7 +717,9 @@ default:
 
               <select
                 name="service"
-                defaultValue={serviceFilter}
+                defaultValue={
+                  serviceFilter
+                }
                 className="h-11 rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-900 outline-none"
               >
                 <option value="">
@@ -763,12 +827,14 @@ default:
                       className="px-4 py-12 text-center"
                     >
                       <div className="text-sm font-medium text-neutral-700">
-                        {matches.length === 0
+                        {matches.length ===
+                        0
                           ? "No Connect requests yet."
                           : "No requests match your current filters."}
                       </div>
 
-                      {matches.length > 0 &&
+                      {matches.length >
+                        0 &&
                       hasActiveFilters ? (
                         <div className="mt-3">
                           <Link
@@ -791,35 +857,42 @@ default:
                         return null;
                       }
 
-const receivedDate =
-  new Date(
-    request.created_at,
-  );
+                      const receivedDate =
+                        new Date(
+                          request.created_at,
+                        );
 
                       return (
-                        <tr key={match.id}>
+                        <tr
+                          key={match.id}
+                        >
                           <td className="whitespace-nowrap px-4 py-3 text-neutral-800">
                             {receivedDate.toLocaleDateString(
-  "en-US",
-  {
-    timeZone: "America/New_York",
-  },
-)}
+                              "en-US",
+                              {
+                                timeZone:
+                                  "America/New_York",
+                              },
+                            )}
                           </td>
 
                           <td className="whitespace-nowrap px-4 py-3 text-neutral-700">
-{receivedDate.toLocaleTimeString(
-  "en-US",
-  {
-    timeZone: "America/New_York",
-    hour: "numeric",
-    minute: "2-digit",
-  },
-)}
+                            {receivedDate.toLocaleTimeString(
+                              "en-US",
+                              {
+                                timeZone:
+                                  "America/New_York",
+                                hour: "numeric",
+                                minute:
+                                  "2-digit",
+                              },
+                            )}
                           </td>
 
                           <td className="px-4 py-3 font-medium text-neutral-900">
-                            {request.service}
+                            {
+                              request.service
+                            }
                           </td>
 
                           <td className="whitespace-nowrap px-4 py-3 text-neutral-700">
@@ -829,7 +902,10 @@ const receivedDate =
                           </td>
 
                           <td className="px-4 py-3 text-neutral-700">
-                            ZIP {request.zip_code}
+                            ZIP{" "}
+                            {
+                              request.zip_code
+                            }
                           </td>
 
                           <td className="px-4 py-3">
@@ -837,16 +913,24 @@ const receivedDate =
                               className={[
                                 "inline-flex rounded-full px-2.5 py-1 text-xs font-semibold",
                                 match.status ===
-                                "new"
-                                  ? "bg-blue-50 text-blue-700"
+                                "completed"
+                                  ? "bg-emerald-100 text-emerald-800"
                                   : match.status ===
-                                      "responded"
-                                    ? "bg-emerald-50 text-emerald-700"
+                                      "scheduled"
+                                    ? "bg-amber-100 text-amber-800"
                                     : match.status ===
-                                        "closed"
-                                      ? "bg-neutral-100 text-neutral-500"
-                                      : "bg-amber-50 text-amber-700",
-                              ].join(" ")}
+                                        "new"
+                                      ? "bg-blue-50 text-blue-700"
+                                      : match.status ===
+                                          "responded"
+                                        ? "bg-emerald-50 text-emerald-700"
+                                        : match.status ===
+                                            "closed"
+                                          ? "bg-neutral-100 text-neutral-500"
+                                          : "bg-amber-50 text-amber-700",
+                              ].join(
+                                " ",
+                              )}
                             >
                               {getMatchStatusLabel(
                                 match.status,
@@ -863,11 +947,11 @@ const receivedDate =
                             </Link>
                           </td>
 
-<td className="px-4 py-3">
-  <CopyConnectRequestLink
-    path={`/dashboard/microsites/${site.id}/connect-requests/${request.request_code}`}
-  />
-</td>
+                          <td className="px-4 py-3">
+                            <CopyConnectRequestLink
+                              path={`/dashboard/microsites/${site.id}/connect-requests/${request.request_code}`}
+                            />
+                          </td>
                         </tr>
                       );
                     },

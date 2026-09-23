@@ -2,6 +2,7 @@ import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { notFound } from "next/navigation";
+import ConnectRequestStatusControls from "./ConnectRequestStatusControls";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +15,8 @@ type MatchStatus =
   | "new"
   | "viewed"
   | "responded"
+  | "scheduled"
+  | "completed"
   | "closed";
 
 type RequestStatus =
@@ -45,6 +48,8 @@ type RequestMatchRow = {
   matched_at: string;
   viewed_at: string | null;
   responded_at: string | null;
+  scheduled_at: string | null;
+  completed_at: string | null;
   closed_at: string | null;
 };
 
@@ -86,7 +91,9 @@ type MailboxMessageRow = {
 function formatDate(
   value?: string | null,
 ) {
-  if (!value) return "Flexible / Not specified";
+  if (!value) {
+    return "Flexible / Not specified";
+  }
 
   const parsed = new Date(
     `${value}T00:00:00`,
@@ -142,6 +149,12 @@ function getMatchStatusLabel(
 
     case "responded":
       return "Responded";
+
+    case "scheduled":
+      return "Scheduled";
+
+    case "completed":
+      return "Completed";
 
     case "closed":
       return "Closed";
@@ -330,6 +343,8 @@ export default async function ConnectRequestDetailPage({
         "matched_at",
         "viewed_at",
         "responded_at",
+        "scheduled_at",
+        "completed_at",
         "closed_at",
       ].join(","),
     )
@@ -388,6 +403,8 @@ export default async function ConnectRequestDetailPage({
           "matched_at",
           "viewed_at",
           "responded_at",
+          "scheduled_at",
+          "completed_at",
           "closed_at",
         ].join(","),
       )
@@ -489,7 +506,9 @@ export default async function ConnectRequestDetailPage({
     error: mailboxError,
   } = await sb
     .from("connect_mailboxes")
-    .select("id, status, expires_at")
+    .select(
+      "id, status, expires_at",
+    )
     .eq(
       "request_id",
       connectRequest.id,
@@ -512,89 +531,100 @@ export default async function ConnectRequestDetailPage({
         }
       | null;
 
-let threadId: string | null = null;
+  let threadId: string | null = null;
 
-let providerMessageCount = 0;
+  let providerMessageCount = 0;
 
-let conversationMessages: MailboxMessageRow[] = [];
+  let conversationMessages: MailboxMessageRow[] =
+    [];
 
-if (mailbox) {
-  const {
-    data: threadData,
-    error: threadError,
-  } = await sb
-    .from("connect_mailbox_threads")
-    .select("id")
-    .eq("mailbox_id", mailbox.id)
-    .eq(
-      "provider_microsite_id",
-      site.id,
-    )
-    .maybeSingle();
-
-  if (threadError) {
-    console.error(
-      "Connect mailbox thread lookup failed:",
-      threadError,
-    );
-  }
-
-  const thread =
-    threadData as unknown as
-      | { id: string }
-      | null;
-
-  if (thread) {
-    threadId = thread.id;
-
-    /*
-     * Load only this provider's private
-     * conversation.
-     *
-     * Because the thread itself is tied
-     * to site.id above, messages from
-     * other providers cannot appear here.
-     */
+  if (mailbox) {
     const {
-      data: messageData,
-      error: messageError,
+      data: threadData,
+      error: threadError,
     } = await sb
-      .from("connect_mailbox_messages")
-      .select(
-        [
-          "id",
-          "thread_id",
-          "sender_type",
-          "message",
-          "created_at",
-          "updated_at",
-        ].join(","),
+      .from(
+        "connect_mailbox_threads",
       )
-      .eq("thread_id", thread.id)
-      .order("created_at", {
-        ascending: true,
-      });
+      .select("id")
+      .eq(
+        "mailbox_id",
+        mailbox.id,
+      )
+      .eq(
+        "provider_microsite_id",
+        site.id,
+      )
+      .maybeSingle();
 
-    if (messageError) {
+    if (threadError) {
       console.error(
-        "Connect mailbox messages load failed:",
-        messageError,
+        "Connect mailbox thread lookup failed:",
+        threadError,
       );
-    } else {
-      conversationMessages =
-        (messageData ??
-          []) as unknown as
-          MailboxMessageRow[];
+    }
 
-      providerMessageCount =
-        conversationMessages.filter(
-          (message) =>
-            message.sender_type ===
-            "provider",
-        ).length;
+    const thread =
+      threadData as unknown as
+        | { id: string }
+        | null;
+
+    if (thread) {
+      threadId = thread.id;
+
+      /*
+       * Load only this provider's private
+       * conversation.
+       *
+       * Because the thread itself is tied
+       * to site.id above, messages from
+       * other providers cannot appear here.
+       */
+      const {
+        data: messageData,
+        error: messageError,
+      } = await sb
+        .from(
+          "connect_mailbox_messages",
+        )
+        .select(
+          [
+            "id",
+            "thread_id",
+            "sender_type",
+            "message",
+            "created_at",
+            "updated_at",
+          ].join(","),
+        )
+        .eq(
+          "thread_id",
+          thread.id,
+        )
+        .order("created_at", {
+          ascending: true,
+        });
+
+      if (messageError) {
+        console.error(
+          "Connect mailbox messages load failed:",
+          messageError,
+        );
+      } else {
+        conversationMessages =
+          (messageData ??
+            []) as unknown as
+            MailboxMessageRow[];
+
+        providerMessageCount =
+          conversationMessages.filter(
+            (message) =>
+              message.sender_type ===
+              "provider",
+          ).length;
+      }
     }
   }
-}
 
   const mailboxExpired =
     !mailbox ||
@@ -638,13 +668,22 @@ if (mailbox) {
               <span
                 className={[
                   "inline-flex items-center rounded-full px-3 py-1.5 text-xs font-semibold",
-                  match.status === "responded"
-                    ? "bg-emerald-50 text-emerald-700"
-                    : match.status === "closed"
-                      ? "bg-neutral-100 text-neutral-600"
-                      : match.status === "new"
-                        ? "bg-blue-50 text-blue-700"
-                        : "bg-amber-50 text-amber-700",
+                  match.status ===
+                  "completed"
+                    ? "bg-emerald-100 text-emerald-800"
+                    : match.status ===
+                        "scheduled"
+                      ? "bg-amber-100 text-amber-800"
+                      : match.status ===
+                          "responded"
+                        ? "bg-emerald-50 text-emerald-700"
+                        : match.status ===
+                            "closed"
+                          ? "bg-neutral-100 text-neutral-600"
+                          : match.status ===
+                              "new"
+                            ? "bg-blue-50 text-blue-700"
+                            : "bg-amber-50 text-amber-700",
                 ].join(" ")}
               >
                 {getMatchStatusLabel(
@@ -667,7 +706,9 @@ if (mailbox) {
               </div>
 
               <div className="mt-1 font-semibold text-neutral-900">
-                {connectRequest.service}
+                {
+                  connectRequest.service
+                }
               </div>
             </div>
 
@@ -678,7 +719,9 @@ if (mailbox) {
 
               <div className="mt-1 font-semibold text-neutral-900">
                 ZIP{" "}
-                {connectRequest.zip_code}
+                {
+                  connectRequest.zip_code
+                }
               </div>
             </div>
 
@@ -717,11 +760,14 @@ if (mailbox) {
               </h2>
 
               <p className="mt-4 whitespace-pre-wrap text-sm leading-7 text-neutral-700">
-                {connectRequest.details}
+                {
+                  connectRequest.details
+                }
               </p>
             </section>
 
-            {signedPhotos.length > 0 ? (
+            {signedPhotos.length >
+            0 ? (
               <section className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
                 <div className="flex items-center justify-between gap-4">
                   <h2 className="text-lg font-semibold text-neutral-900">
@@ -768,7 +814,8 @@ if (mailbox) {
 
                 <p className="mt-3 text-xs text-neutral-400">
                   Request photos use
-                  temporary private links.
+                  temporary private
+                  links.
                 </p>
               </section>
             ) : null}
@@ -790,149 +837,170 @@ if (mailbox) {
                 number are not shared.
               </p>
 
-<div className="mt-4 rounded-xl border border-emerald-100 bg-white p-3">
-  <div className="text-xs font-medium text-neutral-500">
-    Your responses
-  </div>
-
-  <div className="mt-1 text-xl font-semibold text-neutral-900">
-    {providerMessageCount}
-  </div>
-</div>
-
-{conversationMessages.length > 0 ? (
-  <div className="mt-4">
-    <div className="mb-2 flex items-center justify-between gap-3">
-      <div className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
-        Conversation
-      </div>
-
-      <div className="text-xs text-neutral-400">
-        {conversationMessages.length}{" "}
-        {conversationMessages.length === 1
-          ? "message"
-          : "messages"}
-      </div>
-    </div>
-
-    <div className="max-h-[420px] space-y-3 overflow-y-auto rounded-xl border border-neutral-200 bg-white p-3">
-      {conversationMessages.map(
-        (message) => {
-          const isProvider =
-            message.sender_type ===
-            "provider";
-
-          return (
-            <div
-              key={message.id}
-              className={[
-                "flex",
-                isProvider
-                  ? "justify-end"
-                  : "justify-start",
-              ].join(" ")}
-            >
-              <div
-                className={[
-                  "max-w-[88%] rounded-2xl px-3.5 py-3",
-                  isProvider
-                    ? "rounded-br-md bg-emerald-600 text-white"
-                    : "rounded-bl-md bg-neutral-100 text-neutral-900",
-                ].join(" ")}
-              >
-                <div
-                  className={[
-                    "mb-1 text-[11px] font-semibold",
-                    isProvider
-                      ? "text-emerald-100"
-                      : "text-neutral-500",
-                  ].join(" ")}
-                >
-                  {isProvider
-                    ? "You"
-                    : "Customer"}
+              <div className="mt-4 rounded-xl border border-emerald-100 bg-white p-3">
+                <div className="text-xs font-medium text-neutral-500">
+                  Your responses
                 </div>
 
-                <div className="whitespace-pre-wrap break-words text-sm leading-6">
-                  {message.message}
-                </div>
-
-                <div
-                  className={[
-                    "mt-1.5 text-[10px]",
-                    isProvider
-                      ? "text-emerald-100"
-                      : "text-neutral-400",
-                  ].join(" ")}
-                >
-                  {formatDateTime(
-                    message.created_at,
-                  )}
+                <div className="mt-1 text-xl font-semibold text-neutral-900">
+                  {
+                    providerMessageCount
+                  }
                 </div>
               </div>
-            </div>
-          );
-        },
-      )}
-    </div>
-  </div>
-) : (
-  <div className="mt-4 rounded-xl border border-dashed border-neutral-200 bg-white px-4 py-4 text-center">
-    <div className="text-sm font-medium text-neutral-700">
-      No messages yet
-    </div>
 
-    <div className="mt-1 text-xs leading-5 text-neutral-500">
-      Send the first private response
-      to start a conversation with the
-      customer.
-    </div>
-  </div>
-)}
+              {conversationMessages.length >
+              0 ? (
+                <div className="mt-4">
+                  <div className="mb-2 flex items-center justify-between gap-3">
+                    <div className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                      Conversation
+                    </div>
 
-{canRespond ? (
-  <form
-    action={`/api/dashboard/microsites/${site.id}/connect-requests/${encodeURIComponent(
-      connectRequest.request_code,
-    )}/respond`}
-    method="post"
-    className="mt-4 space-y-3"
-  >
-    <div>
-      <label
-        htmlFor="provider-response-message"
-        className="mb-1.5 block text-xs font-semibold text-neutral-700"
-      >
-        Message to customer
-      </label>
+                    <div className="text-xs text-neutral-400">
+                      {
+                        conversationMessages.length
+                      }{" "}
+                      {conversationMessages.length ===
+                      1
+                        ? "message"
+                        : "messages"}
+                    </div>
+                  </div>
 
-      <textarea
-        id="provider-response-message"
-        name="message"
-        required
-        maxLength={5000}
-        rows={6}
-        placeholder="Introduce yourself, explain how you can help, and include any relevant pricing or availability."
-        className="w-full resize-y rounded-xl border border-neutral-300 bg-white px-3 py-3 text-sm text-neutral-900 outline-none transition placeholder:text-neutral-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
-      />
-    </div>
+                  <div className="max-h-[420px] space-y-3 overflow-y-auto rounded-xl border border-neutral-200 bg-white p-3">
+                    {conversationMessages.map(
+                      (message) => {
+                        const isProvider =
+                          message.sender_type ===
+                          "provider";
 
-    <button
-      type="submit"
-      className="inline-flex w-full items-center justify-center rounded-xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700"
-    >
-      {threadId
-        ? "Send Message"
-        : "Respond Privately"}
-    </button>
+                        return (
+                          <div
+                            key={
+                              message.id
+                            }
+                            className={[
+                              "flex",
+                              isProvider
+                                ? "justify-end"
+                                : "justify-start",
+                            ].join(
+                              " ",
+                            )}
+                          >
+                            <div
+                              className={[
+                                "max-w-[88%] rounded-2xl px-3.5 py-3",
+                                isProvider
+                                  ? "rounded-br-md bg-emerald-600 text-white"
+                                  : "rounded-bl-md bg-neutral-100 text-neutral-900",
+                              ].join(
+                                " ",
+                              )}
+                            >
+                              <div
+                                className={[
+                                  "mb-1 text-[11px] font-semibold",
+                                  isProvider
+                                    ? "text-emerald-100"
+                                    : "text-neutral-500",
+                                ].join(
+                                  " ",
+                                )}
+                              >
+                                {isProvider
+                                  ? "You"
+                                  : "Customer"}
+                              </div>
 
-    <p className="text-center text-xs leading-5 text-neutral-500">
-      This message is visible only to
-      the customer in their private
-      Ko-Host Mailbox.
-    </p>
-  </form>
-) : (
+                              <div className="whitespace-pre-wrap break-words text-sm leading-6">
+                                {
+                                  message.message
+                                }
+                              </div>
+
+                              <div
+                                className={[
+                                  "mt-1.5 text-[10px]",
+                                  isProvider
+                                    ? "text-emerald-100"
+                                    : "text-neutral-400",
+                                ].join(
+                                  " ",
+                                )}
+                              >
+                                {formatDateTime(
+                                  message.created_at,
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      },
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="mt-4 rounded-xl border border-dashed border-neutral-200 bg-white px-4 py-4 text-center">
+                  <div className="text-sm font-medium text-neutral-700">
+                    No messages yet
+                  </div>
+
+                  <div className="mt-1 text-xs leading-5 text-neutral-500">
+                    Send the first
+                    private response to
+                    start a conversation
+                    with the customer.
+                  </div>
+                </div>
+              )}
+
+              {canRespond ? (
+                <form
+                  action={`/api/dashboard/microsites/${site.id}/connect-requests/${encodeURIComponent(
+                    connectRequest.request_code,
+                  )}/respond`}
+                  method="post"
+                  className="mt-4 space-y-3"
+                >
+                  <div>
+                    <label
+                      htmlFor="provider-response-message"
+                      className="mb-1.5 block text-xs font-semibold text-neutral-700"
+                    >
+                      Message to customer
+                    </label>
+
+                    <textarea
+                      id="provider-response-message"
+                      name="message"
+                      required
+                      maxLength={5000}
+                      rows={6}
+                      placeholder="Introduce yourself, explain how you can help, and include any relevant pricing or availability."
+                      className="w-full resize-y rounded-xl border border-neutral-300 bg-white px-3 py-3 text-sm text-neutral-900 outline-none transition placeholder:text-neutral-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="inline-flex w-full items-center justify-center rounded-xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700"
+                  >
+                    {threadId
+                      ? "Send Message"
+                      : "Respond Privately"}
+                  </button>
+
+                  <p className="text-center text-xs leading-5 text-neutral-500">
+                    This message is
+                    visible only to the
+                    customer in their
+                    private Ko-Host
+                    Mailbox.
+                  </p>
+                </form>
+              ) : (
                 <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-100 px-4 py-3 text-sm text-neutral-600">
                   {mailboxExpired
                     ? "This private mailbox is no longer available."
@@ -942,6 +1010,17 @@ if (mailbox) {
                 </div>
               )}
             </section>
+
+            {/* SERVICE STATUS */}
+            <ConnectRequestStatusControls
+              micrositeId={site.id}
+              requestCode={
+                connectRequest.request_code
+              }
+              currentStatus={
+                match.status
+              }
+            />
 
             <section className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
               <div className="text-xs font-medium uppercase tracking-wide text-neutral-500">
@@ -964,8 +1043,8 @@ if (mailbox) {
                 </div>
               ) : (
                 <div className="mt-4 rounded-lg bg-neutral-50 px-3 py-2 text-xs text-neutral-500">
-                  No conversation started
-                  yet
+                  No conversation
+                  started yet
                 </div>
               )}
             </section>
