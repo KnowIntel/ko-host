@@ -1126,7 +1126,6 @@ remains active for{" "}
 <strong className="font-semibold text-[#284c3e]">
   30 days
 </strong>
-.
                     . Each provider
                     conversation will stay
                     private from other
@@ -1626,7 +1625,6 @@ remain available for
   30 days
 </strong>
 .
-                    .
                   </div>
                 </div>
               </div>
