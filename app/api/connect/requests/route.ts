@@ -812,9 +812,9 @@ if (notificationEmail) {
             Keep this PIN private. You will need it to access your mailbox.
           </p>
 
-          <p>
-            Your Ko-Host Connect mailbox is available for 12 days.
-          </p>
+<p>
+  Your Ko-Host Connect mailbox is available for 30 days.
+</p>
 
           <div style="margin-top: 28px;">
             <a

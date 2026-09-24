@@ -1121,11 +1121,12 @@ export default function ConnectRequestPage() {
                   </div>
 
                   <div className="rounded-xl border border-[#d7e2dc] bg-white/70 px-4 py-3 text-[11px] leading-5 text-[#52665d]">
-                    This temporary mailbox
-                    remains active for{" "}
-                    <strong className="font-semibold text-[#284c3e]">
-                      12 days
-                    </strong>
+This temporary mailbox
+remains active for{" "}
+<strong className="font-semibold text-[#284c3e]">
+  30 days
+</strong>
+.
                     . Each provider
                     conversation will stay
                     private from other
@@ -1618,12 +1619,13 @@ export default function ConnectRequestPage() {
                   </div>
 
                   <div className="mt-4 rounded-xl border border-[#d7e2dc] bg-white/70 px-4 py-3 text-[11px] leading-5 text-[#52665d]">
-                    Your mailbox will
-                    remain available for
-                    <strong className="font-semibold text-[#284c3e]">
-                      {" "}
-                      12 days
-                    </strong>
+Your mailbox will
+remain available for
+<strong className="font-semibold text-[#284c3e]">
+  {" "}
+  30 days
+</strong>
+.
                     .
                   </div>
                 </div>
