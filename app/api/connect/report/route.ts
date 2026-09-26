@@ -354,30 +354,29 @@ export async function POST(req: Request) {
      * provider conversation while an existing report
      * is still awaiting review.
      */
-    const {
-      data: existingReport,
-      error: duplicateCheckError,
-    } = await supabase
-      .from("connect_user_reports")
-      .select("id")
-      .eq(
-        "mailbox_id",
-        mailbox.id,
-      )
-      .eq(
-        "thread_id",
-        thread.id,
-      )
-      .eq(
-        "reported_by",
-        "consumer",
-      )
-      .in(
-        "status",
-        ["new", "reviewing"],
-      )
-      .limit(1)
-      .maybeSingle();
+const {
+  data: existingReports,
+  error: duplicateCheckError,
+} = await supabase
+  .from("connect_user_reports")
+  .select("id")
+  .eq(
+    "mailbox_id",
+    mailbox.id,
+  )
+  .eq(
+    "thread_id",
+    thread.id,
+  )
+  .eq(
+    "reported_by",
+    "consumer",
+  )
+  .in(
+    "status",
+    ["new", "reviewing"],
+  )
+  .limit(1);
 
     if (duplicateCheckError) {
       console.error(
@@ -396,7 +395,10 @@ export async function POST(req: Request) {
       );
     }
 
-    if (existingReport) {
+if (
+  existingReports &&
+  existingReports.length > 0
+) {
       return NextResponse.json(
         {
           error:
