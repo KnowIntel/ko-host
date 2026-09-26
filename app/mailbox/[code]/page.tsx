@@ -1,8 +1,15 @@
+// app\mailbox\[code]\page.tsx
+
 import Link from "next/link";
 import { cookies } from "next/headers";
-import crypto from "crypto";
 
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
+import {
+  normalizeMailboxCode,
+  buildMailboxAccessCookieName,
+  buildMailboxAccessCookieValue,
+  safeHashesMatch,
+} from "@/lib/connect/mailboxAuth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -64,60 +71,6 @@ type ConsumerConversation = {
   provider: ProviderMicrositeRow | null;
   messages: MailboxMessageRow[];
 };
-
-function normalizeMailboxCode(input: string) {
-  return String(input || "")
-    .trim()
-    .replace(/[^A-Za-z0-9]/g, "")
-    .slice(0, 10);
-}
-
-function buildMailboxAccessCookieName(
-  mailboxCode: string,
-) {
-  return `khc_mailbox_${mailboxCode}`;
-}
-
-function buildMailboxAccessCookieValue(
-  mailboxCode: string,
-  pinHash: string,
-) {
-  return crypto
-    .createHash("sha256")
-    .update(`${mailboxCode}:${pinHash}`)
-    .digest("hex");
-}
-
-function safeValuesMatch(
-  incomingValue: string,
-  expectedValue: string,
-) {
-  try {
-    const incomingBuffer = Buffer.from(
-      incomingValue,
-      "hex",
-    );
-
-    const expectedBuffer = Buffer.from(
-      expectedValue,
-      "hex",
-    );
-
-    if (
-      incomingBuffer.length === 0 ||
-      incomingBuffer.length !== expectedBuffer.length
-    ) {
-      return false;
-    }
-
-    return crypto.timingSafeEqual(
-      incomingBuffer,
-      expectedBuffer,
-    );
-  } catch {
-    return false;
-  }
-}
 
 function formatDate(value: string | null) {
   if (!value) {
@@ -363,7 +316,7 @@ export default async function MailboxPage({
     return (
       <MailboxUnavailable
         title="Mailbox expired"
-        message="This temporary Ko-Host Mailbox has reached the end of its 12-day access period."
+        message="This temporary Ko-Host Mailbox has reached the end of its access period."
       />
     );
   }
@@ -393,10 +346,10 @@ export default async function MailboxPage({
 
   const hasAccess =
     Boolean(incomingCookie) &&
-    safeValuesMatch(
-      incomingCookie,
-      expectedCookie,
-    );
+safeHashesMatch(
+  incomingCookie,
+  expectedCookie,
+);
 
   if (!hasAccess) {
     const accessState: MailboxAccessState | undefined =
@@ -452,9 +405,9 @@ export default async function MailboxPage({
               />
 
               <div className="mt-5 rounded-xl border border-[#d7e2dc] bg-[#f1f6f3] px-4 py-3 text-[11px] leading-5 text-[#52665d]">
-                Your personal contact information is not
-                shared with providers. Mailbox access
-                automatically expires after 12 days.
+Your personal contact information is not
+shared with providers. Your mailbox will
+remain available until its expiration date.
               </div>
 
               <Link
@@ -726,13 +679,17 @@ return (
                 </p>
               </div>
 
-              <div className="mt-5 rounded-xl border border-[#d7e2dc] bg-[#f1f6f3] px-4 py-3 text-[11px] leading-5 text-[#52665d]">
-                Mailbox expires{" "}
-                <strong className="font-semibold text-[#284c3e]">
-                  {formatDate(mailbox.expires_at)}
-                </strong>
-                .
-              </div>
+<div className="mt-5 rounded-xl border border-[#d7e2dc] bg-[#f1f6f3] px-4 py-3 text-[11px] leading-5 text-[#52665d]">
+  <div className="font-semibold text-[#284c3e]">
+    Mailbox & conversations expire{" "}
+    {formatDate(mailbox.expires_at)}
+  </div>
+
+  <div className="mt-1 text-[#60756b]">
+    After this date, this request and its private provider
+    conversations will no longer be available.
+  </div>
+</div>
             </section>
 
 {/* PROVIDER RESPONSES */}
@@ -808,19 +765,42 @@ return (
                     Conversation
                   </div>
                 </div>
+<div className="flex flex-wrap items-center gap-2">
+  {providerSlug ? (
+    <Link
+      href={`/s/${encodeURIComponent(
+        providerSlug,
+      )}`}
+      target="_blank"
+      rel="noreferrer"
+      className="inline-flex shrink-0 items-center justify-center rounded-xl border border-[#cdd5cf] bg-white px-3 py-2 text-[11px] font-semibold text-[#315847] transition hover:border-[#6e9583] hover:bg-[#f1f6f3]"
+    >
+      View Provider →
+    </Link>
+  ) : null}
 
-                {providerSlug ? (
-                  <Link
-                    href={`/s/${encodeURIComponent(
-                      providerSlug,
-                    )}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex shrink-0 items-center justify-center rounded-xl border border-[#cdd5cf] bg-white px-3 py-2 text-[11px] font-semibold text-[#315847] transition hover:border-[#6e9583] hover:bg-[#f1f6f3]"
-                  >
-                    View Provider →
-                  </Link>
-                ) : null}
+  <Link
+    href={`/connect/report?mailbox=${encodeURIComponent(
+      safeCode,
+    )}&thread=${encodeURIComponent(
+      conversation.thread.id,
+    )}`}
+    className="inline-flex shrink-0 items-center justify-center rounded-xl border border-red-200 bg-white px-3 py-2 text-[11px] font-semibold text-red-700 transition hover:border-red-300 hover:bg-red-50"
+  >
+    Report User
+  </Link>
+
+  <Link
+    href={`/connect/assistance?mailbox=${encodeURIComponent(
+      safeCode,
+    )}&thread=${encodeURIComponent(
+      conversation.thread.id,
+    )}`}
+    className="inline-flex shrink-0 items-center justify-center rounded-xl border border-[#cdd5cf] bg-white px-3 py-2 text-[11px] font-semibold text-[#315847] transition hover:border-[#6e9583] hover:bg-[#f1f6f3]"
+  >
+    Need Assistance
+  </Link>
+</div>
               </div>
 
               {/* CONVERSATION */}

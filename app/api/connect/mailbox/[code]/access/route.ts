@@ -1,23 +1,25 @@
-import { NextResponse } from "next/server";
+// app\api\connect\mailbox\[code]\access\route.ts
+
 import crypto from "crypto";
+import { NextResponse } from "next/server";
+import {
+  MAILBOX_CODE_PATTERN,
+  normalizeMailboxCode,
+  buildMailboxAccessCookieName,
+  buildMailboxAccessCookieValue,
+  safeHashesMatch,
+  mailboxIsExpired,
+} from "@/lib/connect/mailboxAuth";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const MAILBOX_CODE_PATTERN = /^[A-Za-z0-9]{10}$/;
 const MAILBOX_PIN_PATTERN = /^\d{6}$/;
 
 // Keep the authenticated browser session short-lived.
-// The mailbox itself still exists for 12 days.
+// The mailbox itself currently exists for 30 days.
 const MAILBOX_SESSION_MAX_AGE = 60 * 60 * 12;
-
-function normalizeMailboxCode(input: string) {
-  return String(input || "")
-    .trim()
-    .replace(/[^A-Za-z0-9]/g, "")
-    .slice(0, 10);
-}
 
 function normalizeMailboxPin(input: string) {
   return String(input || "")
@@ -33,50 +35,6 @@ function hashMailboxPin(pin: string) {
     .digest("hex");
 }
 
-function buildMailboxAccessCookieName(mailboxCode: string) {
-  return `khc_mailbox_${mailboxCode}`;
-}
-
-function buildMailboxAccessCookieValue(
-  mailboxCode: string,
-  pinHash: string,
-) {
-  return crypto
-    .createHash("sha256")
-    .update(`${mailboxCode}:${pinHash}`)
-    .digest("hex");
-}
-
-function safeHashesMatch(
-  incomingHash: string,
-  storedHash: string,
-) {
-  try {
-    const incomingBuffer = Buffer.from(
-      incomingHash,
-      "hex",
-    );
-
-    const storedBuffer = Buffer.from(
-      storedHash,
-      "hex",
-    );
-
-    if (
-      incomingBuffer.length === 0 ||
-      incomingBuffer.length !== storedBuffer.length
-    ) {
-      return false;
-    }
-
-    return crypto.timingSafeEqual(
-      incomingBuffer,
-      storedBuffer,
-    );
-  } catch {
-    return false;
-  }
-}
 
 export async function POST(
   req: Request,
@@ -193,14 +151,10 @@ export async function POST(
    * Do not allow authentication into a closed or expired
    * mailbox.
    */
-  const expiresAt = new Date(
-    mailbox.expires_at,
-  ).getTime();
-
-  const mailboxExpired =
-    !Number.isFinite(expiresAt) ||
-    expiresAt <= Date.now() ||
-    mailbox.status === "expired";
+const mailboxExpired = mailboxIsExpired(
+  String(mailbox.expires_at),
+  String(mailbox.status),
+);
 
   if (mailboxExpired) {
     /*
