@@ -1,4 +1,4 @@
-// lib\uploadImage.ts
+// lib/uploadImage.ts
 
 import imageCompression from "browser-image-compression";
 import { createClient } from "@supabase/supabase-js";
@@ -9,6 +9,49 @@ const supabase = createClient(
 );
 
 export async function uploadImage(file: File) {
+  const isGif =
+    file.type === "image/gif" ||
+    file.name.toLowerCase().endsWith(".gif");
+
+  /*
+   * Animated GIFs must be uploaded untouched.
+   *
+   * Running a GIF through browser-image-compression and
+   * converting it to WebP flattens the animation to a
+   * single frame.
+   */
+  if (isGif) {
+    const fileName = `${Date.now()}-${Math.random()
+      .toString(36)
+      .slice(2)}.gif`;
+
+    const { error } = await supabase.storage
+      .from("uploads")
+      .upload(fileName, file, {
+        cacheControl: "3600",
+        upsert: false,
+        contentType: "image/gif",
+      });
+
+    if (error) throw error;
+
+    const { data } = supabase.storage
+      .from("uploads")
+      .getPublicUrl(fileName);
+
+    return {
+      url: data.publicUrl,
+      storagePath: fileName,
+      imageSizeBytes: file.size,
+      imageOriginalSizeBytes: file.size,
+      imageMimeType: "image/gif",
+    };
+  }
+
+  /*
+   * Static images continue through the existing
+   * compression / WebP optimization pipeline.
+   */
   const compressed = await imageCompression(file, {
     maxSizeMB: 2,
     maxWidthOrHeight: 3000,
@@ -30,7 +73,9 @@ export async function uploadImage(file: File) {
 
   if (error) throw error;
 
-  const { data } = supabase.storage.from("uploads").getPublicUrl(fileName);
+  const { data } = supabase.storage
+    .from("uploads")
+    .getPublicUrl(fileName);
 
   return {
     url: data.publicUrl,
