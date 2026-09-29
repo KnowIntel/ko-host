@@ -6,7 +6,7 @@ export default createLayoutPreset({
 
   label: "Warm Classic",
   description: "Traditional inviting layout",
-  thumbnail: "/designs/design-cards/design-card_family_reunion_warm.webp",
+  thumbnail: "/designs/design-cards/design-card_family_reunion_warm.gif",
 
   recommended: true,
 
