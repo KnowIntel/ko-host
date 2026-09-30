@@ -8,7 +8,7 @@ export default createLayoutPreset({
     "Immersive photo gallery layout focused on cinematic imagery, visual storytelling, and modern presentation",
 
   thumbnail:
-    "/designs/design-cards/design-card_photo_gallery_escape.webp",
+    "/designs/design-cards/design-card_photo_gallery_escape.gif",
 
   recommended: true,
 });
