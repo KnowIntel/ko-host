@@ -9,7 +9,7 @@ export default createLayoutPreset({
     "Science project layout featuring research questions, hypotheses, variables, experiment procedures, data collection, results, and conclusions",
 
   thumbnail:
-    "/designs/design-cards/design-card_project_caffeine.webp",
+    "/designs/design-cards/design-card_project_caffeine.gif",
 
   recommended: true,
 });
