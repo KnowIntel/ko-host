@@ -152,6 +152,7 @@ export type BuilderBlockType =
   | "tournament_display"
   | "calendar_event"
   | "map_location"
+  | "qr_code"
   | "file_share"
   | "speed_dating"
   | "process_flow"
@@ -3130,6 +3131,38 @@ export type MapLocationBlock = BaseBlock & {
   };
 };
 
+export type QrCodeBlock = BaseBlock & {
+  type: "qr_code";
+  data: {
+    url?: string;
+
+    foregroundColor?: string;
+    backgroundColor?: string;
+
+    dotShape?:
+      | "square"
+      | "rounded"
+      | "dots"
+      | "classy";
+
+    cornerShape?:
+      | "square"
+      | "rounded"
+      | "dot";
+
+    logoUrl?: string;
+    logoStoragePath?: string;
+    logoSizeBytes?: number;
+    logoOriginalSizeBytes?: number;
+    logoMimeType?: string;
+
+    logoSize?: number;
+    margin?: number;
+
+    generated?: boolean;
+  };
+};
+
 export type FileShareBlock = BaseBlock & {
   type: "file_share";
   data: {
@@ -4686,6 +4719,7 @@ export type MicrositeBlock = (
   | TournamentDisplayBlock
   | CalendarEventBlock
   | MapLocationBlock
+  | QrCodeBlock
   | FileShareBlock
   | SpeedDatingBlock
   | PopBalloonBlock
@@ -12511,6 +12545,33 @@ case "calendar_event":
         },
       };
 
+      case "qr_code":
+  return {
+    id: makeId("qr"),
+    type: "qr_code",
+    label: "QR Code",
+    grid: {
+      ...grid,
+      rowSpan: 4,
+    },
+    appearance: createDefaultBlockAppearance(),
+    data: {
+      url: "",
+      foregroundColor: "#000000",
+      backgroundColor: "#ffffff",
+      dotShape: "square",
+      cornerShape: "square",
+      logoUrl: "",
+      logoStoragePath: "",
+      logoSizeBytes: 0,
+      logoOriginalSizeBytes: 0,
+      logoMimeType: "",
+      logoSize: 20,
+      margin: 10,
+      generated: false,
+    },
+  };
+  
     case "file_share":
       return {
         id: makeId("fileshare"),

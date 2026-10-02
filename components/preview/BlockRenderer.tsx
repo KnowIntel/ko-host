@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import QRCodeStyling from "qr-code-styling";
 import { createPortal } from "react-dom";
 import SpeedDatingLive from "@/components/blocks/SpeedDatingLive";
 import PopBalloonLive from "@/components/blocks/PopBalloonLive";
@@ -38879,6 +38880,167 @@ professionalSubmitMessage ? (
   );
 }
 
+function QrCodeDisplay({
+  url,
+  foregroundColor,
+  backgroundColor,
+  dotShape,
+  cornerShape,
+  logoUrl,
+  logoSize,
+  margin,
+}: {
+  url: string;
+  foregroundColor: string;
+  backgroundColor: string;
+  dotShape: "square" | "rounded" | "dots" | "classy";
+  cornerShape: "square" | "rounded" | "dot";
+  logoUrl?: string;
+  logoSize: number;
+  margin: number;
+}) {
+  const qrRef = useRef<HTMLDivElement | null>(null);
+  const qrInstanceRef = useRef<QRCodeStyling | null>(null);
+
+  useEffect(() => {
+    if (!qrRef.current || !url) return;
+
+    const qr = new QRCodeStyling({
+      width: 1000,
+      height: 1000,
+      type: "svg",
+      data: url,
+      margin,
+      qrOptions: {
+        errorCorrectionLevel: logoUrl ? "H" : "Q",
+      },
+      dotsOptions: {
+        color: foregroundColor,
+        type: dotShape,
+      },
+      backgroundOptions: {
+        color: backgroundColor,
+      },
+      cornersSquareOptions: {
+        color: foregroundColor,
+        type:
+          cornerShape === "rounded"
+            ? "extra-rounded"
+            : cornerShape === "dot"
+              ? "dot"
+              : "square",
+      },
+      cornersDotOptions: {
+        color: foregroundColor,
+        type: cornerShape === "square" ? "square" : "dot",
+      },
+      ...(logoUrl
+        ? {
+            image: logoUrl,
+            imageOptions: {
+              crossOrigin: "anonymous",
+              margin: 4,
+              imageSize: Math.max(
+                0.1,
+                Math.min(0.4, logoSize / 100),
+              ),
+              hideBackgroundDots: true,
+            },
+          }
+        : {}),
+    });
+
+    qrInstanceRef.current = qr;
+
+    qrRef.current.innerHTML = "";
+    qr.append(qrRef.current);
+
+    return () => {
+      if (qrRef.current) {
+        qrRef.current.innerHTML = "";
+      }
+
+      qrInstanceRef.current = null;
+    };
+  }, [
+    url,
+    foregroundColor,
+    backgroundColor,
+    dotShape,
+    cornerShape,
+    logoUrl,
+    logoSize,
+    margin,
+  ]);
+
+  return (
+    <div
+      ref={qrRef}
+      className="aspect-square h-auto w-full max-w-full overflow-hidden"
+      style={{
+        backgroundColor,
+      }}
+    />
+  );
+}
+
+function renderQrCode(
+  block: Extract<MicrositeBlock, { type: "qr_code" }>,
+  designKey?: string,
+) {
+  const url = block.data.url?.trim() || "";
+  const generated = Boolean(block.data.generated);
+
+  if (!generated || !url) {
+    return (
+      <Surface
+        block={block}
+        designKey={designKey}
+        className={getSoftSurfaceClass(designKey)}
+      >
+        <div
+          className={[
+            "flex h-full min-h-40 w-full items-center justify-center",
+            "rounded-xl border border-dashed px-4 py-8 text-center text-sm",
+            isLightDesign(designKey)
+              ? "border-neutral-300 bg-neutral-50 text-neutral-500"
+              : "border-white/15 bg-white/5 text-white/60",
+          ].join(" ")}
+        >
+          Set a URL in the inspector and generate your QR code.
+        </div>
+      </Surface>
+    );
+  }
+
+  return (
+    <Surface
+      block={block}
+      designKey={designKey}
+      className={getSoftSurfaceClass(designKey)}
+    >
+      <div className="flex h-full w-full items-center justify-center">
+        <div className="w-full max-w-full">
+          <QrCodeDisplay
+            url={url}
+            foregroundColor={
+              block.data.foregroundColor || "#000000"
+            }
+            backgroundColor={
+              block.data.backgroundColor || "#ffffff"
+            }
+            dotShape={block.data.dotShape || "square"}
+            cornerShape={block.data.cornerShape || "square"}
+            logoUrl={block.data.logoUrl || undefined}
+            logoSize={block.data.logoSize ?? 20}
+            margin={block.data.margin ?? 10}
+          />
+        </div>
+      </div>
+    </Surface>
+  );
+}
+
 function renderMapLocation(
   block: Extract<MicrositeBlock, { type: "map_location" }>,
   designKey?: string,
@@ -41287,6 +41449,11 @@ case "calendar_event":
   );
     case "map_location":
       return renderMapLocation(block, designKey);
+
+      case "qr_code":
+  return renderQrCode(block, designKey);
+
+
     case "file_share":
       return renderFileShare(block, designKey, micrositeId);
     case "speed_dating":

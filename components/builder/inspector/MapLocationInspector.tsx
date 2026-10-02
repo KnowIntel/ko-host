@@ -1,3 +1,5 @@
+// components\builder\inspector\MapLocationInspector.tsx
+
 "use client";
 
 import {

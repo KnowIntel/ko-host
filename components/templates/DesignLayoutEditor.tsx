@@ -26,6 +26,7 @@ import {
   ScheduleAgendaInspector,
   TournamentDisplayInspector,
   MapLocationInspector,
+  QrCodeInspector,
   SpreadsheetInspector,
   FileShareInspector,
   PuzzleInspector,
@@ -1223,9 +1224,11 @@ UTILITIES: [
   { kind: "block", label: "Link", type: "links" },
   { kind: "block", label: "Link Hub", type: "link_hub" },
   { kind: "block", label: "Bookmark", type: "bookmark" },
+  { kind: "block", label: "QR Code", type: "qr_code" },
   // { kind: "block", label: "Puzzle", type: "puzzle" },
   // { kind: "block", label: "Spin Wheel", type: "spin_wheel" },
 ],
+
   "DATA": [
     { kind: "block", label: "Highlight", type: "highlight" },
     { kind: "block", label: "Summary", type: "summary" },
@@ -3838,6 +3841,36 @@ async function handleTextureFileChange(fileList: FileList | null) {
   } catch {
     setTextureUploadError("Texture upload failed. Please try again.");
   }
+}
+
+async function uploadQrLogoToSelectedBlock(file: File) {
+  if (!file.type.startsWith("image/")) {
+    throw new Error("Please choose an image file.");
+  }
+
+  if (file.size > 2 * 1024 * 1024) {
+    throw new Error("QR logo must be 2MB or smaller.");
+  }
+
+  const uploaded = await uploadBuilderImageFile(file);
+
+  updateSelectedBlock((block: MicrositeBlock) =>
+    block.type !== "qr_code"
+      ? block
+      : {
+          ...block,
+          data: {
+            ...block.data,
+            logoUrl: uploaded.url,
+            logoStoragePath: uploaded.storagePath,
+            logoSizeBytes: uploaded.imageSizeBytes,
+            logoOriginalSizeBytes: uploaded.imageOriginalSizeBytes,
+            logoMimeType: uploaded.imageMimeType,
+          },
+        },
+  );
+
+  return uploaded;
 }
 
 function removeTextureFromSelectedBlock() {
@@ -18284,6 +18317,17 @@ selectedBlock?.type === "donation" ? (
   inspectorLabelClass={inspectorLabelClass}
   inspectorInputClass={inspectorInputClass}
 />
+) : null}
+
+{!isMultiSelection && selectedBlock?.type === "qr_code" ? (
+  <QrCodeInspector
+    selectedBlock={selectedBlock}
+    updateSelectedBlock={updateSelectedBlock}
+    uploadQrLogoToSelectedBlock={uploadQrLogoToSelectedBlock}
+    inspectorCardClass={inspectorCardClass}
+    inspectorLabelClass={inspectorLabelClass}
+    inspectorInputClass={inspectorInputClass}
+  />
 ) : null}
 
 {!isMultiSelection && selectedBlock?.type === "bookmark" ? (

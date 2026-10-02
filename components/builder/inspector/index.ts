@@ -13,6 +13,7 @@ export { CalendarEventInspector } from "./CalendarEventInspector";
 export { ScheduleAgendaInspector } from "./ScheduleAgendaInspector";
 export { TournamentDisplayInspector } from "./TournamentDisplayInspector";
 export { MapLocationInspector } from "./MapLocationInspector";
+export { QrCodeInspector } from "./QrCodeInspector";
 export { SpreadsheetInspector } from "./SpreadsheetInspector";
 export { FileShareInspector } from "./FileShareInspector";
 export { PuzzleInspector } from "./PuzzleInspector";
