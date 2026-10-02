@@ -2257,6 +2257,7 @@ function getToolIconPath(tool: (typeof CATEGORY_BUTTONS)[BottomCategory][number]
   if (tool.label === "Link") return "/menu-icons/block-links.svg";
   if (tool.label === "Link Hub") return "/menu-icons/block-link-hub.svg";
   if (tool.label === "Bookmark") return "/menu-icons/block-bookmark.svg";
+  if (tool.label === "QR Code") return "/menu-icons/block-qr-code.svg";
 
   if (tool.label === "Highlight") return "/menu-icons/block-highlight.svg";
   if (tool.label === "Summary") return "/menu-icons/block-summary.svg";
