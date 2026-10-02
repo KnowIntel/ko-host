@@ -323,48 +323,32 @@ export function QrCodeInspector({
               </button>
             </div>
 
-            <div className="mt-4">
-<div className={inspectorLabelClass()}>
-  Logo Size:{" "}
-  {Math.round(
-    ((selectedBlock.data.logoSize ?? 20) / 20) * 100,
-  )}
-  %
+<div className="mt-4">
+  <div className={inspectorLabelClass()}>
+    Logo Size:{" "}
+    {Math.round(
+      ((selectedBlock.data.logoSize ?? 20) / 20) * 100,
+    )}
+    %
+  </div>
+
+  <input
+    type="range"
+    min={2}
+    max={20}
+    step={1}
+    value={Math.min(
+      selectedBlock.data.logoSize ?? 20,
+      20,
+    )}
+    onChange={(e) =>
+      updateQrData({
+        logoSize: Number(e.target.value),
+      })
+    }
+    className="mt-2 w-full"
+  />
 </div>
-
-<input
-  type="range"
-  min={2}
-  max={20}
-  step={1}
-  value={Math.min(
-    selectedBlock.data.logoSize ?? 20,
-    20,
-  )}
-  onChange={(e) =>
-    updateQrData({
-      logoSize: Number(e.target.value),
-    })
-  }
-  className="mt-2 w-full"
-/>
-
-              <input
-                type="range"
-                min={10}
-                max={35}
-                step={1}
-                value={
-                  selectedBlock.data.logoSize ?? 20
-                }
-                onChange={(e) =>
-                  updateQrData({
-                    logoSize: Number(e.target.value),
-                  })
-                }
-                className="mt-2 w-full"
-              />
-            </div>
           </>
         ) : (
           <button
