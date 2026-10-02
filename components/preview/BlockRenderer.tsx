@@ -38899,28 +38899,72 @@ function QrCodeDisplay({
   logoSize: number;
   margin: number;
 }) {
-  const qrRef = useRef<HTMLDivElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const qrMountRef = useRef<HTMLDivElement | null>(null);
   const qrInstanceRef = useRef<QRCodeStyling | null>(null);
 
+  const [qrSize, setQrSize] = useState(200);
+
+  // Dynamically size the QR to the available block dimensions.
   useEffect(() => {
-    if (!qrRef.current || !url) return;
+    const container = containerRef.current;
+    if (!container) return;
+
+    const updateSize = () => {
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+
+      if (!width || !height) return;
+
+      // QR codes must remain square, so use the smaller dimension.
+      const nextSize = Math.max(
+        40,
+        Math.floor(Math.min(width, height)),
+      );
+
+      setQrSize(nextSize);
+    };
+
+    updateSize();
+
+    const observer = new ResizeObserver(updateSize);
+    observer.observe(container);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
+    const mount = qrMountRef.current;
+
+    if (!mount || !url || !qrSize) return;
+
+    const normalizedLogoSize = Math.max(
+      0.1,
+      Math.min(0.35, logoSize / 100),
+    );
 
     const qr = new QRCodeStyling({
-      width: 1000,
-      height: 1000,
+      width: qrSize,
+      height: qrSize,
       type: "svg",
       data: url,
       margin,
+
       qrOptions: {
         errorCorrectionLevel: logoUrl ? "H" : "Q",
       },
+
       dotsOptions: {
         color: foregroundColor,
         type: dotShape,
       },
+
       backgroundOptions: {
         color: backgroundColor,
       },
+
       cornersSquareOptions: {
         color: foregroundColor,
         type:
@@ -38930,20 +38974,22 @@ function QrCodeDisplay({
               ? "dot"
               : "square",
       },
+
       cornersDotOptions: {
         color: foregroundColor,
-        type: cornerShape === "square" ? "square" : "dot",
+        type:
+          cornerShape === "square"
+            ? "square"
+            : "dot",
       },
+
       ...(logoUrl
         ? {
             image: logoUrl,
             imageOptions: {
               crossOrigin: "anonymous",
-              margin: 4,
-              imageSize: Math.max(
-                0.1,
-                Math.min(0.4, logoSize / 100),
-              ),
+              margin: 2,
+              imageSize: normalizedLogoSize,
               hideBackgroundDots: true,
             },
           }
@@ -38952,15 +38998,15 @@ function QrCodeDisplay({
 
     qrInstanceRef.current = qr;
 
-    qrRef.current.innerHTML = "";
-    qr.append(qrRef.current);
+    mount.innerHTML = "";
+    qr.append(mount);
 
     return () => {
-      if (qrRef.current) {
-        qrRef.current.innerHTML = "";
-      }
+      mount.innerHTML = "";
 
-      qrInstanceRef.current = null;
+      if (qrInstanceRef.current === qr) {
+        qrInstanceRef.current = null;
+      }
     };
   }, [
     url,
@@ -38971,16 +39017,23 @@ function QrCodeDisplay({
     logoUrl,
     logoSize,
     margin,
+    qrSize,
   ]);
 
   return (
     <div
-      ref={qrRef}
-      className="aspect-square h-auto w-full max-w-full overflow-hidden"
-      style={{
-        backgroundColor,
-      }}
-    />
+      ref={containerRef}
+      className="flex h-full w-full items-center justify-center overflow-hidden"
+    >
+      <div
+        ref={qrMountRef}
+        className="shrink-0"
+        style={{
+          width: qrSize,
+          height: qrSize,
+        }}
+      />
+    </div>
   );
 }
 
@@ -39019,24 +39072,22 @@ function renderQrCode(
       designKey={designKey}
       className={getSoftSurfaceClass(designKey)}
     >
-      <div className="flex h-full w-full items-center justify-center">
-        <div className="w-full max-w-full">
-          <QrCodeDisplay
-            url={url}
-            foregroundColor={
-              block.data.foregroundColor || "#000000"
-            }
-            backgroundColor={
-              block.data.backgroundColor || "#ffffff"
-            }
-            dotShape={block.data.dotShape || "square"}
-            cornerShape={block.data.cornerShape || "square"}
-            logoUrl={block.data.logoUrl || undefined}
-            logoSize={block.data.logoSize ?? 20}
-            margin={block.data.margin ?? 10}
-          />
-        </div>
-      </div>
+<div className="h-full w-full overflow-hidden">
+  <QrCodeDisplay
+    url={url}
+    foregroundColor={
+      block.data.foregroundColor || "#000000"
+    }
+    backgroundColor={
+      block.data.backgroundColor || "#ffffff"
+    }
+    dotShape={block.data.dotShape || "square"}
+    cornerShape={block.data.cornerShape || "square"}
+    logoUrl={block.data.logoUrl || undefined}
+    logoSize={block.data.logoSize ?? 20}
+    margin={block.data.margin ?? 10}
+  />
+</div>
     </Surface>
   );
 }
