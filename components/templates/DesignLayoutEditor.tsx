@@ -655,12 +655,11 @@ type BottomCategory =
   | "TEXT"
   | "MEDIA"
   | "ICONS"
-  | "LAYOUT"
   | "ENGAGEMENT"
   | "UTILITIES"
-  | "DATA"
   | "SCHEDULING"
   | "INFOGRAPHICS"
+  | "LIVE"
   | "PREMIUM";
   
 type PageBlockType = "title";
@@ -711,12 +710,11 @@ const CATEGORY_ORDER: BottomCategory[] = [
   "TEXT",
   "MEDIA",
   "ICONS",
-  "LAYOUT",
   "ENGAGEMENT",
   "UTILITIES",
-  "DATA",
   "SCHEDULING",
   "INFOGRAPHICS",
+  "LIVE",
   "PREMIUM",
 ];
 
@@ -1112,49 +1110,7 @@ TEXT: [
 
     { kind: "block", label: "Photo Placeholder", type: "icon", iconName: "photo-placeholder" },
   ],
-LAYOUT: [
-  {
-    kind: "shape",
-    label: "Rectangle",
-    type: "rectangle",
-  },
 
-  {
-    kind: "shape",
-    label: "Circle",
-    type: "circle",
-  },
-
-  {
-    kind: "shape",
-    label: "Line",
-    type: "line",
-  },
-
-  // {
-  //   kind: "block",
-  //   label: "Wave",
-  //   type: "wave",
-  // },
-
-  {
-    kind: "block",
-    label: "Frame",
-    type: "frame",
-  },
-
-  {
-    kind: "block",
-    label: "Content Panel",
-    type: "content_panel",
-  },
-
-  // {
-  //   kind: "block",
-  //   label: "Spacer",
-  //   type: "padding",
-  // },
-],
 
 ENGAGEMENT: [
   {
@@ -1220,21 +1176,48 @@ ENGAGEMENT: [
 ],
 
 UTILITIES: [
+  // Former Layout tools
+  {
+    kind: "shape",
+    label: "Rectangle",
+    type: "rectangle",
+  },
+  {
+    kind: "shape",
+    label: "Circle",
+    type: "circle",
+  },
+  {
+    kind: "shape",
+    label: "Line",
+    type: "line",
+  },
+  {
+    kind: "block",
+    label: "Frame",
+    type: "frame",
+  },
+  {
+    kind: "block",
+    label: "Content Panel",
+    type: "content_panel",
+  },
+
+  // Existing Utilities tools
   { kind: "block", label: "Button", type: "cta" },
   { kind: "block", label: "Link", type: "links" },
   { kind: "block", label: "Link Hub", type: "link_hub" },
   { kind: "block", label: "Bookmark", type: "bookmark" },
   { kind: "block", label: "QR Code", type: "qr_code" },
-  // { kind: "block", label: "Puzzle", type: "puzzle" },
-  // { kind: "block", label: "Spin Wheel", type: "spin_wheel" },
+
+  // Former Data tools
+  { kind: "block", label: "Highlight", type: "highlight" },
+  { kind: "block", label: "Summary", type: "summary" },
+  { kind: "block", label: "Visitor Counter", type: "visitor_counter" },
+  { kind: "block", label: "Progress Meter", type: "progress_bar" },
 ],
 
-  "DATA": [
-    { kind: "block", label: "Highlight", type: "highlight" },
-    { kind: "block", label: "Summary", type: "summary" },
-    { kind: "block", label: "Visitor Counter", type: "visitor_counter" },
-    { kind: "block", label: "Progress Meter", type: "progress_bar" },
-  ],
+
 SCHEDULING: [
   { kind: "block", label: "Countdown", type: "countdown" },
   {
@@ -1253,6 +1236,8 @@ SCHEDULING: [
 },
   { kind: "block", label: "Map / Location", type: "map_location" },
 ],
+
+
 INFOGRAPHICS: [
   { kind: "block", label: "Process Flow", type: "process_flow" },
   { kind: "block", label: "Statistic Cards", type: "statistic_cards" },
@@ -1265,6 +1250,11 @@ INFOGRAPHICS: [
   { kind: "block", label: "Interactive Hotspots", type: "interactive_hotspots" },
   { kind: "block", label: "Formula Board", type: "formula_board" },
 ],
+
+
+LIVE: [],
+
+
 PREMIUM: [
   { kind: "block", label: "Registry", type: "registry" },
   // { kind: "block", label: "Speed Dating", type: "speed_dating" },
@@ -2143,16 +2133,15 @@ function getCategoryIconPath(category: BottomCategory) {
   if (category === "TEXT") return "/menu-icons/menu-text.svg";
   if (category === "MEDIA") return "/menu-icons/menu-media.svg";
   if (category === "ICONS") return "/media-icons/star.svg";
-  if (category === "LAYOUT") return "/menu-icons/menu-layout.svg";
   if (category === "ENGAGEMENT") return "/menu-icons/menu-forms.svg";
   if (category === "UTILITIES") return "/menu-icons/menu-utilities.svg";
-  if (category === "DATA") return "/menu-icons/menu-data-metrics.svg";
   if (category === "SCHEDULING") return "/menu-icons/menu-scheduling.svg";
   if (category === "INFOGRAPHICS") return "/menu-icons/menu-infographics.svg";
   if (category === "PREMIUM") return "/menu-icons/menu-premium.svg";
 
   return null;
 }
+
 
 function formatDateValue(
   value: string,
