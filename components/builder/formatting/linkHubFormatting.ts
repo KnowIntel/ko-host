@@ -1,3 +1,5 @@
+// components\builder\formatting\linkHubFormatting.ts
+
 import type { MicrositeBlock } from "@/lib/templates/builder";
 
 type LinkHubBlock = Extract<MicrositeBlock, { type: "link_hub" }>;

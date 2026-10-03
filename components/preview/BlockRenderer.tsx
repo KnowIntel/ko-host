@@ -41542,33 +41542,69 @@ case "pop_balloon":
 case "live_join": {
   const liveJoinData = block.data;
 
-  if (isBuilder) {
-    return (
-      <div className="flex h-full w-full flex-col items-center justify-center p-4">
+if (isBuilder) {
+  const data = liveJoinData as any;
+
+  return (
+    <Surface block={block}>
+      <div className="flex h-full w-full flex-col items-center justify-center">
         <div className="w-full max-w-sm text-center">
-          <div className="text-xl font-semibold">
+          <div
+            className="text-xl font-semibold"
+            style={getContainerTextStyle(
+              data.headingStyle ?? data.style,
+              designKey,
+            )}
+          >
             {liveJoinData.heading || "Join Live Experience"}
           </div>
 
-          <div className="mt-1 text-sm opacity-70">
+          <div
+            className="mt-1 whitespace-pre-wrap text-sm opacity-70"
+            style={getContainerTextStyle(
+              data.helperTextStyle ?? data.style,
+              designKey,
+            )}
+          >
             {liveJoinData.helperText ||
               "Enter a display name to participate."}
           </div>
 
-          <div className="mt-4 w-full rounded-lg border border-current/20 bg-transparent px-3 py-2 text-left text-sm opacity-60">
+          <div
+            className="mt-4 w-full rounded-lg border border-current/20 bg-transparent px-3 py-2 text-left text-sm opacity-60"
+            style={{
+              ...(data.inputStyle ?? {}),
+              ...getContainerTextStyle(
+                data.namePlaceholderStyle ?? data.style,
+                designKey,
+              ),
+            }}
+          >
             {liveJoinData.namePlaceholder || "Display name"}
           </div>
 
-          <div className="mt-3 w-full rounded-lg bg-black px-4 py-2 text-sm font-semibold text-white">
+          <div
+            className="mt-3 w-full rounded-lg bg-black px-4 py-2 text-sm font-semibold text-white"
+            style={{
+              ...(data.joinButtonStyle ?? {}),
+              ...getContainerTextStyle(
+                data.joinButtonTextStyle ?? data.style,
+                designKey,
+              ),
+            }}
+          >
             {liveJoinData.joinButtonLabel || "Join Experience"}
           </div>
         </div>
       </div>
-    );
-  }
+    </Surface>
+  );
+}
 
-  
-  return (
+const data = liveJoinData as any;
+
+return (
+  <Surface block={block}>
     <LiveJoinExperience
       heading={liveJoinData.heading}
       helperText={liveJoinData.helperText}
@@ -41576,9 +41612,46 @@ case "live_join": {
       joinButtonLabel={liveJoinData.joinButtonLabel}
       connectedLabel={liveJoinData.connectedLabel}
       leaveButtonLabel={liveJoinData.leaveButtonLabel}
+
+      headingStyle={getContainerTextStyle(
+        data.headingStyle ?? data.style,
+        designKey,
+      )}
+      helperTextStyle={getContainerTextStyle(
+        data.helperTextStyle ?? data.style,
+        designKey,
+      )}
+      namePlaceholderStyle={getContainerTextStyle(
+        data.namePlaceholderStyle ?? data.style,
+        designKey,
+      )}
+      joinButtonTextStyle={getContainerTextStyle(
+        data.joinButtonTextStyle ?? data.style,
+        designKey,
+      )}
+      connectedLabelStyle={getContainerTextStyle(
+        data.connectedLabelStyle ?? data.style,
+        designKey,
+      )}
+      participantNameStyle={getContainerTextStyle(
+        data.participantNameStyle ?? data.style,
+        designKey,
+      )}
+      connectedMessageStyle={getContainerTextStyle(
+        data.connectedMessageStyle ?? data.style,
+        designKey,
+      )}
+      leaveButtonTextStyle={getContainerTextStyle(
+        data.leaveButtonTextStyle ?? data.style,
+        designKey,
+      )}
+
+      inputStyle={data.inputStyle ?? {}}
+      joinButtonStyle={data.joinButtonStyle ?? {}}
+      leaveButtonStyle={data.leaveButtonStyle ?? {}}
     />
-  );
-}
+  </Surface>
+);}
     default:
       return <div className="h-full w-full" />;
   }

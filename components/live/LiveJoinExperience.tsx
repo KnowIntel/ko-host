@@ -2,6 +2,7 @@
 
 import {
   useState,
+  type CSSProperties,
   type FormEvent,
 } from "react";
 
@@ -14,6 +15,19 @@ type LiveJoinExperienceProps = {
   joinButtonLabel?: string;
   connectedLabel?: string;
   leaveButtonLabel?: string;
+
+  headingStyle?: CSSProperties;
+  helperTextStyle?: CSSProperties;
+  namePlaceholderStyle?: CSSProperties;
+  joinButtonTextStyle?: CSSProperties;
+  connectedLabelStyle?: CSSProperties;
+  participantNameStyle?: CSSProperties;
+  connectedMessageStyle?: CSSProperties;
+  leaveButtonTextStyle?: CSSProperties;
+
+  inputStyle?: CSSProperties;
+  joinButtonStyle?: CSSProperties;
+  leaveButtonStyle?: CSSProperties;
 };
 
 export default function LiveJoinExperience({
@@ -23,6 +37,17 @@ export default function LiveJoinExperience({
   joinButtonLabel = "Join Experience",
   connectedLabel = "Live Participant",
   leaveButtonLabel = "Leave Experience",
+  headingStyle,
+helperTextStyle,
+namePlaceholderStyle,
+joinButtonTextStyle,
+connectedLabelStyle,
+participantNameStyle,
+connectedMessageStyle,
+leaveButtonTextStyle,
+inputStyle,
+joinButtonStyle,
+leaveButtonStyle,
 }: LiveJoinExperienceProps) {
   const {
     experience,
@@ -66,88 +91,113 @@ export default function LiveJoinExperience({
     );
   }
 
-  if (authenticated && participant) {
-    return (
-      <div className="flex h-full w-full flex-col items-center justify-center gap-3 p-4 text-center">
-        <div>
-          <div className="text-xs font-medium uppercase tracking-wide opacity-60">
-            {connectedLabel}
-          </div>
-
-          <div className="mt-1 text-xl font-semibold">
-            {participant.displayName}
-          </div>
-        </div>
-
-        <div className="text-sm opacity-70">
-          You&apos;re connected to{" "}
-          {experience.name}.
-        </div>
-
-        <button
-          type="button"
-          disabled={leaving}
-          onClick={() => {
-            void leaveExperience();
-          }}
-          className="rounded-lg border border-current px-4 py-2 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {leaving
-            ? "Leaving..."
-            : leaveButtonLabel}
-        </button>
-      </div>
-    );
-  }
-
+if (authenticated && participant) {
   return (
-    <div className="flex h-full w-full flex-col items-center justify-center p-4">
-      <form
-        onSubmit={handleSubmit}
-        className="w-full max-w-sm"
-      >
-        <div className="text-center">
-          <div className="text-xl font-semibold">
-            {heading}
-          </div>
-
-          <div className="mt-1 text-sm opacity-70">
-            {helperText}
-          </div>
+    <div className="flex h-full w-full flex-col items-center justify-center gap-3 text-center">
+      <div>
+        <div
+          className="text-xs font-medium uppercase tracking-wide opacity-60"
+          style={connectedLabelStyle}
+        >
+          {connectedLabel}
         </div>
 
-        <input
-          type="text"
-          value={displayName}
-          maxLength={50}
-          autoComplete="off"
-          disabled={joining}
-          onChange={(event) =>
-            setDisplayName(event.target.value)
-          }
-          placeholder={namePlaceholder}
-          className="mt-4 w-full rounded-lg border border-current/20 bg-transparent px-3 py-2 outline-none"
-        />
-
-        {joinError ? (
-          <div className="mt-2 text-sm text-red-600">
-            {joinError}
-          </div>
-        ) : null}
-
-        <button
-          type="submit"
-          disabled={
-            joining ||
-            !displayName.trim()
-          }
-          className="mt-3 w-full rounded-lg bg-black px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+        <div
+          className="mt-1 text-xl font-semibold"
+          style={participantNameStyle}
         >
-          {joining
-            ? "Joining..."
-            : joinButtonLabel}
-        </button>
-      </form>
+          {participant.displayName}
+        </div>
+      </div>
+
+      <div
+        className="text-sm opacity-70"
+        style={connectedMessageStyle}
+      >
+        You&apos;re connected to{" "}
+        {experience.name}.
+      </div>
+
+      <button
+        type="button"
+        disabled={leaving}
+        onClick={() => {
+          void leaveExperience();
+        }}
+        className="rounded-lg border border-current px-4 py-2 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50"
+        style={{
+          ...(leaveButtonStyle ?? {}),
+          ...(leaveButtonTextStyle ?? {}),
+        }}
+      >
+        {leaving ? "Leaving..." : leaveButtonLabel}
+      </button>
     </div>
   );
+}
+
+return (
+  <div className="flex h-full w-full flex-col items-center justify-center">
+    <form
+      onSubmit={handleSubmit}
+      className="w-full max-w-sm"
+    >
+      <div className="text-center">
+        <div
+          className="text-xl font-semibold"
+          style={headingStyle}
+        >
+          {heading}
+        </div>
+
+        <div
+          className="mt-1 whitespace-pre-wrap text-sm opacity-70"
+          style={helperTextStyle}
+        >
+          {helperText}
+        </div>
+      </div>
+
+      <input
+        type="text"
+        value={displayName}
+        maxLength={50}
+        autoComplete="off"
+        disabled={joining}
+        onChange={(event) =>
+          setDisplayName(event.target.value)
+        }
+        placeholder={namePlaceholder}
+        className="mt-4 w-full rounded-lg border border-current/20 bg-transparent px-3 py-2 outline-none"
+        style={{
+          ...(inputStyle ?? {}),
+          ...(namePlaceholderStyle ?? {}),
+        }}
+      />
+
+      {joinError ? (
+        <div className="mt-2 text-sm text-red-600">
+          {joinError}
+        </div>
+      ) : null}
+
+      <button
+        type="submit"
+        disabled={
+          joining ||
+          !displayName.trim()
+        }
+        className="mt-3 w-full rounded-lg bg-black px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+        style={{
+          ...(joinButtonStyle ?? {}),
+          ...(joinButtonTextStyle ?? {}),
+        }}
+      >
+        {joining
+          ? "Joining..."
+          : joinButtonLabel}
+      </button>
+    </form>
+  </div>
+);
 }

@@ -1,8 +1,17 @@
 "use client";
 
+import type {
+  LiveJoinStyleTarget,
+  LiveJoinTextTarget,
+} from "@/components/builder/formatting/liveJoinFormatting";
+
 type LiveJoinInspectorProps = {
   selectedBlock: any;
   updateSelectedBlock: any;
+liveJoinTextTarget: LiveJoinTextTarget;
+setLiveJoinTextTarget: (target: LiveJoinTextTarget) => void;
+liveJoinStyleTarget: LiveJoinStyleTarget;
+setLiveJoinStyleTarget: (target: LiveJoinStyleTarget) => void;
   inspectorCardClass: () => string;
   inspectorLabelClass: () => string;
   inspectorInputClass: () => string;
@@ -11,6 +20,10 @@ type LiveJoinInspectorProps = {
 export function LiveJoinInspector({
   selectedBlock,
   updateSelectedBlock,
+  liveJoinTextTarget,
+  setLiveJoinTextTarget,
+  liveJoinStyleTarget,
+  setLiveJoinStyleTarget,
   inspectorCardClass,
   inspectorLabelClass,
   inspectorInputClass,
@@ -36,6 +49,58 @@ export function LiveJoinInspector({
       <div className={inspectorLabelClass()}>
         Join Experience
       </div>
+
+<div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+  <div className={inspectorLabelClass()}>
+    Formatting
+  </div>
+
+  <div className="mt-3">
+    <div className={inspectorLabelClass()}>
+      Text Target
+    </div>
+
+    <select
+      value={liveJoinTextTarget}
+      onChange={(e) =>
+        setLiveJoinTextTarget(
+          e.target.value as LiveJoinTextTarget,
+        )
+      }
+      className={inspectorInputClass()}
+    >
+      <option value="heading">Heading</option>
+      <option value="helperText">Helper Text</option>
+      <option value="namePlaceholder">Name Placeholder</option>
+      <option value="joinButton">Join Button</option>
+      <option value="connectedLabel">Connected Label</option>
+      <option value="participantName">Participant Name</option>
+      <option value="connectedMessage">Connected Message</option>
+      <option value="leaveButton">Leave Button</option>
+    </select>
+  </div>
+
+  <div className="mt-3">
+    <div className={inspectorLabelClass()}>
+      Style Target
+    </div>
+
+    <select
+      value={liveJoinStyleTarget}
+      onChange={(e) =>
+        setLiveJoinStyleTarget(
+          e.target.value as LiveJoinStyleTarget,
+        )
+      }
+      className={inspectorInputClass()}
+    >
+      <option value="block">Entire Block</option>
+      <option value="input">Name Input</option>
+      <option value="joinButton">Join Button</option>
+      <option value="leaveButton">Leave Button</option>
+    </select>
+  </div>
+</div>
 
       <div className="mt-4">
         <div className={inspectorLabelClass()}>

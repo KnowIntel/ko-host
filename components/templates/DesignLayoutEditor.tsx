@@ -393,7 +393,14 @@ import {
   type FormFieldTextTarget,
 } from "@/components/builder/formatting/formFieldFormatting";
 
-
+import {
+  applyLiveJoinStylePatch,
+  applyLiveJoinTextStylePatch,
+  getLiveJoinStyle,
+getLiveJoinTextStyle,
+  type LiveJoinStyleTarget,
+  type LiveJoinTextTarget,
+} from "@/components/builder/formatting/liveJoinFormatting";
 
 
 
@@ -2564,6 +2571,12 @@ const [linkHubTextTarget, setLinkHubTextTarget] =
 const [linkHubStyleTarget, setLinkHubStyleTarget] =
   useState<LinkHubStyleTarget>("section");
 
+const [liveJoinTextTarget, setLiveJoinTextTarget] =
+  useState<LiveJoinTextTarget>("heading");
+
+const [liveJoinStyleTarget, setLiveJoinStyleTarget] =
+  useState<LiveJoinStyleTarget>("block");
+
 const [fileShareTextTarget, setFileShareTextTarget] =
   useState<FileShareTextTarget>("heading");
 
@@ -3666,13 +3679,18 @@ const selectedStyle =
 
                       : getSelectionTextStyle(draft, selection);
 
-  const selectedAppearance =
+const selectedAppearance =
   selectedBlockFromDraft?.type === "calendar_event"
     ? getCalendarEventStyle(
         selectedBlockFromDraft,
         calendarEventStyleTarget,
       )
-    : getSelectionBlockAppearance(draft, selection);
+    : selectedBlockFromDraft?.type === "live_join"
+      ? getLiveJoinStyle(
+          selectedBlockFromDraft,
+          liveJoinStyleTarget,
+        )
+      : getSelectionBlockAppearance(draft, selection);
   const resolvedPageColor =
     (draft as DraftWithPageExtras).pageColor ||
     getResolvedPageColor(draft, designKey, metadata);
@@ -6273,6 +6291,20 @@ if (
   return;
 }
 
+if (selectedBlock?.type === "live_join") {
+  updateSelectedBlock((block) =>
+    block.type !== "live_join"
+      ? block
+      : applyLiveJoinTextStylePatch(
+          block,
+          liveJoinTextTarget,
+          patch,
+        ),
+  );
+
+  return;
+}
+
 if (selectedBlock?.type === "file_share") {
   updateSelectedBlock((block) =>
     block.type !== "file_share"
@@ -7265,6 +7297,20 @@ if (selectedBlock?.type === "highlight") {
     block.type !== "link_hub"
       ? block
       : applyLinkHubStylePatch(block, linkHubStyleTarget, patch),
+  );
+
+  return;
+}
+
+if (selectedBlock?.type === "live_join") {
+  updateSelectedBlock((block) =>
+    block.type !== "live_join"
+      ? block
+      : applyLiveJoinStylePatch(
+          block,
+          liveJoinStyleTarget,
+          patch,
+        ),
   );
 
   return;
@@ -18226,6 +18272,7 @@ selectedBlock?.type === "donation" ? (
   />
 ) : null}
 
+
 {!isMultiSelection && selectedBlock?.type === "post_board" ? (
   <PostBoardInspector
     selectedBlock={selectedBlock}
@@ -18348,6 +18395,10 @@ selectedBlock?.type === "donation" ? (
   <LiveJoinInspector
     selectedBlock={selectedBlock}
     updateSelectedBlock={updateSelectedBlock}
+    liveJoinTextTarget={liveJoinTextTarget}
+    setLiveJoinTextTarget={setLiveJoinTextTarget}
+    liveJoinStyleTarget={liveJoinStyleTarget}
+    setLiveJoinStyleTarget={setLiveJoinStyleTarget}
     inspectorCardClass={inspectorCardClass}
     inspectorLabelClass={inspectorLabelClass}
     inspectorInputClass={inspectorInputClass}
