@@ -4667,7 +4667,14 @@ export type FormulaBoardBlock = {
 
 export type LiveJoinBlock = BaseBlock & {
   type: "live_join";
-  data: {};
+  data: {
+    heading: string;
+    helperText: string;
+    namePlaceholder: string;
+    joinButtonLabel: string;
+    connectedLabel: string;
+    leaveButtonLabel: string;
+  };
 };
 
 export type MicrositeBlock = (
@@ -12570,10 +12577,17 @@ case "calendar_event":
       borderWidth: 1,
       borderRadius: 16,
     },
-    data: {},
+    data: {
+      heading: "Join Live Experience",
+      helperText: "Enter a display name to participate.",
+      namePlaceholder: "Display name",
+      joinButtonLabel: "Join Experience",
+      connectedLabel: "Live Participant",
+      leaveButtonLabel: "Leave Experience",
+    },
   };
 
-  
+
       case "qr_code":
   return {
     id: makeId("qr"),

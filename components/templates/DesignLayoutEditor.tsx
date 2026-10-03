@@ -27,6 +27,7 @@ import {
   TournamentDisplayInspector,
   MapLocationInspector,
   QrCodeInspector,
+  LiveJoinInspector,
   SpreadsheetInspector,
   FileShareInspector,
   PuzzleInspector,
@@ -18337,6 +18338,16 @@ selectedBlock?.type === "donation" ? (
     selectedBlock={selectedBlock}
     updateSelectedBlock={updateSelectedBlock}
     uploadQrLogoToSelectedBlock={uploadQrLogoToSelectedBlock}
+    inspectorCardClass={inspectorCardClass}
+    inspectorLabelClass={inspectorLabelClass}
+    inspectorInputClass={inspectorInputClass}
+  />
+) : null}
+
+{!isMultiSelection && selectedBlock?.type === "live_join" ? (
+  <LiveJoinInspector
+    selectedBlock={selectedBlock}
+    updateSelectedBlock={updateSelectedBlock}
     inspectorCardClass={inspectorCardClass}
     inspectorLabelClass={inspectorLabelClass}
     inspectorInputClass={inspectorInputClass}

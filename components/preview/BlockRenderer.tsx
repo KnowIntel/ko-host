@@ -41539,33 +41539,46 @@ case "calendar_event":
 case "pop_balloon":
   return renderPopBalloon(block, designKey, micrositeId);
 
-case "live_join":
+case "live_join": {
+  const liveJoinData = block.data;
+
   if (isBuilder) {
     return (
       <div className="flex h-full w-full flex-col items-center justify-center p-4">
         <div className="w-full max-w-sm text-center">
           <div className="text-xl font-semibold">
-            Join Live Experience
+            {liveJoinData.heading || "Join Live Experience"}
           </div>
 
           <div className="mt-1 text-sm opacity-70">
-            Enter a display name to participate.
+            {liveJoinData.helperText ||
+              "Enter a display name to participate."}
           </div>
 
           <div className="mt-4 w-full rounded-lg border border-current/20 bg-transparent px-3 py-2 text-left text-sm opacity-60">
-            Display name
+            {liveJoinData.namePlaceholder || "Display name"}
           </div>
 
           <div className="mt-3 w-full rounded-lg bg-black px-4 py-2 text-sm font-semibold text-white">
-            Join Experience
+            {liveJoinData.joinButtonLabel || "Join Experience"}
           </div>
         </div>
       </div>
     );
   }
 
-  return <LiveJoinExperience />;
-
+  
+  return (
+    <LiveJoinExperience
+      heading={liveJoinData.heading}
+      helperText={liveJoinData.helperText}
+      namePlaceholder={liveJoinData.namePlaceholder}
+      joinButtonLabel={liveJoinData.joinButtonLabel}
+      connectedLabel={liveJoinData.connectedLabel}
+      leaveButtonLabel={liveJoinData.leaveButtonLabel}
+    />
+  );
+}
     default:
       return <div className="h-full w-full" />;
   }

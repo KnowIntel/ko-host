@@ -7,7 +7,23 @@ import {
 
 import { useLiveRuntime } from "@/components/live/LiveRuntimeContext";
 
-export default function LiveJoinExperience() {
+type LiveJoinExperienceProps = {
+  heading?: string;
+  helperText?: string;
+  namePlaceholder?: string;
+  joinButtonLabel?: string;
+  connectedLabel?: string;
+  leaveButtonLabel?: string;
+};
+
+export default function LiveJoinExperience({
+  heading = "Join Live Experience",
+  helperText = "Enter a display name to participate.",
+  namePlaceholder = "Display name",
+  joinButtonLabel = "Join Experience",
+  connectedLabel = "Live Participant",
+  leaveButtonLabel = "Leave Experience",
+}: LiveJoinExperienceProps) {
   const {
     experience,
     participant,
@@ -55,7 +71,7 @@ export default function LiveJoinExperience() {
       <div className="flex h-full w-full flex-col items-center justify-center gap-3 p-4 text-center">
         <div>
           <div className="text-xs font-medium uppercase tracking-wide opacity-60">
-            Live Participant
+            {connectedLabel}
           </div>
 
           <div className="mt-1 text-xl font-semibold">
@@ -78,7 +94,7 @@ export default function LiveJoinExperience() {
         >
           {leaving
             ? "Leaving..."
-            : "Leave Experience"}
+            : leaveButtonLabel}
         </button>
       </div>
     );
@@ -92,11 +108,11 @@ export default function LiveJoinExperience() {
       >
         <div className="text-center">
           <div className="text-xl font-semibold">
-            Join {experience.name}
+            {heading}
           </div>
 
           <div className="mt-1 text-sm opacity-70">
-            Enter a display name to participate.
+            {helperText}
           </div>
         </div>
 
@@ -109,7 +125,7 @@ export default function LiveJoinExperience() {
           onChange={(event) =>
             setDisplayName(event.target.value)
           }
-          placeholder="Display name"
+          placeholder={namePlaceholder}
           className="mt-4 w-full rounded-lg border border-current/20 bg-transparent px-3 py-2 outline-none"
         />
 
@@ -129,7 +145,7 @@ export default function LiveJoinExperience() {
         >
           {joining
             ? "Joining..."
-            : "Join Experience"}
+            : joinButtonLabel}
         </button>
       </form>
     </div>

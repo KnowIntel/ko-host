@@ -56,3 +56,4 @@ export { InteractiveHotspotsInspector } from "./InteractiveHotspotsInspector";
 export { ChartInspector } from "./ChartInspector";
 export { ButtonInspector } from "./ButtonInspector";
 export { LetterFillInspector } from "./LetterFillInspector";
+export { LiveJoinInspector } from "./LiveJoinInspector";

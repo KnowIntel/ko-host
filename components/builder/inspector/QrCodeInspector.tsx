@@ -1,3 +1,5 @@
+// components\builder\inspector\QrCodeInspector.tsx
+
 "use client";
 
 import { useRef, useState } from "react";
