@@ -10,6 +10,7 @@ import AppModal from "@/components/ui/AppModal";
 import ContentPanelBlock from "@/components/blocks/ContentPanelBlock";
 import EnrollmentBoardBlock from "@/components/blocks/EnrollmentBoardBlock";
 import TournamentDisplayBlock from "@/components/blocks/TournamentDisplayBlock";
+import LiveJoinExperience from "@/components/live/LiveJoinExperience";
 import type { CSSProperties } from "react";
 import {
   ENROLLMENT_BOARD_PROFILE_EVENT,
@@ -152,6 +153,21 @@ type FormFieldValueEventDetail = {
   value: string;
 };
 
+type LiveExperienceContext = {
+  id: string;
+  micrositeId: string;
+  name: string;
+  status:
+    | "before"
+    | "live"
+    | "paused"
+    | "ended"
+    | "after";
+  isEnabled: boolean;
+  startedAt: string | null;
+  endedAt: string | null;
+};
+
 type Props = {
   block: MicrositeBlock;
 
@@ -173,7 +189,7 @@ type Props = {
   designKey?: string;
 
   micrositeId?: string | null;
-
+  liveExperience?: LiveExperienceContext | null;
   micrositeSlug?: string | null;
 
   serverNow?: number;
@@ -41143,6 +41159,7 @@ export default function BlockRenderer({
   designKey,
   micrositeId,
   micrositeSlug,
+  liveExperience,
   serverNow,
   previewMode = false,
   isBuilder = false,
@@ -41458,6 +41475,7 @@ case "content_panel":
           designKey={designKey}
           micrositeId={micrositeId}
           micrositeSlug={micrositeSlug}
+          liveExperience={liveExperience}
           serverNow={serverNow}
           previewMode={previewMode}
           cartItems={cartItems}
@@ -41521,6 +41539,33 @@ case "calendar_event":
 
 case "pop_balloon":
   return renderPopBalloon(block, designKey, micrositeId);
+
+case "live_join":
+  if (isBuilder) {
+    return (
+      <div className="flex h-full w-full flex-col items-center justify-center p-4">
+        <div className="w-full max-w-sm text-center">
+          <div className="text-xl font-semibold">
+            Join Live Experience
+          </div>
+
+          <div className="mt-1 text-sm opacity-70">
+            Enter a display name to participate.
+          </div>
+
+          <div className="mt-4 w-full rounded-lg border border-current/20 bg-transparent px-3 py-2 text-left text-sm opacity-60">
+            Display name
+          </div>
+
+          <div className="mt-3 w-full rounded-lg bg-black px-4 py-2 text-sm font-semibold text-white">
+            Join Experience
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return <LiveJoinExperience />;
 
     default:
       return <div className="h-full w-full" />;

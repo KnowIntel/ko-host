@@ -155,6 +155,7 @@ export type BuilderBlockType =
   | "qr_code"
   | "file_share"
   | "speed_dating"
+  | "live_join"
   | "process_flow"
   | "statistic_cards"
   | "chart"
@@ -4664,6 +4665,11 @@ export type FormulaBoardBlock = {
   data: FormulaBoardBlockData;
 };
 
+export type LiveJoinBlock = BaseBlock & {
+  type: "live_join";
+  data: {};
+};
+
 export type MicrositeBlock = (
   | BookmarkBlock
   | PuzzleBlock
@@ -4721,6 +4727,7 @@ export type MicrositeBlock = (
   | MapLocationBlock
   | QrCodeBlock
   | FileShareBlock
+  | LiveJoinBlock
   | SpeedDatingBlock
   | PopBalloonBlock
   | RegistryBlock
@@ -12545,6 +12552,28 @@ case "calendar_event":
         },
       };
 
+
+      case "live_join":
+  return {
+    id: makeId("livejoin"),
+    type: "live_join",
+    label: "Join Experience",
+    grid: {
+      ...grid,
+      colSpan: 4,
+      rowSpan: 3,
+    },
+    appearance: {
+      ...createDefaultBlockAppearance(),
+      backgroundColor: "#FFFFFF",
+      borderColor: "#E5E7EB",
+      borderWidth: 1,
+      borderRadius: 16,
+    },
+    data: {},
+  };
+
+  
       case "qr_code":
   return {
     id: makeId("qr"),

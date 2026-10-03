@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { cookies, headers } from "next/headers";
 import crypto from "crypto";
 
+import { getLiveExperienceForMicrosite } from "@/lib/live/getLiveExperience";
 import PlacedBlocksPreview from "@/components/preview/PlacedBlocksPreview";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import type { BuilderDraft } from "@/lib/templates/builder";
@@ -606,6 +607,10 @@ if (!draft) {
     );
   }
 
+  const liveExperience = await getLiveExperienceForMicrosite(
+  microsite.id,
+);
+
   const pageColor =
     (((draft as any)?.pageColor && String((draft as any).pageColor).trim()) ||
       "#fcfbf8") as string;
@@ -650,6 +655,7 @@ return (
           designKey={designKey}
           micrositeId={microsite.id}
           micrositeSlug={microsite.slug}
+          liveExperience={liveExperience}
           serverNow={Date.now()}
           hideFrame={true}
         />

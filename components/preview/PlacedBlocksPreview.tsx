@@ -4,6 +4,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as htmlToImage from "html-to-image";
+import { LiveRuntimeProvider } from "@/components/live/LiveRuntimeContext";
 
 import type {
   BuilderDraft,
@@ -20,12 +21,28 @@ import {
   getCanvasInnerBackgroundStyle,
 } from "@/components/builder/metadata/metadataResolver";
 
+export type LiveExperienceContext = {
+  id: string;
+  micrositeId: string;
+  name: string;
+  status:
+    | "before"
+    | "live"
+    | "paused"
+    | "ended"
+    | "after";
+  isEnabled: boolean;
+  startedAt: string | null;
+  endedAt: string | null;
+};
+
 type Props = {
   draft: BuilderDraft;
   designKey: string;
   previewMode?: boolean;
   micrositeId?: string | null;
   micrositeSlug?: string | null;
+  liveExperience?: LiveExperienceContext | null;
   serverNow?: number;
   fixedScale?: number;
   disableAutoScale?: boolean;
@@ -256,6 +273,7 @@ export default function PlacedBlocksPreview({
   previewMode = false,
   micrositeId = null,
   micrositeSlug = null,
+  liveExperience = null,
   serverNow,
   fixedScale = 1,
   disableAutoScale = false,
@@ -896,8 +914,9 @@ const scaledContentWidthPercent =
     : 100;
 
 return (
-  <>
-    <style>{BOOKMARK_ANIMATION_STYLES}</style>
+  <LiveRuntimeProvider liveExperience={liveExperience}>
+    <>
+      <style>{BOOKMARK_ANIMATION_STYLES}</style>
 
     <div
       ref={containerRef}
@@ -1428,6 +1447,7 @@ return (
         (draft as any).micrositeSlug ||
         null
       }
+      liveExperience={liveExperience}
       serverNow={serverNow}
       previewMode={previewMode}
       cartItems={cartItems}
@@ -1458,7 +1478,7 @@ return (
     </div>
   </div>
 </div>
-</>
+    </>
+  </LiveRuntimeProvider>
 );
-} 
-
+}

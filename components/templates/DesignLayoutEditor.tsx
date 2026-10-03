@@ -1253,7 +1253,13 @@ INFOGRAPHICS: [
 ],
 
 
-LIVE: [],
+LIVE: [
+  {
+    kind: "block",
+    label: "Join Experience",
+    type: "live_join",
+  },
+],
 
 
 PREMIUM: [
@@ -2272,6 +2278,8 @@ function getToolIconPath(tool: (typeof CATEGORY_BUTTONS)[BottomCategory][number]
   if (tool.label === "Story Cards") return "/menu-icons/block-story-cards.svg";
   if (tool.label === "Interactive Hotspots") return "/menu-icons/block-interactive-hot-spots.svg";
   if (tool.label === "Formula Board") return "/menu-icons/block-formula-board.svg";
+
+  if (tool.label === "Live Experience") return "/menu-icons/block-live-experience.svg";
 
   if (tool.label === "Registry") return "/menu-icons/block-registry.svg";
   if (tool.label === "Puzzle") return "/menu-icons/block-puzzle.svg";
