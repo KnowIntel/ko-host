@@ -1176,7 +1176,21 @@ ENGAGEMENT: [
 ],
 
 UTILITIES: [
-  // Former Layout tools
+
+  // Existing Utilities tools
+  { kind: "block", label: "Button", type: "cta" },
+  { kind: "block", label: "Link", type: "links" },
+  { kind: "block", label: "Link Hub", type: "link_hub" },
+  { kind: "block", label: "Bookmark", type: "bookmark" },
+  { kind: "block", label: "QR Code", type: "qr_code" },
+
+  // Former Data tools
+  { kind: "block", label: "Highlight", type: "highlight" },
+  { kind: "block", label: "Summary", type: "summary" },
+  { kind: "block", label: "Visitor Counter", type: "visitor_counter" },
+  { kind: "block", label: "Progress Meter", type: "progress_bar" },
+
+    // Former Layout tools
   {
     kind: "shape",
     label: "Rectangle",
@@ -1202,19 +1216,6 @@ UTILITIES: [
     label: "Content Panel",
     type: "content_panel",
   },
-
-  // Existing Utilities tools
-  { kind: "block", label: "Button", type: "cta" },
-  { kind: "block", label: "Link", type: "links" },
-  { kind: "block", label: "Link Hub", type: "link_hub" },
-  { kind: "block", label: "Bookmark", type: "bookmark" },
-  { kind: "block", label: "QR Code", type: "qr_code" },
-
-  // Former Data tools
-  { kind: "block", label: "Highlight", type: "highlight" },
-  { kind: "block", label: "Summary", type: "summary" },
-  { kind: "block", label: "Visitor Counter", type: "visitor_counter" },
-  { kind: "block", label: "Progress Meter", type: "progress_bar" },
 ],
 
 
@@ -2137,6 +2138,7 @@ function getCategoryIconPath(category: BottomCategory) {
   if (category === "UTILITIES") return "/menu-icons/menu-utilities.svg";
   if (category === "SCHEDULING") return "/menu-icons/menu-scheduling.svg";
   if (category === "INFOGRAPHICS") return "/menu-icons/menu-infographics.svg";
+  if (category === "LIVE") return "/menu-icons/menu-live.svg";
   if (category === "PREMIUM") return "/menu-icons/menu-premium.svg";
 
   return null;
