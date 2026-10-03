@@ -2279,7 +2279,7 @@ function getToolIconPath(tool: (typeof CATEGORY_BUTTONS)[BottomCategory][number]
   if (tool.label === "Interactive Hotspots") return "/menu-icons/block-interactive-hot-spots.svg";
   if (tool.label === "Formula Board") return "/menu-icons/block-formula-board.svg";
 
-  if (tool.label === "Join Experience") return "/menu-icons/block-live-experience.svg";
+  if (tool.label === "Join Experience") return "/menu-icons/block-join-experience.svg";
 
   if (tool.label === "Registry") return "/menu-icons/block-registry.svg";
   if (tool.label === "Puzzle") return "/menu-icons/block-puzzle.svg";
@@ -12241,6 +12241,19 @@ if (block.type === "text_fx") {
         block={block}
         blocks={draft.blocks}
         designKey={designKey}
+      />
+    </div>
+  );
+}
+
+if (block.type === "live_join") {
+  return (
+    <div className="h-full w-full">
+      <BlockRenderer
+        block={block}
+        blocks={draft.blocks}
+        designKey={designKey}
+        isBuilder={true}
       />
     </div>
   );

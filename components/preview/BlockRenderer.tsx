@@ -41468,26 +41468,25 @@ case "content_panel":
       blocks={blocks ?? []}
       isBuilder={isBuilder}
       renderOverlayBlock={(overlayBlock) => (
-        <BlockRenderer
-          block={overlayBlock}
-          blocks={blocks}
-          pages={pages}
-          designKey={designKey}
-          micrositeId={micrositeId}
-          micrositeSlug={micrositeSlug}
-          liveExperience={liveExperience}
-          serverNow={serverNow}
-          previewMode={previewMode}
-          cartItems={cartItems}
-          cartSubtotal={cartSubtotal}
-          listingQuantities={listingQuantities}
-          onDownloadFrame={
-            onDownloadFrame
-          }
-          onChangeListingQuantity={
-            onChangeListingQuantity
-          }
-        />
+<BlockRenderer
+  block={overlayBlock}
+  blocks={blocks}
+  pages={pages}
+  designKey={designKey}
+  micrositeId={micrositeId}
+  micrositeSlug={micrositeSlug}
+  liveExperience={liveExperience}
+  serverNow={serverNow}
+  previewMode={previewMode}
+  isBuilder={isBuilder}
+  cartItems={cartItems}
+  cartSubtotal={cartSubtotal}
+  listingQuantities={listingQuantities}
+  onDownloadFrame={onDownloadFrame}
+  onChangeListingQuantity={
+    onChangeListingQuantity
+  }
+/>
       )}
     />
   );
