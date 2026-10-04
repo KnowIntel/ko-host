@@ -143,6 +143,11 @@ export default function HostControl({
   const [changingQuestion, setChangingQuestion] =
     useState(false);
 
+    const [
+  showEndConfirm,
+  setShowEndConfirm,
+] = useState(false);
+
 const [
   changingLifecycle,
   setChangingLifecycle,
@@ -570,28 +575,19 @@ const [
       Pause
     </button>
 
-    <button
-      type="button"
-      disabled={
-        changingLifecycle ||
-        data.experience.status ===
-          "ended"
-      }
-      onClick={() => {
-        if (
-          window.confirm(
-            "End this Live experience?",
-          )
-        ) {
-          void setExperienceStatus(
-            "ended",
-          );
-        }
-      }}
-      className="rounded-xl border border-red-200 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40"
-    >
-      End
-    </button>
+<button
+  type="button"
+  disabled={
+    changingLifecycle ||
+    data.experience.status === "ended"
+  }
+  onClick={() => {
+    setShowEndConfirm(true);
+  }}
+  className="rounded-xl border border-red-200 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40"
+>
+  End
+</button>
 
     <button
       type="button"
@@ -1064,9 +1060,88 @@ const [
                 },
               )}
             </div>
-          </div>
+            </div>
         </>
       )}
+
+      {showEndConfirm ? (
+        <div
+          className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="end-live-title"
+          onMouseDown={(event) => {
+            if (
+              event.target ===
+              event.currentTarget
+            ) {
+              setShowEndConfirm(false);
+            }
+          }}
+        >
+          <div className="w-full max-w-md rounded-2xl border border-neutral-200 bg-white p-6 shadow-xl">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-wide text-red-600">
+                  End Live Experience
+                </div>
+
+                <h2
+                  id="end-live-title"
+                  className="mt-2 text-xl font-semibold text-neutral-900"
+                >
+                  End this Live experience?
+                </h2>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setShowEndConfirm(false);
+                }}
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xl text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"
+                aria-label="Close"
+              >
+                ×
+              </button>
+            </div>
+
+            <p className="mt-3 text-sm leading-6 text-neutral-600">
+              This will mark the experience as
+              ended. You can still move it to
+              the After state or restart it
+              later if needed.
+            </p>
+
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowEndConfirm(false);
+                }}
+                className="rounded-xl border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-900 hover:bg-neutral-50"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                disabled={changingLifecycle}
+                onClick={async () => {
+                  setShowEndConfirm(false);
+
+                  await setExperienceStatus(
+                    "ended",
+                  );
+                }}
+                className="rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+              >
+                End Experience
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
