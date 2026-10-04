@@ -1136,6 +1136,7 @@ const isScrollableBlock =
   showHorizontalScrollbar;
 
 const isInteractiveBlock =
+  block.type === "live_join" ||
   block.type === "schedule_agenda" ||
   block.type === "checklist" ||
   block.type === "rsvp" ||
