@@ -249,6 +249,7 @@ export default function LiveTrivia({
     runtimeData?.participant?.rank ?? null;
 
   const canSubmit =
+    experience?.status === "live" &&
     Boolean(question) &&
     Boolean(selectedChoiceId) &&
     !submittedAnswer &&
@@ -386,6 +387,94 @@ export default function LiveTrivia({
         >
           {joinRequiredText ||
             "Join the Live experience to play."}
+        </div>
+      </div>
+    );
+  }
+
+  /*
+   * Experience lifecycle controls participant interaction.
+   *
+   * Participants may remain joined throughout the full
+   * experience, but Trivia is only interactive while the
+   * experience itself is Live.
+   */
+
+  if (experience.status === "before") {
+    return (
+      <div className="flex h-full w-full flex-col items-center justify-center p-4">
+        <div
+          className="text-xl font-semibold"
+          style={headingStyle}
+        >
+          {heading || "Live Trivia"}
+        </div>
+
+        <div
+          className="mt-2 text-center text-sm opacity-70"
+          style={waitingTextStyle}
+        >
+          The Live experience has not started yet.
+        </div>
+      </div>
+    );
+  }
+
+  if (experience.status === "paused") {
+    return (
+      <div className="flex h-full w-full flex-col items-center justify-center p-4">
+        <div
+          className="text-xl font-semibold"
+          style={headingStyle}
+        >
+          {heading || "Live Trivia"}
+        </div>
+
+        <div
+          className="mt-2 text-center text-sm opacity-70"
+          style={waitingTextStyle}
+        >
+          The host has paused the Live experience.
+        </div>
+      </div>
+    );
+  }
+
+  if (experience.status === "ended") {
+    return (
+      <div className="flex h-full w-full flex-col items-center justify-center p-4">
+        <div
+          className="text-xl font-semibold"
+          style={headingStyle}
+        >
+          {heading || "Live Trivia"}
+        </div>
+
+        <div
+          className="mt-2 text-center text-sm opacity-70"
+          style={waitingTextStyle}
+        >
+          This Live experience has ended.
+        </div>
+      </div>
+    );
+  }
+
+  if (experience.status === "after") {
+    return (
+      <div className="flex h-full w-full flex-col items-center justify-center p-4">
+        <div
+          className="text-xl font-semibold"
+          style={headingStyle}
+        >
+          {heading || "Live Trivia"}
+        </div>
+
+        <div
+          className="mt-2 text-center text-sm opacity-70"
+          style={waitingTextStyle}
+        >
+          The Live experience is now in Post-Event.
         </div>
       </div>
     );
