@@ -1,3 +1,5 @@
+// app\api\dashboard\microsites\[id]\live\route.ts
+
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 

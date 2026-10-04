@@ -1,3 +1,5 @@
+// app\api\live\[experienceId]\trivia\route.ts
+
 import { NextResponse } from "next/server";
 
 import { authenticateLiveParticipant } from "@/lib/live/authenticateParticipant";

@@ -2,12 +2,12 @@ import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
 import { notFound } from "next/navigation";
 
-import LiveManager from "@/components/live/admin/LiveManager";
+import HostControl from "@/components/live/admin/HostControl";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 
 export const dynamic = "force-dynamic";
 
-export default async function MicrositeLiveManagerPage({
+export default async function MicrositeHostControlPage({
   params,
 }: {
   params: Promise<{
@@ -70,13 +70,13 @@ export default async function MicrositeLiveManagerPage({
 
   if (experienceError) {
     console.error(
-      "Live Manager experience lookup failed:",
+      "Host Control experience lookup failed:",
       experienceError,
     );
 
     return (
       <div className="p-6">
-        Failed to load Live Manager.
+        Failed to load Host Control.
       </div>
     );
   }
@@ -91,7 +91,7 @@ export default async function MicrositeLiveManagerPage({
             </div>
 
             <h1 className="mt-2 text-xl font-semibold tracking-tight">
-              Live Manager
+              Host Control
             </h1>
 
             <div className="mt-2 text-sm text-neutral-700">
@@ -114,23 +114,21 @@ export default async function MicrositeLiveManagerPage({
             </div>
           </div>
 
-<div className="flex flex-wrap items-center gap-3">
-  {experience ? (
-    <Link
-      href={`/dashboard/microsites/${site.id}/live/host`}
-      className="inline-flex items-center justify-center rounded-xl bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
-    >
-      Host Control
-    </Link>
-  ) : null}
+          <div className="flex flex-wrap items-center gap-3">
+            <Link
+              href={`/dashboard/microsites/${site.id}/live`}
+              className="text-sm font-medium text-neutral-900 underline underline-offset-4"
+            >
+              Live Manager
+            </Link>
 
-  <Link
-    href={`/dashboard/microsites/${site.id}`}
-    className="text-sm font-medium text-neutral-900 underline underline-offset-4"
-  >
-    Back
-  </Link>
-</div>
+            <Link
+              href={`/dashboard/microsites/${site.id}`}
+              className="text-sm font-medium text-neutral-900 underline underline-offset-4"
+            >
+              Back
+            </Link>
+          </div>
         </div>
       </div>
 
@@ -148,16 +146,11 @@ export default async function MicrositeLiveManagerPage({
           </p>
         </div>
       ) : (
-        <LiveManager
+        <HostControl
           micrositeId={site.id}
-          experience={{
-            id: experience.id,
-            name: experience.name,
-            status:
-              experience.status,
-            isEnabled:
-              experience.is_enabled,
-          }}
+          experienceId={
+            experience.id
+          }
         />
       )}
     </div>
