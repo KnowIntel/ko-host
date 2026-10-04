@@ -28,6 +28,7 @@ import {
   MapLocationInspector,
   QrCodeInspector,
   LiveJoinInspector,
+  LiveTriviaInspector,
   SpreadsheetInspector,
   FileShareInspector,
   PuzzleInspector,
@@ -402,7 +403,14 @@ getLiveJoinTextStyle,
   type LiveJoinTextTarget,
 } from "@/components/builder/formatting/liveJoinFormatting";
 
-
+import {
+  applyLiveTriviaStylePatch,
+  applyLiveTriviaTextStylePatch,
+  getLiveTriviaStyle,
+  getLiveTriviaTextStyle,
+  type LiveTriviaStyleTarget,
+  type LiveTriviaTextTarget,
+} from "@/components/builder/formatting/liveTriviaFormatting";
 
 import {
   FONT_FAMILY_OPTIONS,
@@ -1260,15 +1268,18 @@ INFOGRAPHICS: [
   { kind: "block", label: "Formula Board", type: "formula_board" },
 ],
 
-
 LIVE: [
   {
     kind: "block",
     label: "Join Experience",
     type: "live_join",
   },
+  {
+    kind: "block",
+    label: "Trivia",
+    type: "live_trivia",
+  },
 ],
-
 
 PREMIUM: [
   { kind: "block", label: "Registry", type: "registry" },
@@ -2288,6 +2299,7 @@ function getToolIconPath(tool: (typeof CATEGORY_BUTTONS)[BottomCategory][number]
   if (tool.label === "Formula Board") return "/menu-icons/block-formula-board.svg";
 
   if (tool.label === "Join Experience") return "/menu-icons/block-join-experience.svg";
+  if (tool.label === "Trivia") return "/menu-icons/block-trivia.svg";
 
   if (tool.label === "Registry") return "/menu-icons/block-registry.svg";
   if (tool.label === "Puzzle") return "/menu-icons/block-puzzle.svg";
@@ -2576,6 +2588,12 @@ const [liveJoinTextTarget, setLiveJoinTextTarget] =
 
 const [liveJoinStyleTarget, setLiveJoinStyleTarget] =
   useState<LiveJoinStyleTarget>("block");
+
+const [liveTriviaTextTarget, setLiveTriviaTextTarget] =
+  useState<LiveTriviaTextTarget>("heading");
+
+const [liveTriviaStyleTarget, setLiveTriviaStyleTarget] =
+  useState<LiveTriviaStyleTarget>("block");
 
 const [fileShareTextTarget, setFileShareTextTarget] =
   useState<FileShareTextTarget>("heading");
@@ -3567,6 +3585,12 @@ const selectedStyle =
       liveJoinTextTarget,
     ) as TextStyle)
 
+: selectedBlockFromDraft?.type === "live_trivia"
+  ? (getLiveTriviaTextStyle(
+      selectedBlockFromDraft,
+      liveTriviaTextTarget,
+    ) as TextStyle)
+
 : selectedBlockFromDraft?.type === "file_share"
   ? (getFileShareTextStyle(
       selectedBlockFromDraft,
@@ -3697,7 +3721,15 @@ const selectedAppearance =
           selectedBlockFromDraft,
           liveJoinStyleTarget,
         )
-      : getSelectionBlockAppearance(draft, selection);
+    : selectedBlockFromDraft?.type === "live_trivia"
+      ? getLiveTriviaStyle(
+          selectedBlockFromDraft,
+          liveTriviaStyleTarget,
+        )
+      : getSelectionBlockAppearance(
+          draft,
+          selection,
+        );
   const resolvedPageColor =
     (draft as DraftWithPageExtras).pageColor ||
     getResolvedPageColor(draft, designKey, metadata);
@@ -4010,8 +4042,9 @@ const showTextControls =
   selectedBlock?.type === "listing" ||
   selectedBlock?.type === "tournament_display" ||
   selectedBlock?.type === "image_carousel" ||
-  selectedBlock?.type === "live_join" ||
-  selectedBlock?.type === "links";
+selectedBlock?.type === "live_join" ||
+selectedBlock?.type === "live_trivia" ||
+selectedBlock?.type === "links";
 
 
 const showAppearanceControls =
@@ -4063,8 +4096,9 @@ const showAppearanceControls =
   selectedBlock?.type === "timeline" ||
   selectedBlock?.type === "wave" ||
   selectedBlock?.type === "summary" ||
-  selectedBlock?.type === "live_join" ||
-  selectedBlock?.type === "visitor_counter";
+selectedBlock?.type === "live_join" ||
+selectedBlock?.type === "live_trivia" ||
+selectedBlock?.type === "visitor_counter";
 
 
 const showBorderWidthRadiusControls =
@@ -4112,8 +4146,9 @@ const showBorderWidthRadiusControls =
   selectedBlock?.type === "timeline" ||
   selectedBlock?.type === "wave" ||
   selectedBlock?.type === "visitor_counter" ||
-  selectedBlock?.type === "live_join" ||
-  selectedBlock?.type === "highlight" ||
+selectedBlock?.type === "live_join" ||
+selectedBlock?.type === "live_trivia" ||
+selectedBlock?.type === "highlight" ||
   selectedBlock?.type === "summary";
 
 const showTypographyControls =
@@ -6315,6 +6350,21 @@ if (selectedBlock?.type === "live_join") {
   return;
 }
 
+
+if (selectedBlock?.type === "live_trivia") {
+  updateSelectedBlock((block) =>
+    block.type !== "live_trivia"
+      ? block
+      : applyLiveTriviaTextStylePatch(
+          block,
+          liveTriviaTextTarget,
+          patch,
+        ),
+  );
+
+  return;
+}
+
 if (selectedBlock?.type === "file_share") {
   updateSelectedBlock((block) =>
     block.type !== "file_share"
@@ -7319,6 +7369,20 @@ if (selectedBlock?.type === "live_join") {
       : applyLiveJoinStylePatch(
           block,
           liveJoinStyleTarget,
+          patch,
+        ),
+  );
+
+  return;
+}
+
+if (selectedBlock?.type === "live_trivia") {
+  updateSelectedBlock((block) =>
+    block.type !== "live_trivia"
+      ? block
+      : applyLiveTriviaStylePatch(
+          block,
+          liveTriviaStyleTarget,
           patch,
         ),
   );
@@ -12303,7 +12367,10 @@ if (block.type === "text_fx") {
   );
 }
 
-if (block.type === "live_join") {
+if (
+  block.type === "live_join" ||
+  block.type === "live_trivia"
+) {
   return (
     <div className="h-full w-full">
       <BlockRenderer
@@ -18412,6 +18479,40 @@ selectedBlock?.type === "donation" ? (
     inspectorCardClass={inspectorCardClass}
     inspectorLabelClass={inspectorLabelClass}
     inspectorInputClass={inspectorInputClass}
+  />
+) : null}
+
+{!isMultiSelection &&
+selectedBlock?.type === "live_trivia" ? (
+  <LiveTriviaInspector
+    selectedBlock={selectedBlock}
+    updateSelectedBlock={
+      updateSelectedBlock
+    }
+
+    liveTriviaTextTarget={
+      liveTriviaTextTarget
+    }
+    setLiveTriviaTextTarget={
+      setLiveTriviaTextTarget
+    }
+
+    liveTriviaStyleTarget={
+      liveTriviaStyleTarget
+    }
+    setLiveTriviaStyleTarget={
+      setLiveTriviaStyleTarget
+    }
+
+    inspectorCardClass={
+      inspectorCardClass
+    }
+    inspectorLabelClass={
+      inspectorLabelClass
+    }
+    inspectorInputClass={
+      inspectorInputClass
+    }
   />
 ) : null}
 

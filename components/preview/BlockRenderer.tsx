@@ -11,6 +11,7 @@ import ContentPanelBlock from "@/components/blocks/ContentPanelBlock";
 import EnrollmentBoardBlock from "@/components/blocks/EnrollmentBoardBlock";
 import TournamentDisplayBlock from "@/components/blocks/TournamentDisplayBlock";
 import LiveJoinExperience from "@/components/live/LiveJoinExperience";
+import LiveTrivia from "@/components/live/LiveTrivia";
 import type { CSSProperties } from "react";
 import {
   ENROLLMENT_BOARD_PROFILE_EVENT,
@@ -41652,6 +41653,237 @@ return (
     />
   </Surface>
 );}
+
+case "live_trivia": {
+  const data = block.data as any;
+
+  if (isBuilder) {
+    const choiceStyle = data.choiceStyle ?? {};
+    const selectedChoiceStyle =
+      data.selectedChoiceStyle ?? {};
+
+    return (
+      <Surface block={block}>
+        <div className="h-full w-full overflow-auto p-4">
+          <div className="mx-auto w-full max-w-xl">
+            <div
+              className="text-xl font-semibold"
+              style={getContainerTextStyle(
+                data.headingStyle ?? data.style,
+                designKey,
+              )}
+            >
+              {data.heading || "Live Trivia"}
+            </div>
+
+            <div
+              className="mt-4 text-lg font-semibold"
+              style={getContainerTextStyle(
+                data.questionStyle ?? data.style,
+                designKey,
+              )}
+            >
+              Which answer would you choose?
+            </div>
+
+            <div className="mt-4 space-y-2">
+              {[
+                "Answer A",
+                "Answer B",
+                "Answer C",
+                "Answer D",
+              ].map((label, index) => (
+                <div
+                  key={label}
+                  className="w-full px-3 py-3 text-left"
+                  style={{
+                    ...choiceStyle,
+                    ...(index === 0
+                      ? selectedChoiceStyle
+                      : {}),
+                    ...getContainerTextStyle(
+                      data.choiceTextStyle ??
+                        data.style,
+                      designKey,
+                    ),
+                  }}
+                >
+                  {label}
+                </div>
+              ))}
+            </div>
+
+            <div
+              className="mt-4 w-full px-4 py-3 text-center"
+              style={{
+                ...(data.submitButtonStyle ??
+                  {}),
+                ...getContainerTextStyle(
+                  data.submitButtonTextStyle ??
+                    data.style,
+                  designKey,
+                ),
+              }}
+            >
+              {data.submitButtonLabel ||
+                "Submit Answer"}
+            </div>
+
+            <div
+              className="mt-3 text-center text-sm"
+              style={getContainerTextStyle(
+                data.scoreStyle ?? data.style,
+                designKey,
+              )}
+            >
+              Score: 300 • Rank #2
+            </div>
+
+            {data.showLeaderboard !== false ? (
+              <div
+                className="mt-5 p-3"
+                style={
+                  data.leaderboardStyle ?? {}
+                }
+              >
+                <div
+                  className="font-semibold"
+                  style={getContainerTextStyle(
+                    data.leaderboardHeadingStyle ??
+                      data.style,
+                    designKey,
+                  )}
+                >
+                  {data.leaderboardHeading ||
+                    "Leaderboard"}
+                </div>
+
+                <div
+                  className="mt-2 space-y-1"
+                  style={getContainerTextStyle(
+                    data.leaderboardTextStyle ??
+                      data.style,
+                    designKey,
+                  )}
+                >
+                  <div className="flex justify-between gap-3">
+                    <span>#1 Player One</span>
+                    <span>400</span>
+                  </div>
+
+                  <div className="flex justify-between gap-3">
+                    <span>#2 Player Two</span>
+                    <span>300</span>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+          </div>
+        </div>
+      </Surface>
+    );
+  }
+
+  return (
+    <Surface block={block}>
+      <LiveTrivia
+        heading={
+          data.heading || "Live Trivia"
+        }
+        waitingText={
+          data.waitingText ||
+          "Waiting for the next question..."
+        }
+        joinRequiredText={
+          data.joinRequiredText ||
+          "Join the Live experience to play."
+        }
+        submitButtonLabel={
+          data.submitButtonLabel ||
+          "Submit Answer"
+        }
+        correctLabel={
+          data.correctLabel || "Correct!"
+        }
+        incorrectLabel={
+          data.incorrectLabel ||
+          "Not quite!"
+        }
+        answeredLabel={
+          data.answeredLabel ||
+          "Answer submitted"
+        }
+        leaderboardHeading={
+          data.leaderboardHeading ||
+          "Leaderboard"
+        }
+        showLeaderboard={
+          data.showLeaderboard !== false
+        }
+
+        headingStyle={getContainerTextStyle(
+          data.headingStyle ?? data.style,
+          designKey,
+        )}
+        waitingTextStyle={getContainerTextStyle(
+          data.waitingTextStyle ??
+            data.style,
+          designKey,
+        )}
+        joinRequiredTextStyle={getContainerTextStyle(
+          data.joinRequiredTextStyle ??
+            data.style,
+          designKey,
+        )}
+        questionStyle={getContainerTextStyle(
+          data.questionStyle ?? data.style,
+          designKey,
+        )}
+        choiceTextStyle={getContainerTextStyle(
+          data.choiceTextStyle ??
+            data.style,
+          designKey,
+        )}
+        submitButtonTextStyle={getContainerTextStyle(
+          data.submitButtonTextStyle ??
+            data.style,
+          designKey,
+        )}
+        resultStyle={getContainerTextStyle(
+          data.resultStyle ?? data.style,
+          designKey,
+        )}
+        scoreStyle={getContainerTextStyle(
+          data.scoreStyle ?? data.style,
+          designKey,
+        )}
+        leaderboardHeadingStyle={getContainerTextStyle(
+          data.leaderboardHeadingStyle ??
+            data.style,
+          designKey,
+        )}
+        leaderboardTextStyle={getContainerTextStyle(
+          data.leaderboardTextStyle ??
+            data.style,
+          designKey,
+        )}
+
+        choiceStyle={
+          data.choiceStyle ?? {}
+        }
+        selectedChoiceStyle={
+          data.selectedChoiceStyle ?? {}
+        }
+        submitButtonStyle={
+          data.submitButtonStyle ?? {}
+        }
+        leaderboardStyle={
+          data.leaderboardStyle ?? {}
+        }
+      />
+    </Surface>
+  );
+}
     default:
       return <div className="h-full w-full" />;
   }

@@ -1137,6 +1137,7 @@ const isScrollableBlock =
 
 const isInteractiveBlock =
   block.type === "live_join" ||
+  block.type === "live_trivia" ||
   block.type === "schedule_agenda" ||
   block.type === "checklist" ||
   block.type === "rsvp" ||

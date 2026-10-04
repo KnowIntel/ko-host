@@ -156,6 +156,7 @@ export type BuilderBlockType =
   | "file_share"
   | "speed_dating"
   | "live_join"
+  | "live_trivia"
   | "process_flow"
   | "statistic_cards"
   | "chart"
@@ -4677,6 +4678,63 @@ export type LiveJoinBlock = BaseBlock & {
   };
 };
 
+export type LiveTriviaBlock = BaseBlock & {
+  type: "live_trivia";
+
+  data: {
+    heading: string;
+    waitingText: string;
+    joinRequiredText: string;
+    submitButtonLabel: string;
+    correctLabel: string;
+    incorrectLabel: string;
+    answeredLabel: string;
+    leaderboardHeading: string;
+    showLeaderboard: boolean;
+
+    style?: TextStyle;
+
+    headingStyle?: TextStyle;
+    waitingTextStyle?: TextStyle;
+    joinRequiredTextStyle?: TextStyle;
+    questionStyle?: TextStyle;
+    choiceTextStyle?: TextStyle;
+    submitButtonTextStyle?: TextStyle;
+    resultStyle?: TextStyle;
+    scoreStyle?: TextStyle;
+    leaderboardHeadingStyle?: TextStyle;
+    leaderboardTextStyle?: TextStyle;
+
+    choiceStyle?: {
+      backgroundColor?: string;
+      borderColor?: string;
+      borderWidth?: number;
+      borderRadius?: number;
+    };
+
+    selectedChoiceStyle?: {
+      backgroundColor?: string;
+      borderColor?: string;
+      borderWidth?: number;
+      borderRadius?: number;
+    };
+
+    submitButtonStyle?: {
+      backgroundColor?: string;
+      borderColor?: string;
+      borderWidth?: number;
+      borderRadius?: number;
+    };
+
+    leaderboardStyle?: {
+      backgroundColor?: string;
+      borderColor?: string;
+      borderWidth?: number;
+      borderRadius?: number;
+    };
+  };
+};
+
 export type MicrositeBlock = (
   | BookmarkBlock
   | PuzzleBlock
@@ -4734,8 +4792,9 @@ export type MicrositeBlock = (
   | MapLocationBlock
   | QrCodeBlock
   | FileShareBlock
-  | LiveJoinBlock
-  | SpeedDatingBlock
+| LiveJoinBlock
+| LiveTriviaBlock
+| SpeedDatingBlock
   | PopBalloonBlock
   | RegistryBlock
   | CheckoutBlock
@@ -12587,6 +12646,145 @@ case "calendar_event":
     },
   };
 
+  case "live_trivia":
+  return {
+    id: makeId("livetrivia"),
+    type: "live_trivia",
+    label: "Live Trivia",
+
+    grid: {
+      ...grid,
+      colSpan: 6,
+      rowSpan: 5,
+    },
+
+    appearance: {
+      ...createDefaultBlockAppearance(),
+      backgroundColor: "#FFFFFF",
+      borderColor: "#E5E7EB",
+      borderWidth: 1,
+      borderRadius: 16,
+    },
+
+    data: {
+      heading: "Live Trivia",
+
+      waitingText:
+        "Waiting for the next question...",
+
+      joinRequiredText:
+        "Join the Live experience to play.",
+
+      submitButtonLabel:
+        "Submit Answer",
+
+      correctLabel:
+        "Correct!",
+
+      incorrectLabel:
+        "Not quite!",
+
+      answeredLabel:
+        "Answer submitted",
+
+      leaderboardHeading:
+        "Leaderboard",
+
+      showLeaderboard: true,
+
+      headingStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 22,
+        bold: true,
+        align: "center",
+      },
+
+      waitingTextStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        align: "center",
+      },
+
+      joinRequiredTextStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        align: "center",
+      },
+
+      questionStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 18,
+        bold: true,
+        align: "center",
+      },
+
+      choiceTextStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+      },
+
+      submitButtonTextStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        bold: true,
+        align: "center",
+        color: "#FFFFFF",
+      },
+
+      resultStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        bold: true,
+        align: "center",
+      },
+
+      scoreStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 13,
+        bold: true,
+        align: "center",
+      },
+
+      leaderboardHeadingStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 16,
+        bold: true,
+      },
+
+      leaderboardTextStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 13,
+      },
+
+      choiceStyle: {
+        backgroundColor: "#FFFFFF",
+        borderColor: "#D1D5DB",
+        borderWidth: 1,
+        borderRadius: 10,
+      },
+
+      selectedChoiceStyle: {
+        backgroundColor: "#EFF6FF",
+        borderColor: "#2563EB",
+        borderWidth: 2,
+        borderRadius: 10,
+      },
+
+      submitButtonStyle: {
+        backgroundColor: "#111827",
+        borderColor: "#111827",
+        borderWidth: 1,
+        borderRadius: 10,
+      },
+
+      leaderboardStyle: {
+        backgroundColor: "#F9FAFB",
+        borderColor: "#E5E7EB",
+        borderWidth: 1,
+        borderRadius: 12,
+      },
+    },
+  };
 
       case "qr_code":
   return {

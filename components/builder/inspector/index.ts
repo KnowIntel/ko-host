@@ -57,3 +57,4 @@ export { ChartInspector } from "./ChartInspector";
 export { ButtonInspector } from "./ButtonInspector";
 export { LetterFillInspector } from "./LetterFillInspector";
 export { LiveJoinInspector } from "./LiveJoinInspector";
+export { LiveTriviaInspector } from "./LiveTriviaInspector";
