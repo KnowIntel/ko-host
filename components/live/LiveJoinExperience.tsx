@@ -49,17 +49,18 @@ inputStyle,
 joinButtonStyle,
 leaveButtonStyle,
 }: LiveJoinExperienceProps) {
-  const {
-    experience,
-    participant,
-    authenticated,
-    sessionLoading,
-    joining,
-    leaving,
-    joinError,
-    joinExperience,
-    leaveExperience,
-  } = useLiveRuntime();
+const {
+  experience,
+  participant,
+  authenticated,
+  sharedState,
+  sessionLoading,
+  joining,
+  leaving,
+  joinError,
+  joinExperience,
+  leaveExperience,
+} = useLiveRuntime();
 
   const [displayName, setDisplayName] =
     useState("");
@@ -117,6 +118,18 @@ if (authenticated && participant) {
         You&apos;re connected to{" "}
         {experience.name}.
       </div>
+
+{typeof sharedState?.state?.message === "string" ? (
+  <div className="text-sm font-medium">
+    {sharedState.state.message}
+  </div>
+) : null}
+
+{typeof sharedState?.state?.testValue === "number" ? (
+  <div className="text-xs opacity-60">
+    Test value: {sharedState.state.testValue}
+  </div>
+) : null}
 
       <button
         type="button"
