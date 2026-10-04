@@ -4003,6 +4003,7 @@ const showTextControls =
   selectedBlock?.type === "listing" ||
   selectedBlock?.type === "tournament_display" ||
   selectedBlock?.type === "image_carousel" ||
+  selectedBlock?.type === "live_join" ||
   selectedBlock?.type === "links";
 
 
@@ -4055,6 +4056,7 @@ const showAppearanceControls =
   selectedBlock?.type === "timeline" ||
   selectedBlock?.type === "wave" ||
   selectedBlock?.type === "summary" ||
+  selectedBlock?.type === "live_join" ||
   selectedBlock?.type === "visitor_counter";
 
 
@@ -4103,6 +4105,7 @@ const showBorderWidthRadiusControls =
   selectedBlock?.type === "timeline" ||
   selectedBlock?.type === "wave" ||
   selectedBlock?.type === "visitor_counter" ||
+  selectedBlock?.type === "live_join" ||
   selectedBlock?.type === "highlight" ||
   selectedBlock?.type === "summary";
 
