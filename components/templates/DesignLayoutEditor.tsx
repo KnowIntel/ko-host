@@ -3560,6 +3560,13 @@ const selectedStyle =
       selectedBlockFromDraft,
       linkHubTextTarget,
     ) as TextStyle)
+
+: selectedBlockFromDraft?.type === "live_join"
+  ? (getLiveJoinTextStyle(
+      selectedBlockFromDraft,
+      liveJoinTextTarget,
+    ) as TextStyle)
+
 : selectedBlockFromDraft?.type === "file_share"
   ? (getFileShareTextStyle(
       selectedBlockFromDraft,
