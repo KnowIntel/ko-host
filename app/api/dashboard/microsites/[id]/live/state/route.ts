@@ -168,22 +168,57 @@ export async function PATCH(
       `)
       .single();
 
-    if (stateError || !sharedState) {
-      console.error(
-        "Live shared-state update failed:",
-        stateError,
-      );
+if (stateError || !sharedState) {
+  console.error(
+    "Live shared-state update failed:",
+    stateError,
+  );
 
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "Unable to update Live state.",
-        },
-        { status: 500 },
-      );
-    }
+  return NextResponse.json(
+    {
+      ok: false,
+      error: "Unable to update Live state.",
+    },
+    { status: 500 },
+  );
+}
 
-    return NextResponse.json({
+/*
+ * Notify connected Live clients that authoritative
+ * shared state has changed.
+ *
+ * The Broadcast contains no Live state itself.
+ * Clients use it only as a signal to re-fetch the
+ * protected state through the public Live API.
+ */
+const channel = sb.channel(
+  `live-experience-${experience.id}`,
+);
+
+try {
+  await channel.send({
+    type: "broadcast",
+    event: "shared-state-changed",
+    payload: {
+      experienceId: experience.id,
+      updatedAt: sharedState.updated_at,
+    },
+  });
+} catch (broadcastError) {
+  /*
+   * The database update has already succeeded.
+   * A temporary Realtime failure must not turn a
+   * successful state mutation into an API failure.
+   */
+  console.error(
+    "Live shared-state Broadcast failed:",
+    broadcastError,
+  );
+} finally {
+  await sb.removeChannel(channel);
+}
+
+return NextResponse.json({
       ok: true,
       sharedState: {
         currentActivityType:

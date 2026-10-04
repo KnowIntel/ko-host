@@ -1,5 +1,7 @@
 "use client";
 
+import { supabase } from "@/lib/supabaseClient";
+
 import {
   createContext,
   useCallback,
@@ -346,6 +348,35 @@ export function LiveRuntimeProvider({
     refreshSession,
     refreshSharedState,
   ]);
+
+  useEffect(() => {
+  if (!liveExperience?.id) {
+    return;
+  }
+
+  const channel = supabase.channel(
+    `live-experience-${liveExperience.id}`,
+  );
+
+  channel.on(
+    "broadcast",
+    {
+      event: "shared-state-changed",
+    },
+    () => {
+      void refreshSharedState();
+    },
+  );
+
+  void channel.subscribe();
+
+  return () => {
+    void supabase.removeChannel(channel);
+  };
+}, [
+  liveExperience?.id,
+  refreshSharedState,
+]);
 
   const value = useMemo<LiveRuntimeValue>(
     () => ({
