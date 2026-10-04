@@ -754,6 +754,13 @@ async function sendBulkEmail() {
 >
   Share Preview
 </Link>
+
+<Link
+  href={`/dashboard/microsites/${site.id}/live`}
+  className="inline-flex items-center justify-center rounded-xl border border-violet-300 bg-violet-50 px-4 py-2 text-sm font-medium text-violet-700 hover:border-violet-500 hover:bg-violet-100"
+>
+  Live Manager
+</Link>
         </div>
       </div>
 

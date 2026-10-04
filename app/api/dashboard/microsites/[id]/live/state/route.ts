@@ -139,6 +139,58 @@ export async function PATCH(
       );
     }
 
+    if (requestedActivityId) {
+  const {
+    data: requestedActivity,
+    error: requestedActivityError,
+  } = await sb
+    .from("live_activities")
+    .select("id, activity_type")
+    .eq("id", requestedActivityId)
+    .eq("experience_id", experience.id)
+    .maybeSingle();
+
+  if (requestedActivityError) {
+    console.error(
+      "Live activity validation failed:",
+      requestedActivityError,
+    );
+
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "Unable to validate Live activity.",
+      },
+      { status: 500 },
+    );
+  }
+
+  if (!requestedActivity) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          "Live activity does not belong to this experience.",
+      },
+      { status: 400 },
+    );
+  }
+
+  if (
+    currentActivityType !==
+    requestedActivity.activity_type
+  ) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          "Live activity type does not match the selected activity.",
+      },
+      { status: 400 },
+    );
+  }
+}
+
     const now = new Date().toISOString();
 
     const {
