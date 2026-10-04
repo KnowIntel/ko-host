@@ -128,9 +128,78 @@ export async function POST(
     const supabase = getSupabaseAdmin();
 
     /*
+     * The overall Live experience lifecycle is
+     * server-authoritative.
+     *
+     * Trivia answers are accepted only while the
+     * experience itself is Live. This prevents a
+     * participant from bypassing the UI and submitting
+     * answers during Pre-Event, Paused, Ended, or
+     * Post-Event states.
+     */
+    const {
+      data: experience,
+      error: experienceError,
+    } = await supabase
+      .from("live_experiences")
+      .select("id, status, is_enabled")
+      .eq("id", safeExperienceId)
+      .maybeSingle();
+
+    if (experienceError) {
+      console.error(
+        "Trivia answer experience lookup failed:",
+        experienceError,
+      );
+
+      return NextResponse.json(
+        {
+          ok: false,
+          error:
+            "Unable to submit Trivia answer.",
+        },
+        { status: 500 },
+      );
+    }
+
+    if (
+      !experience ||
+      !experience.is_enabled
+    ) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error:
+            "This Live experience is not available.",
+        },
+        { status: 409 },
+      );
+    }
+
+    if (experience.status !== "live") {
+      return NextResponse.json(
+        {
+          ok: false,
+          error:
+            experience.status === "paused"
+              ? "The host has paused the Live experience."
+              : experience.status === "before"
+                ? "The Live experience has not started yet."
+                : experience.status === "ended"
+                  ? "This Live experience has ended."
+                  : experience.status === "after"
+                    ? "The Live experience is now in Post-Event."
+                    : "Trivia is not currently available.",
+        },
+        { status: 409 },
+      );
+    }
+
+    /*
      * The browser does not choose which
      * activity is authoritative.
      */
+    
     const {
       data: sharedState,
       error: sharedStateError,
