@@ -49,6 +49,112 @@ export async function POST(
 
     const nowIso = new Date().toISOString();
 
+    const hasLiveBlocks = nextDraft.blocks.some(
+  (block) => block?.type === "live_join",
+);
+
+if (hasLiveBlocks) {
+  const { data: existingLiveExperience, error: liveLookupError } =
+    await supabaseAdmin
+      .from("live_experiences")
+      .select("id")
+      .eq("microsite_id", id)
+      .maybeSingle();
+
+  if (liveLookupError) {
+    console.error(
+      "Live experience lookup failed during builder save:",
+      liveLookupError,
+    );
+
+    return NextResponse.json(
+      { error: "Failed to initialize Live experience." },
+      { status: 500 },
+    );
+  }
+
+  let liveExperienceId: string;
+
+  if (existingLiveExperience) {
+    const { data: updatedLiveExperience, error: liveUpdateError } =
+      await supabaseAdmin
+        .from("live_experiences")
+        .update({
+          owner_clerk_user_id: userId,
+          is_enabled: true,
+          updated_at: nowIso,
+        })
+        .eq("id", existingLiveExperience.id)
+        .select("id")
+        .single();
+
+    if (liveUpdateError || !updatedLiveExperience) {
+      console.error(
+        "Live experience update failed during builder save:",
+        liveUpdateError,
+      );
+
+      return NextResponse.json(
+        { error: "Failed to initialize Live experience." },
+        { status: 500 },
+      );
+    }
+
+    liveExperienceId = updatedLiveExperience.id;
+  } else {
+    const { data: createdLiveExperience, error: liveCreateError } =
+      await supabaseAdmin
+        .from("live_experiences")
+        .insert({
+          microsite_id: id,
+          owner_clerk_user_id: userId,
+          name: nextDraft.title || microsite.title || "Live Experience",
+          status: "before",
+          is_enabled: true,
+        })
+        .select("id")
+        .single();
+
+    if (liveCreateError || !createdLiveExperience) {
+      console.error(
+        "Live experience creation failed during builder save:",
+        liveCreateError,
+      );
+
+      return NextResponse.json(
+        { error: "Failed to initialize Live experience." },
+        { status: 500 },
+      );
+    }
+
+    liveExperienceId = createdLiveExperience.id;
+  }
+
+  const { error: liveStateError } = await supabaseAdmin
+    .from("live_experience_state")
+    .upsert(
+      {
+        experience_id: liveExperienceId,
+      },
+      {
+        onConflict: "experience_id",
+        ignoreDuplicates: true,
+      },
+    );
+
+  if (liveStateError) {
+    console.error(
+      "Live shared-state initialization failed during builder save:",
+      liveStateError,
+    );
+
+    return NextResponse.json(
+      { error: "Failed to initialize Live shared state." },
+      { status: 500 },
+    );
+  }
+}
+
     const { data: existingPages, error: existingPagesError } =
       await supabaseAdmin
         .from("microsite_pages")
