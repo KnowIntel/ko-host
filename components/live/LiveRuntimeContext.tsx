@@ -12,16 +12,18 @@ import {
   type ReactNode,
 } from "react";
 
+export type LiveExperienceStatus =
+  | "before"
+  | "live"
+  | "paused"
+  | "ended"
+  | "after";
+
 export type LiveExperienceContext = {
   id: string;
   micrositeId: string;
   name: string;
-  status:
-    | "before"
-    | "live"
-    | "paused"
-    | "ended"
-    | "after";
+  status: LiveExperienceStatus;
   isEnabled: boolean;
   startedAt: string | null;
   endedAt: string | null;
@@ -77,10 +79,37 @@ type LiveRuntimeProviderProps = {
   children: ReactNode;
 };
 
+function isLiveExperienceStatus(
+  value: unknown,
+): value is LiveExperienceStatus {
+  return (
+    value === "before" ||
+    value === "live" ||
+    value === "paused" ||
+    value === "ended" ||
+    value === "after"
+  );
+}
+
 export function LiveRuntimeProvider({
   liveExperience = null,
   children,
 }: LiveRuntimeProviderProps) {
+  /*
+   * Keep a runtime copy of the experience.
+   *
+   * The initial value comes from the server-rendered microsite,
+   * but the status can change while the participant remains
+   * on the page.
+   */
+  const [
+    runtimeExperience,
+    setRuntimeExperience,
+  ] =
+    useState<LiveExperienceContext | null>(
+      liveExperience,
+    );
+
   const [participant, setParticipant] =
     useState<LiveParticipant | null>(null);
 
@@ -96,11 +125,22 @@ export function LiveRuntimeProvider({
   const [stateLoading, setStateLoading] =
     useState(Boolean(liveExperience));
 
-  const [joining, setJoining] = useState(false);
-  const [leaving, setLeaving] = useState(false);
+  const [joining, setJoining] =
+    useState(false);
+
+  const [leaving, setLeaving] =
+    useState(false);
 
   const [joinError, setJoinError] =
     useState<string | null>(null);
+
+  /*
+   * If the page itself supplies a different experience,
+   * reset the runtime copy to that experience.
+   */
+  useEffect(() => {
+    setRuntimeExperience(liveExperience);
+  }, [liveExperience]);
 
   const refreshSession = useCallback(
     async () => {
@@ -126,7 +166,9 @@ export function LiveRuntimeProvider({
         );
 
         const payload =
-          await response.json().catch(() => null);
+          await response
+            .json()
+            .catch(() => null);
 
         if (
           response.ok &&
@@ -137,6 +179,7 @@ export function LiveRuntimeProvider({
           setParticipant(
             payload.participant as LiveParticipant,
           );
+
           setAuthenticated(true);
         } else {
           setParticipant(null);
@@ -160,6 +203,7 @@ export function LiveRuntimeProvider({
   const refreshSharedState = useCallback(
     async () => {
       if (!liveExperience?.id) {
+        setRuntimeExperience(null);
         setSharedState(null);
         setStateLoading(false);
         return;
@@ -180,16 +224,61 @@ export function LiveRuntimeProvider({
         );
 
         const payload =
-          await response.json().catch(() => null);
+          await response
+            .json()
+            .catch(() => null);
 
         if (
           response.ok &&
-          payload?.ok === true &&
-          payload?.sharedState
+          payload?.ok === true
         ) {
-          setSharedState(
-            payload.sharedState as LiveSharedState,
-          );
+          /*
+           * The public Live state endpoint already returns
+           * the authoritative experience status.
+           *
+           * Merge that status into the runtime experience so
+           * participant-facing Live blocks can react without
+           * requiring a page refresh.
+           */
+          if (
+            payload?.experience &&
+            isLiveExperienceStatus(
+              payload.experience.status,
+            )
+          ) {
+            setRuntimeExperience(
+              (currentExperience) => {
+                const baseExperience =
+                  currentExperience ??
+                  liveExperience;
+
+                if (!baseExperience) {
+                  return null;
+                }
+
+                if (
+                  baseExperience.status ===
+                  payload.experience.status
+                ) {
+                  return baseExperience;
+                }
+
+                return {
+                  ...baseExperience,
+                  status:
+                    payload.experience.status,
+                };
+              },
+            );
+          }
+
+          if (payload?.sharedState) {
+            setSharedState(
+              payload.sharedState as LiveSharedState,
+            );
+          } else {
+            setSharedState(null);
+          }
         } else {
           setSharedState(null);
         }
@@ -204,7 +293,7 @@ export function LiveRuntimeProvider({
         setStateLoading(false);
       }
     },
-    [liveExperience?.id],
+    [liveExperience],
   );
 
   const joinExperience = useCallback(
@@ -215,6 +304,7 @@ export function LiveRuntimeProvider({
         setJoinError(
           "This Live experience is not available.",
         );
+
         return false;
       }
 
@@ -223,7 +313,10 @@ export function LiveRuntimeProvider({
       ).trim();
 
       if (!safeDisplayName) {
-        setJoinError("Enter a display name.");
+        setJoinError(
+          "Enter a display name.",
+        );
+
         return false;
       }
 
@@ -239,9 +332,12 @@ export function LiveRuntimeProvider({
             method: "POST",
             credentials: "include",
             cache: "no-store",
+
             headers: {
-              "Content-Type": "application/json",
+              "Content-Type":
+                "application/json",
             },
+
             body: JSON.stringify({
               displayName: safeDisplayName,
             }),
@@ -249,7 +345,9 @@ export function LiveRuntimeProvider({
         );
 
         const payload =
-          await response.json().catch(() => null);
+          await response
+            .json()
+            .catch(() => null);
 
         if (
           !response.ok ||
@@ -257,7 +355,8 @@ export function LiveRuntimeProvider({
           !payload?.participant
         ) {
           setJoinError(
-            typeof payload?.error === "string"
+            typeof payload?.error ===
+              "string"
               ? payload.error
               : "Unable to join this Live experience.",
           );
@@ -295,6 +394,7 @@ export function LiveRuntimeProvider({
       if (!liveExperience?.id) {
         setParticipant(null);
         setAuthenticated(false);
+
         return true;
       }
 
@@ -313,7 +413,9 @@ export function LiveRuntimeProvider({
         );
 
         const payload =
-          await response.json().catch(() => null);
+          await response
+            .json()
+            .catch(() => null);
 
         if (
           !response.ok ||
@@ -341,6 +443,9 @@ export function LiveRuntimeProvider({
     [liveExperience?.id],
   );
 
+  /*
+   * Initial participant/session and shared-state restore.
+   */
   useEffect(() => {
     void refreshSession();
     void refreshSharedState();
@@ -349,87 +454,101 @@ export function LiveRuntimeProvider({
     refreshSharedState,
   ]);
 
+  /*
+   * Listen for non-sensitive Live change notifications.
+   *
+   * The Broadcast itself is only a notification.
+   * Authoritative state is always restored through the
+   * server API.
+   */
   useEffect(() => {
-  if (!liveExperience?.id) {
-    return;
-  }
+    if (!liveExperience?.id) {
+      return;
+    }
 
-  const channel = supabase.channel(
-    `live-experience-${liveExperience.id}`,
-  );
+    const channel = supabase.channel(
+      `live-experience-${liveExperience.id}`,
+    );
 
-  channel.on(
-    "broadcast",
-    {
-      event: "shared-state-changed",
-    },
-    () => {
-      void refreshSharedState();
-    },
-  );
+    channel.on(
+      "broadcast",
+      {
+        event: "shared-state-changed",
+      },
+      () => {
+        void refreshSharedState();
+      },
+    );
 
-  void channel.subscribe();
+    void channel.subscribe();
 
-  return () => {
-    void supabase.removeChannel(channel);
-  };
-}, [
-  liveExperience?.id,
-  refreshSharedState,
-]);
+    return () => {
+      void supabase.removeChannel(
+        channel,
+      );
+    };
+  }, [
+    liveExperience?.id,
+    refreshSharedState,
+  ]);
 
-  const value = useMemo<LiveRuntimeValue>(
-    () => ({
-      experience: liveExperience,
+  const value =
+    useMemo<LiveRuntimeValue>(
+      () => ({
+        experience:
+          runtimeExperience,
 
-      participant,
-      authenticated,
+        participant,
+        authenticated,
 
-      sharedState,
+        sharedState,
 
-      loading:
-        sessionLoading ||
+        loading:
+          sessionLoading ||
+          stateLoading,
+
+        sessionLoading,
         stateLoading,
+        joining,
+        leaving,
 
-      sessionLoading,
-      stateLoading,
-      joining,
-      leaving,
+        joinError,
 
-      joinError,
+        joinExperience,
+        leaveExperience,
 
-      joinExperience,
-      leaveExperience,
-
-      refreshSession,
-      refreshSharedState,
-    }),
-    [
-      liveExperience,
-      participant,
-      authenticated,
-      sharedState,
-      sessionLoading,
-      stateLoading,
-      joining,
-      leaving,
-      joinError,
-      joinExperience,
-      leaveExperience,
-      refreshSession,
-      refreshSharedState,
-    ],
-  );
+        refreshSession,
+        refreshSharedState,
+      }),
+      [
+        runtimeExperience,
+        participant,
+        authenticated,
+        sharedState,
+        sessionLoading,
+        stateLoading,
+        joining,
+        leaving,
+        joinError,
+        joinExperience,
+        leaveExperience,
+        refreshSession,
+        refreshSharedState,
+      ],
+    );
 
   return (
-    <LiveRuntimeContext.Provider value={value}>
+    <LiveRuntimeContext.Provider
+      value={value}
+    >
       {children}
     </LiveRuntimeContext.Provider>
   );
 }
 
 export function useLiveRuntime() {
-  const context = useContext(LiveRuntimeContext);
+  const context =
+    useContext(LiveRuntimeContext);
 
   if (!context) {
     throw new Error(

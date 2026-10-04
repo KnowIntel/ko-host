@@ -645,6 +645,43 @@ export async function PATCH(
       );
     }
 
+    /*
+     * Notify connected participant runtimes that the
+     * Live experience lifecycle changed.
+     *
+     * The Broadcast intentionally contains no protected
+     * experience data. Participants use it only as a
+     * notification and then restore authoritative state
+     * through the public Live state API.
+     */
+    const channel = sb.channel(
+      `live-experience-${updatedExperience.id}`,
+    );
+
+    try {
+      await channel.send({
+        type: "broadcast",
+        event: "shared-state-changed",
+        payload: {
+          experienceId:
+            updatedExperience.id,
+          updatedAt: now,
+        },
+      });
+    } catch (broadcastError) {
+      /*
+       * The lifecycle update already succeeded.
+       * A Broadcast failure should not roll back or
+       * report the successful database update as failed.
+       */
+      console.error(
+        "Live lifecycle Broadcast failed:",
+        broadcastError,
+      );
+    } finally {
+      await sb.removeChannel(channel);
+    }
+
     return NextResponse.json({
       ok: true,
 
