@@ -140,18 +140,20 @@ export default function HostControl({
   const [loading, setLoading] =
     useState(true);
 
-  const [changingQuestion, setChangingQuestion] =
-    useState(false);
+  const [
+    changingQuestion,
+    setChangingQuestion,
+  ] = useState(false);
 
-    const [
-  showEndConfirm,
-  setShowEndConfirm,
-] = useState(false);
+  const [
+    showEndConfirm,
+    setShowEndConfirm,
+  ] = useState(false);
 
-const [
-  changingLifecycle,
-  setChangingLifecycle,
-] = useState(false);
+  const [
+    changingLifecycle,
+    setChangingLifecycle,
+  ] = useState(false);
 
   const [error, setError] =
     useState<string | null>(null);
@@ -295,70 +297,95 @@ const [
         ]
       : null;
 
+  function getExperienceStatusLabel(
+    status: string,
+  ) {
+    switch (status) {
+      case "before":
+        return "Pre-Event";
 
-      async function setExperienceStatus(
-  status:
-    | "before"
-    | "live"
-    | "paused"
-    | "ended"
-    | "after",
-) {
-  setChangingLifecycle(true);
-  setError(null);
-  setMessage(null);
+      case "live":
+        return "Live";
 
-  try {
-    const response = await fetch(
-      `/api/dashboard/microsites/${micrositeId}/live`,
-      {
-        method: "PATCH",
+      case "paused":
+        return "Paused";
 
-        headers: {
-          "Content-Type":
-            "application/json",
-        },
+      case "ended":
+        return "Ended";
 
-        body: JSON.stringify({
-          status,
-        }),
-      },
-    );
+      case "after":
+        return "Post-Event";
 
-    const payload =
-      await response.json();
-
-    if (
-      !response.ok ||
-      !payload?.ok
-    ) {
-      throw new Error(
-        payload?.error ||
-          "Unable to update Live experience.",
-      );
+      default:
+        return status;
     }
-
-    await loadHostState();
-
-    const labels = {
-      before: "Experience reset to Before.",
-      live: "Experience is Live.",
-      paused: "Experience paused.",
-      ended: "Experience ended.",
-      after: "Experience moved to After.",
-    };
-
-    setMessage(labels[status]);
-  } catch (lifecycleError) {
-    setError(
-      lifecycleError instanceof Error
-        ? lifecycleError.message
-        : "Unable to update Live experience.",
-    );
-  } finally {
-    setChangingLifecycle(false);
   }
-}
+
+  async function setExperienceStatus(
+    status:
+      | "before"
+      | "live"
+      | "paused"
+      | "ended"
+      | "after",
+  ) {
+    setChangingLifecycle(true);
+    setError(null);
+    setMessage(null);
+
+    try {
+      const response = await fetch(
+        `/api/dashboard/microsites/${micrositeId}/live`,
+        {
+          method: "PATCH",
+
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+
+          body: JSON.stringify({
+            status,
+          }),
+        },
+      );
+
+      const payload =
+        await response.json();
+
+      if (
+        !response.ok ||
+        !payload?.ok
+      ) {
+        throw new Error(
+          payload?.error ||
+            "Unable to update Live experience.",
+        );
+      }
+
+      await loadHostState();
+
+      const labels = {
+        before:
+          "Experience moved to Pre-Event.",
+        live: "Experience is Live.",
+        paused: "Experience paused.",
+        ended: "Experience ended.",
+        after:
+          "Experience moved to Post-Event.",
+      };
+
+      setMessage(labels[status]);
+    } catch (lifecycleError) {
+      setError(
+        lifecycleError instanceof Error
+          ? lifecycleError.message
+          : "Unable to update Live experience.",
+      );
+    } finally {
+      setChangingLifecycle(false);
+    }
+  }
 
   async function setCurrentQuestion(
     questionId: string,
@@ -473,8 +500,10 @@ const [
             Status
           </div>
 
-          <div className="mt-1 font-semibold capitalize">
-            {data.experience.status}
+          <div className="mt-1 font-semibold">
+            {getExperienceStatusLabel(
+              data.experience.status,
+            )}
           </div>
         </div>
 
@@ -501,119 +530,176 @@ const [
       </div>
 
       <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-  <div className="flex flex-wrap items-start justify-between gap-4">
-    <div>
-      <h2 className="text-lg font-semibold">
-        Experience Control
-      </h2>
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h2 className="text-lg font-semibold">
+              Experience Control
+            </h2>
 
-      <p className="mt-1 text-sm text-neutral-600">
-        Control the overall Live
-        experience lifecycle.
-      </p>
-    </div>
+            <p className="mt-1 text-sm text-neutral-600">
+              Control the overall Live
+              experience lifecycle.
+            </p>
+          </div>
 
-    <div className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold capitalize text-neutral-700">
-      {data.experience.status}
-    </div>
-  </div>
+          <div className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold text-neutral-700">
+            {getExperienceStatusLabel(
+              data.experience.status,
+            )}
+          </div>
+        </div>
 
-  <div className="mt-5 flex flex-wrap gap-2">
-    <button
-      type="button"
-      disabled={
-        changingLifecycle ||
-        data.experience.status ===
-          "before"
-      }
-      onClick={() => {
-        void setExperienceStatus(
-          "before",
-        );
-      }}
-      className="rounded-xl border border-neutral-300 px-3 py-2 text-sm font-medium hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-40"
-    >
-      Before
-    </button>
+        <div className="mt-5 flex flex-wrap gap-2">
+          <button
+            type="button"
+            disabled={
+              changingLifecycle ||
+              data.experience.status ===
+                "before"
+            }
+            onClick={() => {
+              void setExperienceStatus(
+                "before",
+              );
+            }}
+            className="rounded-xl border border-neutral-300 px-3 py-2 text-sm font-medium hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            Pre-Event
+          </button>
 
-    <button
-      type="button"
-      disabled={
-        changingLifecycle ||
-        data.experience.status ===
-          "live"
-      }
-      onClick={() => {
-        void setExperienceStatus(
-          "live",
-        );
-      }}
-      className="rounded-xl bg-green-600 px-3 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-40"
-    >
-      {changingLifecycle
-        ? "Updating..."
-        : data.experience.status ===
-            "paused"
-          ? "Resume Live"
-          : "Go Live"}
-    </button>
+          <button
+            type="button"
+            disabled={
+              changingLifecycle ||
+              data.experience.status ===
+                "live"
+            }
+            onClick={() => {
+              void setExperienceStatus(
+                "live",
+              );
+            }}
+            className="rounded-xl bg-green-600 px-3 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {changingLifecycle
+              ? "Updating..."
+              : data.experience.status ===
+                  "paused"
+                ? "Resume Live"
+                : "Go Live"}
+          </button>
 
-    <button
-      type="button"
-      disabled={
-        changingLifecycle ||
-        data.experience.status !==
-          "live"
-      }
-      onClick={() => {
-        void setExperienceStatus(
-          "paused",
-        );
-      }}
-      className="rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800 hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-40"
-    >
-      Pause
-    </button>
+          <button
+            type="button"
+            disabled={
+              changingLifecycle ||
+              data.experience.status !==
+                "live"
+            }
+            onClick={() => {
+              void setExperienceStatus(
+                "paused",
+              );
+            }}
+            className="rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800 hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            Pause
+          </button>
 
-<button
-  type="button"
-  disabled={
-    changingLifecycle ||
-    data.experience.status === "ended"
-  }
-  onClick={() => {
-    setShowEndConfirm(true);
-  }}
-  className="rounded-xl border border-red-200 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40"
->
-  End
-</button>
+          <button
+            type="button"
+            disabled={
+              changingLifecycle ||
+              data.experience.status ===
+                "ended"
+            }
+            onClick={() => {
+              setShowEndConfirm(true);
+            }}
+            className="rounded-xl border border-red-200 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            End
+          </button>
 
-    <button
-      type="button"
-      disabled={
-        changingLifecycle ||
-        data.experience.status ===
-          "after"
-      }
-      onClick={() => {
-        void setExperienceStatus(
-          "after",
-        );
-      }}
-      className="rounded-xl border border-neutral-300 px-3 py-2 text-sm font-medium hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-40"
-    >
-      After
-    </button>
-  </div>
+          <button
+            type="button"
+            disabled={
+              changingLifecycle ||
+              data.experience.status ===
+                "after"
+            }
+            onClick={() => {
+              void setExperienceStatus(
+                "after",
+              );
+            }}
+            className="rounded-xl border border-neutral-300 px-3 py-2 text-sm font-medium hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            Post-Event
+          </button>
+        </div>
 
-  <div className="mt-4 text-xs text-neutral-500">
-    Before = not started • Live =
-    running • Paused = temporarily
-    stopped • Ended = finished • After
-    = post-event state
-  </div>
-</div>
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          <div className="rounded-xl bg-neutral-50 p-3">
+            <div className="text-xs font-semibold text-neutral-900">
+              Pre-Event
+            </div>
+
+            <p className="mt-1 text-xs leading-5 text-neutral-600">
+              Participants are arriving
+              or waiting for the event to
+              begin.
+            </p>
+          </div>
+
+          <div className="rounded-xl bg-neutral-50 p-3">
+            <div className="text-xs font-semibold text-neutral-900">
+              Live
+            </div>
+
+            <p className="mt-1 text-xs leading-5 text-neutral-600">
+              The event is underway and
+              live activities are
+              running.
+            </p>
+          </div>
+
+          <div className="rounded-xl bg-neutral-50 p-3">
+            <div className="text-xs font-semibold text-neutral-900">
+              Paused
+            </div>
+
+            <p className="mt-1 text-xs leading-5 text-neutral-600">
+              Temporarily pause the live
+              experience. Resume when
+              ready.
+            </p>
+          </div>
+
+          <div className="rounded-xl bg-neutral-50 p-3">
+            <div className="text-xs font-semibold text-neutral-900">
+              Ended
+            </div>
+
+            <p className="mt-1 text-xs leading-5 text-neutral-600">
+              The live portion of the
+              event has finished.
+            </p>
+          </div>
+
+          <div className="rounded-xl bg-neutral-50 p-3">
+            <div className="text-xs font-semibold text-neutral-900">
+              Post-Event
+            </div>
+
+            <p className="mt-1 text-xs leading-5 text-neutral-600">
+              Show results, winners,
+              photos, or other post-event
+              content.
+            </p>
+          </div>
+        </div>
+      </div>
 
       {error ? (
         <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
@@ -1060,7 +1146,7 @@ const [
                 },
               )}
             </div>
-            </div>
+          </div>
         </>
       )}
 
@@ -1107,10 +1193,10 @@ const [
             </div>
 
             <p className="mt-3 text-sm leading-6 text-neutral-600">
-              This will mark the experience as
-              ended. You can still move it to
-              the After state or restart it
-              later if needed.
+              This will mark the experience
+              as ended. You can still move
+              it to the Post-Event state or
+              restart it later if needed.
             </p>
 
             <div className="mt-6 flex justify-end gap-3">
