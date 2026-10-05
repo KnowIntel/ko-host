@@ -2322,9 +2322,18 @@ function getToolIconPath(tool: (typeof CATEGORY_BUTTONS)[BottomCategory][number]
   if (tool.label === "Interactive Hotspots") return "/menu-icons/block-interactive-hot-spots.svg";
   if (tool.label === "Formula Board") return "/menu-icons/block-formula-board.svg";
 
-  if (tool.label === "Join Experience") return "/menu-icons/block-live-join-experience.svg";
-  if (tool.label === "Trivia") return "/menu-icons/block-live-trivia.svg";
-  if (tool.label === "Poll") return "/menu-icons/block-live-poll.svg";
+if (tool.label === "Join Experience") return "/menu-icons/block-live-join-experience.svg";
+if (tool.label === "Trivia") return "/menu-icons/block-live-trivia.svg";
+if (tool.label === "Poll") return "/menu-icons/block-live-poll.svg";
+if (tool.label === "Player Card") return "/menu-icons/block-live-player-card.svg";
+if (tool.label === "Schedule") return "/menu-icons/block-live-schedule.svg";
+if (tool.label === "Song Request") return "/menu-icons/block-live-song-request.svg";
+if (tool.label === "Spin Wheel") return "/menu-icons/block-live-spin-wheel.svg";
+if (tool.label === "Scavenger Hunt") return "/menu-icons/block-live-scavenger-hunt.svg";
+if (tool.label === "Lottery") return "/menu-icons/block-live-lottery.svg";
+if (tool.label === "Leaderboard") return "/menu-icons/block-live-leaderboard.svg";
+if (tool.label === "Mystery Drop") return "/menu-icons/block-live-mystery-drop.svg";
+if (tool.label === "Announcement") return "/menu-icons/block-live-announcement.svg";
 
   if (tool.label === "Registry") return "/menu-icons/block-registry.svg";
   if (tool.label === "Puzzle") return "/menu-icons/block-puzzle.svg";

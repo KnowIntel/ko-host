@@ -673,95 +673,114 @@ export default function HostControl({
           </div>
         </div>
 
-        <div className="mt-5 flex flex-wrap gap-2">
-          <button
-            type="button"
-            disabled={
-              changingLifecycle ||
-              data.experience.status ===
-                "before"
-            }
-            onClick={() => {
-              void setExperienceStatus(
-                "before",
-              );
-            }}
-            className="rounded-xl border border-neutral-300 px-3 py-2 text-sm font-medium hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            Pre-Event
-          </button>
+<div className="mt-5 flex flex-wrap gap-2">
+  <button
+    type="button"
+    disabled={
+      changingLifecycle ||
+      data.experience.status === "before"
+    }
+    onClick={() => {
+      void setExperienceStatus("before");
+    }}
+    className="flex min-w-[92px] flex-col items-center justify-center gap-1.5 rounded-xl bg-black px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-neutral-800 disabled:cursor-not-allowed disabled:bg-neutral-200 disabled:text-neutral-500 disabled:opacity-100"
+  >
+    <img
+      src="/media-icons/arrow-left-thick.svg"
+      alt=""
+      aria-hidden="true"
+      className="h-5 w-5 brightness-0 invert"
+    />
+    <span>Pre-Event</span>
+  </button>
 
-          <button
-            type="button"
-            disabled={
-              changingLifecycle ||
-              data.experience.status ===
-                "live"
-            }
-            onClick={() => {
-              void setExperienceStatus(
-                "live",
-              );
-            }}
-            className="rounded-xl bg-green-600 px-3 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            {changingLifecycle
-              ? "Updating..."
-              : data.experience.status ===
-                  "paused"
-                ? "Resume Live"
-                : "Go Live"}
-          </button>
+  <button
+    type="button"
+    disabled={
+      changingLifecycle ||
+      data.experience.status === "live"
+    }
+    onClick={() => {
+      void setExperienceStatus("live");
+    }}
+    className="flex min-w-[92px] flex-col items-center justify-center gap-1.5 rounded-xl bg-black px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-neutral-800 disabled:cursor-not-allowed disabled:bg-neutral-200 disabled:text-neutral-500 disabled:opacity-100"
+  >
+    <img
+      src="/media-icons/icon-play.svg"
+      alt=""
+      aria-hidden="true"
+      className="h-5 w-5 brightness-0 invert"
+    />
 
-          <button
-            type="button"
-            disabled={
-              changingLifecycle ||
-              data.experience.status !==
-                "live"
-            }
-            onClick={() => {
-              void setExperienceStatus(
-                "paused",
-              );
-            }}
-            className="rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800 hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            Pause
-          </button>
+    <span>
+      {changingLifecycle
+        ? "Updating..."
+        : data.experience.status === "paused"
+          ? "Resume Live"
+          : "Go Live"}
+    </span>
+  </button>
 
-          <button
-            type="button"
-            disabled={
-              changingLifecycle ||
-              data.experience.status ===
-                "ended"
-            }
-            onClick={() => {
-              setShowEndConfirm(true);
-            }}
-            className="rounded-xl border border-red-200 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            End
-          </button>
+  <button
+    type="button"
+    disabled={
+      changingLifecycle ||
+      data.experience.status !== "live"
+    }
+    onClick={() => {
+      void setExperienceStatus("paused");
+    }}
+    className="flex min-w-[92px] flex-col items-center justify-center gap-1.5 rounded-xl bg-black px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-neutral-800 disabled:cursor-not-allowed disabled:bg-neutral-200 disabled:text-neutral-500 disabled:opacity-100"
+  >
+    <img
+      src="/media-icons/icon-pause.svg"
+      alt=""
+      aria-hidden="true"
+      className="h-5 w-5 brightness-0 invert"
+    />
+    <span>Pause</span>
+  </button>
 
-          <button
-            type="button"
-            disabled={
-              changingLifecycle ||
-              data.experience.status ===
-                "after"
-            }
-            onClick={() => {
-              void setExperienceStatus(
-                "after",
-              );
-            }}
-            className="rounded-xl border border-neutral-300 px-3 py-2 text-sm font-medium hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            Post-Event
-          </button>
-        </div>
+  <button
+    type="button"
+    disabled={
+      changingLifecycle ||
+      data.experience.status === "ended"
+    }
+    onClick={() => {
+      setShowEndConfirm(true);
+    }}
+    className="flex min-w-[92px] flex-col items-center justify-center gap-1.5 rounded-xl bg-black px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-neutral-800 disabled:cursor-not-allowed disabled:bg-neutral-200 disabled:text-neutral-500 disabled:opacity-100"
+  >
+    <img
+      src="/media-icons/icon-stop.svg"
+      alt=""
+      aria-hidden="true"
+      className="h-5 w-5 brightness-0 invert"
+    />
+    <span>End</span>
+  </button>
+
+  <button
+    type="button"
+    disabled={
+      changingLifecycle ||
+      data.experience.status === "after"
+    }
+    onClick={() => {
+      void setExperienceStatus("after");
+    }}
+    className="flex min-w-[92px] flex-col items-center justify-center gap-1.5 rounded-xl bg-black px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-neutral-800 disabled:cursor-not-allowed disabled:bg-neutral-200 disabled:text-neutral-500 disabled:opacity-100"
+  >
+    <img
+      src="/media-icons/arrow-right-thick.svg"
+      alt=""
+      aria-hidden="true"
+      className="h-5 w-5 brightness-0 invert"
+    />
+    <span>Post-Event</span>
+  </button>
+</div>
 
         <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           <div className="rounded-xl bg-neutral-50 p-3">
