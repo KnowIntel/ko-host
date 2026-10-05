@@ -29,6 +29,7 @@ import {
   QrCodeInspector,
   LiveJoinInspector,
   LiveTriviaInspector,
+  LivePollInspector,
   SpreadsheetInspector,
   FileShareInspector,
   PuzzleInspector,
@@ -411,6 +412,15 @@ import {
   type LiveTriviaStyleTarget,
   type LiveTriviaTextTarget,
 } from "@/components/builder/formatting/liveTriviaFormatting";
+
+import {
+  applyLivePollStylePatch,
+  applyLivePollTextStylePatch,
+  getLivePollStyle,
+  getLivePollTextStyle,
+  type LivePollStyleTarget,
+  type LivePollTextTarget,
+} from "@/components/builder/formatting/livePollFormatting";
 
 import {
   FONT_FAMILY_OPTIONS,
@@ -1279,6 +1289,11 @@ LIVE: [
     label: "Trivia",
     type: "live_trivia",
   },
+  {
+    kind: "block",
+    label: "Live Poll",
+    type: "live_poll",
+  },
 ],
 
 PREMIUM: [
@@ -1337,6 +1352,15 @@ const TOOL_DESCRIPTIONS: Record<string, string> = {
   Checklist: "Trackable list of tasks",
   "Schedule / Agenda": "Timed event schedule list",
   "Map / Location": "Location details with map info",
+
+  "Join Experience":
+  "Let visitors join the shared Live experience",
+
+Trivia:
+  "Run interactive live trivia for participants",
+
+"Live Poll":
+  "Collect participant votes and show live results",
 
   Puzzle: "Drag-and-drop image puzzle game",
   "Spin Wheel": "Interactive prize wheel mini-game",
@@ -2298,8 +2322,9 @@ function getToolIconPath(tool: (typeof CATEGORY_BUTTONS)[BottomCategory][number]
   if (tool.label === "Interactive Hotspots") return "/menu-icons/block-interactive-hot-spots.svg";
   if (tool.label === "Formula Board") return "/menu-icons/block-formula-board.svg";
 
-  if (tool.label === "Join Experience") return "/menu-icons/block-join-experience.svg";
-  if (tool.label === "Trivia") return "/menu-icons/block-trivia.svg";
+  if (tool.label === "Join Experience") return "/menu-icons/block-live-join-experience.svg";
+  if (tool.label === "Trivia") return "/menu-icons/block-live-trivia.svg";
+  if (tool.label === "Poll") return "/menu-icons/block-live-poll.svg";
 
   if (tool.label === "Registry") return "/menu-icons/block-registry.svg";
   if (tool.label === "Puzzle") return "/menu-icons/block-puzzle.svg";
@@ -2594,6 +2619,12 @@ const [liveTriviaTextTarget, setLiveTriviaTextTarget] =
 
 const [liveTriviaStyleTarget, setLiveTriviaStyleTarget] =
   useState<LiveTriviaStyleTarget>("block");
+
+const [livePollTextTarget, setLivePollTextTarget] =
+  useState<LivePollTextTarget>("heading");
+
+const [livePollStyleTarget, setLivePollStyleTarget] =
+  useState<LivePollStyleTarget>("block");
 
 const [fileShareTextTarget, setFileShareTextTarget] =
   useState<FileShareTextTarget>("heading");
@@ -3591,6 +3622,12 @@ const selectedStyle =
       liveTriviaTextTarget,
     ) as TextStyle)
 
+: selectedBlockFromDraft?.type === "live_poll"
+  ? (getLivePollTextStyle(
+      selectedBlockFromDraft,
+      livePollTextTarget,
+    ) as TextStyle)
+
 : selectedBlockFromDraft?.type === "file_share"
   ? (getFileShareTextStyle(
       selectedBlockFromDraft,
@@ -3721,12 +3758,17 @@ const selectedAppearance =
           selectedBlockFromDraft,
           liveJoinStyleTarget,
         )
-    : selectedBlockFromDraft?.type === "live_trivia"
-      ? getLiveTriviaStyle(
-          selectedBlockFromDraft,
-          liveTriviaStyleTarget,
-        )
-      : getSelectionBlockAppearance(
+: selectedBlockFromDraft?.type === "live_trivia"
+  ? getLiveTriviaStyle(
+      selectedBlockFromDraft,
+      liveTriviaStyleTarget,
+    )
+: selectedBlockFromDraft?.type === "live_poll"
+  ? getLivePollStyle(
+      selectedBlockFromDraft,
+      livePollStyleTarget,
+    )
+  : getSelectionBlockAppearance(
           draft,
           selection,
         );
@@ -6365,6 +6407,20 @@ if (selectedBlock?.type === "live_trivia") {
   return;
 }
 
+if (selectedBlock?.type === "live_poll") {
+  updateSelectedBlock((block) =>
+    block.type !== "live_poll"
+      ? block
+      : applyLivePollTextStylePatch(
+          block,
+          livePollTextTarget,
+          patch,
+        ),
+  );
+
+  return;
+}
+
 if (selectedBlock?.type === "file_share") {
   updateSelectedBlock((block) =>
     block.type !== "file_share"
@@ -7383,6 +7439,20 @@ if (selectedBlock?.type === "live_trivia") {
       : applyLiveTriviaStylePatch(
           block,
           liveTriviaStyleTarget,
+          patch,
+        ),
+  );
+
+  return;
+}
+
+if (selectedBlock?.type === "live_poll") {
+  updateSelectedBlock((block) =>
+    block.type !== "live_poll"
+      ? block
+      : applyLivePollStylePatch(
+          block,
+          livePollStyleTarget,
           patch,
         ),
   );
@@ -12369,7 +12439,8 @@ if (block.type === "text_fx") {
 
 if (
   block.type === "live_join" ||
-  block.type === "live_trivia"
+  block.type === "live_trivia" ||
+  block.type === "live_poll"
 ) {
   return (
     <div className="h-full w-full">
@@ -18502,6 +18573,40 @@ selectedBlock?.type === "live_trivia" ? (
     }
     setLiveTriviaStyleTarget={
       setLiveTriviaStyleTarget
+    }
+
+    inspectorCardClass={
+      inspectorCardClass
+    }
+    inspectorLabelClass={
+      inspectorLabelClass
+    }
+    inspectorInputClass={
+      inspectorInputClass
+    }
+  />
+) : null}
+
+{!isMultiSelection &&
+selectedBlock?.type === "live_poll" ? (
+  <LivePollInspector
+    selectedBlock={selectedBlock}
+    updateSelectedBlock={
+      updateSelectedBlock
+    }
+
+    livePollTextTarget={
+      livePollTextTarget
+    }
+    setLivePollTextTarget={
+      setLivePollTextTarget
+    }
+
+    livePollStyleTarget={
+      livePollStyleTarget
+    }
+    setLivePollStyleTarget={
+      setLivePollStyleTarget
     }
 
     inspectorCardClass={

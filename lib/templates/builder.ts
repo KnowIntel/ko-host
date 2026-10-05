@@ -157,6 +157,7 @@ export type BuilderBlockType =
   | "speed_dating"
   | "live_join"
   | "live_trivia"
+  | "live_poll"
   | "process_flow"
   | "statistic_cards"
   | "chart"
@@ -4735,6 +4736,60 @@ export type LiveTriviaBlock = BaseBlock & {
   };
 };
 
+export type LivePollBlock = BaseBlock & {
+  type: "live_poll";
+
+  data: {
+    heading: string;
+    waitingText: string;
+    joinRequiredText: string;
+    submitButtonLabel: string;
+    votedLabel: string;
+    resultsHeading: string;
+    showResults: boolean;
+
+    style?: TextStyle;
+
+    headingStyle?: TextStyle;
+    waitingTextStyle?: TextStyle;
+    joinRequiredTextStyle?: TextStyle;
+    questionStyle?: TextStyle;
+    choiceTextStyle?: TextStyle;
+    submitButtonTextStyle?: TextStyle;
+    votedLabelStyle?: TextStyle;
+    resultsHeadingStyle?: TextStyle;
+    resultsTextStyle?: TextStyle;
+
+    choiceStyle?: {
+      backgroundColor?: string;
+      borderColor?: string;
+      borderWidth?: number;
+      borderRadius?: number;
+    };
+
+    selectedChoiceStyle?: {
+      backgroundColor?: string;
+      borderColor?: string;
+      borderWidth?: number;
+      borderRadius?: number;
+    };
+
+    submitButtonStyle?: {
+      backgroundColor?: string;
+      borderColor?: string;
+      borderWidth?: number;
+      borderRadius?: number;
+    };
+
+    resultsStyle?: {
+      backgroundColor?: string;
+      borderColor?: string;
+      borderWidth?: number;
+      borderRadius?: number;
+    };
+  };
+};
+
 export type MicrositeBlock = (
   | BookmarkBlock
   | PuzzleBlock
@@ -4794,6 +4849,7 @@ export type MicrositeBlock = (
   | FileShareBlock
 | LiveJoinBlock
 | LiveTriviaBlock
+| LivePollBlock
 | SpeedDatingBlock
   | PopBalloonBlock
   | RegistryBlock
@@ -12786,6 +12842,133 @@ case "calendar_event":
     },
   };
 
+  case "live_poll":
+  return {
+    id: makeId("livepoll"),
+    type: "live_poll",
+    label: "Live Poll",
+
+    grid: {
+      ...grid,
+      colSpan: 6,
+      rowSpan: 5,
+    },
+
+    appearance: {
+      ...createDefaultBlockAppearance(),
+      backgroundColor: "#FFFFFF",
+      borderColor: "#E5E7EB",
+      borderWidth: 1,
+      borderRadius: 16,
+    },
+
+    data: {
+      heading: "Live Poll",
+
+      waitingText:
+        "Waiting for the next poll...",
+
+      joinRequiredText:
+        "Join the Live experience to vote.",
+
+      submitButtonLabel:
+        "Submit Vote",
+
+      votedLabel:
+        "Vote submitted",
+
+      resultsHeading:
+        "Live Results",
+
+      showResults: true,
+
+      headingStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 22,
+        bold: true,
+        align: "center",
+      },
+
+      waitingTextStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        align: "center",
+      },
+
+      joinRequiredTextStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        align: "center",
+      },
+
+      questionStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 18,
+        bold: true,
+        align: "center",
+      },
+
+      choiceTextStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+      },
+
+      submitButtonTextStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        bold: true,
+        align: "center",
+        color: "#FFFFFF",
+      },
+
+      votedLabelStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        bold: true,
+        align: "center",
+      },
+
+      resultsHeadingStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 16,
+        bold: true,
+      },
+
+      resultsTextStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 13,
+      },
+
+      choiceStyle: {
+        backgroundColor: "#FFFFFF",
+        borderColor: "#D1D5DB",
+        borderWidth: 1,
+        borderRadius: 10,
+      },
+
+      selectedChoiceStyle: {
+        backgroundColor: "#EFF6FF",
+        borderColor: "#2563EB",
+        borderWidth: 2,
+        borderRadius: 10,
+      },
+
+      submitButtonStyle: {
+        backgroundColor: "#111827",
+        borderColor: "#111827",
+        borderWidth: 1,
+        borderRadius: 10,
+      },
+
+      resultsStyle: {
+        backgroundColor: "#F9FAFB",
+        borderColor: "#E5E7EB",
+        borderWidth: 1,
+        borderRadius: 12,
+      },
+    },
+  };
+  
       case "qr_code":
   return {
     id: makeId("qr"),

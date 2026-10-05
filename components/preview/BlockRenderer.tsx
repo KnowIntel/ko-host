@@ -12,6 +12,7 @@ import EnrollmentBoardBlock from "@/components/blocks/EnrollmentBoardBlock";
 import TournamentDisplayBlock from "@/components/blocks/TournamentDisplayBlock";
 import LiveJoinExperience from "@/components/live/LiveJoinExperience";
 import LiveTrivia from "@/components/live/LiveTrivia";
+import LivePoll from "@/components/live/LivePoll";
 import type { CSSProperties } from "react";
 import {
   ENROLLMENT_BOARD_PROFILE_EVENT,
@@ -41884,6 +41885,299 @@ case "live_trivia": {
     </Surface>
   );
 }
+
+case "live_poll": {
+  const data = block.data as any;
+
+  if (isBuilder) {
+    const choiceStyle =
+      data.choiceStyle ?? {};
+
+    const selectedChoiceStyle =
+      data.selectedChoiceStyle ?? {};
+
+    return (
+      <Surface block={block}>
+        <div className="h-full w-full overflow-auto p-4">
+          <div className="mx-auto w-full max-w-xl">
+            <div
+              className="text-xl font-semibold"
+              style={getContainerTextStyle(
+                data.headingStyle ??
+                  data.style,
+                designKey,
+              )}
+            >
+              {data.heading ||
+                "Live Poll"}
+            </div>
+
+            <div
+              className="mt-4 text-lg font-semibold"
+              style={getContainerTextStyle(
+                data.questionStyle ??
+                  data.style,
+                designKey,
+              )}
+            >
+              Which option would you choose?
+            </div>
+
+            <div className="mt-4 space-y-2">
+              {[
+                "Choice A",
+                "Choice B",
+                "Choice C",
+                "Choice D",
+              ].map(
+                (label, index) => (
+                  <div
+                    key={label}
+                    className="w-full px-3 py-3 text-left"
+                    style={{
+                      ...choiceStyle,
+
+                      ...(index === 0
+                        ? selectedChoiceStyle
+                        : {}),
+
+                      ...getContainerTextStyle(
+                        data.choiceTextStyle ??
+                          data.style,
+                        designKey,
+                      ),
+                    }}
+                  >
+                    {label}
+                  </div>
+                ),
+              )}
+            </div>
+
+            <div
+              className="mt-4 w-full px-4 py-3 text-center"
+              style={{
+                ...(data.submitButtonStyle ??
+                  {}),
+
+                ...getContainerTextStyle(
+                  data.submitButtonTextStyle ??
+                    data.style,
+                  designKey,
+                ),
+              }}
+            >
+              {data.submitButtonLabel ||
+                "Submit Vote"}
+            </div>
+
+            <div
+              className="mt-3 text-center text-sm"
+              style={getContainerTextStyle(
+                data.votedLabelStyle ??
+                  data.style,
+                designKey,
+              )}
+            >
+              {data.votedLabel ||
+                "Vote submitted"}
+            </div>
+
+            {data.showResults !==
+            false ? (
+              <div
+                className="mt-5 p-3"
+                style={
+                  data.resultsStyle ??
+                  {}
+                }
+              >
+                <div
+                  className="font-semibold"
+                  style={getContainerTextStyle(
+                    data.resultsHeadingStyle ??
+                      data.style,
+                    designKey,
+                  )}
+                >
+                  {data.resultsHeading ||
+                    "Live Results"}
+                </div>
+
+                <div
+                  className="mt-3 space-y-2"
+                  style={getContainerTextStyle(
+                    data.resultsTextStyle ??
+                      data.style,
+                    designKey,
+                  )}
+                >
+                  <div>
+                    <div className="flex justify-between gap-3">
+                      <span>
+                        Choice A
+                      </span>
+                      <span>
+                        60% (6)
+                      </span>
+                    </div>
+
+                    <div className="mt-1 h-2 overflow-hidden rounded-full bg-black/10">
+                      <div
+                        className="h-full rounded-full bg-current opacity-40"
+                        style={{
+                          width: "60%",
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between gap-3">
+                      <span>
+                        Choice B
+                      </span>
+                      <span>
+                        40% (4)
+                      </span>
+                    </div>
+
+                    <div className="mt-1 h-2 overflow-hidden rounded-full bg-black/10">
+                      <div
+                        className="h-full rounded-full bg-current opacity-40"
+                        style={{
+                          width: "40%",
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="pt-1 text-xs opacity-70">
+                    10 votes
+                  </div>
+                </div>
+              </div>
+            ) : null}
+          </div>
+        </div>
+      </Surface>
+    );
+  }
+
+  return (
+    <Surface block={block}>
+      <LivePoll
+        heading={
+          data.heading ||
+          "Live Poll"
+        }
+
+        waitingText={
+          data.waitingText ||
+          "Waiting for the next poll..."
+        }
+
+        joinRequiredText={
+          data.joinRequiredText ||
+          "Join the Live experience to vote."
+        }
+
+        submitButtonLabel={
+          data.submitButtonLabel ||
+          "Submit Vote"
+        }
+
+        votedLabel={
+          data.votedLabel ||
+          "Vote submitted"
+        }
+
+        resultsHeading={
+          data.resultsHeading ||
+          "Live Results"
+        }
+
+        showResults={
+          data.showResults !== false
+        }
+
+        headingStyle={getContainerTextStyle(
+          data.headingStyle ??
+            data.style,
+          designKey,
+        )}
+
+        waitingTextStyle={getContainerTextStyle(
+          data.waitingTextStyle ??
+            data.style,
+          designKey,
+        )}
+
+        joinRequiredTextStyle={getContainerTextStyle(
+          data.joinRequiredTextStyle ??
+            data.style,
+          designKey,
+        )}
+
+        questionStyle={getContainerTextStyle(
+          data.questionStyle ??
+            data.style,
+          designKey,
+        )}
+
+        choiceTextStyle={getContainerTextStyle(
+          data.choiceTextStyle ??
+            data.style,
+          designKey,
+        )}
+
+        submitButtonTextStyle={getContainerTextStyle(
+          data.submitButtonTextStyle ??
+            data.style,
+          designKey,
+        )}
+
+        votedLabelStyle={getContainerTextStyle(
+          data.votedLabelStyle ??
+            data.style,
+          designKey,
+        )}
+
+        resultsHeadingStyle={getContainerTextStyle(
+          data.resultsHeadingStyle ??
+            data.style,
+          designKey,
+        )}
+
+        resultsTextStyle={getContainerTextStyle(
+          data.resultsTextStyle ??
+            data.style,
+          designKey,
+        )}
+
+        choiceStyle={
+          data.choiceStyle ?? {}
+        }
+
+        selectedChoiceStyle={
+          data.selectedChoiceStyle ??
+          {}
+        }
+
+        submitButtonStyle={
+          data.submitButtonStyle ??
+          {}
+        }
+
+        resultsStyle={
+          data.resultsStyle ?? {}
+        }
+      />
+    </Surface>
+  );
+}
+
+
     default:
       return <div className="h-full w-full" />;
   }

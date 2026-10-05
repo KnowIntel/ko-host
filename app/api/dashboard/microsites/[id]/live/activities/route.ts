@@ -38,6 +38,21 @@ type TriviaConfiguration = {
   questions: TriviaQuestion[];
 };
 
+type PollChoice = {
+  id: string;
+  label: string;
+};
+
+type PollQuestion = {
+  id: string;
+  question: string;
+  choices: PollChoice[];
+};
+
+type PollConfiguration = {
+  questions: PollQuestion[];
+};
+
 function cleanText(
   value: unknown,
   maxLength: number,
@@ -238,6 +253,176 @@ function normalizeTriviaConfiguration(
       choices,
       correctChoiceId,
       points,
+    });
+  }
+
+  return {
+    questions,
+  };
+}
+
+function normalizePollConfiguration(
+  value: unknown,
+): PollConfiguration {
+  const source =
+    value &&
+    typeof value === "object" &&
+    !Array.isArray(value)
+      ? (value as Record<string, unknown>)
+      : {};
+
+  const rawQuestions =
+    Array.isArray(source.questions)
+      ? source.questions
+      : [];
+
+  if (rawQuestions.length > 100) {
+    throw new Error(
+      "Poll activities may contain at most 100 questions.",
+    );
+  }
+
+  const questions: PollQuestion[] = [];
+  const usedQuestionIds =
+    new Set<string>();
+
+  for (const rawQuestion of rawQuestions) {
+    if (
+      !rawQuestion ||
+      typeof rawQuestion !== "object" ||
+      Array.isArray(rawQuestion)
+    ) {
+      throw new Error(
+        "Invalid Poll question.",
+      );
+    }
+
+    const questionSource =
+      rawQuestion as Record<
+        string,
+        unknown
+      >;
+
+    let questionId = cleanText(
+      questionSource.id,
+      100,
+    );
+
+    if (!questionId) {
+      questionId =
+        makeId("poll-question");
+    }
+
+    if (
+      usedQuestionIds.has(
+        questionId,
+      )
+    ) {
+      throw new Error(
+        "Poll question IDs must be unique.",
+      );
+    }
+
+    usedQuestionIds.add(
+      questionId,
+    );
+
+    const question = cleanText(
+      questionSource.question,
+      500,
+    );
+
+    if (!question) {
+      throw new Error(
+        "Every Poll question requires question text.",
+      );
+    }
+
+    const rawChoices =
+      Array.isArray(
+        questionSource.choices,
+      )
+        ? questionSource.choices
+        : [];
+
+    if (
+      rawChoices.length < 2 ||
+      rawChoices.length > 10
+    ) {
+      throw new Error(
+        "Each Poll question requires between 2 and 10 choices.",
+      );
+    }
+
+    const choices: PollChoice[] = [];
+    const usedChoiceIds =
+      new Set<string>();
+
+    for (
+      const rawChoice of rawChoices
+    ) {
+      if (
+        !rawChoice ||
+        typeof rawChoice !==
+          "object" ||
+        Array.isArray(rawChoice)
+      ) {
+        throw new Error(
+          "Invalid Poll choice.",
+        );
+      }
+
+      const choiceSource =
+        rawChoice as Record<
+          string,
+          unknown
+        >;
+
+      let choiceId = cleanText(
+        choiceSource.id,
+        100,
+      );
+
+      if (!choiceId) {
+        choiceId =
+          makeId("poll-choice");
+      }
+
+      if (
+        usedChoiceIds.has(
+          choiceId,
+        )
+      ) {
+        throw new Error(
+          "Poll choice IDs must be unique within each question.",
+        );
+      }
+
+      usedChoiceIds.add(
+        choiceId,
+      );
+
+      const label = cleanText(
+        choiceSource.label,
+        300,
+      );
+
+      if (!label) {
+        throw new Error(
+          "Every Poll choice requires text.",
+        );
+      }
+
+      choices.push({
+        id: choiceId,
+        label,
+      });
+    }
+
+    questions.push({
+      id: questionId,
+      question,
+      choices,
     });
   }
 
@@ -595,7 +780,10 @@ export async function POST(
      * added here without changing the ownership
      * or persistence architecture.
      */
-    if (activityType !== "trivia") {
+if (
+  activityType !== "trivia" &&
+  activityType !== "poll"
+) {
       return NextResponse.json(
         {
           ok: false,
@@ -606,32 +794,44 @@ export async function POST(
       );
     }
 
-    const name =
-      cleanText(body?.name, 150) ||
-      "Live Trivia";
+const name =
+  cleanText(body?.name, 150) ||
+  (activityType === "poll"
+    ? "Live Poll"
+    : "Live Trivia");
 
-    let configuration:
-      TriviaConfiguration;
+let configuration:
+  | TriviaConfiguration
+  | PollConfiguration;
 
-    try {
-      configuration =
-        normalizeTriviaConfiguration(
+try {
+  configuration =
+    activityType === "poll"
+      ? normalizePollConfiguration(
+          body?.configuration ?? {
+            questions: [],
+          },
+        )
+      : normalizeTriviaConfiguration(
           body?.configuration ?? {
             questions: [],
           },
         );
-    } catch (error) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error:
-            error instanceof Error
-              ? error.message
-              : "Invalid Trivia configuration.",
-        },
-        { status: 400 },
-      );
-    }
+} catch (error) {
+  return NextResponse.json(
+    {
+      ok: false,
+
+      error:
+        error instanceof Error
+          ? error.message
+          : activityType === "poll"
+            ? "Invalid Poll configuration."
+            : "Invalid Trivia configuration.",
+    },
+    { status: 400 },
+  );
+}
 
     let scheduledFor: string | null;
 
@@ -663,7 +863,7 @@ export async function POST(
         experience_id:
           context.experience.id,
 
-        activity_type: "trivia",
+        activity_type: activityType,
 
         name,
 
@@ -858,10 +1058,12 @@ export async function PATCH(
       );
     }
 
-    if (
-      existingActivity.activity_type !==
-      "trivia"
-    ) {
+if (
+  existingActivity.activity_type !==
+    "trivia" &&
+  existingActivity.activity_type !==
+    "poll"
+) {
       return NextResponse.json(
         {
           ok: false,
@@ -902,10 +1104,15 @@ export async function PATCH(
       body?.configuration !== undefined
     ) {
       try {
-        updatePayload.configuration =
-          normalizeTriviaConfiguration(
-            body.configuration,
-          );
+updatePayload.configuration =
+  existingActivity.activity_type ===
+  "poll"
+    ? normalizePollConfiguration(
+        body.configuration,
+      )
+    : normalizeTriviaConfiguration(
+        body.configuration,
+      );
       } catch (error) {
         return NextResponse.json(
           {
@@ -913,7 +1120,10 @@ export async function PATCH(
             error:
               error instanceof Error
                 ? error.message
-                : "Invalid Trivia configuration.",
+                : existingActivity.activity_type ===
+    "poll"
+  ? "Invalid Poll configuration."
+  : "Invalid Trivia configuration.",
           },
           { status: 400 },
         );

@@ -1,3 +1,5 @@
+// components\live\LiveTrivia.tsx
+
 "use client";
 
 import {
@@ -126,13 +128,14 @@ export default function LiveTrivia({
   submitButtonStyle,
   leaderboardStyle,
 }: LiveTriviaProps) {
-  const {
-    experience,
-    authenticated,
-    participant,
-    sharedState,
-    sessionLoading,
-  } = useLiveRuntime();
+const {
+  experience,
+  authenticated,
+  participant,
+  sharedState,
+  realtimeRevision,
+  sessionLoading,
+} = useLiveRuntime();
 
   const [runtimeData, setRuntimeData] =
     useState<TriviaRuntimeData | null>(null);
@@ -201,14 +204,15 @@ export default function LiveTrivia({
    * sharedState, so the activity surface only
    * needs to react to that state changing.
    */
-  useEffect(() => {
-    void loadTrivia();
-  }, [
-    loadTrivia,
-    sharedState?.updatedAt,
-    sharedState?.currentActivityId,
-    sharedState?.currentActivityType,
-  ]);
+useEffect(() => {
+  void loadTrivia();
+}, [
+  loadTrivia,
+  realtimeRevision,
+  sharedState?.updatedAt,
+  sharedState?.currentActivityId,
+  sharedState?.currentActivityType,
+]);
 
   const question =
     runtimeData?.activity?.question ?? null;

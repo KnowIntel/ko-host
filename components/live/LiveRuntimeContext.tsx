@@ -53,6 +53,16 @@ type LiveRuntimeValue = {
 
   sharedState: LiveSharedState | null;
 
+  /*
+   * Increments whenever the runtime receives a
+   * Live Broadcast notification.
+   *
+   * Activity components can use this value to
+   * refetch their authoritative server data even
+   * when shared Live state itself did not change.
+   */
+  realtimeRevision: number;
+
   loading: boolean;
   sessionLoading: boolean;
   stateLoading: boolean;
@@ -98,9 +108,10 @@ export function LiveRuntimeProvider({
   /*
    * Keep a runtime copy of the experience.
    *
-   * The initial value comes from the server-rendered microsite,
-   * but the status can change while the participant remains
-   * on the page.
+   * The initial value comes from the
+   * server-rendered microsite, but the status can
+   * change while the participant remains on the
+   * page.
    */
   const [
     runtimeExperience,
@@ -113,17 +124,33 @@ export function LiveRuntimeProvider({
   const [participant, setParticipant] =
     useState<LiveParticipant | null>(null);
 
-  const [authenticated, setAuthenticated] =
-    useState(false);
+  const [
+    authenticated,
+    setAuthenticated,
+  ] = useState(false);
 
   const [sharedState, setSharedState] =
     useState<LiveSharedState | null>(null);
 
-  const [sessionLoading, setSessionLoading] =
-    useState(Boolean(liveExperience));
+  /*
+   * Changes for every realtime Broadcast,
+   * including activity events that do not modify
+   * live_experience_state.updated_at.
+   */
+  const [
+    realtimeRevision,
+    setRealtimeRevision,
+  ] = useState(0);
 
-  const [stateLoading, setStateLoading] =
-    useState(Boolean(liveExperience));
+  const [
+    sessionLoading,
+    setSessionLoading,
+  ] = useState(Boolean(liveExperience));
+
+  const [
+    stateLoading,
+    setStateLoading,
+  ] = useState(Boolean(liveExperience));
 
   const [joining, setJoining] =
     useState(false);
@@ -135,8 +162,9 @@ export function LiveRuntimeProvider({
     useState<string | null>(null);
 
   /*
-   * If the page itself supplies a different experience,
-   * reset the runtime copy to that experience.
+   * If the page itself supplies a different
+   * experience, reset the runtime copy to that
+   * experience.
    */
   useEffect(() => {
     setRuntimeExperience(liveExperience);
@@ -165,10 +193,9 @@ export function LiveRuntimeProvider({
           },
         );
 
-        const payload =
-          await response
-            .json()
-            .catch(() => null);
+        const payload = await response
+          .json()
+          .catch(() => null);
 
         if (
           response.ok &&
@@ -223,22 +250,23 @@ export function LiveRuntimeProvider({
           },
         );
 
-        const payload =
-          await response
-            .json()
-            .catch(() => null);
+        const payload = await response
+          .json()
+          .catch(() => null);
 
         if (
           response.ok &&
           payload?.ok === true
         ) {
           /*
-           * The public Live state endpoint already returns
-           * the authoritative experience status.
+           * The public Live state endpoint already
+           * returns the authoritative experience
+           * status.
            *
-           * Merge that status into the runtime experience so
-           * participant-facing Live blocks can react without
-           * requiring a page refresh.
+           * Merge that status into the runtime
+           * experience so participant-facing Live
+           * blocks can react without requiring a
+           * page refresh.
            */
           if (
             payload?.experience &&
@@ -344,10 +372,9 @@ export function LiveRuntimeProvider({
           },
         );
 
-        const payload =
-          await response
-            .json()
-            .catch(() => null);
+        const payload = await response
+          .json()
+          .catch(() => null);
 
         if (
           !response.ok ||
@@ -412,10 +439,9 @@ export function LiveRuntimeProvider({
           },
         );
 
-        const payload =
-          await response
-            .json()
-            .catch(() => null);
+        const payload = await response
+          .json()
+          .catch(() => null);
 
         if (
           !response.ok ||
@@ -444,7 +470,8 @@ export function LiveRuntimeProvider({
   );
 
   /*
-   * Initial participant/session and shared-state restore.
+   * Initial participant/session and shared-state
+   * restore.
    */
   useEffect(() => {
     void refreshSession();
@@ -455,11 +482,17 @@ export function LiveRuntimeProvider({
   ]);
 
   /*
-   * Listen for non-sensitive Live change notifications.
+   * Listen for non-sensitive Live change
+   * notifications.
    *
    * The Broadcast itself is only a notification.
-   * Authoritative state is always restored through the
-   * server API.
+   * Authoritative state is always restored
+   * through the server API.
+   *
+   * realtimeRevision also increments so activity
+   * components can refetch their own authoritative
+   * data even when the shared-state row itself was
+   * not modified by the event.
    */
   useEffect(() => {
     if (!liveExperience?.id) {
@@ -476,6 +509,10 @@ export function LiveRuntimeProvider({
         event: "shared-state-changed",
       },
       () => {
+        setRealtimeRevision(
+          (revision) => revision + 1,
+        );
+
         void refreshSharedState();
       },
     );
@@ -502,6 +539,7 @@ export function LiveRuntimeProvider({
         authenticated,
 
         sharedState,
+        realtimeRevision,
 
         loading:
           sessionLoading ||
@@ -525,6 +563,7 @@ export function LiveRuntimeProvider({
         participant,
         authenticated,
         sharedState,
+        realtimeRevision,
         sessionLoading,
         stateLoading,
         joining,

@@ -14,7 +14,7 @@ type Experience = {
   isEnabled: boolean;
 };
 
-type TriviaChoice = {
+type ActivityChoice = {
   id: string;
   label: string;
 };
@@ -22,10 +22,20 @@ type TriviaChoice = {
 type TriviaQuestion = {
   id: string;
   question: string;
-  choices: TriviaChoice[];
+  choices: ActivityChoice[];
   correctChoiceId: string;
   points: number;
 };
+
+type PollQuestion = {
+  id: string;
+  question: string;
+  choices: ActivityChoice[];
+};
+
+type ActivityQuestion =
+  | TriviaQuestion
+  | PollQuestion;
 
 type Activity = {
   id: string;
@@ -34,9 +44,9 @@ type Activity = {
   name: string;
   status: string;
 
-  configuration: {
-    questions?: TriviaQuestion[];
-  };
+configuration: {
+  questions?: ActivityQuestion[];
+};
 
   scheduledFor: string | null;
   startedAt: string | null;
@@ -70,14 +80,14 @@ function makeLocalId(
 
 function newChoice(
   label = "",
-): TriviaChoice {
+): ActivityChoice {
   return {
     id: makeLocalId("choice"),
     label,
   };
 }
 
-function newQuestion(): TriviaQuestion {
+function newTriviaQuestion(): TriviaQuestion {
   const firstChoice = newChoice();
   const secondChoice = newChoice();
 
@@ -92,6 +102,28 @@ function newQuestion(): TriviaQuestion {
       firstChoice.id,
     points: 100,
   };
+}
+
+function newPollQuestion(): PollQuestion {
+  return {
+    id: makeLocalId(
+      "poll-question",
+    ),
+    question: "",
+    choices: [
+      newChoice(),
+      newChoice(),
+    ],
+  };
+}
+
+function isTriviaQuestion(
+  question: ActivityQuestion,
+): question is TriviaQuestion {
+  return (
+    "correctChoiceId" in question &&
+    "points" in question
+  );
 }
 
 function normalizeQuestions(
@@ -290,12 +322,12 @@ export default function LiveManager({
     setMessage(null);
   }
 
-  function updateQuestion(
-    questionId: string,
-    updater: (
-      question: TriviaQuestion,
-    ) => TriviaQuestion,
-  ) {
+function updateQuestion(
+  questionId: string,
+  updater: (
+    question: ActivityQuestion,
+  ) => ActivityQuestion,
+) {
     updateSelectedActivity(
       (activity) => ({
         ...activity,
@@ -320,25 +352,28 @@ export default function LiveManager({
     );
   }
 
-  function addQuestion() {
-    updateSelectedActivity(
-      (activity) => ({
-        ...activity,
+function addQuestion() {
+  updateSelectedActivity(
+    (activity) => ({
+      ...activity,
 
-        configuration: {
-          ...activity.configuration,
+      configuration: {
+        ...activity.configuration,
 
-          questions: [
-            ...normalizeQuestions(
-              activity,
-            ),
-            newQuestion(),
-          ],
-        },
-      }),
-    );
-  }
+        questions: [
+          ...normalizeQuestions(
+            activity,
+          ),
 
+          activity.activityType ===
+          "poll"
+            ? newPollQuestion()
+            : newTriviaQuestion(),
+        ],
+      },
+    }),
+  );
+}
   function removeQuestion(
     questionId: string,
   ) {
@@ -411,27 +446,28 @@ export default function LiveManager({
     );
   }
 
-  function removeChoice(
-    questionId: string,
-    choiceId: string,
-  ) {
-    updateQuestion(
-      questionId,
-      (question) => {
-        if (
-          question.choices.length <=
-          2
-        ) {
-          return question;
-        }
+function removeChoice(
+  questionId: string,
+  choiceId: string,
+) {
+  updateQuestion(
+    questionId,
+    (question) => {
+      if (
+        question.choices.length <= 2
+      ) {
+        return question;
+      }
 
-        const choices =
-          question.choices.filter(
-            (choice) =>
-              choice.id !==
-              choiceId,
-          );
+      const choices =
+        question.choices.filter(
+          (choice) =>
+            choice.id !== choiceId,
+        );
 
+      if (
+        isTriviaQuestion(question)
+      ) {
         const correctChoiceId =
           question.correctChoiceId ===
           choiceId
@@ -443,9 +479,15 @@ export default function LiveManager({
           choices,
           correctChoiceId,
         };
-      },
-    );
-  }
+      }
+
+      return {
+        ...question,
+        choices,
+      };
+    },
+  );
+}
 
   async function createTrivia() {
     setCreating(true);
@@ -511,6 +553,71 @@ export default function LiveManager({
       setCreating(false);
     }
   }
+
+  async function createPoll() {
+  setCreating(true);
+  setError(null);
+  setMessage(null);
+
+  try {
+    const response = await fetch(
+      `/api/dashboard/microsites/${micrositeId}/live/activities`,
+      {
+        method: "POST",
+
+        headers: {
+          "Content-Type":
+            "application/json",
+        },
+
+        body: JSON.stringify({
+          activityType: "poll",
+          name: "Live Poll",
+
+          configuration: {
+            questions: [],
+          },
+        }),
+      },
+    );
+
+    const payload =
+      await response.json();
+
+    if (
+      !response.ok ||
+      !payload?.ok
+    ) {
+      throw new Error(
+        payload?.error ||
+          "Unable to create Poll activity.",
+      );
+    }
+
+    setActivities(
+      (current) => [
+        payload.activity,
+        ...current,
+      ],
+    );
+
+    setSelectedActivityId(
+      payload.activity.id,
+    );
+
+    setMessage(
+      "Poll activity created.",
+    );
+  } catch (createError) {
+    setError(
+      createError instanceof Error
+        ? createError.message
+        : "Unable to create Poll activity.",
+    );
+  } finally {
+    setCreating(false);
+  }
+}
 
   async function saveActivity() {
     if (!selectedActivity) {
@@ -588,27 +695,32 @@ export default function LiveManager({
       return;
     }
 
-    if (
-      selectedActivity.activityType !==
-      "trivia"
-    ) {
-      return;
-    }
+if (
+  selectedActivity.activityType !==
+    "trivia" &&
+  selectedActivity.activityType !==
+    "poll"
+) {
+  return;
+}
 
     const activityQuestions =
       normalizeQuestions(
         selectedActivity,
       );
 
-    if (
-      activityQuestions.length === 0
-    ) {
-      setError(
-        "Add at least one question before activating this Trivia activity.",
-      );
+if (
+  activityQuestions.length === 0
+) {
+  setError(
+    selectedActivity.activityType ===
+      "poll"
+      ? "Add at least one question before activating this Poll activity."
+      : "Add at least one question before activating this Trivia activity.",
+  );
 
-      return;
-    }
+  return;
+}
 
     setActivating(true);
     setError(null);
@@ -675,8 +787,8 @@ export default function LiveManager({
             },
 
             body: JSON.stringify({
-              currentActivityType:
-                "trivia",
+currentActivityType:
+  selectedActivity.activityType,
 
               currentActivityId:
                 selectedActivity.id,
@@ -717,9 +829,12 @@ export default function LiveManager({
         statePayload.sharedState,
       );
 
-      setMessage(
-        "Trivia is now the current Live activity.",
-      );
+setMessage(
+  selectedActivity.activityType ===
+    "poll"
+    ? "Poll is now the current Live activity."
+    : "Trivia is now the current Live activity.",
+);
     } catch (activateError) {
       setError(
         activateError instanceof Error
@@ -760,8 +875,8 @@ export default function LiveManager({
           },
 
           body: JSON.stringify({
-            currentActivityType:
-              "trivia",
+currentActivityType:
+  selectedActivity.activityType,
 
             currentActivityId:
               selectedActivity.id,
@@ -946,18 +1061,29 @@ export default function LiveManager({
               Activities
             </h2>
 
-            <button
-              type="button"
-              disabled={creating}
-              onClick={() => {
-                void createTrivia();
-              }}
-              className="rounded-xl bg-neutral-900 px-3 py-2 text-xs font-medium text-white hover:bg-neutral-800 disabled:opacity-50"
-            >
-              {creating
-                ? "Creating..."
-                : "+ Trivia"}
-            </button>
+<div className="flex items-center gap-2">
+  <button
+    type="button"
+    disabled={creating}
+    onClick={() => {
+      void createTrivia();
+    }}
+    className="rounded-xl bg-neutral-900 px-3 py-2 text-xs font-medium text-white hover:bg-neutral-800 disabled:opacity-50"
+  >
+    + Trivia
+  </button>
+
+  <button
+    type="button"
+    disabled={creating}
+    onClick={() => {
+      void createPoll();
+    }}
+    className="rounded-xl border border-neutral-300 px-3 py-2 text-xs font-medium text-neutral-800 hover:bg-neutral-50 disabled:opacity-50"
+  >
+    + Poll
+  </button>
+</div>
           </div>
 
           <div className="mt-4 space-y-2">
@@ -1032,9 +1158,9 @@ export default function LiveManager({
               </h2>
 
               <p className="mt-2 text-sm text-neutral-600">
-                Select an existing
-                activity or create a
-                Trivia activity.
+Select an existing
+activity or create a
+Trivia or Poll activity.
               </p>
             </div>
           ) : (
@@ -1137,16 +1263,19 @@ export default function LiveManager({
               <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
                 <div className="flex items-center justify-between gap-4">
                   <div>
-                    <h2 className="text-lg font-semibold">
-                      Trivia Questions
-                    </h2>
+<h2 className="text-lg font-semibold">
+  {selectedActivity.activityType ===
+  "poll"
+    ? "Poll Questions"
+    : "Trivia Questions"}
+</h2>
 
-                    <p className="mt-1 text-sm text-neutral-600">
-                      Configure the
-                      questions, answer
-                      choices, correct
-                      answer and points.
-                    </p>
+<p className="mt-1 text-sm text-neutral-600">
+  {selectedActivity.activityType ===
+  "poll"
+    ? "Configure the poll questions and voting choices."
+    : "Configure the questions, answer choices, correct answer and points."}
+</p>
                   </div>
 
                   <button
@@ -1164,9 +1293,13 @@ export default function LiveManager({
                   {questions.length ===
                   0 ? (
                     <div className="rounded-xl border border-dashed border-neutral-300 bg-neutral-50 p-6 text-center text-sm text-neutral-600">
-                      No questions yet.
-                      Add your first
-                      Trivia question.
+No questions yet.
+Add your first{" "}
+{selectedActivity.activityType ===
+"poll"
+  ? "Poll"
+  : "Trivia"}{" "}
+question.
                     </div>
                   ) : (
                     questions.map(
@@ -1276,27 +1409,30 @@ export default function LiveManager({
                                     }
                                     className="flex items-center gap-2"
                                   >
-                                    <input
-                                      type="radio"
-                                      name={`correct-${question.id}`}
-                                      checked={
-                                        question.correctChoiceId ===
-                                        choice.id
-                                      }
-                                      onChange={() =>
-                                        updateQuestion(
-                                          question.id,
-                                          (
-                                            current,
-                                          ) => ({
-                                            ...current,
-                                            correctChoiceId:
-                                              choice.id,
-                                          }),
-                                        )
-                                      }
-                                      title="Correct answer"
-                                    />
+{isTriviaQuestion(question) ? (
+  <input
+    type="radio"
+    name={`correct-${question.id}`}
+    checked={
+      question.correctChoiceId ===
+      choice.id
+    }
+    onChange={() =>
+      updateQuestion(
+        question.id,
+        (current) =>
+          isTriviaQuestion(current)
+            ? {
+                ...current,
+                correctChoiceId:
+                  choice.id,
+              }
+            : current,
+      )
+    }
+    title="Correct answer"
+  />
+) : null}
 
                                     <input
                                       type="text"
@@ -1314,7 +1450,12 @@ export default function LiveManager({
                                             .value,
                                         )
                                       }
-                                      placeholder={`Answer ${choiceIndex + 1}`}
+                                      placeholder={`${
+  selectedActivity.activityType ===
+  "poll"
+    ? "Choice"
+    : "Answer"
+} ${choiceIndex + 1}`}
                                       className="min-w-0 flex-1 rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-900"
                                     />
 
@@ -1333,7 +1474,12 @@ export default function LiveManager({
                                         )
                                       }
                                       className="px-2 text-sm text-red-600 disabled:opacity-30"
-                                      title="Remove answer"
+                                      title={
+  selectedActivity.activityType ===
+  "poll"
+    ? "Remove choice"
+    : "Remove answer"
+}
                                     >
                                       ×
                                     </button>
@@ -1358,48 +1504,45 @@ export default function LiveManager({
                                 }
                                 className="text-xs font-medium text-neutral-700 underline underline-offset-4 disabled:opacity-40"
                               >
-                                + Answer
+                                {selectedActivity.activityType ===
+"poll"
+  ? "+ Choice"
+  : "+ Answer"}
                               </button>
 
-                              <label className="text-xs font-medium text-neutral-600">
-                                Points
-                                <input
-                                  type="number"
-                                  min={0}
-                                  max={
-                                    100000
-                                  }
-                                  value={
-                                    question.points
-                                  }
-                                  onChange={(
-                                    event,
-                                  ) =>
-                                    updateQuestion(
-                                      question.id,
-                                      (
-                                        current,
-                                      ) => ({
-                                        ...current,
-                                        points:
-                                          Math.max(
-                                            0,
-                                            Math.min(
-                                              100000,
-                                              Number(
-                                                event
-                                                  .target
-                                                  .value,
-                                              ) ||
-                                                0,
-                                            ),
-                                          ),
-                                      }),
-                                    )
-                                  }
-                                  className="ml-2 w-24 rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-900"
-                                />
-                              </label>
+{isTriviaQuestion(question) ? (
+  <label className="text-xs font-medium text-neutral-600">
+    Points
+
+    <input
+      type="number"
+      min={0}
+      max={100000}
+      value={question.points}
+      onChange={(event) =>
+        updateQuestion(
+          question.id,
+          (current) =>
+            isTriviaQuestion(current)
+              ? {
+                  ...current,
+                  points: Math.max(
+                    0,
+                    Math.min(
+                      100000,
+                      Number(
+                        event.target.value,
+                      ) || 0,
+                    ),
+                  ),
+                }
+              : current,
+        )
+      }
+      className="ml-2 w-24 rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-900"
+    />
+  </label>
+) : null}
                             </div>
                           </div>
                         );

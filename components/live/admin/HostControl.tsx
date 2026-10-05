@@ -9,19 +9,30 @@ import {
 
 import { createClient } from "@supabase/supabase-js";
 
-type TriviaChoice = {
+type ActivityChoice = {
   id: string;
   label: string;
 };
 
-type HostQuestion = {
+type HostTriviaQuestion = {
   id: string;
   question: string;
-  choices: TriviaChoice[];
+  choices: ActivityChoice[];
   correctChoiceId: string;
   points: number;
   index: number;
 };
+
+type HostPollQuestion = {
+  id: string;
+  question: string;
+  choices: ActivityChoice[];
+  index: number;
+};
+
+type HostQuestion =
+  | HostTriviaQuestion
+  | HostPollQuestion;
 
 type AnswerDistribution = {
   choiceId: string;
@@ -31,7 +42,14 @@ type AnswerDistribution = {
   isCorrect: boolean;
 };
 
-type ParticipantResult = {
+type VoteDistribution = {
+  choiceId: string;
+  label: string;
+  count: number;
+  percentage: number;
+};
+
+type TriviaParticipantResult = {
   participantId: string;
   displayName: string;
   avatarUrl: string | null;
@@ -41,6 +59,15 @@ type ParticipantResult = {
   correct: boolean | null;
   awardedPoints: number | null;
   answeredAt: string | null;
+};
+
+type PollParticipantResult = {
+  participantId: string;
+  displayName: string;
+  avatarUrl: string | null;
+  hasVoted: boolean;
+  choiceId: string | null;
+  votedAt: string | null;
 };
 
 type LeaderboardEntry = {
@@ -68,10 +95,12 @@ type HostPayload = {
   sharedState: {
     currentActivityType: string | null;
     currentActivityId: string | null;
+
     state: {
       currentQuestionId?: string;
       [key: string]: unknown;
     };
+
     updatedAt: string | null;
   };
 
@@ -91,10 +120,10 @@ type HostPayload = {
   } | null;
 
   trivia: {
-    questions: HostQuestion[];
+    questions: HostTriviaQuestion[];
 
     currentQuestion:
-      | HostQuestion
+      | HostTriviaQuestion
       | null;
 
     results: {
@@ -103,10 +132,32 @@ type HostPayload = {
       unansweredCount: number;
       correctCount: number;
       incorrectCount: number;
+
       answerDistribution:
         AnswerDistribution[];
+
       participants:
-        ParticipantResult[];
+        TriviaParticipantResult[];
+    };
+  } | null;
+
+  poll: {
+    questions: HostPollQuestion[];
+
+    currentQuestion:
+      | HostPollQuestion
+      | null;
+
+    results: {
+      participantCount: number;
+      votedCount: number;
+      waitingCount: number;
+
+      voteDistribution:
+        VoteDistribution[];
+
+      participants:
+        PollParticipantResult[];
     };
   } | null;
 
@@ -119,7 +170,8 @@ type Props = {
 };
 
 const supabaseUrl =
-  process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+  process.env.NEXT_PUBLIC_SUPABASE_URL ??
+  "";
 
 const supabaseAnonKey =
   process.env
@@ -129,6 +181,15 @@ const supabase = createClient(
   supabaseUrl,
   supabaseAnonKey,
 );
+
+function isTriviaQuestion(
+  question: HostQuestion,
+): question is HostTriviaQuestion {
+  return (
+    "correctChoiceId" in question &&
+    "points" in question
+  );
+}
 
 export default function HostControl({
   micrositeId,
@@ -218,13 +279,14 @@ export default function HostControl({
   }, [loadHostState]);
 
   /*
-   * The existing server APIs broadcast this
-   * event whenever shared Live state changes
-   * or a participant submits an answer.
+   * Server APIs broadcast this event
+   * whenever shared Live state changes
+   * or a participant submits an
+   * answer/vote.
    *
-   * Broadcast contains no protected results.
-   * We fetch authoritative Host data after
-   * receiving the notification.
+   * Broadcast contains no protected
+   * results. Host Control refetches
+   * authoritative server data.
    */
   useEffect(() => {
     if (!experienceId) {
@@ -257,13 +319,54 @@ export default function HostControl({
     loadHostState,
   ]);
 
-  const trivia = data?.trivia ?? null;
+  const activityType =
+    data?.activity?.activityType ??
+    null;
 
-  const questions =
-    trivia?.questions ?? [];
+  const trivia =
+    data?.trivia ?? null;
 
-  const currentQuestion =
-    trivia?.currentQuestion ?? null;
+  const poll =
+    data?.poll ?? null;
+
+  const questions: HostQuestion[] =
+    useMemo(() => {
+      if (activityType === "trivia") {
+        return trivia?.questions ?? [];
+      }
+
+      if (activityType === "poll") {
+        return poll?.questions ?? [];
+      }
+
+      return [];
+    }, [
+      activityType,
+      trivia,
+      poll,
+    ]);
+
+  const currentQuestion:
+    | HostQuestion
+    | null = useMemo(() => {
+    if (activityType === "trivia") {
+      return (
+        trivia?.currentQuestion ?? null
+      );
+    }
+
+    if (activityType === "poll") {
+      return (
+        poll?.currentQuestion ?? null
+      );
+    }
+
+    return null;
+  }, [
+    activityType,
+    trivia,
+    poll,
+  ]);
 
   const currentQuestionIndex =
     useMemo(() => {
@@ -368,9 +471,16 @@ export default function HostControl({
       const labels = {
         before:
           "Experience moved to Pre-Event.",
-        live: "Experience is Live.",
-        paused: "Experience paused.",
-        ended: "Experience ended.",
+
+        live:
+          "Experience is Live.",
+
+        paused:
+          "Experience paused.",
+
+        ended:
+          "Experience ended.",
+
         after:
           "Experience moved to Post-Event.",
       };
@@ -390,10 +500,16 @@ export default function HostControl({
   async function setCurrentQuestion(
     questionId: string,
   ) {
+    if (!data?.activity) {
+      return;
+    }
+
+    const type =
+      data.activity.activityType;
+
     if (
-      !data?.activity ||
-      data.activity.activityType !==
-        "trivia"
+      type !== "trivia" &&
+      type !== "poll"
     ) {
       return;
     }
@@ -415,7 +531,7 @@ export default function HostControl({
 
           body: JSON.stringify({
             currentActivityType:
-              "trivia",
+              type,
 
             currentActivityId:
               data.activity.id,
@@ -481,6 +597,14 @@ export default function HostControl({
       </div>
     );
   }
+
+  const isTrivia =
+    data.activity?.activityType ===
+    "trivia";
+
+  const isPoll =
+    data.activity?.activityType ===
+    "poll";
 
   return (
     <div className="space-y-6">
@@ -725,8 +849,7 @@ export default function HostControl({
             before opening Host Control.
           </p>
         </div>
-      ) : data.activity.activityType !==
-        "trivia" ? (
+      ) : !isTrivia && !isPoll ? (
         <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
           <h2 className="text-lg font-semibold">
             {data.activity.name}
@@ -738,16 +861,23 @@ export default function HostControl({
             with its Live implementation.
           </p>
         </div>
-      ) : !trivia ||
-        !currentQuestion ? (
+      ) : !currentQuestion ? (
         <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
           <h2 className="text-lg font-semibold">
-            No Trivia question
+            No{" "}
+            {isTrivia
+              ? "Trivia"
+              : "Poll"}{" "}
+            question
           </h2>
 
           <p className="mt-2 text-sm text-neutral-600">
-            This activity does not have
-            a current Trivia question.
+            This activity does not have a
+            current{" "}
+            {isTrivia
+              ? "Trivia"
+              : "Poll"}{" "}
+            question.
           </p>
         </div>
       ) : (
@@ -774,12 +904,21 @@ export default function HostControl({
                   }
                 </h2>
 
-                <div className="mt-2 text-sm text-neutral-600">
-                  {
-                    currentQuestion.points
-                  }{" "}
-                  points
-                </div>
+                {isTrivia &&
+                isTriviaQuestion(
+                  currentQuestion,
+                ) ? (
+                  <div className="mt-2 text-sm text-neutral-600">
+                    {
+                      currentQuestion.points
+                    }{" "}
+                    points
+                  </div>
+                ) : (
+                  <div className="mt-2 text-sm text-neutral-600">
+                    Live Poll
+                  </div>
+                )}
               </div>
 
               <div className="flex flex-wrap gap-2">
@@ -825,264 +964,404 @@ export default function HostControl({
               </div>
             </div>
 
-            <div className="mt-6 grid gap-3 sm:grid-cols-4">
-              <div className="rounded-xl bg-neutral-50 p-4">
-                <div className="text-xs text-neutral-500">
-                  Participants
-                </div>
-
-                <div className="mt-1 text-xl font-semibold">
-                  {
+            {isTrivia && trivia ? (
+              <div className="mt-6 grid gap-3 sm:grid-cols-4">
+                <MetricCard
+                  label="Participants"
+                  value={
                     trivia.results
                       .participantCount
                   }
-                </div>
-              </div>
+                />
 
-              <div className="rounded-xl bg-neutral-50 p-4">
-                <div className="text-xs text-neutral-500">
-                  Answered
-                </div>
-
-                <div className="mt-1 text-xl font-semibold">
-                  {
+                <MetricCard
+                  label="Answered"
+                  value={
                     trivia.results
                       .answeredCount
                   }
-                </div>
-              </div>
+                />
 
-              <div className="rounded-xl bg-neutral-50 p-4">
-                <div className="text-xs text-neutral-500">
-                  Correct
-                </div>
-
-                <div className="mt-1 text-xl font-semibold">
-                  {
+                <MetricCard
+                  label="Correct"
+                  value={
                     trivia.results
                       .correctCount
                   }
-                </div>
-              </div>
+                />
 
-              <div className="rounded-xl bg-neutral-50 p-4">
-                <div className="text-xs text-neutral-500">
-                  Waiting
-                </div>
-
-                <div className="mt-1 text-xl font-semibold">
-                  {
+                <MetricCard
+                  label="Waiting"
+                  value={
                     trivia.results
                       .unansweredCount
                   }
+                />
+              </div>
+            ) : null}
+
+            {isPoll && poll ? (
+              <div className="mt-6 grid gap-3 sm:grid-cols-3">
+                <MetricCard
+                  label="Participants"
+                  value={
+                    poll.results
+                      .participantCount
+                  }
+                />
+
+                <MetricCard
+                  label="Voted"
+                  value={
+                    poll.results
+                      .votedCount
+                  }
+                />
+
+                <MetricCard
+                  label="Waiting"
+                  value={
+                    poll.results
+                      .waitingCount
+                  }
+                />
+              </div>
+            ) : null}
+          </div>
+
+          {isTrivia && trivia ? (
+            <>
+              <div className="grid gap-6 xl:grid-cols-2">
+                <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+                  <h2 className="text-lg font-semibold">
+                    Live Answers
+                  </h2>
+
+                  <p className="mt-1 text-sm text-neutral-600">
+                    Results update as
+                    participants answer.
+                  </p>
+
+                  <div className="mt-5 space-y-3">
+                    {trivia.results.answerDistribution.map(
+                      (choice) => (
+                        <div
+                          key={
+                            choice.choiceId
+                          }
+                          className={`rounded-xl border p-4 ${
+                            choice.isCorrect
+                              ? "border-green-300 bg-green-50"
+                              : "border-neutral-200"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between gap-4">
+                            <div className="font-medium">
+                              {
+                                choice.label
+                              }
+
+                              {choice.isCorrect ? (
+                                <span className="ml-2 text-xs font-semibold text-green-700">
+                                  CORRECT
+                                </span>
+                              ) : null}
+                            </div>
+
+                            <div className="text-sm font-semibold">
+                              {
+                                choice.count
+                              }{" "}
+                              (
+                              {
+                                choice.percentage
+                              }
+                              %)
+                            </div>
+                          </div>
+
+                          <div className="mt-3 h-2 overflow-hidden rounded-full bg-neutral-100">
+                            <div
+                              className="h-full rounded-full bg-neutral-900 transition-all"
+                              style={{
+                                width: `${choice.percentage}%`,
+                              }}
+                            />
+                          </div>
+                        </div>
+                      ),
+                    )}
+                  </div>
+                </div>
+
+                <Leaderboard
+                  entries={
+                    data.leaderboard
+                  }
+                />
+              </div>
+
+              <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <h2 className="text-lg font-semibold">
+                      Participant Status
+                    </h2>
+
+                    <p className="mt-1 text-sm text-neutral-600">
+                      See who has answered
+                      the current question.
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      void loadHostState();
+                    }}
+                    className="rounded-xl border border-neutral-300 px-3 py-2 text-sm font-medium hover:bg-neutral-50"
+                  >
+                    Refresh
+                  </button>
+                </div>
+
+                <div className="mt-5 overflow-x-auto">
+                  <table className="w-full text-left text-sm">
+                    <thead>
+                      <tr className="border-b border-neutral-200 text-xs text-neutral-500">
+                        <th className="px-3 py-3 font-medium">
+                          Participant
+                        </th>
+
+                        <th className="px-3 py-3 font-medium">
+                          Status
+                        </th>
+
+                        <th className="px-3 py-3 font-medium">
+                          Result
+                        </th>
+
+                        <th className="px-3 py-3 text-right font-medium">
+                          Score
+                        </th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      {trivia.results
+                        .participants
+                        .length === 0 ? (
+                        <tr>
+                          <td
+                            colSpan={4}
+                            className="px-3 py-6 text-center text-neutral-500"
+                          >
+                            No participants
+                            yet.
+                          </td>
+                        </tr>
+                      ) : (
+                        trivia.results.participants.map(
+                          (
+                            participant,
+                          ) => (
+                            <tr
+                              key={
+                                participant.participantId
+                              }
+                              className="border-b border-neutral-100 last:border-0"
+                            >
+                              <td className="px-3 py-3 font-medium">
+                                {
+                                  participant.displayName
+                                }
+                              </td>
+
+                              <td className="px-3 py-3">
+                                {participant.hasAnswered
+                                  ? "Answered"
+                                  : "Waiting"}
+                              </td>
+
+                              <td className="px-3 py-3">
+                                {!participant.hasAnswered
+                                  ? "—"
+                                  : participant.correct
+                                    ? "Correct"
+                                    : "Incorrect"}
+                              </td>
+
+                              <td className="px-3 py-3 text-right font-semibold">
+                                {
+                                  participant.score
+                                }
+                              </td>
+                            </tr>
+                          ),
+                        )
+                      )}
+                    </tbody>
+                  </table>
                 </div>
               </div>
-            </div>
-          </div>
+            </>
+          ) : null}
 
-          <div className="grid gap-6 xl:grid-cols-2">
-            <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-              <h2 className="text-lg font-semibold">
-                Live Answers
-              </h2>
-
-              <p className="mt-1 text-sm text-neutral-600">
-                Results update as
-                participants answer.
-              </p>
-
-              <div className="mt-5 space-y-3">
-                {trivia.results.answerDistribution.map(
-                  (choice) => (
-                    <div
-                      key={
-                        choice.choiceId
-                      }
-                      className={`rounded-xl border p-4 ${
-                        choice.isCorrect
-                          ? "border-green-300 bg-green-50"
-                          : "border-neutral-200"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between gap-4">
-                        <div className="font-medium">
-                          {choice.label}
-
-                          {choice.isCorrect ? (
-                            <span className="ml-2 text-xs font-semibold text-green-700">
-                              CORRECT
-                            </span>
-                          ) : null}
-                        </div>
-
-                        <div className="text-sm font-semibold">
-                          {choice.count}{" "}
-                          (
-                          {
-                            choice.percentage
-                          }
-                          %)
-                        </div>
-                      </div>
-
-                      <div className="mt-3 h-2 overflow-hidden rounded-full bg-neutral-100">
-                        <div
-                          className="h-full rounded-full bg-neutral-900 transition-all"
-                          style={{
-                            width: `${choice.percentage}%`,
-                          }}
-                        />
-                      </div>
-                    </div>
-                  ),
-                )}
-              </div>
-            </div>
-
-            <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-              <h2 className="text-lg font-semibold">
-                Leaderboard
-              </h2>
-
-              <div className="mt-5 space-y-2">
-                {data.leaderboard
-                  .length === 0 ? (
-                  <div className="rounded-xl bg-neutral-50 p-4 text-sm text-neutral-600">
-                    No participants yet.
-                  </div>
-                ) : (
-                  data.leaderboard.map(
-                    (entry) => (
-                      <div
-                        key={
-                          entry.participantId
-                        }
-                        className="flex items-center justify-between gap-4 rounded-xl border border-neutral-200 p-3"
-                      >
-                        <div className="flex min-w-0 items-center gap-3">
-                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-xs font-semibold">
-                            #{entry.rank}
-                          </div>
-
-                          <div className="truncate text-sm font-medium">
-                            {
-                              entry.displayName
-                            }
-                          </div>
-                        </div>
-
-                        <div className="text-sm font-semibold">
-                          {entry.score} pts
-                        </div>
-                      </div>
-                    ),
-                  )
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
+          {isPoll && poll ? (
+            <>
+              <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
                 <h2 className="text-lg font-semibold">
-                  Participant Status
+                  Live Results
                 </h2>
 
                 <p className="mt-1 text-sm text-neutral-600">
-                  See who has answered
-                  the current question.
+                  Results update as
+                  participants vote.
                 </p>
+
+                <div className="mt-5 space-y-3">
+                  {poll.results.voteDistribution.map(
+                    (choice) => (
+                      <div
+                        key={
+                          choice.choiceId
+                        }
+                        className="rounded-xl border border-neutral-200 p-4"
+                      >
+                        <div className="flex items-center justify-between gap-4">
+                          <div className="font-medium">
+                            {choice.label}
+                          </div>
+
+                          <div className="text-sm font-semibold">
+                            {choice.count}{" "}
+                            (
+                            {
+                              choice.percentage
+                            }
+                            %)
+                          </div>
+                        </div>
+
+                        <div className="mt-3 h-2 overflow-hidden rounded-full bg-neutral-100">
+                          <div
+                            className="h-full rounded-full bg-neutral-900 transition-all"
+                            style={{
+                              width: `${choice.percentage}%`,
+                            }}
+                          />
+                        </div>
+                      </div>
+                    ),
+                  )}
+                </div>
               </div>
 
-              <button
-                type="button"
-                onClick={() => {
-                  void loadHostState();
-                }}
-                className="rounded-xl border border-neutral-300 px-3 py-2 text-sm font-medium hover:bg-neutral-50"
-              >
-                Refresh
-              </button>
-            </div>
+              <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <h2 className="text-lg font-semibold">
+                      Participant Status
+                    </h2>
 
-            <div className="mt-5 overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead>
-                  <tr className="border-b border-neutral-200 text-xs text-neutral-500">
-                    <th className="px-3 py-3 font-medium">
-                      Participant
-                    </th>
+                    <p className="mt-1 text-sm text-neutral-600">
+                      See who has voted on
+                      the current question.
+                    </p>
+                  </div>
 
-                    <th className="px-3 py-3 font-medium">
-                      Status
-                    </th>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      void loadHostState();
+                    }}
+                    className="rounded-xl border border-neutral-300 px-3 py-2 text-sm font-medium hover:bg-neutral-50"
+                  >
+                    Refresh
+                  </button>
+                </div>
 
-                    <th className="px-3 py-3 font-medium">
-                      Result
-                    </th>
+                <div className="mt-5 overflow-x-auto">
+                  <table className="w-full text-left text-sm">
+                    <thead>
+                      <tr className="border-b border-neutral-200 text-xs text-neutral-500">
+                        <th className="px-3 py-3 font-medium">
+                          Participant
+                        </th>
 
-                    <th className="px-3 py-3 text-right font-medium">
-                      Score
-                    </th>
-                  </tr>
-                </thead>
+                        <th className="px-3 py-3 font-medium">
+                          Status
+                        </th>
 
-                <tbody>
-                  {trivia.results
-                    .participants.length ===
-                  0 ? (
-                    <tr>
-                      <td
-                        colSpan={4}
-                        className="px-3 py-6 text-center text-neutral-500"
-                      >
-                        No participants
-                        yet.
-                      </td>
-                    </tr>
-                  ) : (
-                    trivia.results.participants.map(
-                      (participant) => (
-                        <tr
-                          key={
-                            participant.participantId
-                          }
-                          className="border-b border-neutral-100 last:border-0"
-                        >
-                          <td className="px-3 py-3 font-medium">
-                            {
-                              participant.displayName
-                            }
-                          </td>
+                        <th className="px-3 py-3 font-medium">
+                          Vote
+                        </th>
+                      </tr>
+                    </thead>
 
-                          <td className="px-3 py-3">
-                            {participant.hasAnswered
-                              ? "Answered"
-                              : "Waiting"}
-                          </td>
-
-                          <td className="px-3 py-3">
-                            {!participant.hasAnswered
-                              ? "—"
-                              : participant.correct
-                                ? "Correct"
-                                : "Incorrect"}
-                          </td>
-
-                          <td className="px-3 py-3 text-right font-semibold">
-                            {
-                              participant.score
-                            }
+                    <tbody>
+                      {poll.results
+                        .participants
+                        .length === 0 ? (
+                        <tr>
+                          <td
+                            colSpan={3}
+                            className="px-3 py-6 text-center text-neutral-500"
+                          >
+                            No participants
+                            yet.
                           </td>
                         </tr>
-                      ),
-                    )
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
+                      ) : (
+                        poll.results.participants.map(
+                          (
+                            participant,
+                          ) => {
+                            const choice =
+                              currentQuestion.choices.find(
+                                (
+                                  item,
+                                ) =>
+                                  item.id ===
+                                  participant.choiceId,
+                              );
+
+                            return (
+                              <tr
+                                key={
+                                  participant.participantId
+                                }
+                                className="border-b border-neutral-100 last:border-0"
+                              >
+                                <td className="px-3 py-3 font-medium">
+                                  {
+                                    participant.displayName
+                                  }
+                                </td>
+
+                                <td className="px-3 py-3">
+                                  {participant.hasVoted
+                                    ? "Voted"
+                                    : "Waiting"}
+                                </td>
+
+                                <td className="px-3 py-3">
+                                  {participant.hasVoted
+                                    ? choice?.label ??
+                                      "Submitted"
+                                    : "—"}
+                                </td>
+                              </tr>
+                            );
+                          },
+                        )
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </>
+          ) : null}
 
           <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
             <h2 className="text-lg font-semibold">
@@ -1176,7 +1455,8 @@ export default function HostControl({
                   id="end-live-title"
                   className="mt-2 text-xl font-semibold text-neutral-900"
                 >
-                  End this Live experience?
+                  End this Live
+                  experience?
                 </h2>
               </div>
 
@@ -1193,10 +1473,11 @@ export default function HostControl({
             </div>
 
             <p className="mt-3 text-sm leading-6 text-neutral-600">
-              This will mark the experience
-              as ended. You can still move
-              it to the Post-Event state or
-              restart it later if needed.
+              This will mark the
+              experience as ended. You
+              can still move it to the
+              Post-Event state or restart
+              it later if needed.
             </p>
 
             <div className="mt-6 flex justify-end gap-3">
@@ -1212,9 +1493,13 @@ export default function HostControl({
 
               <button
                 type="button"
-                disabled={changingLifecycle}
+                disabled={
+                  changingLifecycle
+                }
                 onClick={async () => {
-                  setShowEndConfirm(false);
+                  setShowEndConfirm(
+                    false,
+                  );
 
                   await setExperienceStatus(
                     "ended",
@@ -1228,6 +1513,73 @@ export default function HostControl({
           </div>
         </div>
       ) : null}
+    </div>
+  );
+}
+
+function MetricCard({
+  label,
+  value,
+}: {
+  label: string;
+  value: number;
+}) {
+  return (
+    <div className="rounded-xl bg-neutral-50 p-4">
+      <div className="text-xs text-neutral-500">
+        {label}
+      </div>
+
+      <div className="mt-1 text-xl font-semibold">
+        {value}
+      </div>
+    </div>
+  );
+}
+
+function Leaderboard({
+  entries,
+}: {
+  entries: LeaderboardEntry[];
+}) {
+  return (
+    <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+      <h2 className="text-lg font-semibold">
+        Leaderboard
+      </h2>
+
+      <div className="mt-5 space-y-2">
+        {entries.length === 0 ? (
+          <div className="rounded-xl bg-neutral-50 p-4 text-sm text-neutral-600">
+            No participants yet.
+          </div>
+        ) : (
+          entries.map((entry) => (
+            <div
+              key={
+                entry.participantId
+              }
+              className="flex items-center justify-between gap-4 rounded-xl border border-neutral-200 p-3"
+            >
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-xs font-semibold">
+                  #{entry.rank}
+                </div>
+
+                <div className="truncate text-sm font-medium">
+                  {
+                    entry.displayName
+                  }
+                </div>
+              </div>
+
+              <div className="text-sm font-semibold">
+                {entry.score} pts
+              </div>
+            </div>
+          ))
+        )}
+      </div>
     </div>
   );
 }

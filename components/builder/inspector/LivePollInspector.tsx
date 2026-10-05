@@ -1,28 +1,26 @@
-// components\builder\inspector\LiveTriviaInspector.tsx
-
 "use client";
 
 import type {
-  LiveTriviaStyleTarget,
-  LiveTriviaTextTarget,
-} from "@/components/builder/formatting/liveTriviaFormatting";
+  LivePollStyleTarget,
+  LivePollTextTarget,
+} from "@/components/builder/formatting/livePollFormatting";
 
-type LiveTriviaInspectorProps = {
+type LivePollInspectorProps = {
   selectedBlock: any;
   updateSelectedBlock: any;
 
-  liveTriviaTextTarget:
-    LiveTriviaTextTarget;
+  livePollTextTarget:
+    LivePollTextTarget;
 
-  setLiveTriviaTextTarget: (
-    target: LiveTriviaTextTarget,
+  setLivePollTextTarget: (
+    target: LivePollTextTarget,
   ) => void;
 
-  liveTriviaStyleTarget:
-    LiveTriviaStyleTarget;
+  livePollStyleTarget:
+    LivePollStyleTarget;
 
-  setLiveTriviaStyleTarget: (
-    target: LiveTriviaStyleTarget,
+  setLivePollStyleTarget: (
+    target: LivePollStyleTarget,
   ) => void;
 
   inspectorCardClass: () => string;
@@ -30,21 +28,21 @@ type LiveTriviaInspectorProps = {
   inspectorInputClass: () => string;
 };
 
-export function LiveTriviaInspector({
+export function LivePollInspector({
   selectedBlock,
   updateSelectedBlock,
 
-  liveTriviaTextTarget,
-  setLiveTriviaTextTarget,
+  livePollTextTarget,
+  setLivePollTextTarget,
 
-  liveTriviaStyleTarget,
-  setLiveTriviaStyleTarget,
+  livePollStyleTarget,
+  setLivePollStyleTarget,
 
   inspectorCardClass,
   inspectorLabelClass,
   inspectorInputClass,
-}: LiveTriviaInspectorProps) {
-  const updateLiveTriviaData = (
+}: LivePollInspectorProps) {
+  const updateLivePollData = (
     updates: Record<
       string,
       string | boolean
@@ -52,7 +50,7 @@ export function LiveTriviaInspector({
   ) => {
     updateSelectedBlock(
       (block: any) =>
-        block.type !== "live_trivia"
+        block.type !== "live_poll"
           ? block
           : {
               ...block,
@@ -68,7 +66,7 @@ export function LiveTriviaInspector({
   return (
     <div className={inspectorCardClass()}>
       <div className={inspectorLabelClass()}>
-        Live Trivia
+        Live Poll
       </div>
 
       <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
@@ -77,18 +75,16 @@ export function LiveTriviaInspector({
         </div>
 
         <div className="mt-3">
-          <div
-            className={inspectorLabelClass()}
-          >
+          <div className={inspectorLabelClass()}>
             Text Target
           </div>
 
           <select
-            value={liveTriviaTextTarget}
+            value={livePollTextTarget}
             onChange={(e) =>
-              setLiveTriviaTextTarget(
+              setLivePollTextTarget(
                 e.target
-                  .value as LiveTriviaTextTarget,
+                  .value as LivePollTextTarget,
               )
             }
             className={inspectorInputClass()}
@@ -110,44 +106,38 @@ export function LiveTriviaInspector({
             </option>
 
             <option value="choice">
-              Answer Choices
+              Poll Choices
             </option>
 
             <option value="submitButton">
               Submit Button
             </option>
 
-            <option value="result">
-              Answer Result
+<option value="votedLabel">
+  Voted Message
+</option>
+
+            <option value="resultsHeading">
+              Results Heading
             </option>
 
-            <option value="score">
-              Score
-            </option>
-
-            <option value="leaderboardHeading">
-              Leaderboard Heading
-            </option>
-
-            <option value="leaderboardText">
-              Leaderboard Entries
+            <option value="resultsText">
+              Results
             </option>
           </select>
         </div>
 
         <div className="mt-3">
-          <div
-            className={inspectorLabelClass()}
-          >
+          <div className={inspectorLabelClass()}>
             Style Target
           </div>
 
           <select
-            value={liveTriviaStyleTarget}
+            value={livePollStyleTarget}
             onChange={(e) =>
-              setLiveTriviaStyleTarget(
+              setLivePollStyleTarget(
                 e.target
-                  .value as LiveTriviaStyleTarget,
+                  .value as LivePollStyleTarget,
               )
             }
             className={inspectorInputClass()}
@@ -157,28 +147,26 @@ export function LiveTriviaInspector({
             </option>
 
             <option value="choice">
-              Answer Choices
+              Poll Choices
             </option>
 
             <option value="selectedChoice">
-              Selected Answer
+              Selected Choice
             </option>
 
             <option value="submitButton">
               Submit Button
             </option>
 
-            <option value="leaderboard">
-              Leaderboard
+            <option value="results">
+              Results
             </option>
           </select>
         </div>
       </div>
 
       <div className="mt-4">
-        <div
-          className={inspectorLabelClass()}
-        >
+        <div className={inspectorLabelClass()}>
           Heading
         </div>
 
@@ -189,7 +177,7 @@ export function LiveTriviaInspector({
             ""
           }
           onChange={(e) =>
-            updateLiveTriviaData({
+            updateLivePollData({
               heading: e.target.value,
             })
           }
@@ -198,9 +186,7 @@ export function LiveTriviaInspector({
       </div>
 
       <div className="mt-4">
-        <div
-          className={inspectorLabelClass()}
-        >
+        <div className={inspectorLabelClass()}>
           Waiting Text
         </div>
 
@@ -210,7 +196,7 @@ export function LiveTriviaInspector({
               .waitingText ?? ""
           }
           onChange={(e) =>
-            updateLiveTriviaData({
+            updateLivePollData({
               waitingText:
                 e.target.value,
             })
@@ -221,9 +207,7 @@ export function LiveTriviaInspector({
       </div>
 
       <div className="mt-4">
-        <div
-          className={inspectorLabelClass()}
-        >
+        <div className={inspectorLabelClass()}>
           Join Required Text
         </div>
 
@@ -233,7 +217,7 @@ export function LiveTriviaInspector({
               .joinRequiredText ?? ""
           }
           onChange={(e) =>
-            updateLiveTriviaData({
+            updateLivePollData({
               joinRequiredText:
                 e.target.value,
             })
@@ -244,9 +228,7 @@ export function LiveTriviaInspector({
       </div>
 
       <div className="mt-4">
-        <div
-          className={inspectorLabelClass()}
-        >
+        <div className={inspectorLabelClass()}>
           Submit Button Label
         </div>
 
@@ -257,7 +239,7 @@ export function LiveTriviaInspector({
               .submitButtonLabel ?? ""
           }
           onChange={(e) =>
-            updateLiveTriviaData({
+            updateLivePollData({
               submitButtonLabel:
                 e.target.value,
             })
@@ -266,91 +248,41 @@ export function LiveTriviaInspector({
         />
       </div>
 
+<div className="mt-4">
+  <div className={inspectorLabelClass()}>
+    Voted Label
+  </div>
+
+  <input
+    type="text"
+    value={
+      selectedBlock.data
+        .votedLabel ?? ""
+    }
+    onChange={(e) =>
+      updateLivePollData({
+        votedLabel:
+          e.target.value,
+      })
+    }
+    className={inspectorInputClass()}
+  />
+</div>
+
       <div className="mt-4">
-        <div
-          className={inspectorLabelClass()}
-        >
-          Correct Answer Label
+        <div className={inspectorLabelClass()}>
+          Results Heading
         </div>
 
         <input
           type="text"
           value={
             selectedBlock.data
-              .correctLabel ?? ""
+              .resultsHeading ?? ""
           }
           onChange={(e) =>
-            updateLiveTriviaData({
-              correctLabel:
-                e.target.value,
-            })
-          }
-          className={inspectorInputClass()}
-        />
-      </div>
-
-      <div className="mt-4">
-        <div
-          className={inspectorLabelClass()}
-        >
-          Incorrect Answer Label
-        </div>
-
-        <input
-          type="text"
-          value={
-            selectedBlock.data
-              .incorrectLabel ?? ""
-          }
-          onChange={(e) =>
-            updateLiveTriviaData({
-              incorrectLabel:
-                e.target.value,
-            })
-          }
-          className={inspectorInputClass()}
-        />
-      </div>
-
-      <div className="mt-4">
-        <div
-          className={inspectorLabelClass()}
-        >
-          Answered Label
-        </div>
-
-        <input
-          type="text"
-          value={
-            selectedBlock.data
-              .answeredLabel ?? ""
-          }
-          onChange={(e) =>
-            updateLiveTriviaData({
-              answeredLabel:
-                e.target.value,
-            })
-          }
-          className={inspectorInputClass()}
-        />
-      </div>
-
-      <div className="mt-4">
-        <div
-          className={inspectorLabelClass()}
-        >
-          Leaderboard Heading
-        </div>
-
-        <input
-          type="text"
-          value={
-            selectedBlock.data
-              .leaderboardHeading ?? ""
-          }
-          onChange={(e) =>
-            updateLiveTriviaData({
-              leaderboardHeading:
+            updateLivePollData({
+              resultsHeading:
                 e.target.value,
             })
           }
@@ -363,17 +295,17 @@ export function LiveTriviaInspector({
           type="checkbox"
           checked={
             selectedBlock.data
-              .showLeaderboard !== false
+              .showResults !== false
           }
           onChange={(e) =>
-            updateLiveTriviaData({
-              showLeaderboard:
+            updateLivePollData({
+              showResults:
                 e.target.checked,
             })
           }
         />
 
-        Show leaderboard
+        Show live results
       </label>
     </div>
   );

@@ -1,41 +1,38 @@
-// components\builder\formatting\liveTriviaFormatting.ts
-
 import type {
   MicrositeBlock,
 } from "@/lib/templates/builder";
 
-type LiveTriviaBlock = Extract<
+type LivePollBlock = Extract<
   MicrositeBlock,
-  { type: "live_trivia" }
+  { type: "live_poll" }
 >;
 
-export type LiveTriviaTextTarget =
+export type LivePollTextTarget =
   | "heading"
   | "waitingText"
   | "joinRequiredText"
   | "question"
   | "choice"
   | "submitButton"
-  | "result"
-  | "score"
-  | "leaderboardHeading"
-  | "leaderboardText";
+  | "votedLabel"
+  | "resultsHeading"
+  | "resultsText";
 
-export type LiveTriviaStyleTarget =
+export type LivePollStyleTarget =
   | "block"
   | "choice"
   | "selectedChoice"
   | "submitButton"
-  | "leaderboard";
+  | "results";
 
-function isLiveTriviaBlock(
+function isLivePollBlock(
   block: MicrositeBlock,
-): block is LiveTriviaBlock {
-  return block.type === "live_trivia";
+): block is LivePollBlock {
+  return block.type === "live_poll";
 }
 
 function getTextStyleKey(
-  target: LiveTriviaTextTarget,
+  target: LivePollTextTarget,
 ) {
   switch (target) {
     case "heading":
@@ -56,22 +53,19 @@ function getTextStyleKey(
     case "submitButton":
       return "submitButtonTextStyle";
 
-    case "result":
-      return "resultStyle";
+case "votedLabel":
+  return "votedLabelStyle";
 
-    case "score":
-      return "scoreStyle";
+    case "resultsHeading":
+      return "resultsHeadingStyle";
 
-    case "leaderboardHeading":
-      return "leaderboardHeadingStyle";
-
-    case "leaderboardText":
-      return "leaderboardTextStyle";
+    case "resultsText":
+      return "resultsTextStyle";
   }
 }
 
 function getStyleKey(
-  target: LiveTriviaStyleTarget,
+  target: LivePollStyleTarget,
 ) {
   switch (target) {
     case "choice":
@@ -83,24 +77,24 @@ function getStyleKey(
     case "submitButton":
       return "submitButtonStyle";
 
-    case "leaderboard":
-      return "leaderboardStyle";
+    case "results":
+      return "resultsStyle";
 
     case "block":
       return "style";
   }
 }
 
-export function getLiveTriviaTextStyle(
+export function getLivePollTextStyle(
   block:
     | MicrositeBlock
     | null
     | undefined,
-  target: LiveTriviaTextTarget,
+  target: LivePollTextTarget,
 ) {
   if (
     !block ||
-    block.type !== "live_trivia"
+    block.type !== "live_poll"
   ) {
     return {};
   }
@@ -116,12 +110,12 @@ export function getLiveTriviaTextStyle(
   );
 }
 
-export function applyLiveTriviaTextStylePatch(
+export function applyLivePollTextStylePatch(
   block: MicrositeBlock,
-  target: LiveTriviaTextTarget,
+  target: LivePollTextTarget,
   patch: Record<string, any>,
 ): MicrositeBlock {
-  if (!isLiveTriviaBlock(block)) {
+  if (!isLivePollBlock(block)) {
     return block;
   }
 
@@ -143,16 +137,16 @@ export function applyLiveTriviaTextStylePatch(
   };
 }
 
-export function getLiveTriviaStyle(
+export function getLivePollStyle(
   block:
     | MicrositeBlock
     | null
     | undefined,
-  target: LiveTriviaStyleTarget,
+  target: LivePollStyleTarget,
 ) {
   if (
     !block ||
-    block.type !== "live_trivia"
+    block.type !== "live_poll"
   ) {
     return {};
   }
@@ -172,12 +166,12 @@ export function getLiveTriviaStyle(
   return data[styleKey] ?? {};
 }
 
-export function applyLiveTriviaStylePatch(
+export function applyLivePollStylePatch(
   block: MicrositeBlock,
-  target: LiveTriviaStyleTarget,
+  target: LivePollStyleTarget,
   patch: Record<string, any>,
 ): MicrositeBlock {
-  if (!isLiveTriviaBlock(block)) {
+  if (!isLivePollBlock(block)) {
     return block;
   }
 

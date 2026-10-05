@@ -1,3 +1,5 @@
+// app/api/dashboard/microsites/[id]/live/host/route.ts
+
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 
@@ -9,7 +11,10 @@ export const dynamic = "force-dynamic";
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-type UnknownRecord = Record<string, unknown>;
+type UnknownRecord = Record<
+  string,
+  unknown
+>;
 
 type TriviaChoice = {
   id: string;
@@ -22,6 +27,17 @@ type TriviaQuestion = {
   choices: TriviaChoice[];
   correctChoiceId: string;
   points: number;
+};
+
+type PollChoice = {
+  id: string;
+  label: string;
+};
+
+type PollQuestion = {
+  id: string;
+  question: string;
+  choices: PollChoice[];
 };
 
 function asRecord(
@@ -118,8 +134,7 @@ function parseTriviaQuestion(
   if (
     !choices.some(
       (choice) =>
-        choice.id ===
-        correctChoiceId,
+        choice.id === correctChoiceId,
     )
   ) {
     return null;
@@ -131,6 +146,72 @@ function parseTriviaQuestion(
     choices,
     correctChoiceId,
     points,
+  };
+}
+
+function parsePollQuestion(
+  value: unknown,
+): PollQuestion | null {
+  const source = asRecord(value);
+
+  const id =
+    typeof source.id === "string"
+      ? source.id.trim()
+      : "";
+
+  const question =
+    typeof source.question === "string"
+      ? source.question.trim()
+      : "";
+
+  const rawChoices = Array.isArray(
+    source.choices,
+  )
+    ? source.choices
+    : [];
+
+  const choices = rawChoices
+    .map((choice) => {
+      const item = asRecord(choice);
+
+      const choiceId =
+        typeof item.id === "string"
+          ? item.id.trim()
+          : "";
+
+      const label =
+        typeof item.label === "string"
+          ? item.label.trim()
+          : "";
+
+      if (!choiceId || !label) {
+        return null;
+      }
+
+      return {
+        id: choiceId,
+        label,
+      };
+    })
+    .filter(
+      (
+        choice,
+      ): choice is PollChoice =>
+        choice !== null,
+    );
+
+  if (
+    !id ||
+    !question ||
+    choices.length < 2
+  ) {
+    return null;
+  }
+
+  return {
+    id,
+    question,
+    choices,
   };
 }
 
@@ -295,9 +376,8 @@ export async function GET(
     }
 
     /*
-     * Active participants are used both
-     * for Host Control counts and the
-     * leaderboard.
+     * Active participants are used for
+     * Host Control counts and leaderboard.
      */
     const {
       data: participants,
@@ -334,8 +414,8 @@ export async function GET(
     }
 
     /*
-     * Score from the immutable point ledger,
-     * matching the participant Trivia runtime.
+     * Score comes from the immutable
+     * point ledger.
      */
     const {
       data: pointRows,
@@ -432,8 +512,6 @@ export async function GET(
 
     /*
      * There may be no current activity.
-     * Host Control still needs to render
-     * experience + participant information.
      */
     if (!currentActivityId) {
       return NextResponse.json({
@@ -482,6 +560,7 @@ export async function GET(
         activity: null,
 
         trivia: null,
+        poll: null,
       });
     }
 
@@ -543,15 +622,17 @@ export async function GET(
       );
     }
 
-    /*
-     * Phase 4 initially supports Trivia
-     * Host Control. Other activity types
-     * can later plug into this response
-     * without changing ownership/security.
-     */
     let trivia: UnknownRecord | null =
       null;
 
+    let poll: UnknownRecord | null =
+      null;
+
+    /*
+     * ================================================================
+     * TRIVIA
+     * ================================================================
+     */
     if (
       activity.activity_type ===
       "trivia"
@@ -595,10 +676,6 @@ export async function GET(
         questions[0] ??
         null;
 
-      /*
-       * Participant activity state contains
-       * each participant's submitted answers.
-       */
       const {
         data: participantStates,
         error: participantStateError,
@@ -885,6 +962,262 @@ export async function GET(
       };
     }
 
+    /*
+     * ================================================================
+     * POLL
+     * ================================================================
+     */
+    if (
+      activity.activity_type ===
+      "poll"
+    ) {
+      const configuration =
+        asRecord(
+          activity.configuration,
+        );
+
+      const questions = (
+        Array.isArray(
+          configuration.questions,
+        )
+          ? configuration.questions
+          : []
+      )
+        .map(parsePollQuestion)
+        .filter(
+          (
+            question,
+          ): question is PollQuestion =>
+            question !== null,
+        )
+        .map(
+          (
+            question,
+            index,
+          ) => ({
+            ...question,
+            index,
+          }),
+        );
+
+      const runtimeState =
+        asRecord(
+          sharedState?.state,
+        );
+
+      const requestedQuestionId =
+        typeof runtimeState.currentQuestionId ===
+        "string"
+          ? runtimeState.currentQuestionId.trim()
+          : "";
+
+      const currentQuestion =
+        questions.find(
+          (question) =>
+            question.id ===
+            requestedQuestionId,
+        ) ??
+        questions[0] ??
+        null;
+
+      /*
+       * Poll votes come exclusively from
+       * the atomic server-authoritative
+       * vote table.
+       */
+      const {
+        data: pollVoteRows,
+        error: pollVoteRowsError,
+      } = await sb
+        .from("live_poll_votes")
+        .select(`
+          participant_id,
+          question_id,
+          choice_id,
+          created_at
+        `)
+        .eq(
+          "experience_id",
+          experience.id,
+        )
+        .eq(
+          "activity_id",
+          activity.id,
+        );
+
+      if (pollVoteRowsError) {
+        console.error(
+          "Host Control Poll vote lookup failed:",
+          pollVoteRowsError,
+        );
+
+        return NextResponse.json(
+          {
+            ok: false,
+            error:
+              "Unable to load Poll results.",
+          },
+          { status: 500 },
+        );
+      }
+
+      const countByChoice =
+        new Map<string, number>();
+
+      if (currentQuestion) {
+        for (
+          const choice of
+            currentQuestion.choices
+        ) {
+          countByChoice.set(
+            choice.id,
+            0,
+          );
+        }
+      }
+
+      const currentVotes =
+        currentQuestion
+          ? (
+              pollVoteRows ?? []
+            ).filter(
+              (row) =>
+                row.question_id ===
+                currentQuestion.id,
+            )
+          : [];
+
+      const voteByParticipant =
+        new Map<
+          string,
+          {
+            choiceId: string;
+            votedAt: string;
+          }
+        >();
+
+      for (
+        const row of currentVotes
+      ) {
+        if (
+          !countByChoice.has(
+            row.choice_id,
+          )
+        ) {
+          continue;
+        }
+
+        countByChoice.set(
+          row.choice_id,
+          (countByChoice.get(
+            row.choice_id,
+          ) ?? 0) + 1,
+        );
+
+        voteByParticipant.set(
+          row.participant_id,
+          {
+            choiceId:
+              row.choice_id,
+
+            votedAt:
+              row.created_at,
+          },
+        );
+      }
+
+      const participantCount =
+        participants?.length ?? 0;
+
+      const votedCount =
+        voteByParticipant.size;
+
+      const waitingCount =
+        Math.max(
+          participantCount -
+            votedCount,
+          0,
+        );
+
+      const voteDistribution =
+        currentQuestion
+          ? currentQuestion.choices.map(
+              (choice) => {
+                const count =
+                  countByChoice.get(
+                    choice.id,
+                  ) ?? 0;
+
+                return {
+                  choiceId:
+                    choice.id,
+
+                  label:
+                    choice.label,
+
+                  count,
+
+                  percentage:
+                    votedCount > 0
+                      ? Math.round(
+                          (count /
+                            votedCount) *
+                            100,
+                        )
+                      : 0,
+                };
+              },
+            )
+          : [];
+
+      const participantResults = (
+        participants ?? []
+      ).map((participant) => {
+        const vote =
+          voteByParticipant.get(
+            participant.id,
+          );
+
+        return {
+          participantId:
+            participant.id,
+
+          displayName:
+            participant.display_name,
+
+          avatarUrl:
+            participant.avatar_url ??
+            null,
+
+          hasVoted:
+            Boolean(vote),
+
+          choiceId:
+            vote?.choiceId ??
+            null,
+
+          votedAt:
+            vote?.votedAt ??
+            null,
+        };
+      });
+
+      poll = {
+        questions,
+
+        currentQuestion,
+
+        results: {
+          participantCount,
+          votedCount,
+          waitingCount,
+          voteDistribution,
+          participants:
+            participantResults,
+        },
+      };
+    }
+
     return NextResponse.json({
       ok: true,
 
@@ -947,6 +1280,7 @@ export async function GET(
       },
 
       trivia,
+      poll,
     });
   } catch (error) {
     console.error(
