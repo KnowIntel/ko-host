@@ -686,7 +686,7 @@ export default function HostControl({
     className="flex min-w-[92px] flex-col items-center justify-center gap-1.5 rounded-xl bg-black px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-neutral-800 disabled:cursor-not-allowed disabled:bg-neutral-200 disabled:text-neutral-500 disabled:opacity-100"
   >
     <img
-      src="/media-icons/arrow-left-thick.svg"
+      src="/media-icons/icon-back-left.svg"
       alt=""
       aria-hidden="true"
       className="h-5 w-5 brightness-0 invert"
@@ -773,7 +773,7 @@ export default function HostControl({
     className="flex min-w-[92px] flex-col items-center justify-center gap-1.5 rounded-xl bg-black px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-neutral-800 disabled:cursor-not-allowed disabled:bg-neutral-200 disabled:text-neutral-500 disabled:opacity-100"
   >
     <img
-      src="/media-icons/arrow-right-thick.svg"
+      src="/media-icons/icon-forward-right.svg"
       alt=""
       aria-hidden="true"
       className="h-5 w-5 brightness-0 invert"
