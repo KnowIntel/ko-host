@@ -73,22 +73,30 @@ export function LiveScavengerHuntInspector({
             }
             className={inspectorInputClass()}
           >
-            <option value="heading">Heading</option>
+            <option value="heading">
+              Heading
+            </option>
+
             <option value="waitingText">
               Waiting Text
             </option>
+
             <option value="joinRequiredText">
               Join Required Text
             </option>
+
             <option value="itemTitle">
               Item Title
             </option>
+
             <option value="itemDescription">
               Item Description
             </option>
+
             <option value="completedLabel">
               Completed Label
             </option>
+
             <option value="progress">
               Progress
             </option>
@@ -112,9 +120,11 @@ export function LiveScavengerHuntInspector({
             <option value="block">
               Entire Block
             </option>
+
             <option value="item">
               Hunt Item
             </option>
+
             <option value="completedItem">
               Completed Item
             </option>
@@ -129,7 +139,9 @@ export function LiveScavengerHuntInspector({
 
         <input
           type="text"
-          value={selectedBlock.data.heading ?? ""}
+          value={
+            selectedBlock.data.heading ?? ""
+          }
           onChange={(e) =>
             updateData({
               heading: e.target.value,
@@ -145,7 +157,9 @@ export function LiveScavengerHuntInspector({
         </div>
 
         <textarea
-          value={selectedBlock.data.waitingText ?? ""}
+          value={
+            selectedBlock.data.waitingText ?? ""
+          }
           onChange={(e) =>
             updateData({
               waitingText: e.target.value,
@@ -213,19 +227,49 @@ export function LiveScavengerHuntInspector({
         />
       </div>
 
+      <div className="mt-4">
+        <div className={inspectorLabelClass()}>
+          Response Placeholder
+        </div>
+
+        <input
+          type="text"
+          value={
+            selectedBlock.data.responsePlaceholder ??
+            ""
+          }
+          placeholder="Enter location, number, description, etc."
+          onChange={(e) =>
+            updateData({
+              responsePlaceholder:
+                e.target.value,
+            })
+          }
+          className={inspectorInputClass()}
+        />
+
+        <div className="mt-1 text-xs text-neutral-500">
+          Placeholder shown in the participant
+          response field.
+        </div>
+      </div>
+
       <div className="mt-4 space-y-3">
         <label className="flex items-center gap-2 text-sm">
           <input
             type="checkbox"
             checked={
-              selectedBlock.data.showProgress !== false
+              selectedBlock.data.showProgress !==
+              false
             }
             onChange={(e) =>
               updateData({
-                showProgress: e.target.checked,
+                showProgress:
+                  e.target.checked,
               })
             }
           />
+
           <span>Show Progress</span>
         </label>
 
@@ -233,14 +277,17 @@ export function LiveScavengerHuntInspector({
           <input
             type="checkbox"
             checked={
-              selectedBlock.data.showPoints !== false
+              selectedBlock.data.showPoints !==
+              false
             }
             onChange={(e) =>
               updateData({
-                showPoints: e.target.checked,
+                showPoints:
+                  e.target.checked,
               })
             }
           />
+
           <span>Show Points</span>
         </label>
       </div>

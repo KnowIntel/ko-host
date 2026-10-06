@@ -42631,44 +42631,44 @@ case "live_scavenger_hunt": {
   const data = block.data as any;
 
   if (isBuilder) {
-  return (
-    <Surface block={block}>
-      <div className="h-full w-full p-4">
-        <div
-          style={getContainerTextStyle(
-            data.headingStyle ?? data.style,
-            designKey,
-          )}
-        >
-          {data.heading || "Scavenger Hunt"}
-        </div>
-
-        <div
-          className="mt-3"
-          style={getContainerTextStyle(
-            data.waitingTextStyle ?? data.style,
-            designKey,
-          )}
-        >
-          {data.waitingText ||
-            "Waiting for the Scavenger Hunt..."}
-        </div>
-
-        {data.showProgress !== false ? (
+    return (
+      <Surface block={block}>
+        <div className="h-full w-full p-4">
           <div
-            className="mt-3"
             style={getContainerTextStyle(
-              data.progressStyle ?? data.style,
+              data.headingStyle ?? data.style,
               designKey,
             )}
           >
-            {data.progressLabel || "Progress"}: 0 / 0
+            {data.heading || "Scavenger Hunt"}
           </div>
-        ) : null}
-      </div>
-    </Surface>
-  );
-}
+
+          <div
+            className="mt-3"
+            style={getContainerTextStyle(
+              data.waitingTextStyle ?? data.style,
+              designKey,
+            )}
+          >
+            {data.waitingText ||
+              "Waiting for the Scavenger Hunt..."}
+          </div>
+
+          {data.showProgress !== false ? (
+            <div
+              className="mt-3"
+              style={getContainerTextStyle(
+                data.progressStyle ?? data.style,
+                designKey,
+              )}
+            >
+              {data.progressLabel || "Progress"}: 0 / 0
+            </div>
+          ) : null}
+        </div>
+      </Surface>
+    );
+  }
 
   return (
     <Surface block={block}>
@@ -42690,10 +42690,16 @@ case "live_scavenger_hunt": {
         progressLabel={
           data.progressLabel || "Progress"
         }
+        responsePlaceholder={
+          data.responsePlaceholder ||
+          "Enter location, number, description, etc."
+        }
         showProgress={
           data.showProgress !== false
         }
-        showPoints={data.showPoints !== false}
+        showPoints={
+          data.showPoints !== false
+        }
         headingStyle={getContainerTextStyle(
           data.headingStyle ?? data.style,
           designKey,
@@ -42709,7 +42715,8 @@ case "live_scavenger_hunt": {
           designKey,
         )}
         itemTitleStyle={getContainerTextStyle(
-          data.itemTitleStyle ?? data.style,
+          data.itemTitleStyle ??
+            data.style,
           designKey,
         )}
         itemDescriptionStyle={getContainerTextStyle(
@@ -42723,10 +42730,13 @@ case "live_scavenger_hunt": {
           designKey,
         )}
         progressStyle={getContainerTextStyle(
-          data.progressStyle ?? data.style,
+          data.progressStyle ??
+            data.style,
           designKey,
         )}
-        itemStyle={data.itemStyle ?? {}}
+        itemStyle={
+          data.itemStyle ?? {}
+        }
         completedItemStyle={
           data.completedItemStyle ?? {}
         }

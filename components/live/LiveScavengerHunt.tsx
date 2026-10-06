@@ -1,3 +1,5 @@
+// components\live\LiveScavengerHunt.tsx
+
 "use client";
 
 import {
@@ -41,6 +43,7 @@ type Props = {
   joinRequiredText: string;
   completedLabel: string;
   progressLabel: string;
+  responsePlaceholder: string;
   showProgress: boolean;
   showPoints: boolean;
 
@@ -62,6 +65,7 @@ export default function LiveScavengerHunt({
   joinRequiredText,
   completedLabel,
   progressLabel,
+  responsePlaceholder,
   showProgress,
   showPoints,
   headingStyle,
@@ -287,7 +291,7 @@ body: JSON.stringify({
           <input
             type="text"
             value={responseValue}
-            placeholder="Enter location, number, description, etc."
+            placeholder={responsePlaceholder}
             disabled={
               submittingId === item.id
             }

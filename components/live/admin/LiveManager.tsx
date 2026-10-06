@@ -1,3 +1,5 @@
+// components\live\admin\LiveManager.tsx
+
 "use client";
 
 import {

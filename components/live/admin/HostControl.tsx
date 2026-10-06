@@ -1,3 +1,5 @@
+// components\live\admin\HostControl.tsx
+
 "use client";
 
 import {
@@ -88,6 +90,19 @@ type HostActivityRuntimeParticipant = {
   completedAt: string | null;
   createdAt: string;
   updatedAt: string;
+};
+
+type HostScavengerHuntItem = {
+  id: string;
+  title: string;
+  description: string;
+  points: number;
+};
+
+type HostScavengerHuntCompletion = {
+  completedAt: string;
+  awardedPoints: number;
+  responseText: string;
 };
 
 type HostActivityRuntime = {
@@ -1542,73 +1557,229 @@ export default function HostControl({
               </div>
             ) : null}
 
-            {/* SPIN WHEEL / SCAVENGER HUNT */}
-            {data.activityRuntime &&
-            (data.activity.activityType ===
-              "spin_wheel" ||
-              data.activity.activityType ===
-                "scavenger_hunt") ? (
-              <div className="mt-5 overflow-hidden rounded-xl border border-neutral-200">
-                {data.activityRuntime
-                  .participantStates.length ===
-                0 ? (
-                  <div className="p-4 text-sm text-neutral-500">
-                    No participant activity yet.
+{/* SPIN WHEEL */}
+{data.activityRuntime &&
+data.activity.activityType ===
+  "spin_wheel" ? (
+  <div className="mt-5 overflow-hidden rounded-xl border border-neutral-200">
+    {data.activityRuntime
+      .participantStates.length === 0 ? (
+      <div className="p-4 text-sm text-neutral-500">
+        No participant activity yet.
+      </div>
+    ) : (
+      data.activityRuntime.participantStates.map(
+        (participant) => (
+          <div
+            key={participant.participantId}
+            className="flex items-center justify-between gap-4 border-b border-neutral-100 p-4 last:border-b-0"
+          >
+            <div>
+              <div className="font-medium">
+                {participant.displayName}
+              </div>
+
+              <div className="mt-1 text-xs text-neutral-500">
+                Score: {participant.score}
+              </div>
+            </div>
+
+            <div className="max-w-[55%] text-right text-xs text-neutral-500">
+              {Object.keys(
+                participant.state,
+              ).length > 0
+                ? Object.entries(
+                    participant.state,
+                  )
+                    .map(
+                      ([key, value]) =>
+                        `${key}: ${
+                          Array.isArray(value)
+                            ? value.length
+                            : String(
+                                value ?? "",
+                              )
+                        }`,
+                    )
+                    .join(" • ")
+                : "Waiting"}
+            </div>
+          </div>
+        ),
+      )
+    )}
+  </div>
+) : null}
+
+{/* SCAVENGER HUNT */}
+{data.activityRuntime &&
+data.activity.activityType ===
+  "scavenger_hunt" ? (
+  <div className="mt-5 overflow-hidden rounded-xl border border-neutral-200">
+    {data.activityRuntime
+      .participantStates.length === 0 ? (
+      <div className="p-4 text-sm text-neutral-500">
+        No participant activity yet.
+      </div>
+    ) : (
+      data.activityRuntime.participantStates.map(
+        (participant) => {
+          const configuredItems =
+            Array.isArray(
+              data.activityRuntime
+                ?.configuration?.items,
+            )
+              ? (data.activityRuntime
+                  .configuration
+                  .items as HostScavengerHuntItem[])
+              : [];
+
+          const completedItems =
+            participant.state
+              .completedItems &&
+            typeof participant.state
+              .completedItems ===
+              "object" &&
+            !Array.isArray(
+              participant.state
+                .completedItems,
+            )
+              ? (participant.state
+                  .completedItems as Record<
+                  string,
+                  HostScavengerHuntCompletion
+                >)
+              : {};
+
+          const completions =
+            Object.entries(
+              completedItems,
+            ).map(
+              ([
+                itemId,
+                completion,
+              ]) => ({
+                item:
+                  configuredItems.find(
+                    (item) =>
+                      item.id === itemId,
+                  ) ?? null,
+                completion,
+              }),
+            );
+
+          const scavengerPoints =
+            completions.reduce(
+              (
+                total,
+                { completion },
+              ) =>
+                total +
+                Math.max(
+                  0,
+                  Number(
+                    completion
+                      .awardedPoints,
+                  ) || 0,
+                ),
+              0,
+            );
+
+          return (
+            <div
+              key={
+                participant.participantId
+              }
+              className="border-b border-neutral-100 p-4 last:border-b-0"
+            >
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <div className="font-semibold text-neutral-900">
+                    {
+                      participant.displayName
+                    }
                   </div>
-                ) : (
-                  data.activityRuntime.participantStates.map(
-                    (participant) => (
+
+                  <div className="mt-1 text-xs text-neutral-500">
+                    Scavenger Hunt
+                    Points:{" "}
+                    <span className="font-semibold text-neutral-700">
+                      {scavengerPoints}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold text-neutral-700">
+                  {
+                    completions.length
+                  }{" "}
+                  completed
+                </div>
+              </div>
+
+              {completions.length ===
+              0 ? (
+                <div className="mt-3 text-sm text-neutral-500">
+                  No items completed
+                  yet.
+                </div>
+              ) : (
+                <div className="mt-4 space-y-3">
+                  {completions.map(
+                    ({
+                      item,
+                      completion,
+                    }) => (
                       <div
                         key={
-                          participant.participantId
+                          item?.id ??
+                          completion.completedAt
                         }
-                        className="flex items-center justify-between gap-4 border-b border-neutral-100 p-4 last:border-b-0"
+                        className="rounded-xl border border-neutral-200 bg-neutral-50 p-3"
                       >
-                        <div>
-                          <div className="font-medium">
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div className="font-medium text-neutral-900">
+                            {item?.title ??
+                              "Scavenger Hunt Item"}
+                          </div>
+
+                          <div className="text-xs font-semibold text-neutral-700">
+                            +
+                            {Math.max(
+                              0,
+                              Number(
+                                completion
+                                  .awardedPoints,
+                              ) || 0,
+                            )}{" "}
+                            pts
+                          </div>
+                        </div>
+
+                        {completion.responseText ? (
+                          <div className="mt-2 text-sm text-neutral-600">
                             {
-                              participant.displayName
+                              completion.responseText
                             }
                           </div>
-
-                          <div className="mt-1 text-xs text-neutral-500">
-                            Score:{" "}
-                            {participant.score}
+                        ) : (
+                          <div className="mt-2 text-sm italic text-neutral-400">
+                            No description
+                            provided.
                           </div>
-                        </div>
-
-                        <div className="max-w-[55%] text-right text-xs text-neutral-500">
-                          {Object.keys(
-                            participant.state,
-                          ).length > 0
-                            ? Object.entries(
-                                participant.state,
-                              )
-                                .map(
-                                  ([
-                                    key,
-                                    value,
-                                  ]) =>
-                                    `${key}: ${
-                                      Array.isArray(
-                                        value,
-                                      )
-                                        ? value.length
-                                        : String(
-                                            value ??
-                                              "",
-                                          )
-                                    }`,
-                                )
-                                .join(" • ")
-                            : "Waiting"}
-                        </div>
+                        )}
                       </div>
                     ),
-                  )
-                )}
-              </div>
-            ) : null}
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        },
+      )
+    )}
+  </div>
+) : null}
 
             {/* OTHER LIVE BLOCKS */}
             {!data.activityRuntime &&
