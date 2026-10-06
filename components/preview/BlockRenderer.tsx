@@ -42189,6 +42189,75 @@ case "live_poll": {
 case "live_player_card": {
   const data = block.data as any;
 
+  if (isBuilder) {
+    return (
+      <Surface block={block}>
+        <div
+          className="flex h-full w-full items-center gap-4 p-4"
+          style={data.cardStyle ?? {}}
+        >
+          {data.showAvatar !== false ? (
+            <div
+              className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-neutral-200 text-lg font-semibold text-neutral-600"
+              style={data.avatarStyle ?? {}}
+            >
+              P
+            </div>
+          ) : null}
+
+          <div className="min-w-0 flex-1">
+            <div
+              style={getContainerTextStyle(
+                data.headingStyle ?? data.style,
+                designKey,
+              )}
+            >
+              {data.heading || "Player Card"}
+            </div>
+
+            {data.showDisplayName !== false ? (
+              <div
+                className="mt-1 font-semibold"
+                style={getContainerTextStyle(
+                  data.nameStyle ?? data.style,
+                  designKey,
+                )}
+              >
+                Player Name
+              </div>
+            ) : null}
+
+            <div
+              className="mt-1 text-sm"
+              style={getContainerTextStyle(
+                data.detailStyle ?? data.style,
+                designKey,
+              )}
+            >
+              {data.showScore !== false ? (
+                <div>
+                  {data.scoreLabel || "Score"}: 0
+                </div>
+              ) : null}
+
+              {data.showTeam !== false ? (
+                <div>
+                  {data.teamLabel || "Team"}: Team
+                </div>
+              ) : null}
+
+              {data.showBadges !== false ? (
+                <div>
+                  {data.badgesLabel || "Badges"}: —
+                </div>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      </Surface>
+    );
+  }
+
   return (
     <Surface block={block}>
       <LivePlayerCard
@@ -42233,6 +42302,33 @@ case "live_player_card": {
 
 case "live_schedule": {
   const data = block.data as any;
+
+  if (isBuilder) {
+  return (
+    <Surface block={block}>
+      <div className="h-full w-full p-4">
+        <div
+          style={getContainerTextStyle(
+            data.headingStyle ?? data.style,
+            designKey,
+          )}
+        >
+          {data.heading || "Live Schedule"}
+        </div>
+
+        <div
+          className="mt-3"
+          style={getContainerTextStyle(
+            data.emptyTextStyle ?? data.style,
+            designKey,
+          )}
+        >
+          {data.emptyText || "No schedule items yet."}
+        </div>
+      </div>
+    </Surface>
+  );
+}
 
   return (
     <Surface block={block}>
@@ -42294,6 +42390,53 @@ case "live_schedule": {
 
 case "live_song_request": {
   const data = block.data as any;
+
+  if (isBuilder) {
+  return (
+    <Surface block={block}>
+      <div className="h-full w-full p-4">
+        <div
+          style={getContainerTextStyle(
+            data.headingStyle ?? data.style,
+            designKey,
+          )}
+        >
+          {data.heading || "Song Request"}
+        </div>
+
+        <div
+          className="mt-2"
+          style={getContainerTextStyle(
+            data.helperTextStyle ?? data.style,
+            designKey,
+          )}
+        >
+          {data.helperText ||
+            "Request a song for the event."}
+        </div>
+
+        <input
+          disabled
+          placeholder={
+            data.songPlaceholder || "Song title"
+          }
+          className="mt-3 w-full rounded-lg border border-neutral-300 px-3 py-2"
+          style={data.inputStyle ?? {}}
+        />
+
+        <button
+          type="button"
+          disabled
+          className="mt-2 rounded-lg bg-black px-4 py-2 text-white"
+          style={data.submitButtonStyle ?? {}}
+        >
+          {data.submitButtonLabel ||
+            "Request Song"}
+        </button>
+      </div>
+    </Surface>
+  );
+}
 
   return (
     <Surface block={block}>
@@ -42375,6 +42518,39 @@ case "live_song_request": {
 case "live_spin_wheel": {
   const data = block.data as any;
 
+  if (isBuilder) {
+  return (
+    <Surface block={block}>
+      <div className="flex h-full w-full flex-col items-center justify-center p-4 text-center">
+        <div
+          style={getContainerTextStyle(
+            data.headingStyle ?? data.style,
+            designKey,
+          )}
+        >
+          {data.heading || "Spin Wheel"}
+        </div>
+
+        <div
+          className="mt-4 flex h-28 w-28 items-center justify-center rounded-full border-4 border-neutral-300"
+          style={data.wheelStyle ?? {}}
+        >
+          Spin
+        </div>
+
+        <button
+          type="button"
+          disabled
+          className="mt-4 rounded-lg bg-black px-4 py-2 text-white"
+          style={data.spinButtonStyle ?? {}}
+        >
+          {data.spinButtonLabel || "Spin"}
+        </button>
+      </div>
+    </Surface>
+  );
+}
+
   return (
     <Surface block={block}>
       <LiveSpinWheel
@@ -42434,6 +42610,46 @@ case "live_spin_wheel": {
 
 case "live_scavenger_hunt": {
   const data = block.data as any;
+
+  if (isBuilder) {
+  return (
+    <Surface block={block}>
+      <div className="h-full w-full p-4">
+        <div
+          style={getContainerTextStyle(
+            data.headingStyle ?? data.style,
+            designKey,
+          )}
+        >
+          {data.heading || "Scavenger Hunt"}
+        </div>
+
+        <div
+          className="mt-3"
+          style={getContainerTextStyle(
+            data.waitingTextStyle ?? data.style,
+            designKey,
+          )}
+        >
+          {data.waitingText ||
+            "Waiting for the Scavenger Hunt..."}
+        </div>
+
+        {data.showProgress !== false ? (
+          <div
+            className="mt-3"
+            style={getContainerTextStyle(
+              data.progressStyle ?? data.style,
+              designKey,
+            )}
+          >
+            {data.progressLabel || "Progress"}: 0 / 0
+          </div>
+        ) : null}
+      </div>
+    </Surface>
+  );
+}
 
   return (
     <Surface block={block}>
@@ -42502,6 +42718,44 @@ case "live_scavenger_hunt": {
 
 case "live_lottery": {
   const data = block.data as any;
+
+  if (isBuilder) {
+  return (
+    <Surface block={block}>
+      <div className="h-full w-full p-4">
+        <div
+          style={getContainerTextStyle(
+            data.headingStyle ?? data.style,
+            designKey,
+          )}
+        >
+          {data.heading || "Live Lottery"}
+        </div>
+
+        <div
+          className="mt-2"
+          style={getContainerTextStyle(
+            data.helperTextStyle ?? data.style,
+            designKey,
+          )}
+        >
+          {data.helperText ||
+            "Enter the drawing for your chance to win."}
+        </div>
+
+        <button
+          type="button"
+          disabled
+          className="mt-4 rounded-lg bg-black px-4 py-2 text-white"
+          style={data.enterButtonStyle ?? {}}
+        >
+          {data.enterButtonLabel ||
+            "Enter Drawing"}
+        </button>
+      </div>
+    </Surface>
+  );
+}
 
   return (
     <Surface block={block}>
@@ -42580,6 +42834,46 @@ case "live_lottery": {
 case "live_leaderboard": {
   const data = block.data as any;
 
+  if (isBuilder) {
+  return (
+    <Surface block={block}>
+      <div className="h-full w-full p-4">
+        <div
+          style={getContainerTextStyle(
+            data.headingStyle ?? data.style,
+            designKey,
+          )}
+        >
+          {data.heading || "Leaderboard"}
+        </div>
+
+        <div className="mt-3 space-y-2">
+          {["Player 1", "Player 2", "Player 3"].map(
+            (name, index) => (
+              <div
+                key={name}
+                className="flex items-center justify-between rounded-lg border border-neutral-200 px-3 py-2"
+                style={data.rowStyle ?? {}}
+              >
+                <span>
+                  {data.showRank !== false
+                    ? `${index + 1}. `
+                    : ""}
+                  {name}
+                </span>
+
+                {data.showScore !== false ? (
+                  <span>{300 - index * 100}</span>
+                ) : null}
+              </div>
+            ),
+          )}
+        </div>
+      </div>
+    </Surface>
+  );
+}
+
   return (
     <Surface block={block}>
       <LiveLeaderboard
@@ -42635,6 +42929,48 @@ case "live_leaderboard": {
 
 case "live_mystery_drop": {
   const data = block.data as any;
+
+  if (isBuilder) {
+  return (
+    <Surface block={block}>
+      <div className="h-full w-full p-4">
+        <div
+          style={getContainerTextStyle(
+            data.headingStyle ?? data.style,
+            designKey,
+          )}
+        >
+          {data.heading || "Mystery Drop"}
+        </div>
+
+        <div
+          className="mt-3 rounded-xl border border-neutral-200 p-4"
+          style={data.dropStyle ?? {}}
+        >
+          <div
+            style={getContainerTextStyle(
+              data.availableLabelStyle ??
+                data.style,
+              designKey,
+            )}
+          >
+            {data.availableLabel ||
+              "Mystery Drop Available"}
+          </div>
+
+          <button
+            type="button"
+            disabled
+            className="mt-3 rounded-lg bg-black px-4 py-2 text-white"
+            style={data.revealButtonStyle ?? {}}
+          >
+            {data.revealButtonLabel || "Reveal"}
+          </button>
+        </div>
+      </div>
+    </Surface>
+  );
+}
 
   return (
     <Surface block={block}>
@@ -42704,6 +43040,34 @@ case "live_mystery_drop": {
 
 case "live_announcement": {
   const data = block.data as any;
+
+  if (isBuilder) {
+  return (
+    <Surface block={block}>
+      <div className="h-full w-full p-4">
+        <div
+          style={getContainerTextStyle(
+            data.headingStyle ?? data.style,
+            designKey,
+          )}
+        >
+          {data.heading || "Announcements"}
+        </div>
+
+        <div
+          className="mt-3"
+          style={getContainerTextStyle(
+            data.emptyTextStyle ?? data.style,
+            designKey,
+          )}
+        >
+          {data.emptyText ||
+            "No announcements yet."}
+        </div>
+      </div>
+    </Surface>
+  );
+}
 
   return (
     <Surface block={block}>
