@@ -3,7 +3,6 @@ import { randomInt } from "crypto";
 
 import {
   asLiveRecord,
-  broadcastLiveActivityChange,
   getParticipantActivityRuntime,
 } from "@/lib/live/participantActivityRuntime";
 
@@ -221,12 +220,6 @@ export async function POST(
         stateError,
       );
     }
-
-    await broadcastLiveActivityChange(
-      context.supabase,
-      context.safeExperienceId,
-      context.activity.id,
-    );
 
     return NextResponse.json({
       ok: true,
