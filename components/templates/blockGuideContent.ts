@@ -2616,4 +2616,543 @@ interactive_hotspots: {
   ],
 },
 
+live_join: {
+  title: "Live Join",
+  subtitle:
+    "Allow visitors to join a Ko-Host Live experience and establish their individual participant session.",
+  sections: [
+    {
+      title: "Overview",
+      body:
+        "Live Join is the entry point for participant-based Live experiences. Visitors join using a display name and optional avatar while remaining on the same shared microsite.",
+    },
+    {
+      title: "How It Works",
+      bullets: [
+        "The visitor enters a display name.",
+        "An optional avatar can be selected or uploaded when available.",
+        "Ko-Host creates a temporary participant session for that browser.",
+        "The participant can then interact with Live activities on the microsite.",
+        "The same browser can restore the participant session after refresh.",
+      ],
+    },
+    {
+      title: "Best Use Cases",
+      bullets: [
+        "Parties and receptions.",
+        "Classroom activities.",
+        "Conferences.",
+        "Competitions and game nights.",
+        "Watch parties.",
+        "Interactive community events.",
+      ],
+    },
+  ],
+},
+
+live_trivia: {
+  title: "Live Trivia",
+  subtitle:
+    "Run scored real-time trivia questions for participants connected to the Live experience.",
+  sections: [
+    {
+      title: "Overview",
+      body:
+        "Live Trivia turns the microsite into an interactive trivia experience. Participants answer the current question while Ko-Host securely records answers and awards configured points.",
+    },
+    {
+      title: "Live Manager Setup",
+      bullets: [
+        "Create the Trivia activity in Live Manager.",
+        "Add questions and answer choices.",
+        "Choose the correct answer and point value.",
+        "Activate the activity when it is ready to be played.",
+        "Move between questions as the event progresses.",
+      ],
+    },
+    {
+      title: "Participant Experience",
+      bullets: [
+        "Participants see the current trivia question.",
+        "Each participant submits their own answer.",
+        "Duplicate answers to the same question are prevented.",
+        "Scores are controlled by Ko-Host rather than the participant browser.",
+        "Live changes appear without requiring participants to reload the page.",
+      ],
+    },
+    {
+      title: "Best Use Cases",
+      bullets: [
+        "Trivia nights.",
+        "Classroom quizzes.",
+        "Watch parties.",
+        "Corporate events.",
+        "Family gatherings.",
+        "Competitions.",
+      ],
+    },
+  ],
+},
+
+live_poll: {
+  title: "Live Poll",
+  subtitle:
+    "Collect real-time votes from connected participants and display shared poll results.",
+  sections: [
+    {
+      title: "Overview",
+      body:
+        "Live Poll allows participants to vote on questions while the host controls which question is currently active.",
+    },
+    {
+      title: "Live Manager Setup",
+      bullets: [
+        "Create the Poll activity.",
+        "Add one or more questions.",
+        "Add the available voting choices.",
+        "Activate the poll when ready.",
+        "Choose which question is currently being presented.",
+      ],
+    },
+    {
+      title: "Participant Experience",
+      bullets: [
+        "Participants see the current question and choices.",
+        "Each participant can submit their vote.",
+        "Duplicate voting for the same question is prevented.",
+        "Live results update as other participants vote.",
+        "Votes remain available after refresh.",
+      ],
+    },
+    {
+      title: "Best Use Cases",
+      bullets: [
+        "Audience voting.",
+        "Group decisions.",
+        "Predictions.",
+        "Event feedback.",
+        "Competitions.",
+        "Interactive presentations.",
+      ],
+    },
+  ],
+},
+
+live_player_card: {
+  title: "Player Card",
+  subtitle:
+    "Give each participant a personalized view of their identity, score, and Live experience progress.",
+  sections: [
+    {
+      title: "Overview",
+      body:
+        "Player Card displays information belonging to the participant currently viewing the microsite. Everyone uses the same published page, but each participant sees their own information.",
+    },
+    {
+      title: "Participant Information",
+      bullets: [
+        "Display name.",
+        "Avatar or generated fallback.",
+        "Current score.",
+        "Team information when available.",
+        "Badges or participant achievements when available.",
+      ],
+    },
+    {
+      title: "How It Works",
+      bullets: [
+        "Participant information comes from the active Live session.",
+        "The block does not create separate microsite pages for each participant.",
+        "Participant data remains separate even though everyone shares the same microsite.",
+        "Score changes can be reflected as participants complete scored activities.",
+      ],
+    },
+    {
+      title: "Best Use Cases",
+      bullets: [
+        "Game nights.",
+        "Team competitions.",
+        "Classroom activities.",
+        "Party games.",
+        "Event challenges.",
+        "Gamified experiences.",
+      ],
+    },
+  ],
+},
+
+live_schedule: {
+  title: "Live Schedule",
+  subtitle:
+    "Show participants what is happening now and what is coming next during a Live experience.",
+  sections: [
+    {
+      title: "Overview",
+      body:
+        "Live Schedule provides a shared event schedule that the host can update as the experience progresses.",
+    },
+    {
+      title: "Host Control",
+      bullets: [
+        "Create schedule entries.",
+        "Add descriptions and optional start/end times.",
+        "Mark entries as Upcoming.",
+        "Make an entry Current.",
+        "Mark completed activities as Completed.",
+        "Cancel entries when necessary.",
+      ],
+    },
+    {
+      title: "Participant Experience",
+      bullets: [
+        "Participants see the shared event schedule.",
+        "The current item is identified as happening Now.",
+        "Schedule status changes update during the Live experience.",
+        "Completed items remain visible for event context.",
+      ],
+    },
+    {
+      title: "Best Use Cases",
+      bullets: [
+        "Parties.",
+        "Conferences.",
+        "Weddings.",
+        "Classes.",
+        "Competitions.",
+        "Group trips.",
+        "Multi-activity events.",
+      ],
+    },
+  ],
+},
+
+live_song_request: {
+  title: "Song Request",
+  subtitle:
+    "Allow participants to submit songs into a shared event request queue managed by the host.",
+  sections: [
+    {
+      title: "Overview",
+      body:
+        "Song Request gives participants a simple way to request music without leaving the microsite.",
+    },
+    {
+      title: "Participant Experience",
+      bullets: [
+        "Enter a song title.",
+        "Optionally enter the artist.",
+        "Submit the request to the shared queue.",
+        "See queued and currently playing requests.",
+        "Follow request status as the host manages the queue.",
+      ],
+    },
+    {
+      title: "Host Control",
+      bullets: [
+        "Review participant requests.",
+        "Mark requests as Queued.",
+        "Mark the current song as Playing.",
+        "Mark completed requests as Played.",
+        "Reject requests when necessary.",
+      ],
+    },
+    {
+      title: "Best Use Cases",
+      bullets: [
+        "Parties.",
+        "Wedding receptions.",
+        "School dances.",
+        "Reunions.",
+        "DJ events.",
+        "Community events.",
+      ],
+    },
+  ],
+},
+
+live_spin_wheel: {
+  title: "Live Spin Wheel",
+  subtitle:
+    "Run an animated participant spin activity with secure server-selected results and optional scoring.",
+  sections: [
+    {
+      title: "Overview",
+      body:
+        "Live Spin Wheel is the Live experience version of the wheel tool. Participants spin an animated wheel while Ko-Host determines the authoritative result.",
+    },
+    {
+      title: "Live Manager Setup",
+      bullets: [
+        "Create the Spin Wheel activity.",
+        "Add wheel options.",
+        "Assign optional points to each option.",
+        "Choose whether multiple spins are allowed.",
+        "Activate the activity when participants should be able to spin.",
+      ],
+    },
+    {
+      title: "Participant Experience",
+      bullets: [
+        "Press Spin to start the wheel.",
+        "The wheel animates before landing on the selected result.",
+        "The final result is determined by Ko-Host rather than the participant browser.",
+        "Configured points are applied securely.",
+        "Repeat spins can be restricted by the activity configuration.",
+      ],
+    },
+    {
+      title: "Appearance",
+      bullets: [
+        "Customize wheel segment colors.",
+        "Format wheel option text.",
+        "Customize heading and result text.",
+        "Style the spin button and result area.",
+      ],
+    },
+    {
+      title: "Best Use Cases",
+      bullets: [
+        "Random challenges.",
+        "Prize activities.",
+        "Party prompts.",
+        "Classroom participation.",
+        "Icebreakers.",
+        "Team competitions.",
+      ],
+    },
+  ],
+},
+
+live_scavenger_hunt: {
+  title: "Scavenger Hunt",
+  subtitle:
+    "Create a participant-based Live hunt with individual completion tracking and scoring.",
+  sections: [
+    {
+      title: "Overview",
+      body:
+        "Scavenger Hunt gives participants a shared list of challenges while independently tracking what each participant has completed.",
+    },
+    {
+      title: "Live Manager Setup",
+      bullets: [
+        "Create the Scavenger Hunt activity.",
+        "Add hunt items or challenges.",
+        "Add optional descriptions.",
+        "Assign point values.",
+        "Activate the activity when the hunt begins.",
+      ],
+    },
+    {
+      title: "Participant Experience",
+      bullets: [
+        "Participants see the active hunt items.",
+        "Each participant completes items independently.",
+        "Completed items are recorded to that participant.",
+        "Configured points are awarded securely.",
+        "Progress can contribute to the Live Leaderboard.",
+      ],
+    },
+    {
+      title: "Best Use Cases",
+      bullets: [
+        "Parties.",
+        "School activities.",
+        "Team building.",
+        "Conferences.",
+        "Tours.",
+        "Travel groups.",
+        "Community events.",
+      ],
+    },
+  ],
+},
+
+live_lottery: {
+  title: "Lottery",
+  subtitle:
+    "Run a participant drawing or giveaway with controlled entries and host-selected winners.",
+  sections: [
+    {
+      title: "Overview",
+      body:
+        "Lottery allows joined participants to enter a Live drawing while the host controls when a winner is selected.",
+    },
+    {
+      title: "Live Manager Setup",
+      bullets: [
+        "Create the Lottery activity.",
+        "Set the maximum entries allowed per participant.",
+        "Configure optional points associated with entering.",
+        "Activate the activity when entries should open.",
+      ],
+    },
+    {
+      title: "Participant Experience",
+      bullets: [
+        "Joined participants can submit entries.",
+        "Entry limits are enforced by Ko-Host.",
+        "Participant entries remain associated with their Live session.",
+        "Participants wait for the host to perform the drawing.",
+      ],
+    },
+    {
+      title: "Host Control",
+      bullets: [
+        "Review the active Lottery activity.",
+        "Draw a winner from eligible entries.",
+        "Winner selection is handled by the server rather than the participant browser.",
+      ],
+    },
+    {
+      title: "Best Use Cases",
+      bullets: [
+        "Door prizes.",
+        "Giveaways.",
+        "Event raffles.",
+        "Promotional drawings.",
+        "Classroom rewards.",
+        "Audience participation.",
+      ],
+    },
+  ],
+},
+
+live_leaderboard: {
+  title: "Leaderboard",
+  subtitle:
+    "Display participant rankings based on scores earned throughout the Live experience.",
+  sections: [
+    {
+      title: "Overview",
+      body:
+        "Leaderboard turns Live activity scoring into a visible competition by ranking participants according to their current score.",
+    },
+    {
+      title: "How It Works",
+      bullets: [
+        "Scores come from participant Live activity results.",
+        "Participants are ranked according to their current score.",
+        "Leaderboard data is shared across the experience.",
+        "Ranking changes can appear as participants earn additional points.",
+      ],
+    },
+    {
+      title: "Works With",
+      bullets: [
+        "Live Trivia.",
+        "Live Spin Wheel.",
+        "Scavenger Hunt.",
+        "Lottery when points are configured.",
+        "Mystery Drop.",
+        "Other Live activities that award participant points.",
+      ],
+    },
+    {
+      title: "Best Use Cases",
+      bullets: [
+        "Trivia competitions.",
+        "Team events.",
+        "Classroom competitions.",
+        "Party games.",
+        "Scavenger hunts.",
+        "Multi-activity Live experiences.",
+      ],
+    },
+  ],
+},
+
+live_mystery_drop: {
+  title: "Mystery Drop",
+  subtitle:
+    "Release hidden content, rewards, challenges, clues, or surprises during a Live experience.",
+  sections: [
+    {
+      title: "Overview",
+      body:
+        "Mystery Drop lets the owner prepare hidden drops in advance and allows the host to release them at selected moments during the event.",
+    },
+    {
+      title: "Live Manager Setup",
+      bullets: [
+        "Create the Mystery Drop activity.",
+        "Add one or more drops.",
+        "Give each drop a title.",
+        "Add the hidden content or message.",
+        "Assign optional points.",
+        "Activate the activity when it will be used.",
+      ],
+    },
+    {
+      title: "Host Control",
+      bullets: [
+        "Choose when a prepared drop becomes available.",
+        "Release individual drops during the event.",
+        "Use releases to create surprise moments without changing the microsite design.",
+      ],
+    },
+    {
+      title: "Participant Experience",
+      bullets: [
+        "Participants see drops after the host releases them.",
+        "Available drops can be revealed from the microsite.",
+        "Participant reveals are tracked.",
+        "Configured points are awarded securely.",
+      ],
+    },
+    {
+      title: "Best Use Cases",
+      bullets: [
+        "Secret challenges.",
+        "Bonus points.",
+        "Surprise prizes.",
+        "Event clues.",
+        "Timed reveals.",
+        "Promotional surprises.",
+      ],
+    },
+  ],
+},
+
+live_announcement: {
+  title: "Announcement",
+  subtitle:
+    "Publish host-controlled messages and important updates to participants during a Live experience.",
+  sections: [
+    {
+      title: "Overview",
+      body:
+        "Announcement provides a dedicated Live communication area for messages the host publishes during an active experience.",
+    },
+    {
+      title: "Host Control",
+      bullets: [
+        "Prepare announcements for the Live experience.",
+        "Publish an announcement when participants need to see it.",
+        "Use announcements independently from the microsite's permanent page content.",
+      ],
+    },
+    {
+      title: "Participant Experience",
+      bullets: [
+        "Published announcements appear in the Live Announcement block.",
+        "New information can appear while participants remain on the microsite.",
+        "Announcements provide a shared source for important event information.",
+      ],
+    },
+    {
+      title: "Best Use Cases",
+      bullets: [
+        "Event instructions.",
+        "Schedule changes.",
+        "Important reminders.",
+        "Winner announcements.",
+        "Game instructions.",
+        "Meeting-point updates.",
+        "General host messages.",
+      ],
+    },
+  ],
+},
+
 };

@@ -4401,6 +4401,16 @@ const showTextControls =
   selectedBlock?.type === "image_carousel" ||
 selectedBlock?.type === "live_join" ||
 selectedBlock?.type === "live_trivia" ||
+selectedBlock?.type === "live_poll" ||
+selectedBlock?.type === "live_player_card" ||
+selectedBlock?.type === "live_schedule" ||
+selectedBlock?.type === "live_song_request" ||
+selectedBlock?.type === "live_spin_wheel" ||
+selectedBlock?.type === "live_scavenger_hunt" ||
+selectedBlock?.type === "live_lottery" ||
+selectedBlock?.type === "live_leaderboard" ||
+selectedBlock?.type === "live_mystery_drop" ||
+selectedBlock?.type === "live_announcement" ||
 selectedBlock?.type === "links";
 
 
@@ -4455,6 +4465,16 @@ const showAppearanceControls =
   selectedBlock?.type === "summary" ||
 selectedBlock?.type === "live_join" ||
 selectedBlock?.type === "live_trivia" ||
+selectedBlock?.type === "live_poll" ||
+selectedBlock?.type === "live_player_card" ||
+selectedBlock?.type === "live_schedule" ||
+selectedBlock?.type === "live_song_request" ||
+selectedBlock?.type === "live_spin_wheel" ||
+selectedBlock?.type === "live_scavenger_hunt" ||
+selectedBlock?.type === "live_lottery" ||
+selectedBlock?.type === "live_leaderboard" ||
+selectedBlock?.type === "live_mystery_drop" ||
+selectedBlock?.type === "live_announcement" ||
 selectedBlock?.type === "visitor_counter";
 
 
@@ -4505,6 +4525,16 @@ const showBorderWidthRadiusControls =
   selectedBlock?.type === "visitor_counter" ||
 selectedBlock?.type === "live_join" ||
 selectedBlock?.type === "live_trivia" ||
+selectedBlock?.type === "live_poll" ||
+selectedBlock?.type === "live_player_card" ||
+selectedBlock?.type === "live_schedule" ||
+selectedBlock?.type === "live_song_request" ||
+selectedBlock?.type === "live_spin_wheel" ||
+selectedBlock?.type === "live_scavenger_hunt" ||
+selectedBlock?.type === "live_lottery" ||
+selectedBlock?.type === "live_leaderboard" ||
+selectedBlock?.type === "live_mystery_drop" ||
+selectedBlock?.type === "live_announcement" ||
 selectedBlock?.type === "highlight" ||
   selectedBlock?.type === "summary";
 

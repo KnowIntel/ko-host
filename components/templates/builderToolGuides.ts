@@ -260,4 +260,101 @@ export const BUILDER_TOOL_GUIDES: BuilderToolGuide[] = [
   howToUse:
     "Use this for product features, diagrams, maps, tours, educational visuals, or interactive infographics. Add a background image, position hotspot markers over important areas, and configure the detail content visitors see when each marker is selected.",
 },
+
+{
+  name: "Live Join",
+  purpose:
+    "Lets visitors join the Live experience as individual participants.",
+  howToUse:
+    "Use this as the entry point for a Live experience. Participants enter a display name and optional avatar to create their temporary participant session and access interactive Live activities.",
+},
+
+{
+  name: "Live Trivia",
+  purpose:
+    "Runs live trivia questions for connected participants.",
+  howToUse:
+    "Use this for parties, classrooms, competitions, watch events, team activities, or audience games. Configure the trivia activity from the Live Manager, make it current when ready, and participants can answer questions while Ko-Host tracks responses and scores.",
+},
+
+{
+  name: "Live Poll",
+  purpose:
+    "Lets connected participants vote in live audience polls.",
+  howToUse:
+    "Use this for audience voting, group decisions, predictions, feedback, competitions, or event interaction. Configure questions and choices in the Live Manager, then make the poll current so participants can vote and see live results.",
+},
+
+{
+  name: "Player Card",
+  purpose:
+    "Displays the current participant's personal Live profile and progress.",
+  howToUse:
+    "Use this to give each participant a personalized view of their Live experience. The card can display their name, avatar, team, score, badges, and other participant information while everyone continues using the same microsite.",
+},
+
+{
+  name: "Live Schedule",
+  purpose:
+    "Displays the shared event schedule and its current progress.",
+  howToUse:
+    "Use this for parties, conferences, classes, competitions, trips, or other live events. Manage schedule entries from Host Control and update them as Upcoming, Current, Completed, or Cancelled so participants can follow what is happening in real time.",
+},
+
+{
+  name: "Song Request",
+  purpose:
+    "Lets participants submit songs to a shared live request queue.",
+  howToUse:
+    "Use this for parties, receptions, dances, reunions, or other music-based events. Participants submit song and artist requests while the host manages the queue and marks requests as Queued, Playing, Played, or Rejected.",
+},
+
+{
+  name: "Live Spin Wheel",
+  purpose:
+    "Creates a shared Live activity where participants spin for a server-selected result.",
+  howToUse:
+    "Use this for challenges, prizes, party prompts, classroom activities, icebreakers, or random selections. Configure the wheel options and points in the Live Manager. Participants spin the animated wheel and Ko-Host securely determines and records the result.",
+},
+
+{
+  name: "Scavenger Hunt",
+  purpose:
+    "Creates a live checklist of challenges or items participants can find and complete.",
+  howToUse:
+    "Use this for parties, schools, conferences, team building, tours, travel, or community events. Configure hunt items and point values in the Live Manager, then participants complete items during the experience while Ko-Host tracks their progress and scores.",
+},
+
+{
+  name: "Lottery",
+  purpose:
+    "Lets participants enter a Live drawing and allows the host to select a winner.",
+  howToUse:
+    "Use this for giveaways, raffles, door prizes, drawings, or event promotions. Configure entry rules in the Live Manager, let participants submit their entries, then use Host Control to securely draw a winner.",
+},
+
+{
+  name: "Leaderboard",
+  purpose:
+    "Displays participant rankings and scores during a Live experience.",
+  howToUse:
+    "Use this alongside scored Live activities such as Trivia, Spin Wheel, Scavenger Hunt, Lottery, or Mystery Drops. Rankings update from participant scores so everyone can follow the competition during the event.",
+},
+
+{
+  name: "Mystery Drop",
+  purpose:
+    "Lets the host release hidden content, rewards, challenges, or surprises during a Live experience.",
+  howToUse:
+    "Use this for surprise prizes, secret challenges, bonus points, clues, reveals, promotions, or timed event moments. Configure drops in the Live Manager, release them from Host Control, and participants can reveal available drops from the microsite.",
+},
+
+{
+  name: "Announcement",
+  purpose:
+    "Displays host-published Live announcements to connected participants.",
+  howToUse:
+    "Use this for event updates, instructions, reminders, schedule changes, winner announcements, alerts, or important messages. Prepare announcements for the experience and publish them from Host Control when participants need to see them.",
+},
+
 ];

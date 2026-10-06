@@ -1168,6 +1168,124 @@ currentActivityType:
 
   return (
     <>
+    <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
+  <div className="flex items-center gap-2">
+    <span className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">
+      Build It
+    </span>
+
+    <span className="text-neutral-300">
+      →
+    </span>
+
+    <span className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">
+      Run It
+    </span>
+  </div>
+
+  <div className="mt-4 grid gap-4 md:grid-cols-2">
+    {/* Live Manager */}
+    <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-4">
+      <div className="flex items-center gap-3">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-lg shadow-sm">
+          ⚙
+        </div>
+
+        <div>
+          <div className="font-semibold">
+            Live Manager
+          </div>
+
+          <div className="text-xs font-medium text-neutral-500">
+            Set up the experience
+          </div>
+        </div>
+      </div>
+
+      <p className="mt-3 text-sm leading-6 text-neutral-600">
+        Create and configure what participants
+        will interact with.
+      </p>
+
+      <div className="mt-3 flex flex-wrap gap-2">
+        {[
+          "Activities",
+          "Questions",
+          "Options",
+          "Points",
+          "Rules",
+          "Content",
+        ].map((item) => (
+          <span
+            key={item}
+            className="rounded-full border border-neutral-200 bg-white px-2.5 py-1 text-xs text-neutral-600"
+          >
+            {item}
+          </span>
+        ))}
+      </div>
+
+      <div className="mt-4 text-xs font-semibold text-neutral-800">
+        Configure here.
+      </div>
+    </div>
+
+    {/* Host Control */}
+    <div className="rounded-xl border border-neutral-900 bg-neutral-900 p-4 text-white">
+      <div className="flex items-center gap-3">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/10 text-lg">
+          ▶
+        </div>
+
+        <div>
+          <div className="font-semibold">
+            Host Control
+          </div>
+
+          <div className="text-xs font-medium text-neutral-300">
+            Run the experience
+          </div>
+        </div>
+      </div>
+
+      <p className="mt-3 text-sm leading-6 text-neutral-300">
+        Control what happens while your Live
+        experience is running.
+      </p>
+
+      <div className="mt-3 flex flex-wrap gap-2">
+        {[
+          "Go Live / Pause / End",
+          "Current Activity",
+          "Schedule",
+          "Requests",
+          "Drops",
+          "Drawings",
+          "Announcements",
+        ].map((item) => (
+          <span
+            key={item}
+            className="rounded-full border border-white/15 bg-white/10 px-2.5 py-1 text-xs text-neutral-200"
+          >
+            {item}
+          </span>
+        ))}
+      </div>
+
+      <div className="mt-4 text-xs font-semibold text-white">
+        Control the live action.
+      </div>
+    </div>
+  </div>
+
+  <div className="mt-4 border-t border-neutral-100 pt-4 text-center text-xs text-neutral-500">
+    <span className="font-semibold text-neutral-700">
+      Think of it this way:
+    </span>{" "}
+    Live Manager builds the playbook. Host Control
+    runs the show.
+  </div>
+</div>
       <div className="grid gap-3 sm:grid-cols-3">
         <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
           <div className="text-xs text-neutral-600">
@@ -1215,51 +1333,52 @@ currentActivityType:
 
       <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
         <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="font-semibold">
-              Activities
-            </h2>
+<div>
+  <div>
+    <h2 className="font-semibold">
+      Activities
+    </h2>
 
-<div className="flex flex-wrap items-center gap-2">
-  {[
-    ["trivia", "+ Trivia"],
-    ["poll", "+ Poll"],
-    [
-      "spin_wheel",
-      "+ Spin Wheel",
-    ],
-    [
-      "scavenger_hunt",
-      "+ Scavenger Hunt",
-    ],
-    ["lottery", "+ Lottery"],
-    [
-      "mystery_drop",
-      "+ Mystery Drop",
-    ],
-  ].map(([type, label]) => (
-    <button
-      key={type}
-      type="button"
-      disabled={creating}
-      onClick={() => {
-        void createActivity(
-          type as
-            | "trivia"
-            | "poll"
-            | "spin_wheel"
-            | "scavenger_hunt"
-            | "lottery"
-            | "mystery_drop",
-        );
-      }}
-      className="rounded-xl border border-neutral-300 px-3 py-2 text-xs font-medium text-neutral-800 hover:bg-neutral-50 disabled:opacity-50"
-    >
-      {label}
-    </button>
-  ))}
+    <p className="mt-1 text-xs text-neutral-500">
+      Add and configure Live activities.
+    </p>
+  </div>
+
+  <div className="mt-4 grid grid-cols-2 gap-2">
+    {[
+      ["trivia", "Trivia"],
+      ["poll", "Poll"],
+      ["spin_wheel", "Spin Wheel"],
+      ["scavenger_hunt", "Scavenger Hunt"],
+      ["lottery", "Lottery"],
+      ["mystery_drop", "Mystery Drop"],
+    ].map(([type, label]) => (
+      <button
+        key={type}
+        type="button"
+        disabled={creating}
+        onClick={() => {
+          void createActivity(
+            type as
+              | "trivia"
+              | "poll"
+              | "spin_wheel"
+              | "scavenger_hunt"
+              | "lottery"
+              | "mystery_drop",
+          );
+        }}
+        className="flex min-h-10 w-full items-center justify-start rounded-xl border border-neutral-200 bg-white px-3 py-2 text-left text-xs font-medium text-neutral-800 transition hover:border-neutral-400 hover:bg-neutral-50 disabled:opacity-50"
+      >
+        <span className="mr-2 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-sm font-medium">
+          +
+        </span>
+
+        <span>{label}</span>
+      </button>
+    ))}
+  </div>
 </div>
-          </div>
 
           <div className="mt-4 space-y-2">
             {activities.length ===
