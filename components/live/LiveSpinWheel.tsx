@@ -378,9 +378,30 @@ const nextRotation =
             });
           }
 
-          void refresh();
+void (async () => {
+  await refresh();
 
-          setSpinning(false);
+  try {
+    await fetch(
+      `/api/live/${encodeURIComponent(
+        experienceId,
+      )}/spin-wheel/refresh`,
+      {
+        method: "POST",
+        credentials: "include",
+        cache: "no-store",
+      },
+    );
+  } catch (refreshError) {
+    console.error(
+      "Spin Wheel Live refresh failed:",
+      refreshError,
+    );
+  }
+})();
+
+setSpinning(false);
+
         },
         3200,
       );
@@ -481,7 +502,7 @@ const nextRotation =
 
 const radians =
   ((angle - 60) * Math.PI) / 180;
-  
+
   const radius = 26;
 
   const x =
