@@ -482,7 +482,7 @@ const nextRotation =
   const radians =
     ((angle - 90) * Math.PI) / 180;
 
-  const radius = 21;
+  const radius = 26;
 
   const x =
     50 + Math.cos(radians) * radius;
