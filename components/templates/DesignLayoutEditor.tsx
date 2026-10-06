@@ -2276,12 +2276,16 @@ function toBookmarkSlug(value: string) {
 }
 
 function bottomCategoryClass(active: boolean, category?: BottomCategory) {
+  const isSpecialCategory =
+    category === "LIVE" ||
+    category === "PREMIUM";
+
   return [
     "inline-flex h-11 items-center gap-2 rounded-md border px-4 text-sm font-medium transition",
     active
-      ? "border-blue-500 bg-blue-600 text-white"
-      : category === "PREMIUM"
-        ? "border-neutral-300 bg-white text-[rgb(0,0,255)] hover:bg-neutral-100"
+      ? "border-blue-500 bg-blue-600 text-white [&_img]:brightness-0 [&_img]:invert"
+      : isSpecialCategory
+        ? "border-neutral-300 bg-white text-[rgb(0,0,255)] hover:bg-neutral-100 [&_img]:brightness-0 [&_img]:saturate-100 [&_img]:invert-[11%] [&_img]:sepia-[100%] [&_img]:saturate-[7497%] [&_img]:hue-rotate-[246deg] [&_img]:brightness-[89%] [&_img]:contrast-[144%]"
         : "border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-100",
   ].join(" ");
 }
