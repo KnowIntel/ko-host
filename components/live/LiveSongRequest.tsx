@@ -254,19 +254,30 @@ export default function LiveSongRequest({
           </div>
 
           <div className="mt-2 space-y-2">
-            {(data?.queue ?? []).map(
-              (item) => (
-                <div
-                  key={item.id}
-                  style={queueTextStyle}
-                >
-                  {item.songTitle}
-                  {item.artistName
-                    ? ` — ${item.artistName}`
-                    : ""}
-                </div>
-              ),
-            )}
+{(data?.queue ?? []).map(
+  (item) => (
+    <div
+      key={item.id}
+      className="flex items-center justify-between gap-3"
+      style={queueTextStyle}
+    >
+      <div>
+        {item.songTitle}
+        {item.artistName
+          ? ` — ${item.artistName}`
+          : ""}
+      </div>
+
+      <div className="shrink-0 rounded-full bg-neutral-100 px-2.5 py-1 text-xs font-semibold capitalize">
+        {item.status === "playing"
+          ? "Playing"
+          : item.status === "queued"
+            ? "Queued"
+            : item.status}
+      </div>
+    </div>
+  ),
+)}
           </div>
         </div>
       ) : null}
