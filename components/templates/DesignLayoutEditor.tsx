@@ -2476,7 +2476,7 @@ if (tool.label === "Live Poll") return "/menu-icons/block-live-poll.svg";
 if (tool.label === "Player Card") return "/menu-icons/block-live-player-card.svg";
 if (tool.label === "Schedule") return "/menu-icons/block-live-schedule.svg";
 if (tool.label === "Song Request") return "/menu-icons/block-live-song-request.svg";
-if (tool.label === "Live Spin Wheel") return "/menu-icons/block-live-spin-wheel.svg";
+if (tool.label === "Live Spin Wheel") return "/menu-icons/block-spin-wheel.svg";
 if (tool.label === "Scavenger Hunt") return "/menu-icons/block-live-scavenger-hunt.svg";
 if (tool.label === "Lottery") return "/menu-icons/block-live-lottery.svg";
 if (tool.label === "Leaderboard") return "/menu-icons/block-live-leaderboard.svg";
