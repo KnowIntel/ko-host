@@ -1700,28 +1700,26 @@ data.activity.activityType ===
                     }
                   </div>
 
-                  <div className="mt-1 text-xs text-neutral-500">
-                    Scavenger Hunt
-                    Points:{" "}
-                    <span className="font-semibold text-neutral-700">
+                  <div className="mt-1 text-sm text-neutral-600">
+                    Scavenger Hunt Points:{" "}
+                    <span className="font-semibold text-neutral-900">
                       {scavengerPoints}
                     </span>
                   </div>
                 </div>
 
                 <div className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold text-neutral-700">
-                  {
-                    completions.length
-                  }{" "}
+                  {completions.length}{" "}
+                  {completions.length === 1
+                    ? "item"
+                    : "items"}{" "}
                   completed
                 </div>
               </div>
 
-              {completions.length ===
-              0 ? (
+              {completions.length === 0 ? (
                 <div className="mt-3 text-sm text-neutral-500">
-                  No items completed
-                  yet.
+                  No items completed yet.
                 </div>
               ) : (
                 <div className="mt-4 space-y-3">
@@ -1737,37 +1735,35 @@ data.activity.activityType ===
                         }
                         className="rounded-xl border border-neutral-200 bg-neutral-50 p-3"
                       >
-                        <div className="flex flex-wrap items-start justify-between gap-3">
-                          <div className="font-medium text-neutral-900">
-                            {item?.title ??
-                              "Scavenger Hunt Item"}
-                          </div>
-
-                          <div className="text-xs font-semibold text-neutral-700">
-                            +
-                            {Math.max(
-                              0,
-                              Number(
-                                completion
-                                  .awardedPoints,
-                              ) || 0,
-                            )}{" "}
-                            pts
-                          </div>
+                        <div className="text-sm text-neutral-800">
+                          <span className="font-semibold text-neutral-900">
+                            Found:
+                          </span>{" "}
+                          {item?.title ??
+                            "Scavenger Hunt Item"}
                         </div>
 
-                        {completion.responseText ? (
-                          <div className="mt-2 text-sm text-neutral-600">
-                            {
-                              completion.responseText
-                            }
-                          </div>
-                        ) : (
-                          <div className="mt-2 text-sm italic text-neutral-400">
-                            No description
-                            provided.
-                          </div>
-                        )}
+                        <div className="mt-2 text-sm text-neutral-800">
+                          <span className="font-semibold text-neutral-900">
+                            Description:
+                          </span>{" "}
+                          {completion.responseText ||
+                            "No description provided."}
+                        </div>
+
+                        <div className="mt-2 text-sm text-neutral-800">
+                          <span className="font-semibold text-neutral-900">
+                            Points:
+                          </span>{" "}
+                          +
+                          {Math.max(
+                            0,
+                            Number(
+                              completion
+                                .awardedPoints,
+                            ) || 0,
+                          )}
+                        </div>
                       </div>
                     ),
                   )}
