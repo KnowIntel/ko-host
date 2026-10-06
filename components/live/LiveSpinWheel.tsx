@@ -470,42 +470,41 @@ const nextRotation =
                 : "none",
           }}
         >
-          {/* SEGMENT LABELS */}
-          {options.map(
-            (option, index) => {
-              const segmentSize =
-                360 /
-                options.length;
+{/* SEGMENT LABELS */}
+{options.map((option, index) => {
+  const segmentSize =
+    360 / options.length;
 
-              const angle =
-                index *
-                  segmentSize +
-                segmentSize / 2;
+  const angle =
+    index * segmentSize +
+    segmentSize / 2;
 
-              return (
-                <div
-                  key={option.id}
-                  className="pointer-events-none absolute left-1/2 top-1/2 h-1/2 w-1/2 origin-top-left"
-                  style={{
-                    transform: `rotate(${angle}deg)`,
-                  }}
-                >
-<div
-  className="absolute left-1/2 top-[32%] max-w-[90px] -translate-x-1/2 text-center text-xs font-bold"
-  style={{
-    ...wheelTextStyle,
+  const radians =
+    ((angle - 90) * Math.PI) / 180;
 
-    transform: `rotate(${
-      -angle - rotation
-    }deg)`,
-  }}
->
-  {option.label}
-</div>
-                </div>
-              );
-            },
-          )}
+  const radius = 31;
+
+  const x =
+    50 + Math.cos(radians) * radius;
+
+  const y =
+    50 + Math.sin(radians) * radius;
+
+  return (
+    <div
+      key={option.id}
+      className="pointer-events-none absolute max-w-[90px] -translate-x-1/2 -translate-y-1/2 text-center text-xs font-bold"
+      style={{
+        ...wheelTextStyle,
+        left: `${x}%`,
+        top: `${y}%`,
+        transform: `translate(-50%, -50%) rotate(${-rotation}deg)`,
+      }}
+    >
+      {option.label}
+    </div>
+  );
+})}
 
           {/* CENTER HUB */}
           <div className="absolute left-1/2 top-1/2 z-10 flex h-12 w-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-4 border-neutral-900 bg-white shadow-sm">
