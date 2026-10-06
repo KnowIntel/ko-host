@@ -823,6 +823,230 @@ export async function POST(
     }
 
     /*
+ * ================================================================
+ * SCHEDULE — CREATE ENTRY
+ * ================================================================
+ */
+if (
+  action ===
+  "create_schedule_entry"
+) {
+  const title = cleanText(
+    body.title,
+    200,
+  );
+
+  const description = cleanText(
+    body.description,
+    1000,
+  );
+
+  const startsAtRaw = cleanText(
+    body.startsAt,
+    100,
+  );
+
+  const endsAtRaw = cleanText(
+    body.endsAt,
+    100,
+  );
+
+  if (!title) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          "Schedule title is required.",
+      },
+      { status: 400 },
+    );
+  }
+
+  const parseOptionalDate = (
+    value: string,
+  ) => {
+    if (!value) {
+      return null;
+    }
+
+    const date = new Date(value);
+
+    return Number.isNaN(
+      date.getTime(),
+    )
+      ? undefined
+      : date.toISOString();
+  };
+
+  const startsAt =
+    parseOptionalDate(startsAtRaw);
+
+  const endsAt =
+    parseOptionalDate(endsAtRaw);
+
+  if (
+    startsAt === undefined ||
+    endsAt === undefined
+  ) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          "Invalid Schedule date or time.",
+      },
+      { status: 400 },
+    );
+  }
+
+  if (
+    startsAt &&
+    endsAt &&
+    new Date(endsAt).getTime() <
+      new Date(startsAt).getTime()
+  ) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          "Schedule end time cannot be before the start time.",
+      },
+      { status: 400 },
+    );
+  }
+
+  /*
+   * Place new entries after the
+   * existing schedule.
+   */
+  const {
+    data: lastEntry,
+    error: orderError,
+  } = await sb
+    .from("live_schedule_entries")
+    .select("sort_order")
+    .eq(
+      "experience_id",
+      experience.id,
+    )
+    .order("sort_order", {
+      ascending: false,
+    })
+    .limit(1)
+    .maybeSingle();
+
+  if (orderError) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          "Unable to prepare Schedule entry.",
+      },
+      { status: 500 },
+    );
+  }
+
+  const sortOrder =
+    Number(
+      lastEntry?.sort_order ?? -1,
+    ) + 1;
+
+  const now =
+    new Date().toISOString();
+
+  const {
+    data: entry,
+    error: entryError,
+  } = await sb
+    .from("live_schedule_entries")
+    .insert({
+      experience_id:
+        experience.id,
+
+      title,
+
+      description,
+
+      starts_at:
+        startsAt,
+
+      ends_at:
+        endsAt,
+
+      status: "upcoming",
+
+      sort_order:
+        sortOrder,
+
+      created_at:
+        now,
+
+      updated_at:
+        now,
+    })
+    .select(
+      "id, title, description, starts_at, ends_at, status, sort_order, created_at, updated_at",
+    )
+    .single();
+
+  if (
+    entryError ||
+    !entry
+  ) {
+    console.error(
+      "Schedule entry creation failed:",
+      entryError,
+    );
+
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          "Schedule entry could not be created.",
+      },
+      { status: 500 },
+    );
+  }
+
+  await broadcastChange(
+    sb,
+    experience.id,
+    currentActivityId,
+  );
+
+  return NextResponse.json({
+    ok: true,
+    action,
+    entry: {
+      id: entry.id,
+
+      title:
+        entry.title,
+
+      description:
+        entry.description ?? "",
+
+      startsAt:
+        entry.starts_at,
+
+      endsAt:
+        entry.ends_at,
+
+      status:
+        entry.status,
+
+      sortOrder:
+        entry.sort_order,
+
+      createdAt:
+        entry.created_at,
+
+      updatedAt:
+        entry.updated_at,
+    },
+  });
+}
+
+    /*
      * ================================================================
      * SCHEDULE — CHANGE STATUS
      * ================================================================
