@@ -2011,62 +2011,55 @@ currentActivityType:
                             className="min-w-[180px] flex-1 rounded-xl border border-neutral-300 px-3 py-2 text-sm"
                           />
 
-                          <input
-                            type="number"
-                            min={0}
-                            max={
-                              100000
-                            }
-                            value={
-                              option.points
-                            }
-                            onChange={(
-                              event,
-                            ) =>
-                              updateSelectedActivity(
-                                (
-                                  activity,
-                                ) => ({
-                                  ...activity,
+<input
+  type="number"
+  min={0}
+  max={100000}
+  value={
+    option.points === 0
+      ? ""
+      : option.points
+  }
+  placeholder="0 points"
+  onChange={(event) => {
+    const value =
+      event.target.value;
 
-                                  configuration:
-                                    {
-                                      ...activity.configuration,
+    updateSelectedActivity(
+      (activity) => ({
+        ...activity,
 
-                                      options:
-                                        normalizeSpinWheelOptions(
-                                          activity,
-                                        ).map(
-                                          (
-                                            item,
-                                          ) =>
-                                            item.id ===
-                                            option.id
-                                              ? {
-                                                  ...item,
+        configuration: {
+          ...activity.configuration,
 
-                                                  points:
-                                                    Math.max(
-                                                      0,
-                                                      Math.min(
-                                                        100000,
-                                                        Number(
-                                                          event
-                                                            .target
-                                                            .value,
-                                                        ) ||
-                                                          0,
-                                                      ),
-                                                    ),
-                                                }
-                                              : item,
-                                        ),
-                                    },
-                                }),
-                              )
-                            }
-                            className="w-28 rounded-xl border border-neutral-300 px-3 py-2 text-sm"
-                          />
+          options:
+            normalizeSpinWheelOptions(
+              activity,
+            ).map((item) =>
+              item.id === option.id
+                ? {
+                    ...item,
+
+                    points:
+                      value === ""
+                        ? 0
+                        : Math.max(
+                            0,
+                            Math.min(
+                              100000,
+                              Number(value) ||
+                                0,
+                            ),
+                          ),
+                  }
+                : item,
+            ),
+        },
+      }),
+    );
+  }}
+  className="w-28 rounded-xl border border-neutral-300 px-3 py-2 text-sm"
+/>
 
                           <button
                             type="button"
