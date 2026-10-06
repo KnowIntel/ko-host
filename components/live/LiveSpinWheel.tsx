@@ -491,7 +491,7 @@ const nextRotation =
                   }}
                 >
 <div
-  className="absolute left-1/2 top-[18%] max-w-[90px] -translate-x-1/2 text-center text-xs font-bold"
+  className="absolute left-1/2 top-[32%] max-w-[90px] -translate-x-1/2 text-center text-xs font-bold"
   style={{
     ...wheelTextStyle,
 
