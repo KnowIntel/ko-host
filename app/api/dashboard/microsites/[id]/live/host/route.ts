@@ -551,7 +551,6 @@ const [
       status,
       sort_order,
       requested_at,
-      created_at,
       updated_at
     `)
     .eq(
@@ -723,7 +722,7 @@ const songRequests =
         request.requested_at,
 
       createdAt:
-        request.created_at,
+        request.requested_at,
 
       updatedAt:
         request.updated_at,
