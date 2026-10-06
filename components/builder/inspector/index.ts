@@ -1,3 +1,5 @@
+// components\builder\inspector\index.ts
+
 export { OptionButtonInspector } from "./OptionButtonInspector";
 export { FormFieldInspector } from "./FormFieldInspector";
 export { HighlightInspector } from "./HighlightInspector";
@@ -59,3 +61,12 @@ export { LetterFillInspector } from "./LetterFillInspector";
 export { LiveJoinInspector } from "./LiveJoinInspector";
 export { LiveTriviaInspector } from "./LiveTriviaInspector";
 export { LivePollInspector } from "./LivePollInspector";
+export { LivePlayerCardInspector } from "./LivePlayerCardInspector";
+export { LiveScheduleInspector } from "./LiveScheduleInspector";
+export { LiveSongRequestInspector } from "./LiveSongRequestInspector";
+export { LiveSpinWheelInspector } from "./LiveSpinWheelInspector";
+export { LiveScavengerHuntInspector } from "./LiveScavengerHuntInspector";
+export { LiveLotteryInspector } from "./LiveLotteryInspector";
+export { LiveLeaderboardInspector } from "./LiveLeaderboardInspector";
+export { LiveMysteryDropInspector } from "./LiveMysteryDropInspector";
+export { LiveAnnouncementInspector } from "./LiveAnnouncementInspector";

@@ -1139,6 +1139,15 @@ const isInteractiveBlock =
   block.type === "live_join" ||
   block.type === "live_trivia" ||
   block.type === "live_poll" ||
+  block.type === "live_player_card" ||
+  block.type === "live_schedule" ||
+  block.type === "live_song_request" ||
+  block.type === "live_spin_wheel" ||
+  block.type === "live_scavenger_hunt" ||
+  block.type === "live_lottery" ||
+  block.type === "live_leaderboard" ||
+  block.type === "live_mystery_drop" ||
+  block.type === "live_announcement" ||
   block.type === "schedule_agenda" ||
   block.type === "checklist" ||
   block.type === "rsvp" ||

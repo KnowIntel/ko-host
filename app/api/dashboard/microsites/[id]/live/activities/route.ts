@@ -53,6 +53,44 @@ type PollConfiguration = {
   questions: PollQuestion[];
 };
 
+type SpinWheelOption = {
+  id: string;
+  label: string;
+  points: number;
+};
+
+type SpinWheelConfiguration = {
+  options: SpinWheelOption[];
+  allowMultipleSpins: boolean;
+};
+
+type ScavengerHuntItem = {
+  id: string;
+  title: string;
+  description: string;
+  points: number;
+};
+
+type ScavengerHuntConfiguration = {
+  items: ScavengerHuntItem[];
+};
+
+type LotteryConfiguration = {
+  entryPoints: number;
+  maxEntriesPerParticipant: number;
+};
+
+type MysteryDropItem = {
+  id: string;
+  title: string;
+  content: string;
+  points: number;
+};
+
+type MysteryDropConfiguration = {
+  drops: MysteryDropItem[];
+};
+
 function cleanText(
   value: unknown,
   maxLength: number,
@@ -431,6 +469,286 @@ function normalizePollConfiguration(
   };
 }
 
+function normalizeGenericLiveConfiguration(
+  activityType: string,
+  value: unknown,
+):
+  | SpinWheelConfiguration
+  | ScavengerHuntConfiguration
+  | LotteryConfiguration
+  | MysteryDropConfiguration {
+  const source =
+    value &&
+    typeof value === "object" &&
+    !Array.isArray(value)
+      ? (value as Record<string, unknown>)
+      : {};
+
+  const normalizePoints = (
+    value: unknown,
+    fallback = 0,
+  ) => {
+    const parsed =
+      typeof value === "number"
+        ? value
+        : Number(value);
+
+    if (!Number.isFinite(parsed)) {
+      return fallback;
+    }
+
+    return Math.max(
+      0,
+      Math.min(
+        Math.floor(parsed),
+        100000,
+      ),
+    );
+  };
+
+  if (activityType === "spin_wheel") {
+    const rawOptions = Array.isArray(source.options)
+      ? source.options
+      : [];
+
+    if (rawOptions.length > 100) {
+      throw new Error(
+        "Spin Wheel may contain at most 100 options.",
+      );
+    }
+
+    const usedIds = new Set<string>();
+
+    const options = rawOptions.map((rawOption) => {
+      if (
+        !rawOption ||
+        typeof rawOption !== "object" ||
+        Array.isArray(rawOption)
+      ) {
+        throw new Error(
+          "Invalid Spin Wheel option.",
+        );
+      }
+
+      const item =
+        rawOption as Record<string, unknown>;
+
+      let id = cleanText(item.id, 100);
+
+      if (!id) {
+        id = makeId("wheel-option");
+      }
+
+      if (usedIds.has(id)) {
+        throw new Error(
+          "Spin Wheel option IDs must be unique.",
+        );
+      }
+
+      usedIds.add(id);
+
+      const label = cleanText(
+        item.label,
+        300,
+      );
+
+      if (!label) {
+        throw new Error(
+          "Every Spin Wheel option requires a label.",
+        );
+      }
+
+      return {
+        id,
+        label,
+        points: normalizePoints(
+          item.points,
+          0,
+        ),
+      };
+    });
+
+    return {
+      options,
+      allowMultipleSpins:
+        source.allowMultipleSpins === true,
+    };
+  }
+
+  if (activityType === "scavenger_hunt") {
+    const rawItems = Array.isArray(source.items)
+      ? source.items
+      : [];
+
+    if (rawItems.length > 200) {
+      throw new Error(
+        "Scavenger Hunt may contain at most 200 items.",
+      );
+    }
+
+    const usedIds = new Set<string>();
+
+    const items = rawItems.map((rawItem) => {
+      if (
+        !rawItem ||
+        typeof rawItem !== "object" ||
+        Array.isArray(rawItem)
+      ) {
+        throw new Error(
+          "Invalid Scavenger Hunt item.",
+        );
+      }
+
+      const item =
+        rawItem as Record<string, unknown>;
+
+      let id = cleanText(item.id, 100);
+
+      if (!id) {
+        id = makeId("hunt-item");
+      }
+
+      if (usedIds.has(id)) {
+        throw new Error(
+          "Scavenger Hunt item IDs must be unique.",
+        );
+      }
+
+      usedIds.add(id);
+
+      const title = cleanText(
+        item.title,
+        300,
+      );
+
+      if (!title) {
+        throw new Error(
+          "Every Scavenger Hunt item requires a title.",
+        );
+      }
+
+      return {
+        id,
+        title,
+        description: cleanText(
+          item.description,
+          1000,
+        ),
+        points: normalizePoints(
+          item.points,
+          100,
+        ),
+      };
+    });
+
+    return { items };
+  }
+
+  if (activityType === "lottery") {
+    const rawMaxEntries =
+      typeof source.maxEntriesPerParticipant ===
+      "number"
+        ? source.maxEntriesPerParticipant
+        : Number(
+            source.maxEntriesPerParticipant,
+          );
+
+    const maxEntriesPerParticipant =
+      Number.isFinite(rawMaxEntries)
+        ? Math.max(
+            1,
+            Math.min(
+              Math.floor(rawMaxEntries),
+              100,
+            ),
+          )
+        : 1;
+
+    return {
+      entryPoints: normalizePoints(
+        source.entryPoints,
+        0,
+      ),
+      maxEntriesPerParticipant,
+    };
+  }
+
+  if (activityType === "mystery_drop") {
+    const rawDrops = Array.isArray(source.drops)
+      ? source.drops
+      : [];
+
+    if (rawDrops.length > 100) {
+      throw new Error(
+        "Mystery Drop may contain at most 100 drops.",
+      );
+    }
+
+    const usedIds = new Set<string>();
+
+    const drops = rawDrops.map((rawDrop) => {
+      if (
+        !rawDrop ||
+        typeof rawDrop !== "object" ||
+        Array.isArray(rawDrop)
+      ) {
+        throw new Error(
+          "Invalid Mystery Drop.",
+        );
+      }
+
+      const item =
+        rawDrop as Record<string, unknown>;
+
+      let id = cleanText(item.id, 100);
+
+      if (!id) {
+        id = makeId("mystery-drop");
+      }
+
+      if (usedIds.has(id)) {
+        throw new Error(
+          "Mystery Drop IDs must be unique.",
+        );
+      }
+
+      usedIds.add(id);
+
+      const title = cleanText(
+        item.title,
+        300,
+      );
+
+      const content = cleanText(
+        item.content,
+        2000,
+      );
+
+      if (!title || !content) {
+        throw new Error(
+          "Every Mystery Drop requires a title and content.",
+        );
+      }
+
+      return {
+        id,
+        title,
+        content,
+        points: normalizePoints(
+          item.points,
+          0,
+        ),
+      };
+    });
+
+    return { drops };
+  }
+
+  throw new Error(
+    "Unsupported Live activity type.",
+  );
+}
+
 async function getOwnerContext(
   micrositeId: string,
   userId: string,
@@ -773,17 +1091,21 @@ export async function POST(
       100,
     ).toLowerCase();
 
-    /*
-     * Phase 3 begins with Trivia.
-     *
-     * Additional Live activity types can be
-     * added here without changing the ownership
-     * or persistence architecture.
-     */
-if (
-  activityType !== "trivia" &&
-  activityType !== "poll"
-) {
+    const supportedActivityTypes = [
+      "trivia",
+      "poll",
+      "spin_wheel",
+      "scavenger_hunt",
+      "lottery",
+      "mystery_drop",
+    ] as const;
+
+    if (
+      !supportedActivityTypes.includes(
+        activityType as
+          (typeof supportedActivityTypes)[number],
+      )
+    ) {
       return NextResponse.json(
         {
           ok: false,
@@ -794,44 +1116,66 @@ if (
       );
     }
 
-const name =
-  cleanText(body?.name, 150) ||
-  (activityType === "poll"
-    ? "Live Poll"
-    : "Live Trivia");
+    const defaultNames:
+      Record<string, string> = {
+        trivia: "Live Trivia",
+        poll: "Live Poll",
+        spin_wheel: "Live Spin Wheel",
+        scavenger_hunt:
+          "Scavenger Hunt",
+        lottery: "Live Lottery",
+        mystery_drop: "Mystery Drop",
+      };
 
-let configuration:
-  | TriviaConfiguration
-  | PollConfiguration;
+    const name =
+      cleanText(body?.name, 150) ||
+      defaultNames[activityType] ||
+      "Live Activity";
 
-try {
-  configuration =
-    activityType === "poll"
-      ? normalizePollConfiguration(
-          body?.configuration ?? {
-            questions: [],
-          },
-        )
-      : normalizeTriviaConfiguration(
-          body?.configuration ?? {
-            questions: [],
-          },
-        );
-} catch (error) {
-  return NextResponse.json(
-    {
-      ok: false,
+    let configuration:
+      | TriviaConfiguration
+      | PollConfiguration
+      | SpinWheelConfiguration
+      | ScavengerHuntConfiguration
+      | LotteryConfiguration
+      | MysteryDropConfiguration;
 
-      error:
-        error instanceof Error
-          ? error.message
-          : activityType === "poll"
-            ? "Invalid Poll configuration."
-            : "Invalid Trivia configuration.",
-    },
-    { status: 400 },
-  );
-}
+    try {
+      if (activityType === "trivia") {
+        configuration =
+          normalizeTriviaConfiguration(
+            body?.configuration ?? {
+              questions: [],
+            },
+          );
+      } else if (
+        activityType === "poll"
+      ) {
+        configuration =
+          normalizePollConfiguration(
+            body?.configuration ?? {
+              questions: [],
+            },
+          );
+      } else {
+        configuration =
+          normalizeGenericLiveConfiguration(
+            activityType,
+            body?.configuration ?? {},
+          );
+      }
+    } catch (error) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error:
+            error instanceof Error
+              ? error.message
+              : "Invalid Live activity configuration.",
+        },
+        { status: 400 },
+      );
+    }
 
     let scheduledFor: string | null;
 
@@ -1058,12 +1402,21 @@ export async function PATCH(
       );
     }
 
-if (
-  existingActivity.activity_type !==
-    "trivia" &&
-  existingActivity.activity_type !==
-    "poll"
-) {
+    const supportedActivityTypes = [
+      "trivia",
+      "poll",
+      "spin_wheel",
+      "scavenger_hunt",
+      "lottery",
+      "mystery_drop",
+    ] as const;
+
+    if (
+      !supportedActivityTypes.includes(
+        existingActivity.activity_type as
+          (typeof supportedActivityTypes)[number],
+      )
+    ) {
       return NextResponse.json(
         {
           ok: false,
@@ -1104,15 +1457,29 @@ if (
       body?.configuration !== undefined
     ) {
       try {
-updatePayload.configuration =
-  existingActivity.activity_type ===
-  "poll"
-    ? normalizePollConfiguration(
-        body.configuration,
-      )
-    : normalizeTriviaConfiguration(
-        body.configuration,
-      );
+        if (
+          existingActivity.activity_type ===
+          "trivia"
+        ) {
+          updatePayload.configuration =
+            normalizeTriviaConfiguration(
+              body.configuration,
+            );
+        } else if (
+          existingActivity.activity_type ===
+          "poll"
+        ) {
+          updatePayload.configuration =
+            normalizePollConfiguration(
+              body.configuration,
+            );
+        } else {
+          updatePayload.configuration =
+            normalizeGenericLiveConfiguration(
+              existingActivity.activity_type,
+              body.configuration,
+            );
+        }
       } catch (error) {
         return NextResponse.json(
           {
@@ -1120,10 +1487,7 @@ updatePayload.configuration =
             error:
               error instanceof Error
                 ? error.message
-                : existingActivity.activity_type ===
-    "poll"
-  ? "Invalid Poll configuration."
-  : "Invalid Trivia configuration.",
+                : "Invalid Live activity configuration.",
           },
           { status: 400 },
         );

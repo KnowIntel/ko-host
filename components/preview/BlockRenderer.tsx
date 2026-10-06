@@ -13,6 +13,15 @@ import TournamentDisplayBlock from "@/components/blocks/TournamentDisplayBlock";
 import LiveJoinExperience from "@/components/live/LiveJoinExperience";
 import LiveTrivia from "@/components/live/LiveTrivia";
 import LivePoll from "@/components/live/LivePoll";
+import LivePlayerCard from "@/components/live/LivePlayerCard";
+import LiveSchedule from "@/components/live/LiveSchedule";
+import LiveSongRequest from "@/components/live/LiveSongRequest";
+import LiveSpinWheel from "@/components/live/LiveSpinWheel";
+import LiveScavengerHunt from "@/components/live/LiveScavengerHunt";
+import LiveLottery from "@/components/live/LiveLottery";
+import LiveLeaderboard from "@/components/live/LiveLeaderboard";
+import LiveMysteryDrop from "@/components/live/LiveMysteryDrop";
+import LiveAnnouncement from "@/components/live/LiveAnnouncement";
 import type { CSSProperties } from "react";
 import {
   ENROLLMENT_BOARD_PROFILE_EVENT,
@@ -42177,6 +42186,575 @@ case "live_poll": {
   );
 }
 
+case "live_player_card": {
+  const data = block.data as any;
+
+  return (
+    <Surface block={block}>
+      <LivePlayerCard
+        heading={data.heading || "Player Card"}
+        scoreLabel={data.scoreLabel || "Score"}
+        teamLabel={data.teamLabel || "Team"}
+        badgesLabel={data.badgesLabel || "Badges"}
+        joinRequiredText={
+          data.joinRequiredText ||
+          "Join the Live experience to view your player card."
+        }
+        showAvatar={data.showAvatar !== false}
+        showDisplayName={
+          data.showDisplayName !== false
+        }
+        showScore={data.showScore !== false}
+        showTeam={data.showTeam !== false}
+        showBadges={data.showBadges !== false}
+        headingStyle={getContainerTextStyle(
+          data.headingStyle ?? data.style,
+          designKey,
+        )}
+        nameStyle={getContainerTextStyle(
+          data.nameStyle ?? data.style,
+          designKey,
+        )}
+        detailStyle={getContainerTextStyle(
+          data.detailStyle ?? data.style,
+          designKey,
+        )}
+        joinRequiredTextStyle={getContainerTextStyle(
+          data.joinRequiredTextStyle ??
+            data.style,
+          designKey,
+        )}
+        cardStyle={data.cardStyle ?? {}}
+        avatarStyle={data.avatarStyle ?? {}}
+      />
+    </Surface>
+  );
+}
+
+case "live_schedule": {
+  const data = block.data as any;
+
+  return (
+    <Surface block={block}>
+      <LiveSchedule
+        heading={data.heading || "Live Schedule"}
+        emptyText={
+          data.emptyText ||
+          "No schedule items yet."
+        }
+        currentLabel={
+          data.currentLabel || "Now"
+        }
+        upcomingLabel={
+          data.upcomingLabel || "Upcoming"
+        }
+        completedLabel={
+          data.completedLabel || "Completed"
+        }
+        showTimes={data.showTimes !== false}
+        showDescriptions={
+          data.showDescriptions !== false
+        }
+        showStatuses={
+          data.showStatuses !== false
+        }
+        headingStyle={getContainerTextStyle(
+          data.headingStyle ?? data.style,
+          designKey,
+        )}
+        timeStyle={getContainerTextStyle(
+          data.timeStyle ?? data.style,
+          designKey,
+        )}
+        titleStyle={getContainerTextStyle(
+          data.titleStyle ?? data.style,
+          designKey,
+        )}
+        descriptionStyle={getContainerTextStyle(
+          data.descriptionStyle ??
+            data.style,
+          designKey,
+        )}
+        statusStyle={getContainerTextStyle(
+          data.statusStyle ?? data.style,
+          designKey,
+        )}
+        emptyTextStyle={getContainerTextStyle(
+          data.emptyTextStyle ?? data.style,
+          designKey,
+        )}
+        itemStyle={data.itemStyle ?? {}}
+        currentItemStyle={
+          data.currentItemStyle ?? {}
+        }
+      />
+    </Surface>
+  );
+}
+
+case "live_song_request": {
+  const data = block.data as any;
+
+  return (
+    <Surface block={block}>
+      <LiveSongRequest
+        heading={data.heading || "Song Request"}
+        helperText={
+          data.helperText ||
+          "Request a song for the event."
+        }
+        joinRequiredText={
+          data.joinRequiredText ||
+          "Join the Live experience to request a song."
+        }
+        songPlaceholder={
+          data.songPlaceholder || "Song title"
+        }
+        artistPlaceholder={
+          data.artistPlaceholder ||
+          "Artist (optional)"
+        }
+        submitButtonLabel={
+          data.submitButtonLabel ||
+          "Request Song"
+        }
+        submittedLabel={
+          data.submittedLabel ||
+          "Request submitted"
+        }
+        queueHeading={
+          data.queueHeading || "Up Next"
+        }
+        showQueue={data.showQueue !== false}
+        headingStyle={getContainerTextStyle(
+          data.headingStyle ?? data.style,
+          designKey,
+        )}
+        helperTextStyle={getContainerTextStyle(
+          data.helperTextStyle ?? data.style,
+          designKey,
+        )}
+        joinRequiredTextStyle={getContainerTextStyle(
+          data.joinRequiredTextStyle ??
+            data.style,
+          designKey,
+        )}
+        inputTextStyle={getContainerTextStyle(
+          data.inputTextStyle ?? data.style,
+          designKey,
+        )}
+        submitButtonTextStyle={getContainerTextStyle(
+          data.submitButtonTextStyle ??
+            data.style,
+          designKey,
+        )}
+        submittedLabelStyle={getContainerTextStyle(
+          data.submittedLabelStyle ??
+            data.style,
+          designKey,
+        )}
+        queueHeadingStyle={getContainerTextStyle(
+          data.queueHeadingStyle ??
+            data.style,
+          designKey,
+        )}
+        queueTextStyle={getContainerTextStyle(
+          data.queueTextStyle ?? data.style,
+          designKey,
+        )}
+        inputStyle={data.inputStyle ?? {}}
+        submitButtonStyle={
+          data.submitButtonStyle ?? {}
+        }
+        queueStyle={data.queueStyle ?? {}}
+      />
+    </Surface>
+  );
+}
+
+case "live_spin_wheel": {
+  const data = block.data as any;
+
+  return (
+    <Surface block={block}>
+      <LiveSpinWheel
+        heading={data.heading || "Spin Wheel"}
+        waitingText={
+          data.waitingText ||
+          "Waiting for the Spin Wheel..."
+        }
+        joinRequiredText={
+          data.joinRequiredText ||
+          "Join the Live experience to spin."
+        }
+        spinButtonLabel={
+          data.spinButtonLabel || "Spin"
+        }
+        resultHeading={
+          data.resultHeading || "Result"
+        }
+        headingStyle={getContainerTextStyle(
+          data.headingStyle ?? data.style,
+          designKey,
+        )}
+        waitingTextStyle={getContainerTextStyle(
+          data.waitingTextStyle ??
+            data.style,
+          designKey,
+        )}
+        joinRequiredTextStyle={getContainerTextStyle(
+          data.joinRequiredTextStyle ??
+            data.style,
+          designKey,
+        )}
+        spinButtonTextStyle={getContainerTextStyle(
+          data.spinButtonTextStyle ??
+            data.style,
+          designKey,
+        )}
+        resultHeadingStyle={getContainerTextStyle(
+          data.resultHeadingStyle ??
+            data.style,
+          designKey,
+        )}
+        resultTextStyle={getContainerTextStyle(
+          data.resultTextStyle ??
+            data.style,
+          designKey,
+        )}
+        wheelStyle={data.wheelStyle ?? {}}
+        spinButtonStyle={
+          data.spinButtonStyle ?? {}
+        }
+        resultStyle={data.resultStyle ?? {}}
+      />
+    </Surface>
+  );
+}
+
+case "live_scavenger_hunt": {
+  const data = block.data as any;
+
+  return (
+    <Surface block={block}>
+      <LiveScavengerHunt
+        heading={
+          data.heading || "Scavenger Hunt"
+        }
+        waitingText={
+          data.waitingText ||
+          "Waiting for the Scavenger Hunt..."
+        }
+        joinRequiredText={
+          data.joinRequiredText ||
+          "Join the Live experience to participate."
+        }
+        completedLabel={
+          data.completedLabel || "Completed"
+        }
+        progressLabel={
+          data.progressLabel || "Progress"
+        }
+        showProgress={
+          data.showProgress !== false
+        }
+        showPoints={data.showPoints !== false}
+        headingStyle={getContainerTextStyle(
+          data.headingStyle ?? data.style,
+          designKey,
+        )}
+        waitingTextStyle={getContainerTextStyle(
+          data.waitingTextStyle ??
+            data.style,
+          designKey,
+        )}
+        joinRequiredTextStyle={getContainerTextStyle(
+          data.joinRequiredTextStyle ??
+            data.style,
+          designKey,
+        )}
+        itemTitleStyle={getContainerTextStyle(
+          data.itemTitleStyle ?? data.style,
+          designKey,
+        )}
+        itemDescriptionStyle={getContainerTextStyle(
+          data.itemDescriptionStyle ??
+            data.style,
+          designKey,
+        )}
+        completedLabelStyle={getContainerTextStyle(
+          data.completedLabelStyle ??
+            data.style,
+          designKey,
+        )}
+        progressStyle={getContainerTextStyle(
+          data.progressStyle ?? data.style,
+          designKey,
+        )}
+        itemStyle={data.itemStyle ?? {}}
+        completedItemStyle={
+          data.completedItemStyle ?? {}
+        }
+      />
+    </Surface>
+  );
+}
+
+case "live_lottery": {
+  const data = block.data as any;
+
+  return (
+    <Surface block={block}>
+      <LiveLottery
+        heading={data.heading || "Live Lottery"}
+        helperText={
+          data.helperText ||
+          "Enter the drawing for your chance to win."
+        }
+        joinRequiredText={
+          data.joinRequiredText ||
+          "Join the Live experience to enter."
+        }
+        enterButtonLabel={
+          data.enterButtonLabel ||
+          "Enter Drawing"
+        }
+        enteredLabel={
+          data.enteredLabel ||
+          "You're entered"
+        }
+        winnerHeading={
+          data.winnerHeading || "Winner"
+        }
+        waitingForDrawText={
+          data.waitingForDrawText ||
+          "Waiting for the drawing..."
+        }
+        headingStyle={getContainerTextStyle(
+          data.headingStyle ?? data.style,
+          designKey,
+        )}
+        helperTextStyle={getContainerTextStyle(
+          data.helperTextStyle ?? data.style,
+          designKey,
+        )}
+        joinRequiredTextStyle={getContainerTextStyle(
+          data.joinRequiredTextStyle ??
+            data.style,
+          designKey,
+        )}
+        enterButtonTextStyle={getContainerTextStyle(
+          data.enterButtonTextStyle ??
+            data.style,
+          designKey,
+        )}
+        enteredLabelStyle={getContainerTextStyle(
+          data.enteredLabelStyle ??
+            data.style,
+          designKey,
+        )}
+        winnerHeadingStyle={getContainerTextStyle(
+          data.winnerHeadingStyle ??
+            data.style,
+          designKey,
+        )}
+        winnerTextStyle={getContainerTextStyle(
+          data.winnerTextStyle ??
+            data.style,
+          designKey,
+        )}
+        waitingForDrawTextStyle={getContainerTextStyle(
+          data.waitingForDrawTextStyle ??
+            data.style,
+          designKey,
+        )}
+        enterButtonStyle={
+          data.enterButtonStyle ?? {}
+        }
+        winnerStyle={data.winnerStyle ?? {}}
+      />
+    </Surface>
+  );
+}
+
+case "live_leaderboard": {
+  const data = block.data as any;
+
+  return (
+    <Surface block={block}>
+      <LiveLeaderboard
+        heading={
+          data.heading || "Leaderboard"
+        }
+        emptyText={
+          data.emptyText ||
+          "No leaderboard results yet."
+        }
+        scoreLabel={
+          data.scoreLabel || "Score"
+        }
+        rankLabel={data.rankLabel || "Rank"}
+        participantLabel={
+          data.participantLabel || "Player"
+        }
+        showAvatar={
+          data.showAvatar !== false
+        }
+        showRank={data.showRank !== false}
+        showScore={data.showScore !== false}
+        maxEntries={data.maxEntries ?? 10}
+        headingStyle={getContainerTextStyle(
+          data.headingStyle ?? data.style,
+          designKey,
+        )}
+        rankStyle={getContainerTextStyle(
+          data.rankStyle ?? data.style,
+          designKey,
+        )}
+        participantStyle={getContainerTextStyle(
+          data.participantStyle ??
+            data.style,
+          designKey,
+        )}
+        scoreStyle={getContainerTextStyle(
+          data.scoreStyle ?? data.style,
+          designKey,
+        )}
+        emptyTextStyle={getContainerTextStyle(
+          data.emptyTextStyle ?? data.style,
+          designKey,
+        )}
+        rowStyle={data.rowStyle ?? {}}
+        currentParticipantStyle={
+          data.currentParticipantStyle ?? {}
+        }
+      />
+    </Surface>
+  );
+}
+
+case "live_mystery_drop": {
+  const data = block.data as any;
+
+  return (
+    <Surface block={block}>
+      <LiveMysteryDrop
+        heading={
+          data.heading || "Mystery Drop"
+        }
+        waitingText={
+          data.waitingText ||
+          "No Mystery Drop is available yet."
+        }
+        joinRequiredText={
+          data.joinRequiredText ||
+          "Join the Live experience to reveal the Mystery Drop."
+        }
+        availableLabel={
+          data.availableLabel ||
+          "Mystery Drop Available"
+        }
+        revealButtonLabel={
+          data.revealButtonLabel || "Reveal"
+        }
+        revealedLabel={
+          data.revealedLabel || "Revealed!"
+        }
+        headingStyle={getContainerTextStyle(
+          data.headingStyle ?? data.style,
+          designKey,
+        )}
+        waitingTextStyle={getContainerTextStyle(
+          data.waitingTextStyle ??
+            data.style,
+          designKey,
+        )}
+        joinRequiredTextStyle={getContainerTextStyle(
+          data.joinRequiredTextStyle ??
+            data.style,
+          designKey,
+        )}
+        availableLabelStyle={getContainerTextStyle(
+          data.availableLabelStyle ??
+            data.style,
+          designKey,
+        )}
+        revealButtonTextStyle={getContainerTextStyle(
+          data.revealButtonTextStyle ??
+            data.style,
+          designKey,
+        )}
+        revealedLabelStyle={getContainerTextStyle(
+          data.revealedLabelStyle ??
+            data.style,
+          designKey,
+        )}
+        contentStyle={getContainerTextStyle(
+          data.contentStyle ?? data.style,
+          designKey,
+        )}
+        dropStyle={data.dropStyle ?? {}}
+        revealButtonStyle={
+          data.revealButtonStyle ?? {}
+        }
+      />
+    </Surface>
+  );
+}
+
+case "live_announcement": {
+  const data = block.data as any;
+
+  return (
+    <Surface block={block}>
+      <LiveAnnouncement
+        heading={
+          data.heading || "Announcements"
+        }
+        emptyText={
+          data.emptyText ||
+          "No announcements yet."
+        }
+        latestLabel={
+          data.latestLabel || "Latest"
+        }
+        showTimestamp={
+          data.showTimestamp !== false
+        }
+        headingStyle={getContainerTextStyle(
+          data.headingStyle ?? data.style,
+          designKey,
+        )}
+        emptyTextStyle={getContainerTextStyle(
+          data.emptyTextStyle ?? data.style,
+          designKey,
+        )}
+        latestLabelStyle={getContainerTextStyle(
+          data.latestLabelStyle ??
+            data.style,
+          designKey,
+        )}
+        announcementTitleStyle={getContainerTextStyle(
+          data.announcementTitleStyle ??
+            data.style,
+          designKey,
+        )}
+        announcementTextStyle={getContainerTextStyle(
+          data.announcementTextStyle ??
+            data.style,
+          designKey,
+        )}
+        timestampStyle={getContainerTextStyle(
+          data.timestampStyle ?? data.style,
+          designKey,
+        )}
+        announcementStyle={
+          data.announcementStyle ?? {}
+        }
+      />
+    </Surface>
+  );
+}
 
     default:
       return <div className="h-full w-full" />;

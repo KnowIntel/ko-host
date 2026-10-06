@@ -503,6 +503,265 @@ export async function GET(
         rank: index + 1,
       }));
 
+      /*
+ * ================================================================
+ * GLOBAL LIVE OPERATIONS
+ *
+ * These tools are experience-wide and can remain visible in Host
+ * Control regardless of which activity is currently active.
+ * ================================================================
+ */
+
+const [
+  scheduleResult,
+  songRequestResult,
+  announcementResult,
+] = await Promise.all([
+  sb
+    .from("live_schedule_entries")
+    .select(`
+      id,
+      title,
+      description,
+      starts_at,
+      ends_at,
+      status,
+      sort_order,
+      created_at,
+      updated_at
+    `)
+    .eq(
+      "experience_id",
+      experience.id,
+    )
+    .order("sort_order", {
+      ascending: true,
+    })
+    .order("starts_at", {
+      ascending: true,
+    }),
+
+  sb
+    .from("live_song_requests")
+    .select(`
+      id,
+      participant_id,
+      song_title,
+      artist_name,
+      status,
+      sort_order,
+      requested_at,
+      created_at,
+      updated_at
+    `)
+    .eq(
+      "experience_id",
+      experience.id,
+    )
+    .order("sort_order", {
+      ascending: true,
+    })
+    .order("requested_at", {
+      ascending: true,
+    }),
+
+  sb
+    .from("live_announcements")
+    .select(`
+      id,
+      title,
+      message,
+      status,
+      published_at,
+      created_at,
+      updated_at
+    `)
+    .eq(
+      "experience_id",
+      experience.id,
+    )
+    .order("created_at", {
+      ascending: false,
+    }),
+]);
+
+if (scheduleResult.error) {
+  console.error(
+    "Host Control schedule lookup failed:",
+    scheduleResult.error,
+  );
+
+  return NextResponse.json(
+    {
+      ok: false,
+      error:
+        "Unable to load Live Schedule.",
+    },
+    { status: 500 },
+  );
+}
+
+if (songRequestResult.error) {
+  console.error(
+    "Host Control Song Request lookup failed:",
+    songRequestResult.error,
+  );
+
+  return NextResponse.json(
+    {
+      ok: false,
+      error:
+        "Unable to load Song Requests.",
+    },
+    { status: 500 },
+  );
+}
+
+if (announcementResult.error) {
+  console.error(
+    "Host Control Announcement lookup failed:",
+    announcementResult.error,
+  );
+
+  return NextResponse.json(
+    {
+      ok: false,
+      error:
+        "Unable to load Announcements.",
+    },
+    { status: 500 },
+  );
+}
+
+const participantById =
+  new Map(
+    (participants ?? []).map(
+      (participant) => [
+        String(participant.id),
+
+        {
+          displayName:
+            participant.display_name,
+
+          avatarUrl:
+            participant.avatar_url ??
+            null,
+        },
+      ],
+    ),
+  );
+
+const schedule =
+  (
+    scheduleResult.data ?? []
+  ).map((entry) => ({
+    id: entry.id,
+
+    title: entry.title,
+
+    description:
+      entry.description ?? "",
+
+    startsAt:
+      entry.starts_at,
+
+    endsAt:
+      entry.ends_at,
+
+    status:
+      entry.status,
+
+    sortOrder:
+      entry.sort_order,
+
+    createdAt:
+      entry.created_at,
+
+    updatedAt:
+      entry.updated_at,
+  }));
+
+const songRequests =
+  (
+    songRequestResult.data ?? []
+  ).map((request) => {
+    const participant =
+      participantById.get(
+        String(
+          request.participant_id,
+        ),
+      );
+
+    return {
+      id: request.id,
+
+      participantId:
+        request.participant_id,
+
+      participantName:
+        participant?.displayName ??
+        "Participant",
+
+      participantAvatarUrl:
+        participant?.avatarUrl ??
+        null,
+
+      songTitle:
+        request.song_title,
+
+      artistName:
+        request.artist_name ??
+        null,
+
+      status:
+        request.status,
+
+      sortOrder:
+        request.sort_order,
+
+      requestedAt:
+        request.requested_at,
+
+      createdAt:
+        request.created_at,
+
+      updatedAt:
+        request.updated_at,
+    };
+  });
+
+const announcements =
+  (
+    announcementResult.data ?? []
+  ).map((announcement) => ({
+    id:
+      announcement.id,
+
+    title:
+      announcement.title,
+
+    message:
+      announcement.message,
+
+    status:
+      announcement.status,
+
+    publishedAt:
+      announcement.published_at,
+
+    createdAt:
+      announcement.created_at,
+
+    updatedAt:
+      announcement.updated_at,
+  }));
+
+const operations = {
+  schedule,
+  songRequests,
+  announcements,
+};
+
     const currentActivityId =
       sharedState?.current_activity_id
         ? String(
@@ -557,10 +816,14 @@ export async function GET(
 
         leaderboard,
 
-        activity: null,
+activity: null,
 
-        trivia: null,
-        poll: null,
+trivia: null,
+poll: null,
+
+activityRuntime: null,
+
+operations,
       });
     }
 
@@ -627,6 +890,134 @@ export async function GET(
 
     let poll: UnknownRecord | null =
       null;
+
+let activityRuntime:
+  | UnknownRecord
+  | null = null;
+
+/*
+ * Load generic participant activity
+ * state for the newer Live activity
+ * types.
+ *
+ * Trivia and Poll keep their existing
+ * specialized authoritative handling.
+ */
+if (
+  [
+    "spin_wheel",
+    "scavenger_hunt",
+    "lottery",
+    "mystery_drop",
+  ].includes(
+    String(
+      activity.activity_type,
+    ),
+  )
+) {
+  const {
+    data: runtimeRows,
+    error: runtimeRowsError,
+  } = await sb
+    .from(
+      "live_participant_activity_state",
+    )
+    .select(`
+      participant_id,
+      state,
+      completed_at,
+      created_at,
+      updated_at
+    `)
+    .eq(
+      "experience_id",
+      experience.id,
+    )
+    .eq(
+      "activity_id",
+      activity.id,
+    );
+
+  if (runtimeRowsError) {
+    console.error(
+      "Host Control activity runtime lookup failed:",
+      runtimeRowsError,
+    );
+
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          "Unable to load Live activity results.",
+      },
+      { status: 500 },
+    );
+  }
+
+  activityRuntime = {
+    activityType:
+      activity.activity_type,
+
+    configuration:
+      asRecord(
+        activity.configuration,
+      ),
+
+    participantCount:
+      participants?.length ?? 0,
+
+    participantStates:
+      (
+        runtimeRows ?? []
+      ).map((row) => {
+        const participant =
+          participantById.get(
+            String(
+              row.participant_id,
+            ),
+          );
+
+        return {
+          participantId:
+            row.participant_id,
+
+          displayName:
+            participant?.displayName ??
+            "Participant",
+
+          avatarUrl:
+            participant?.avatarUrl ??
+            null,
+
+          score:
+            scoreByParticipant.get(
+              String(
+                row.participant_id,
+              ),
+            ) ?? 0,
+
+          state:
+            asRecord(
+              row.state,
+            ),
+
+          completedAt:
+            row.completed_at,
+
+          createdAt:
+            row.created_at,
+
+          updatedAt:
+            row.updated_at,
+        };
+      }),
+
+    sharedState:
+      asRecord(
+        sharedState?.state,
+      ),
+  };
+}
 
     /*
      * ================================================================
@@ -1279,8 +1670,12 @@ export async function GET(
           activity.updated_at,
       },
 
-      trivia,
-      poll,
+trivia,
+poll,
+
+activityRuntime,
+
+operations,
     });
   } catch (error) {
     console.error(

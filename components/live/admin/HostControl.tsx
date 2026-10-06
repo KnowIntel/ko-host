@@ -79,6 +79,67 @@ type LeaderboardEntry = {
   rank: number;
 };
 
+type HostActivityRuntimeParticipant = {
+  participantId: string;
+  displayName: string;
+  avatarUrl: string | null;
+  score: number;
+  state: Record<string, unknown>;
+  completedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+type HostActivityRuntime = {
+  activityType: string;
+  configuration: Record<string, unknown>;
+  participantCount: number;
+  participantStates: HostActivityRuntimeParticipant[];
+  sharedState: Record<string, unknown>;
+};
+
+type HostScheduleEntry = {
+  id: string;
+  title: string;
+  description: string;
+  startsAt: string | null;
+  endsAt: string | null;
+  status: string;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+type HostSongRequest = {
+  id: string;
+  participantId: string;
+  participantName: string;
+  participantAvatarUrl: string | null;
+  songTitle: string;
+  artistName: string | null;
+  status: string;
+  sortOrder: number;
+  requestedAt: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+type HostAnnouncement = {
+  id: string;
+  title: string;
+  message: string;
+  status: string;
+  publishedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+type HostOperations = {
+  schedule: HostScheduleEntry[];
+  songRequests: HostSongRequest[];
+  announcements: HostAnnouncement[];
+};
+
 type HostPayload = {
   ok: boolean;
 
@@ -161,6 +222,10 @@ type HostPayload = {
     };
   } | null;
 
+  activityRuntime: HostActivityRuntime | null;
+
+operations: HostOperations;
+
   error?: string;
 };
 
@@ -205,6 +270,11 @@ export default function HostControl({
     changingQuestion,
     setChangingQuestion,
   ] = useState(false);
+
+  const [
+  changingHostAction,
+  setChangingHostAction,
+] = useState<string | null>(null);
 
   const [
     showEndConfirm,
@@ -579,6 +649,64 @@ export default function HostControl({
     }
   }
 
+  async function runHostAction(
+  action: string,
+  values: Record<string, unknown> = {},
+  successMessage = "Host action completed.",
+) {
+  setChangingHostAction(action);
+  setError(null);
+  setMessage(null);
+
+  try {
+    const response = await fetch(
+      `/api/dashboard/microsites/${micrositeId}/live/host/actions`,
+      {
+        method: "POST",
+
+        headers: {
+          "Content-Type":
+            "application/json",
+        },
+
+        body: JSON.stringify({
+          action,
+          ...values,
+        }),
+      },
+    );
+
+    const payload =
+      await response.json();
+
+    if (
+      !response.ok ||
+      !payload?.ok
+    ) {
+      throw new Error(
+        payload?.error ||
+          "Unable to perform Host action.",
+      );
+    }
+
+    await loadHostState();
+
+    setMessage(successMessage);
+
+    return payload;
+  } catch (actionError) {
+    setError(
+      actionError instanceof Error
+        ? actionError.message
+        : "Unable to perform Host action.",
+    );
+
+    return null;
+  } finally {
+    setChangingHostAction(null);
+  }
+}
+
   if (loading) {
     return (
       <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
@@ -856,8 +984,280 @@ export default function HostControl({
         </div>
       ) : null}
 
-      {!data.activity ? (
+      {/* HOST OPERATIONS */}
+      <div className="grid gap-6 xl:grid-cols-2">
+        {/* SONG REQUESTS */}
         <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-semibold">
+                Song Requests
+              </h2>
+
+              <p className="mt-1 text-sm text-neutral-600">
+                Manage the participant request queue.
+              </p>
+            </div>
+
+            <div className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold">
+              {data.operations.songRequests.length}
+            </div>
+          </div>
+
+          <div className="mt-5 space-y-3">
+            {data.operations.songRequests.length === 0 ? (
+              <div className="rounded-xl bg-neutral-50 p-4 text-sm text-neutral-500">
+                No song requests yet.
+              </div>
+            ) : (
+              data.operations.songRequests.map((request) => (
+                <div
+                  key={request.id}
+                  className="rounded-xl border border-neutral-200 p-4"
+                >
+                  <div className="font-medium">
+                    {request.songTitle}
+                  </div>
+
+                  {request.artistName ? (
+                    <div className="mt-1 text-sm text-neutral-600">
+                      {request.artistName}
+                    </div>
+                  ) : null}
+
+                  <div className="mt-1 text-xs text-neutral-500">
+                    Requested by {request.participantName}
+                  </div>
+
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {[
+                      "queued",
+                      "playing",
+                      "played",
+                      "rejected",
+                    ].map((status) => (
+                      <button
+                        key={status}
+                        type="button"
+                        disabled={
+                          changingHostAction !== null ||
+                          request.status === status
+                        }
+                        onClick={() => {
+                          void runHostAction(
+                            "update_song_request",
+                            {
+                              requestId: request.id,
+                              status,
+                            },
+                            "Song Request updated.",
+                          );
+                        }}
+                        className={
+                          request.status === status
+                            ? "rounded-lg bg-black px-3 py-1.5 text-xs font-semibold text-white"
+                            : "rounded-lg border border-neutral-300 px-3 py-1.5 text-xs font-semibold hover:bg-neutral-50 disabled:opacity-40"
+                        }
+                      >
+                        {status === "queued"
+                          ? "Queued"
+                          : status === "playing"
+                            ? "Playing"
+                            : status === "played"
+                              ? "Played"
+                              : "Reject"}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* SCHEDULE */}
+        <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-semibold">
+                Schedule
+              </h2>
+
+              <p className="mt-1 text-sm text-neutral-600">
+                Control the current event schedule item.
+              </p>
+            </div>
+
+            <div className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold">
+              {data.operations.schedule.length}
+            </div>
+          </div>
+
+          <div className="mt-5 space-y-3">
+            {data.operations.schedule.length === 0 ? (
+              <div className="rounded-xl bg-neutral-50 p-4 text-sm text-neutral-500">
+                No schedule entries.
+              </div>
+            ) : (
+              data.operations.schedule.map((entry) => (
+                <div
+                  key={entry.id}
+                  className="rounded-xl border border-neutral-200 p-4"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="font-medium">
+                        {entry.title}
+                      </div>
+
+                      {entry.description ? (
+                        <div className="mt-1 text-sm text-neutral-600">
+                          {entry.description}
+                        </div>
+                      ) : null}
+                    </div>
+
+                    <div className="rounded-full bg-neutral-100 px-2.5 py-1 text-xs font-semibold capitalize">
+                      {entry.status}
+                    </div>
+                  </div>
+
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {[
+                      "upcoming",
+                      "current",
+                      "completed",
+                      "cancelled",
+                    ].map((status) => (
+                      <button
+                        key={status}
+                        type="button"
+                        disabled={
+                          changingHostAction !== null ||
+                          entry.status === status
+                        }
+                        onClick={() => {
+                          void runHostAction(
+                            "update_schedule_entry",
+                            {
+                              entryId: entry.id,
+                              status,
+                            },
+                            "Schedule updated.",
+                          );
+                        }}
+                        className={
+                          entry.status === status
+                            ? "rounded-lg bg-black px-3 py-1.5 text-xs font-semibold text-white"
+                            : "rounded-lg border border-neutral-300 px-3 py-1.5 text-xs font-semibold hover:bg-neutral-50 disabled:opacity-40"
+                        }
+                      >
+                        {status === "current"
+                          ? "Make Current"
+                          : status === "completed"
+                            ? "Complete"
+                            : status === "cancelled"
+                              ? "Cancel"
+                              : "Upcoming"}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+
+            {/* ANNOUNCEMENTS */}
+      <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h2 className="text-lg font-semibold">
+              Announcements
+            </h2>
+
+            <p className="mt-1 text-sm text-neutral-600">
+              Publish prepared announcements to participants.
+            </p>
+          </div>
+
+          <div className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold">
+            {data.operations.announcements.length}
+          </div>
+        </div>
+
+        <div className="mt-5 space-y-3">
+          {data.operations.announcements.length === 0 ? (
+            <div className="rounded-xl bg-neutral-50 p-4 text-sm text-neutral-500">
+              No announcements.
+            </div>
+          ) : (
+            data.operations.announcements.map(
+              (announcement) => (
+                <div
+                  key={announcement.id}
+                  className="rounded-xl border border-neutral-200 p-4"
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-4">
+                    <div className="min-w-0 flex-1">
+                      <div className="font-medium">
+                        {announcement.title}
+                      </div>
+
+                      <div className="mt-1 text-sm text-neutral-600">
+                        {announcement.message}
+                      </div>
+
+                      <div className="mt-2 text-xs text-neutral-500">
+                        Status:{" "}
+                        <span className="font-medium capitalize">
+                          {announcement.status}
+                        </span>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      disabled={
+                        changingHostAction !== null ||
+                        announcement.status ===
+                          "published"
+                      }
+                      onClick={() => {
+                        void runHostAction(
+                          "publish_announcement",
+                          {
+                            announcementId:
+                              announcement.id,
+                          },
+                          "Announcement published.",
+                        );
+                      }}
+                      className={
+                        announcement.status ===
+                        "published"
+                          ? "rounded-xl bg-black px-4 py-2 text-sm font-semibold text-white"
+                          : "rounded-xl border border-neutral-300 px-4 py-2 text-sm font-semibold hover:bg-neutral-50 disabled:opacity-40"
+                      }
+                    >
+                      {changingHostAction ===
+                        "publish_announcement"
+                        ? "Publishing..."
+                        : announcement.status ===
+                            "published"
+                          ? "Published"
+                          : "Publish"}
+                    </button>
+                  </div>
+                </div>
+              ),
+            )
+          )}
+        </div>
+      </div>
+
+      {!data.activity ? (        <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
           <h2 className="text-lg font-semibold">
             No current activity
           </h2>
@@ -869,16 +1269,232 @@ export default function HostControl({
           </p>
         </div>
       ) : !isTrivia && !isPoll ? (
-        <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-semibold">
-            {data.activity.name}
-          </h2>
+        <div className="space-y-6">
+          <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <h2 className="text-lg font-semibold">
+                  {data.activity.name}
+                </h2>
 
-          <p className="mt-2 text-sm text-neutral-600">
-            Host Control for this
-            activity type will be added
-            with its Live implementation.
-          </p>
+                <p className="mt-1 text-sm text-neutral-600">
+                  Live participant activity and Host controls.
+                </p>
+              </div>
+
+              <div className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold">
+                {data.activityRuntime?.participantStates.length ??
+                  0}{" "}
+                active
+              </div>
+            </div>
+
+            {/* LOTTERY */}
+            {data.activity.activityType ===
+            "lottery" ? (
+              <div className="mt-5">
+                <button
+                  type="button"
+                  disabled={
+                    changingHostAction !== null
+                  }
+                  onClick={() => {
+                    void runHostAction(
+                      "draw_lottery_winner",
+                      {},
+                      "Lottery winner selected.",
+                    );
+                  }}
+                  className="rounded-xl bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-800 disabled:opacity-40"
+                >
+                  {changingHostAction ===
+                  "draw_lottery_winner"
+                    ? "Drawing..."
+                    : "Draw Winner"}
+                </button>
+
+                {data.activityRuntime?.sharedState
+                  .lotteryWinner ? (
+                  <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-4">
+                    <div className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                      Current Winner
+                    </div>
+
+                    <div className="mt-1 text-lg font-semibold">
+                      {String(
+                        (
+                          data.activityRuntime
+                            .sharedState
+                            .lotteryWinner as Record<
+                            string,
+                            unknown
+                          >
+                        ).displayName ??
+                          "Winner",
+                      )}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+
+            {/* MYSTERY DROP */}
+            {data.activity.activityType ===
+              "mystery_drop" &&
+            Array.isArray(
+              data.activityRuntime
+                ?.configuration.drops,
+            ) ? (
+              <div className="mt-5 space-y-3">
+                {(
+                  data.activityRuntime
+                    .configuration.drops as Array<
+                    Record<string, unknown>
+                  >
+                ).map((drop) => {
+                  const dropId = String(
+                    drop.id ?? "",
+                  );
+
+                  const current =
+                    data.activityRuntime
+                      ?.sharedState
+                      .currentDropId === dropId;
+
+                  return (
+                    <div
+                      key={dropId}
+                      className="flex items-center justify-between gap-4 rounded-xl border border-neutral-200 p-4"
+                    >
+                      <div>
+                        <div className="font-medium">
+                          {String(
+                            drop.title ??
+                              "Mystery Drop",
+                          )}
+                        </div>
+
+                        <div className="mt-1 text-xs text-neutral-500">
+                          {current
+                            ? "Currently released"
+                            : "Not released"}
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        disabled={
+                          changingHostAction !==
+                            null || current
+                        }
+                        onClick={() => {
+                          void runHostAction(
+                            "set_mystery_drop",
+                            { dropId },
+                            "Mystery Drop released.",
+                          );
+                        }}
+                        className={
+                          current
+                            ? "rounded-xl bg-black px-4 py-2 text-sm font-semibold text-white"
+                            : "rounded-xl border border-neutral-300 px-4 py-2 text-sm font-semibold hover:bg-neutral-50 disabled:opacity-40"
+                        }
+                      >
+                        {current
+                          ? "Current"
+                          : "Release"}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : null}
+
+            {/* SPIN WHEEL / SCAVENGER HUNT */}
+            {data.activityRuntime &&
+            (data.activity.activityType ===
+              "spin_wheel" ||
+              data.activity.activityType ===
+                "scavenger_hunt") ? (
+              <div className="mt-5 overflow-hidden rounded-xl border border-neutral-200">
+                {data.activityRuntime
+                  .participantStates.length ===
+                0 ? (
+                  <div className="p-4 text-sm text-neutral-500">
+                    No participant activity yet.
+                  </div>
+                ) : (
+                  data.activityRuntime.participantStates.map(
+                    (participant) => (
+                      <div
+                        key={
+                          participant.participantId
+                        }
+                        className="flex items-center justify-between gap-4 border-b border-neutral-100 p-4 last:border-b-0"
+                      >
+                        <div>
+                          <div className="font-medium">
+                            {
+                              participant.displayName
+                            }
+                          </div>
+
+                          <div className="mt-1 text-xs text-neutral-500">
+                            Score:{" "}
+                            {participant.score}
+                          </div>
+                        </div>
+
+                        <div className="max-w-[55%] text-right text-xs text-neutral-500">
+                          {Object.keys(
+                            participant.state,
+                          ).length > 0
+                            ? Object.entries(
+                                participant.state,
+                              )
+                                .map(
+                                  ([
+                                    key,
+                                    value,
+                                  ]) =>
+                                    `${key}: ${
+                                      Array.isArray(
+                                        value,
+                                      )
+                                        ? value.length
+                                        : String(
+                                            value ??
+                                              "",
+                                          )
+                                    }`,
+                                )
+                                .join(" • ")
+                            : "Waiting"}
+                        </div>
+                      </div>
+                    ),
+                  )
+                )}
+              </div>
+            ) : null}
+
+            {/* OTHER LIVE BLOCKS */}
+            {!data.activityRuntime &&
+            data.activity.activityType !==
+              "lottery" &&
+            data.activity.activityType !==
+              "mystery_drop" ? (
+              <div className="mt-5 rounded-xl bg-neutral-50 p-4 text-sm text-neutral-600">
+                This Live block does not
+                require activity-specific
+                Host controls.
+              </div>
+            ) : null}
+          </div>
+
+          <Leaderboard
+            entries={data.leaderboard}
+          />
         </div>
       ) : !currentQuestion ? (
         <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">

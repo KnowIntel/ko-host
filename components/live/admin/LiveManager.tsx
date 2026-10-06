@@ -37,6 +37,40 @@ type ActivityQuestion =
   | TriviaQuestion
   | PollQuestion;
 
+type SpinWheelOption = {
+  id: string;
+  label: string;
+  points: number;
+};
+
+type ScavengerHuntItem = {
+  id: string;
+  title: string;
+  description: string;
+  points: number;
+};
+
+type MysteryDropItem = {
+  id: string;
+  title: string;
+  content: string;
+  points: number;
+};
+
+type ActivityConfiguration = {
+  questions?: ActivityQuestion[];
+
+  options?: SpinWheelOption[];
+  allowMultipleSpins?: boolean;
+
+  items?: ScavengerHuntItem[];
+
+  entryPoints?: number;
+  maxEntriesPerParticipant?: number;
+
+  drops?: MysteryDropItem[];
+};
+
 type Activity = {
   id: string;
   experienceId: string;
@@ -44,9 +78,7 @@ type Activity = {
   name: string;
   status: string;
 
-configuration: {
-  questions?: ActivityQuestion[];
-};
+  configuration: ActivityConfiguration;
 
   scheduledFor: string | null;
   startedAt: string | null;
@@ -135,6 +167,71 @@ function normalizeQuestions(
     ? activity.configuration.questions
     : [];
 }
+
+function normalizeSpinWheelOptions(
+  activity: Activity,
+): SpinWheelOption[] {
+  return Array.isArray(
+    activity.configuration?.options,
+  )
+    ? activity.configuration.options
+    : [];
+}
+
+function normalizeScavengerItems(
+  activity: Activity,
+): ScavengerHuntItem[] {
+  return Array.isArray(
+    activity.configuration?.items,
+  )
+    ? activity.configuration.items
+    : [];
+}
+
+function normalizeMysteryDrops(
+  activity: Activity,
+): MysteryDropItem[] {
+  return Array.isArray(
+    activity.configuration?.drops,
+  )
+    ? activity.configuration.drops
+    : [];
+}
+
+function newSpinWheelOption(): SpinWheelOption {
+  return {
+    id: makeLocalId("wheel-option"),
+    label: "",
+    points: 0,
+  };
+}
+
+function newScavengerItem(): ScavengerHuntItem {
+  return {
+    id: makeLocalId("hunt-item"),
+    title: "",
+    description: "",
+    points: 100,
+  };
+}
+
+function newMysteryDrop(): MysteryDropItem {
+  return {
+    id: makeLocalId("mystery-drop"),
+    title: "",
+    content: "",
+    points: 0,
+  };
+}
+
+const CONFIGURABLE_ACTIVITY_TYPES = [
+  "trivia",
+  "poll",
+  "spin_wheel",
+  "scavenger_hunt",
+  "lottery",
+  "mystery_drop",
+] as const;
 
 export default function LiveManager({
   micrositeId,
@@ -489,75 +586,73 @@ function removeChoice(
   );
 }
 
-  async function createTrivia() {
-    setCreating(true);
-    setError(null);
-    setMessage(null);
-
-    try {
-      const response = await fetch(
-        `/api/dashboard/microsites/${micrositeId}/live/activities`,
-        {
-          method: "POST",
-
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
-
-          body: JSON.stringify({
-            activityType:
-              "trivia",
-            name: "Live Trivia",
-            configuration: {
-              questions: [],
-            },
-          }),
-        },
-      );
-
-      const payload =
-        await response.json();
-
-      if (
-        !response.ok ||
-        !payload?.ok
-      ) {
-        throw new Error(
-          payload?.error ||
-            "Unable to create Trivia activity.",
-        );
-      }
-
-      setActivities(
-        (current) => [
-          payload.activity,
-          ...current,
-        ],
-      );
-
-      setSelectedActivityId(
-        payload.activity.id,
-      );
-
-      setMessage(
-        "Trivia activity created.",
-      );
-    } catch (createError) {
-      setError(
-        createError instanceof Error
-          ? createError.message
-          : "Unable to create Trivia activity.",
-      );
-    } finally {
-      setCreating(false);
-    }
-  }
-
-  async function createPoll() {
+async function createActivity(
+  activityType:
+    | "trivia"
+    | "poll"
+    | "spin_wheel"
+    | "scavenger_hunt"
+    | "lottery"
+    | "mystery_drop",
+) {
   setCreating(true);
   setError(null);
   setMessage(null);
+
+  const defaults = {
+    trivia: {
+      name: "Live Trivia",
+      configuration: {
+        questions: [],
+      },
+    },
+
+    poll: {
+      name: "Live Poll",
+      configuration: {
+        questions: [],
+      },
+    },
+
+    spin_wheel: {
+      name: "Live Spin Wheel",
+      configuration: {
+        options: [],
+        allowMultipleSpins: false,
+      },
+    },
+
+    scavenger_hunt: {
+      name: "Scavenger Hunt",
+      configuration: {
+        items: [],
+      },
+    },
+
+    lottery: {
+      name: "Live Lottery",
+      configuration: {
+        entryPoints: 0,
+        maxEntriesPerParticipant: 1,
+      },
+    },
+
+    mystery_drop: {
+      name: "Mystery Drop",
+      configuration: {
+        drops: [],
+      },
+    },
+  } satisfies Record<
+    typeof activityType,
+    {
+      name: string;
+      configuration: ActivityConfiguration;
+    }
+  >;
+
+  const definition =
+    defaults[activityType];
 
   try {
     const response = await fetch(
@@ -571,12 +666,10 @@ function removeChoice(
         },
 
         body: JSON.stringify({
-          activityType: "poll",
-          name: "Live Poll",
-
-          configuration: {
-            questions: [],
-          },
+          activityType,
+          name: definition.name,
+          configuration:
+            definition.configuration,
         }),
       },
     );
@@ -590,29 +683,27 @@ function removeChoice(
     ) {
       throw new Error(
         payload?.error ||
-          "Unable to create Poll activity.",
+          "Unable to create Live activity.",
       );
     }
 
-    setActivities(
-      (current) => [
-        payload.activity,
-        ...current,
-      ],
-    );
+    setActivities((current) => [
+      payload.activity,
+      ...current,
+    ]);
 
     setSelectedActivityId(
       payload.activity.id,
     );
 
     setMessage(
-      "Poll activity created.",
+      `${definition.name} activity created.`,
     );
   } catch (createError) {
     setError(
       createError instanceof Error
         ? createError.message
-        : "Unable to create Poll activity.",
+        : "Unable to create Live activity.",
     );
   } finally {
     setCreating(false);
@@ -690,161 +781,229 @@ function removeChoice(
     }
   }
 
-  async function activateActivity() {
-    if (!selectedActivity) {
-      return;
-    }
+async function activateActivity() {
+  if (!selectedActivity) {
+    return;
+  }
 
-if (
-  selectedActivity.activityType !==
-    "trivia" &&
-  selectedActivity.activityType !==
-    "poll"
-) {
-  return;
-}
+  if (
+    !CONFIGURABLE_ACTIVITY_TYPES.includes(
+      selectedActivity.activityType as
+        (typeof CONFIGURABLE_ACTIVITY_TYPES)[number],
+    )
+  ) {
+    return;
+  }
 
+  const activityType =
+    selectedActivity.activityType;
+
+  let nextState: Record<
+    string,
+    unknown
+  > = {};
+
+  if (
+    activityType === "trivia" ||
+    activityType === "poll"
+  ) {
     const activityQuestions =
       normalizeQuestions(
         selectedActivity,
       );
 
-if (
-  activityQuestions.length === 0
-) {
-  setError(
-    selectedActivity.activityType ===
-      "poll"
-      ? "Add at least one question before activating this Poll activity."
-      : "Add at least one question before activating this Trivia activity.",
-  );
+    if (
+      activityQuestions.length === 0
+    ) {
+      setError(
+        `Add at least one question before activating this ${
+          activityType === "poll"
+            ? "Poll"
+            : "Trivia"
+        } activity.`,
+      );
 
-  return;
-}
+      return;
+    }
 
-    setActivating(true);
-    setError(null);
-    setMessage(null);
+    nextState = {
+      currentQuestionId:
+        activityQuestions[0].id,
+    };
+  }
 
-    try {
-      /*
-       * Save first so the runtime never
-       * activates stale editor data.
-       */
-      const saveResponse =
-        await fetch(
-          `/api/dashboard/microsites/${micrositeId}/live/activities`,
-          {
-            method: "PATCH",
+  if (
+    activityType === "spin_wheel" &&
+    normalizeSpinWheelOptions(
+      selectedActivity,
+    ).length === 0
+  ) {
+    setError(
+      "Add at least one wheel option before activating this Spin Wheel.",
+    );
 
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
+    return;
+  }
 
-            body: JSON.stringify({
-              activityId:
-                selectedActivity.id,
+  if (
+    activityType ===
+      "scavenger_hunt" &&
+    normalizeScavengerItems(
+      selectedActivity,
+    ).length === 0
+  ) {
+    setError(
+      "Add at least one item before activating this Scavenger Hunt.",
+    );
 
-              name:
-                selectedActivity.name,
+    return;
+  }
 
-              status: "active",
+  if (
+    activityType ===
+      "mystery_drop" &&
+    normalizeMysteryDrops(
+      selectedActivity,
+    ).length === 0
+  ) {
+    setError(
+      "Add at least one drop before activating Mystery Drop.",
+    );
 
-              configuration:
-                selectedActivity.configuration,
-            }),
+    return;
+  }
+
+  setActivating(true);
+  setError(null);
+  setMessage(null);
+
+  try {
+    const saveResponse =
+      await fetch(
+        `/api/dashboard/microsites/${micrositeId}/live/activities`,
+        {
+          method: "PATCH",
+
+          headers: {
+            "Content-Type":
+              "application/json",
           },
-        );
 
-      const savePayload =
-        await saveResponse.json();
+          body: JSON.stringify({
+            activityId:
+              selectedActivity.id,
 
-      if (
-        !saveResponse.ok ||
-        !savePayload?.ok
-      ) {
-        throw new Error(
-          savePayload?.error ||
-            "Unable to activate activity.",
-        );
-      }
+            name:
+              selectedActivity.name,
 
+            status: "active",
+
+            configuration:
+              selectedActivity.configuration,
+          }),
+        },
+      );
+
+    const savePayload =
+      await saveResponse.json();
+
+    if (
+      !saveResponse.ok ||
+      !savePayload?.ok
+    ) {
+      throw new Error(
+        savePayload?.error ||
+          "Unable to activate activity.",
+      );
+    }
+
+    /*
+     * Use the server-normalized version
+     * when establishing initial state.
+     */
+    if (
+      activityType === "trivia" ||
+      activityType === "poll"
+    ) {
       const firstQuestion =
         normalizeQuestions(
           savePayload.activity,
         )[0];
 
-      const stateResponse =
-        await fetch(
-          `/api/dashboard/microsites/${micrositeId}/live/state`,
-          {
-            method: "PATCH",
-
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
-
-            body: JSON.stringify({
-currentActivityType:
-  selectedActivity.activityType,
-
-              currentActivityId:
-                selectedActivity.id,
-
-              state: {
-                currentQuestionId:
-                  firstQuestion.id,
-              },
-            }),
-          },
-        );
-
-      const statePayload =
-        await stateResponse.json();
-
-      if (
-        !stateResponse.ok ||
-        !statePayload?.ok
-      ) {
+      if (!firstQuestion) {
         throw new Error(
-          statePayload?.error ||
-            "Unable to update Live state.",
+          "This activity does not contain a valid question.",
         );
       }
 
-      setActivities(
-        (current) =>
-          current.map(
-            (activity) =>
-              activity.id ===
-              savePayload.activity.id
-                ? savePayload.activity
-                : activity,
-          ),
-      );
-
-      setSharedState(
-        statePayload.sharedState,
-      );
-
-setMessage(
-  selectedActivity.activityType ===
-    "poll"
-    ? "Poll is now the current Live activity."
-    : "Trivia is now the current Live activity.",
-);
-    } catch (activateError) {
-      setError(
-        activateError instanceof Error
-          ? activateError.message
-          : "Unable to activate activity.",
-      );
-    } finally {
-      setActivating(false);
+      nextState = {
+        currentQuestionId:
+          firstQuestion.id,
+      };
     }
+
+    const stateResponse =
+      await fetch(
+        `/api/dashboard/microsites/${micrositeId}/live/state`,
+        {
+          method: "PATCH",
+
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+
+          body: JSON.stringify({
+            currentActivityType:
+              activityType,
+
+            currentActivityId:
+              selectedActivity.id,
+
+            state: nextState,
+          }),
+        },
+      );
+
+    const statePayload =
+      await stateResponse.json();
+
+    if (
+      !stateResponse.ok ||
+      !statePayload?.ok
+    ) {
+      throw new Error(
+        statePayload?.error ||
+          "Unable to update Live state.",
+      );
+    }
+
+    setActivities((current) =>
+      current.map((activity) =>
+        activity.id ===
+        savePayload.activity.id
+          ? savePayload.activity
+          : activity,
+      ),
+    );
+
+    setSharedState(
+      statePayload.sharedState,
+    );
+
+    setMessage(
+      `${savePayload.activity.name} is now the current Live activity.`,
+    );
+  } catch (activateError) {
+    setError(
+      activateError instanceof Error
+        ? activateError.message
+        : "Unable to activate activity.",
+    );
+  } finally {
+    setActivating(false);
   }
+}
 
   async function setCurrentQuestion(
     questionId: string,
@@ -1061,28 +1220,44 @@ currentActivityType:
               Activities
             </h2>
 
-<div className="flex items-center gap-2">
-  <button
-    type="button"
-    disabled={creating}
-    onClick={() => {
-      void createTrivia();
-    }}
-    className="rounded-xl bg-neutral-900 px-3 py-2 text-xs font-medium text-white hover:bg-neutral-800 disabled:opacity-50"
-  >
-    + Trivia
-  </button>
-
-  <button
-    type="button"
-    disabled={creating}
-    onClick={() => {
-      void createPoll();
-    }}
-    className="rounded-xl border border-neutral-300 px-3 py-2 text-xs font-medium text-neutral-800 hover:bg-neutral-50 disabled:opacity-50"
-  >
-    + Poll
-  </button>
+<div className="flex flex-wrap items-center gap-2">
+  {[
+    ["trivia", "+ Trivia"],
+    ["poll", "+ Poll"],
+    [
+      "spin_wheel",
+      "+ Spin Wheel",
+    ],
+    [
+      "scavenger_hunt",
+      "+ Scavenger Hunt",
+    ],
+    ["lottery", "+ Lottery"],
+    [
+      "mystery_drop",
+      "+ Mystery Drop",
+    ],
+  ].map(([type, label]) => (
+    <button
+      key={type}
+      type="button"
+      disabled={creating}
+      onClick={() => {
+        void createActivity(
+          type as
+            | "trivia"
+            | "poll"
+            | "spin_wheel"
+            | "scavenger_hunt"
+            | "lottery"
+            | "mystery_drop",
+        );
+      }}
+      className="rounded-xl border border-neutral-300 px-3 py-2 text-xs font-medium text-neutral-800 hover:bg-neutral-50 disabled:opacity-50"
+    >
+      {label}
+    </button>
+  ))}
 </div>
           </div>
 
@@ -1158,9 +1333,7 @@ currentActivityType:
               </h2>
 
               <p className="mt-2 text-sm text-neutral-600">
-Select an existing
-activity or create a
-Trivia or Poll activity.
+                Select an existing activity or create a new Live activity.
               </p>
             </div>
           ) : (
@@ -1175,8 +1348,7 @@ Trivia or Poll activity.
                     </div>
 
                     <h2 className="mt-1 text-lg font-semibold">
-                      Activity
-                      Configuration
+                      Activity Configuration
                     </h2>
                   </div>
 
@@ -1260,297 +1432,1114 @@ Trivia or Poll activity.
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-<h2 className="text-lg font-semibold">
-  {selectedActivity.activityType ===
-  "poll"
-    ? "Poll Questions"
-    : "Trivia Questions"}
-</h2>
+              {(
+                selectedActivity.activityType ===
+                  "trivia" ||
+                selectedActivity.activityType ===
+                  "poll"
+              ) ? (
+                <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <h2 className="text-lg font-semibold">
+                        {selectedActivity.activityType ===
+                        "poll"
+                          ? "Poll Questions"
+                          : "Trivia Questions"}
+                      </h2>
 
-<p className="mt-1 text-sm text-neutral-600">
-  {selectedActivity.activityType ===
-  "poll"
-    ? "Configure the poll questions and voting choices."
-    : "Configure the questions, answer choices, correct answer and points."}
-</p>
+                      <p className="mt-1 text-sm text-neutral-600">
+                        {selectedActivity.activityType ===
+                        "poll"
+                          ? "Configure the poll questions and voting choices."
+                          : "Configure the questions, answer choices, correct answer and points."}
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={
+                        addQuestion
+                      }
+                      className="rounded-xl bg-neutral-900 px-3 py-2 text-sm font-medium text-white hover:bg-neutral-800"
+                    >
+                      + Question
+                    </button>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={
-                      addQuestion
-                    }
-                    className="rounded-xl bg-neutral-900 px-3 py-2 text-sm font-medium text-white hover:bg-neutral-800"
-                  >
-                    + Question
-                  </button>
-                </div>
+                  <div className="mt-5 space-y-5">
+                    {questions.length ===
+                    0 ? (
+                      <div className="rounded-xl border border-dashed border-neutral-300 bg-neutral-50 p-6 text-center text-sm text-neutral-600">
+                        No questions yet.
+                        Add your first{" "}
+                        {selectedActivity.activityType ===
+                        "poll"
+                          ? "Poll"
+                          : "Trivia"}{" "}
+                        question.
+                      </div>
+                    ) : (
+                      questions.map(
+                        (
+                          question,
+                          questionIndex,
+                        ) => {
+                          const isCurrentQuestion =
+                            sharedState
+                              .currentActivityId ===
+                              selectedActivity.id &&
+                            sharedState
+                              .state
+                              ?.currentQuestionId ===
+                              question.id;
 
-                <div className="mt-5 space-y-5">
-                  {questions.length ===
-                  0 ? (
-                    <div className="rounded-xl border border-dashed border-neutral-300 bg-neutral-50 p-6 text-center text-sm text-neutral-600">
-No questions yet.
-Add your first{" "}
-{selectedActivity.activityType ===
-"poll"
-  ? "Poll"
-  : "Trivia"}{" "}
-question.
-                    </div>
-                  ) : (
-                    questions.map(
-                      (
-                        question,
-                        questionIndex,
-                      ) => {
-                        const isCurrentQuestion =
-                          sharedState
-                            .currentActivityId ===
-                            selectedActivity.id &&
-                          sharedState
-                            .state
-                            ?.currentQuestionId ===
-                            question.id;
+                          return (
+                            <div
+                              key={
+                                question.id
+                              }
+                              className="rounded-2xl border border-neutral-200 p-4"
+                            >
+                              <div className="flex items-center justify-between gap-4">
+                                <div className="flex items-center gap-2">
+                                  <div className="text-sm font-semibold">
+                                    Question{" "}
+                                    {questionIndex +
+                                      1}
+                                  </div>
 
-                        return (
-                          <div
-                            key={
-                              question.id
-                            }
-                            className="rounded-2xl border border-neutral-200 p-4"
-                          >
-                            <div className="flex items-center justify-between gap-4">
-                              <div className="flex items-center gap-2">
-                                <div className="text-sm font-semibold">
-                                  Question{" "}
-                                  {questionIndex +
-                                    1}
+                                  {isCurrentQuestion ? (
+                                    <span className="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-semibold text-green-800">
+                                      LIVE
+                                    </span>
+                                  ) : null}
                                 </div>
 
-                                {isCurrentQuestion ? (
-                                  <span className="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-semibold text-green-800">
-                                    LIVE
-                                  </span>
-                                ) : null}
-                              </div>
+                                <div className="flex items-center gap-2">
+                                  {sharedState.currentActivityId ===
+                                    selectedActivity.id &&
+                                  !isCurrentQuestion ? (
+                                    <button
+                                      type="button"
+                                      disabled={
+                                        activating
+                                      }
+                                      onClick={() => {
+                                        void setCurrentQuestion(
+                                          question.id,
+                                        );
+                                      }}
+                                      className="text-xs font-medium text-neutral-700 underline underline-offset-4"
+                                    >
+                                      Go Live
+                                    </button>
+                                  ) : null}
 
-                              <div className="flex items-center gap-2">
-                                {sharedState.currentActivityId ===
-                                  selectedActivity.id &&
-                                !isCurrentQuestion ? (
                                   <button
                                     type="button"
-                                    disabled={
-                                      activating
-                                    }
-                                    onClick={() => {
-                                      void setCurrentQuestion(
+                                    onClick={() =>
+                                      removeQuestion(
                                         question.id,
-                                      );
-                                    }}
-                                    className="text-xs font-medium text-neutral-700 underline underline-offset-4"
+                                      )
+                                    }
+                                    className="text-xs font-medium text-red-600 underline underline-offset-4"
                                   >
-                                    Go Live
+                                    Remove
                                   </button>
-                                ) : null}
+                                </div>
+                              </div>
 
+                              <textarea
+                                value={
+                                  question.question
+                                }
+                                onChange={(
+                                  event,
+                                ) =>
+                                  updateQuestion(
+                                    question.id,
+                                    (
+                                      current,
+                                    ) => ({
+                                      ...current,
+                                      question:
+                                        event
+                                          .target
+                                          .value,
+                                    }),
+                                  )
+                                }
+                                rows={2}
+                                placeholder="Enter the question..."
+                                className="mt-3 w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-900"
+                              />
+
+                              <div className="mt-4 space-y-2">
+                                {question.choices.map(
+                                  (
+                                    choice,
+                                    choiceIndex,
+                                  ) => (
+                                    <div
+                                      key={
+                                        choice.id
+                                      }
+                                      className="flex items-center gap-2"
+                                    >
+                                      {isTriviaQuestion(
+                                        question,
+                                      ) ? (
+                                        <input
+                                          type="radio"
+                                          name={`correct-${question.id}`}
+                                          checked={
+                                            question.correctChoiceId ===
+                                            choice.id
+                                          }
+                                          onChange={() =>
+                                            updateQuestion(
+                                              question.id,
+                                              (
+                                                current,
+                                              ) =>
+                                                isTriviaQuestion(
+                                                  current,
+                                                )
+                                                  ? {
+                                                      ...current,
+                                                      correctChoiceId:
+                                                        choice.id,
+                                                    }
+                                                  : current,
+                                            )
+                                          }
+                                          title="Correct answer"
+                                        />
+                                      ) : null}
+
+                                      <input
+                                        type="text"
+                                        value={
+                                          choice.label
+                                        }
+                                        onChange={(
+                                          event,
+                                        ) =>
+                                          updateChoice(
+                                            question.id,
+                                            choice.id,
+                                            event
+                                              .target
+                                              .value,
+                                          )
+                                        }
+                                        placeholder={`${
+                                          selectedActivity.activityType ===
+                                          "poll"
+                                            ? "Choice"
+                                            : "Answer"
+                                        } ${
+                                          choiceIndex +
+                                          1
+                                        }`}
+                                        className="min-w-0 flex-1 rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-900"
+                                      />
+
+                                      <button
+                                        type="button"
+                                        disabled={
+                                          question
+                                            .choices
+                                            .length <=
+                                          2
+                                        }
+                                        onClick={() =>
+                                          removeChoice(
+                                            question.id,
+                                            choice.id,
+                                          )
+                                        }
+                                        className="px-2 text-sm text-red-600 disabled:opacity-30"
+                                        title={
+                                          selectedActivity.activityType ===
+                                          "poll"
+                                            ? "Remove choice"
+                                            : "Remove answer"
+                                        }
+                                      >
+                                        ×
+                                      </button>
+                                    </div>
+                                  ),
+                                )}
+                              </div>
+
+                              <div className="mt-3 flex flex-wrap items-end justify-between gap-3">
                                 <button
                                   type="button"
+                                  disabled={
+                                    question
+                                      .choices
+                                      .length >=
+                                    10
+                                  }
                                   onClick={() =>
-                                    removeQuestion(
+                                    addChoice(
                                       question.id,
                                     )
                                   }
-                                  className="text-xs font-medium text-red-600 underline underline-offset-4"
+                                  className="text-xs font-medium text-neutral-700 underline underline-offset-4 disabled:opacity-40"
                                 >
-                                  Remove
+                                  {selectedActivity.activityType ===
+                                  "poll"
+                                    ? "+ Choice"
+                                    : "+ Answer"}
                                 </button>
-                              </div>
-                            </div>
 
-                            <textarea
-                              value={
-                                question.question
-                              }
-                              onChange={(
-                                event,
-                              ) =>
-                                updateQuestion(
-                                  question.id,
-                                  (
-                                    current,
-                                  ) => ({
-                                    ...current,
-                                    question:
-                                      event
-                                        .target
-                                        .value,
-                                  }),
-                                )
-                              }
-                              rows={2}
-                              placeholder="Enter the question..."
-                              className="mt-3 w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-900"
-                            />
-
-                            <div className="mt-4 space-y-2">
-                              {question.choices.map(
-                                (
-                                  choice,
-                                  choiceIndex,
-                                ) => (
-                                  <div
-                                    key={
-                                      choice.id
-                                    }
-                                    className="flex items-center gap-2"
-                                  >
-{isTriviaQuestion(question) ? (
-  <input
-    type="radio"
-    name={`correct-${question.id}`}
-    checked={
-      question.correctChoiceId ===
-      choice.id
-    }
-    onChange={() =>
-      updateQuestion(
-        question.id,
-        (current) =>
-          isTriviaQuestion(current)
-            ? {
-                ...current,
-                correctChoiceId:
-                  choice.id,
-              }
-            : current,
-      )
-    }
-    title="Correct answer"
-  />
-) : null}
+                                {isTriviaQuestion(
+                                  question,
+                                ) ? (
+                                  <label className="text-xs font-medium text-neutral-600">
+                                    Points
 
                                     <input
-                                      type="text"
+                                      type="number"
+                                      min={
+                                        0
+                                      }
+                                      max={
+                                        100000
+                                      }
                                       value={
-                                        choice.label
+                                        question.points
                                       }
                                       onChange={(
                                         event,
                                       ) =>
-                                        updateChoice(
+                                        updateQuestion(
                                           question.id,
-                                          choice.id,
-                                          event
-                                            .target
-                                            .value,
+                                          (
+                                            current,
+                                          ) =>
+                                            isTriviaQuestion(
+                                              current,
+                                            )
+                                              ? {
+                                                  ...current,
+                                                  points:
+                                                    Math.max(
+                                                      0,
+                                                      Math.min(
+                                                        100000,
+                                                        Number(
+                                                          event
+                                                            .target
+                                                            .value,
+                                                        ) ||
+                                                          0,
+                                                      ),
+                                                    ),
+                                                }
+                                              : current,
                                         )
                                       }
-                                      placeholder={`${
-  selectedActivity.activityType ===
-  "poll"
-    ? "Choice"
-    : "Answer"
-} ${choiceIndex + 1}`}
-                                      className="min-w-0 flex-1 rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-900"
+                                      className="ml-2 w-24 rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-900"
                                     />
-
-                                    <button
-                                      type="button"
-                                      disabled={
-                                        question
-                                          .choices
-                                          .length <=
-                                        2
-                                      }
-                                      onClick={() =>
-                                        removeChoice(
-                                          question.id,
-                                          choice.id,
-                                        )
-                                      }
-                                      className="px-2 text-sm text-red-600 disabled:opacity-30"
-                                      title={
-  selectedActivity.activityType ===
-  "poll"
-    ? "Remove choice"
-    : "Remove answer"
-}
-                                    >
-                                      ×
-                                    </button>
-                                  </div>
-                                ),
-                              )}
+                                  </label>
+                                ) : null}
+                              </div>
                             </div>
+                          );
+                        },
+                      )
+                    )}
+                  </div>
+                </div>
+              ) : null}
 
-                            <div className="mt-3 flex flex-wrap items-end justify-between gap-3">
-                              <button
-                                type="button"
-                                disabled={
-                                  question
-                                    .choices
-                                    .length >=
-                                  10
+              {selectedActivity.activityType ===
+              "spin_wheel" ? (
+                <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <h2 className="text-lg font-semibold">
+                        Wheel Options
+                      </h2>
+
+                      <p className="mt-1 text-sm text-neutral-600">
+                        Configure the outcomes participants can land on.
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        updateSelectedActivity(
+                          (
+                            activity,
+                          ) => ({
+                            ...activity,
+
+                            configuration:
+                              {
+                                ...activity.configuration,
+
+                                options: [
+                                  ...normalizeSpinWheelOptions(
+                                    activity,
+                                  ),
+
+                                  newSpinWheelOption(),
+                                ],
+                              },
+                          }),
+                        )
+                      }
+                      className="rounded-xl bg-neutral-900 px-3 py-2 text-sm font-medium text-white"
+                    >
+                      + Option
+                    </button>
+                  </div>
+
+                  <label className="mt-5 flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={
+                        selectedActivity
+                          .configuration
+                          .allowMultipleSpins ===
+                        true
+                      }
+                      onChange={(
+                        event,
+                      ) =>
+                        updateSelectedActivity(
+                          (
+                            activity,
+                          ) => ({
+                            ...activity,
+
+                            configuration:
+                              {
+                                ...activity.configuration,
+
+                                allowMultipleSpins:
+                                  event
+                                    .target
+                                    .checked,
+                              },
+                          }),
+                        )
+                      }
+                    />
+
+                    Allow multiple spins per participant
+                  </label>
+
+                  <div className="mt-5 space-y-3">
+                    {normalizeSpinWheelOptions(
+                      selectedActivity,
+                    ).map(
+                      (option) => (
+                        <div
+                          key={
+                            option.id
+                          }
+                          className="flex flex-wrap gap-2 rounded-xl border border-neutral-200 p-3"
+                        >
+                          <input
+                            value={
+                              option.label
+                            }
+                            placeholder="Option label"
+                            onChange={(
+                              event,
+                            ) =>
+                              updateSelectedActivity(
+                                (
+                                  activity,
+                                ) => ({
+                                  ...activity,
+
+                                  configuration:
+                                    {
+                                      ...activity.configuration,
+
+                                      options:
+                                        normalizeSpinWheelOptions(
+                                          activity,
+                                        ).map(
+                                          (
+                                            item,
+                                          ) =>
+                                            item.id ===
+                                            option.id
+                                              ? {
+                                                  ...item,
+
+                                                  label:
+                                                    event
+                                                      .target
+                                                      .value,
+                                                }
+                                              : item,
+                                        ),
+                                    },
+                                }),
+                              )
+                            }
+                            className="min-w-[180px] flex-1 rounded-xl border border-neutral-300 px-3 py-2 text-sm"
+                          />
+
+                          <input
+                            type="number"
+                            min={0}
+                            max={
+                              100000
+                            }
+                            value={
+                              option.points
+                            }
+                            onChange={(
+                              event,
+                            ) =>
+                              updateSelectedActivity(
+                                (
+                                  activity,
+                                ) => ({
+                                  ...activity,
+
+                                  configuration:
+                                    {
+                                      ...activity.configuration,
+
+                                      options:
+                                        normalizeSpinWheelOptions(
+                                          activity,
+                                        ).map(
+                                          (
+                                            item,
+                                          ) =>
+                                            item.id ===
+                                            option.id
+                                              ? {
+                                                  ...item,
+
+                                                  points:
+                                                    Math.max(
+                                                      0,
+                                                      Math.min(
+                                                        100000,
+                                                        Number(
+                                                          event
+                                                            .target
+                                                            .value,
+                                                        ) ||
+                                                          0,
+                                                      ),
+                                                    ),
+                                                }
+                                              : item,
+                                        ),
+                                    },
+                                }),
+                              )
+                            }
+                            className="w-28 rounded-xl border border-neutral-300 px-3 py-2 text-sm"
+                          />
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              updateSelectedActivity(
+                                (
+                                  activity,
+                                ) => ({
+                                  ...activity,
+
+                                  configuration:
+                                    {
+                                      ...activity.configuration,
+
+                                      options:
+                                        normalizeSpinWheelOptions(
+                                          activity,
+                                        ).filter(
+                                          (
+                                            item,
+                                          ) =>
+                                            item.id !==
+                                            option.id,
+                                        ),
+                                    },
+                                }),
+                              )
+                            }
+                            className="px-2 text-sm text-red-600"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ),
+                    )}
+                  </div>
+                </div>
+              ) : null}
+
+              {selectedActivity.activityType ===
+              "scavenger_hunt" ? (
+                <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <h2 className="text-lg font-semibold">
+                        Scavenger Hunt Items
+                      </h2>
+
+                      <p className="mt-1 text-sm text-neutral-600">
+                        Configure the tasks participants can complete.
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        updateSelectedActivity(
+                          (
+                            activity,
+                          ) => ({
+                            ...activity,
+
+                            configuration:
+                              {
+                                ...activity.configuration,
+
+                                items: [
+                                  ...normalizeScavengerItems(
+                                    activity,
+                                  ),
+
+                                  newScavengerItem(),
+                                ],
+                              },
+                          }),
+                        )
+                      }
+                      className="rounded-xl bg-neutral-900 px-3 py-2 text-sm font-medium text-white"
+                    >
+                      + Item
+                    </button>
+                  </div>
+
+                  <div className="mt-5 space-y-4">
+                    {normalizeScavengerItems(
+                      selectedActivity,
+                    ).map(
+                      (item) => (
+                        <div
+                          key={
+                            item.id
+                          }
+                          className="rounded-xl border border-neutral-200 p-4"
+                        >
+                          <input
+                            value={
+                              item.title
+                            }
+                            placeholder="Item title"
+                            onChange={(
+                              event,
+                            ) =>
+                              updateSelectedActivity(
+                                (
+                                  activity,
+                                ) => ({
+                                  ...activity,
+
+                                  configuration:
+                                    {
+                                      ...activity.configuration,
+
+                                      items:
+                                        normalizeScavengerItems(
+                                          activity,
+                                        ).map(
+                                          (
+                                            current,
+                                          ) =>
+                                            current.id ===
+                                            item.id
+                                              ? {
+                                                  ...current,
+
+                                                  title:
+                                                    event
+                                                      .target
+                                                      .value,
+                                                }
+                                              : current,
+                                        ),
+                                    },
+                                }),
+                              )
+                            }
+                            className="w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm"
+                          />
+
+                          <textarea
+                            value={
+                              item.description
+                            }
+                            placeholder="Description"
+                            rows={2}
+                            onChange={(
+                              event,
+                            ) =>
+                              updateSelectedActivity(
+                                (
+                                  activity,
+                                ) => ({
+                                  ...activity,
+
+                                  configuration:
+                                    {
+                                      ...activity.configuration,
+
+                                      items:
+                                        normalizeScavengerItems(
+                                          activity,
+                                        ).map(
+                                          (
+                                            current,
+                                          ) =>
+                                            current.id ===
+                                            item.id
+                                              ? {
+                                                  ...current,
+
+                                                  description:
+                                                    event
+                                                      .target
+                                                      .value,
+                                                }
+                                              : current,
+                                        ),
+                                    },
+                                }),
+                              )
+                            }
+                            className="mt-2 w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm"
+                          />
+
+                          <div className="mt-2 flex items-center justify-between gap-3">
+                            <label className="text-xs text-neutral-600">
+                              Points{" "}
+
+                              <input
+                                type="number"
+                                min={
+                                  0
                                 }
-                                onClick={() =>
-                                  addChoice(
-                                    question.id,
+                                max={
+                                  100000
+                                }
+                                value={
+                                  item.points
+                                }
+                                onChange={(
+                                  event,
+                                ) =>
+                                  updateSelectedActivity(
+                                    (
+                                      activity,
+                                    ) => ({
+                                      ...activity,
+
+                                      configuration:
+                                        {
+                                          ...activity.configuration,
+
+                                          items:
+                                            normalizeScavengerItems(
+                                              activity,
+                                            ).map(
+                                              (
+                                                current,
+                                              ) =>
+                                                current.id ===
+                                                item.id
+                                                  ? {
+                                                      ...current,
+
+                                                      points:
+                                                        Math.max(
+                                                          0,
+                                                          Math.min(
+                                                            100000,
+                                                            Number(
+                                                              event
+                                                                .target
+                                                                .value,
+                                                            ) ||
+                                                              0,
+                                                          ),
+                                                        ),
+                                                    }
+                                                  : current,
+                                            ),
+                                        },
+                                    }),
                                   )
                                 }
-                                className="text-xs font-medium text-neutral-700 underline underline-offset-4 disabled:opacity-40"
-                              >
-                                {selectedActivity.activityType ===
-"poll"
-  ? "+ Choice"
-  : "+ Answer"}
-                              </button>
+                                className="ml-2 w-24 rounded-xl border border-neutral-300 px-3 py-2"
+                              />
+                            </label>
 
-{isTriviaQuestion(question) ? (
-  <label className="text-xs font-medium text-neutral-600">
-    Points
+                            <button
+                              type="button"
+                              onClick={() =>
+                                updateSelectedActivity(
+                                  (
+                                    activity,
+                                  ) => ({
+                                    ...activity,
 
-    <input
-      type="number"
-      min={0}
-      max={100000}
-      value={question.points}
-      onChange={(event) =>
-        updateQuestion(
-          question.id,
-          (current) =>
-            isTriviaQuestion(current)
-              ? {
-                  ...current,
-                  points: Math.max(
-                    0,
-                    Math.min(
-                      100000,
-                      Number(
-                        event.target.value,
-                      ) || 0,
-                    ),
-                  ),
-                }
-              : current,
-        )
-      }
-      className="ml-2 w-24 rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-900"
-    />
-  </label>
-) : null}
-                            </div>
+                                    configuration:
+                                      {
+                                        ...activity.configuration,
+
+                                        items:
+                                          normalizeScavengerItems(
+                                            activity,
+                                          ).filter(
+                                            (
+                                              current,
+                                            ) =>
+                                              current.id !==
+                                              item.id,
+                                          ),
+                                      },
+                                  }),
+                                )
+                              }
+                              className="text-xs font-medium text-red-600"
+                            >
+                              Remove
+                            </button>
                           </div>
-                        );
-                      },
-                    )
-                  )}
+                        </div>
+                      ),
+                    )}
+                  </div>
                 </div>
-              </div>
+              ) : null}
+
+              {selectedActivity.activityType ===
+              "lottery" ? (
+                <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+                  <h2 className="text-lg font-semibold">
+                    Lottery Configuration
+                  </h2>
+
+                  <p className="mt-1 text-sm text-neutral-600">
+                    Configure participant entry limits. Winner selection will be controlled by Host Control.
+                  </p>
+
+                  <label className="mt-5 block text-sm font-medium">
+                    Maximum entries per participant
+
+                    <input
+                      type="number"
+                      min={1}
+                      max={100}
+                      value={
+                        selectedActivity
+                          .configuration
+                          .maxEntriesPerParticipant ??
+                        1
+                      }
+                      onChange={(
+                        event,
+                      ) =>
+                        updateSelectedActivity(
+                          (
+                            activity,
+                          ) => ({
+                            ...activity,
+
+                            configuration:
+                              {
+                                ...activity.configuration,
+
+                                maxEntriesPerParticipant:
+                                  Math.max(
+                                    1,
+                                    Math.min(
+                                      100,
+                                      Number(
+                                        event
+                                          .target
+                                          .value,
+                                      ) ||
+                                        1,
+                                    ),
+                                  ),
+                              },
+                          }),
+                        )
+                      }
+                      className="mt-1 block w-32 rounded-xl border border-neutral-300 px-3 py-2"
+                    />
+                  </label>
+                </div>
+              ) : null}
+
+              {selectedActivity.activityType ===
+              "mystery_drop" ? (
+                <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <h2 className="text-lg font-semibold">
+                        Mystery Drops
+                      </h2>
+
+                      <p className="mt-1 text-sm text-neutral-600">
+                        Configure protected content that the host can release during the experience.
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        updateSelectedActivity(
+                          (
+                            activity,
+                          ) => ({
+                            ...activity,
+
+                            configuration:
+                              {
+                                ...activity.configuration,
+
+                                drops: [
+                                  ...normalizeMysteryDrops(
+                                    activity,
+                                  ),
+
+                                  newMysteryDrop(),
+                                ],
+                              },
+                          }),
+                        )
+                      }
+                      className="rounded-xl bg-neutral-900 px-3 py-2 text-sm font-medium text-white"
+                    >
+                      + Drop
+                    </button>
+                  </div>
+
+                  <div className="mt-5 space-y-4">
+                    {normalizeMysteryDrops(
+                      selectedActivity,
+                    ).map(
+                      (drop) => (
+                        <div
+                          key={
+                            drop.id
+                          }
+                          className="rounded-xl border border-neutral-200 p-4"
+                        >
+                          <input
+                            value={
+                              drop.title
+                            }
+                            placeholder="Drop title"
+                            onChange={(
+                              event,
+                            ) =>
+                              updateSelectedActivity(
+                                (
+                                  activity,
+                                ) => ({
+                                  ...activity,
+
+                                  configuration:
+                                    {
+                                      ...activity.configuration,
+
+                                      drops:
+                                        normalizeMysteryDrops(
+                                          activity,
+                                        ).map(
+                                          (
+                                            current,
+                                          ) =>
+                                            current.id ===
+                                            drop.id
+                                              ? {
+                                                  ...current,
+
+                                                  title:
+                                                    event
+                                                      .target
+                                                      .value,
+                                                }
+                                              : current,
+                                        ),
+                                    },
+                                }),
+                              )
+                            }
+                            className="w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm"
+                          />
+
+                          <textarea
+                            value={
+                              drop.content
+                            }
+                            rows={3}
+                            placeholder="Hidden content"
+                            onChange={(
+                              event,
+                            ) =>
+                              updateSelectedActivity(
+                                (
+                                  activity,
+                                ) => ({
+                                  ...activity,
+
+                                  configuration:
+                                    {
+                                      ...activity.configuration,
+
+                                      drops:
+                                        normalizeMysteryDrops(
+                                          activity,
+                                        ).map(
+                                          (
+                                            current,
+                                          ) =>
+                                            current.id ===
+                                            drop.id
+                                              ? {
+                                                  ...current,
+
+                                                  content:
+                                                    event
+                                                      .target
+                                                      .value,
+                                                }
+                                              : current,
+                                        ),
+                                    },
+                                }),
+                              )
+                            }
+                            className="mt-2 w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm"
+                          />
+
+                          <div className="mt-2 flex items-center justify-between gap-3">
+                            <label className="text-xs text-neutral-600">
+                              Points{" "}
+
+                              <input
+                                type="number"
+                                min={
+                                  0
+                                }
+                                max={
+                                  100000
+                                }
+                                value={
+                                  drop.points
+                                }
+                                onChange={(
+                                  event,
+                                ) =>
+                                  updateSelectedActivity(
+                                    (
+                                      activity,
+                                    ) => ({
+                                      ...activity,
+
+                                      configuration:
+                                        {
+                                          ...activity.configuration,
+
+                                          drops:
+                                            normalizeMysteryDrops(
+                                              activity,
+                                            ).map(
+                                              (
+                                                current,
+                                              ) =>
+                                                current.id ===
+                                                drop.id
+                                                  ? {
+                                                      ...current,
+
+                                                      points:
+                                                        Math.max(
+                                                          0,
+                                                          Math.min(
+                                                            100000,
+                                                            Number(
+                                                              event
+                                                                .target
+                                                                .value,
+                                                            ) ||
+                                                              0,
+                                                          ),
+                                                        ),
+                                                    }
+                                                  : current,
+                                            ),
+                                        },
+                                    }),
+                                  )
+                                }
+                                className="ml-2 w-24 rounded-xl border border-neutral-300 px-3 py-2"
+                              />
+                            </label>
+
+                            <button
+                              type="button"
+                              onClick={() =>
+                                updateSelectedActivity(
+                                  (
+                                    activity,
+                                  ) => ({
+                                    ...activity,
+
+                                    configuration:
+                                      {
+                                        ...activity.configuration,
+
+                                        drops:
+                                          normalizeMysteryDrops(
+                                            activity,
+                                          ).filter(
+                                            (
+                                              current,
+                                            ) =>
+                                              current.id !==
+                                              drop.id,
+                                          ),
+                                      },
+                                  }),
+                                )
+                              }
+                              className="text-xs font-medium text-red-600"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        </div>
+                      ),
+                    )}
+                  </div>
+                </div>
+              ) : null}
             </div>
           )}
         </div>

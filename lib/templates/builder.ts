@@ -158,6 +158,15 @@ export type BuilderBlockType =
   | "live_join"
   | "live_trivia"
   | "live_poll"
+  | "live_player_card"
+  | "live_schedule"
+  | "live_song_request"
+  | "live_spin_wheel"
+  | "live_scavenger_hunt"
+  | "live_lottery"
+  | "live_leaderboard"
+  | "live_mystery_drop"
+  | "live_announcement"
   | "process_flow"
   | "statistic_cards"
   | "chart"
@@ -4790,6 +4799,339 @@ export type LivePollBlock = BaseBlock & {
   };
 };
 
+export type LivePlayerCardBlock = BaseBlock & {
+  type: "live_player_card";
+  data: {
+    heading: string;
+    scoreLabel: string;
+    teamLabel: string;
+    badgesLabel: string;
+    joinRequiredText: string;
+
+    showAvatar: boolean;
+    showDisplayName: boolean;
+    showScore: boolean;
+    showTeam: boolean;
+    showBadges: boolean;
+
+    style?: TextStyle;
+    headingStyle?: TextStyle;
+    nameStyle?: TextStyle;
+    detailStyle?: TextStyle;
+    joinRequiredTextStyle?: TextStyle;
+
+    cardStyle?: {
+      backgroundColor?: string;
+      borderColor?: string;
+      borderWidth?: number;
+      borderRadius?: number;
+    };
+
+    avatarStyle?: {
+      size?: number;
+      borderColor?: string;
+      borderWidth?: number;
+      borderRadius?: number;
+    };
+  };
+};
+
+export type LiveScheduleBlock = BaseBlock & {
+  type: "live_schedule";
+  data: {
+    heading: string;
+    emptyText: string;
+    currentLabel: string;
+    upcomingLabel: string;
+    completedLabel: string;
+
+    showTimes: boolean;
+    showDescriptions: boolean;
+    showStatuses: boolean;
+
+    style?: TextStyle;
+    headingStyle?: TextStyle;
+    timeStyle?: TextStyle;
+    titleStyle?: TextStyle;
+    descriptionStyle?: TextStyle;
+    statusStyle?: TextStyle;
+    emptyTextStyle?: TextStyle;
+
+    itemStyle?: {
+      backgroundColor?: string;
+      borderColor?: string;
+      borderWidth?: number;
+      borderRadius?: number;
+    };
+
+    currentItemStyle?: {
+      backgroundColor?: string;
+      borderColor?: string;
+      borderWidth?: number;
+      borderRadius?: number;
+    };
+  };
+};
+
+export type LiveSongRequestBlock = BaseBlock & {
+  type: "live_song_request";
+  data: {
+    heading: string;
+    helperText: string;
+    joinRequiredText: string;
+    songPlaceholder: string;
+    artistPlaceholder: string;
+    submitButtonLabel: string;
+    submittedLabel: string;
+    queueHeading: string;
+
+    showQueue: boolean;
+
+    style?: TextStyle;
+    headingStyle?: TextStyle;
+    helperTextStyle?: TextStyle;
+    joinRequiredTextStyle?: TextStyle;
+    inputTextStyle?: TextStyle;
+    submitButtonTextStyle?: TextStyle;
+    submittedLabelStyle?: TextStyle;
+    queueHeadingStyle?: TextStyle;
+    queueTextStyle?: TextStyle;
+
+    inputStyle?: {
+      backgroundColor?: string;
+      borderColor?: string;
+      borderWidth?: number;
+      borderRadius?: number;
+    };
+
+    submitButtonStyle?: {
+      backgroundColor?: string;
+      borderColor?: string;
+      borderWidth?: number;
+      borderRadius?: number;
+    };
+
+    queueStyle?: {
+      backgroundColor?: string;
+      borderColor?: string;
+      borderWidth?: number;
+      borderRadius?: number;
+    };
+  };
+};
+
+export type LiveSpinWheelBlock = BaseBlock & {
+  type: "live_spin_wheel";
+  data: {
+    heading: string;
+    waitingText: string;
+    joinRequiredText: string;
+    spinButtonLabel: string;
+    resultHeading: string;
+
+    style?: TextStyle;
+    headingStyle?: TextStyle;
+    waitingTextStyle?: TextStyle;
+    joinRequiredTextStyle?: TextStyle;
+    spinButtonTextStyle?: TextStyle;
+    resultHeadingStyle?: TextStyle;
+    resultTextStyle?: TextStyle;
+
+    wheelStyle?: {
+      backgroundColor?: string;
+      borderColor?: string;
+      borderWidth?: number;
+      borderRadius?: number;
+    };
+
+    spinButtonStyle?: {
+      backgroundColor?: string;
+      borderColor?: string;
+      borderWidth?: number;
+      borderRadius?: number;
+    };
+
+    resultStyle?: {
+      backgroundColor?: string;
+      borderColor?: string;
+      borderWidth?: number;
+      borderRadius?: number;
+    };
+  };
+};
+
+export type LiveScavengerHuntBlock = BaseBlock & {
+  type: "live_scavenger_hunt";
+  data: {
+    heading: string;
+    waitingText: string;
+    joinRequiredText: string;
+    completedLabel: string;
+    progressLabel: string;
+
+    showProgress: boolean;
+    showPoints: boolean;
+
+    style?: TextStyle;
+    headingStyle?: TextStyle;
+    waitingTextStyle?: TextStyle;
+    joinRequiredTextStyle?: TextStyle;
+    itemTitleStyle?: TextStyle;
+    itemDescriptionStyle?: TextStyle;
+    completedLabelStyle?: TextStyle;
+    progressStyle?: TextStyle;
+
+    itemStyle?: {
+      backgroundColor?: string;
+      borderColor?: string;
+      borderWidth?: number;
+      borderRadius?: number;
+    };
+
+    completedItemStyle?: {
+      backgroundColor?: string;
+      borderColor?: string;
+      borderWidth?: number;
+      borderRadius?: number;
+    };
+  };
+};
+
+export type LiveLotteryBlock = BaseBlock & {
+  type: "live_lottery";
+  data: {
+    heading: string;
+    helperText: string;
+    joinRequiredText: string;
+    enterButtonLabel: string;
+    enteredLabel: string;
+    winnerHeading: string;
+    waitingForDrawText: string;
+
+    style?: TextStyle;
+    headingStyle?: TextStyle;
+    helperTextStyle?: TextStyle;
+    joinRequiredTextStyle?: TextStyle;
+    enterButtonTextStyle?: TextStyle;
+    enteredLabelStyle?: TextStyle;
+    winnerHeadingStyle?: TextStyle;
+    winnerTextStyle?: TextStyle;
+    waitingForDrawTextStyle?: TextStyle;
+
+    enterButtonStyle?: {
+      backgroundColor?: string;
+      borderColor?: string;
+      borderWidth?: number;
+      borderRadius?: number;
+    };
+
+    winnerStyle?: {
+      backgroundColor?: string;
+      borderColor?: string;
+      borderWidth?: number;
+      borderRadius?: number;
+    };
+  };
+};
+
+export type LiveLeaderboardBlock = BaseBlock & {
+  type: "live_leaderboard";
+  data: {
+    heading: string;
+    emptyText: string;
+    scoreLabel: string;
+    rankLabel: string;
+    participantLabel: string;
+
+    showAvatar: boolean;
+    showRank: boolean;
+    showScore: boolean;
+    maxEntries: number;
+
+    style?: TextStyle;
+    headingStyle?: TextStyle;
+    rankStyle?: TextStyle;
+    participantStyle?: TextStyle;
+    scoreStyle?: TextStyle;
+    emptyTextStyle?: TextStyle;
+
+    rowStyle?: {
+      backgroundColor?: string;
+      borderColor?: string;
+      borderWidth?: number;
+      borderRadius?: number;
+    };
+
+    currentParticipantStyle?: {
+      backgroundColor?: string;
+      borderColor?: string;
+      borderWidth?: number;
+      borderRadius?: number;
+    };
+  };
+};
+
+export type LiveMysteryDropBlock = BaseBlock & {
+  type: "live_mystery_drop";
+  data: {
+    heading: string;
+    waitingText: string;
+    joinRequiredText: string;
+    availableLabel: string;
+    revealButtonLabel: string;
+    revealedLabel: string;
+
+    style?: TextStyle;
+    headingStyle?: TextStyle;
+    waitingTextStyle?: TextStyle;
+    joinRequiredTextStyle?: TextStyle;
+    availableLabelStyle?: TextStyle;
+    revealButtonTextStyle?: TextStyle;
+    revealedLabelStyle?: TextStyle;
+    contentStyle?: TextStyle;
+
+    dropStyle?: {
+      backgroundColor?: string;
+      borderColor?: string;
+      borderWidth?: number;
+      borderRadius?: number;
+    };
+
+    revealButtonStyle?: {
+      backgroundColor?: string;
+      borderColor?: string;
+      borderWidth?: number;
+      borderRadius?: number;
+    };
+  };
+};
+
+export type LiveAnnouncementBlock = BaseBlock & {
+  type: "live_announcement";
+  data: {
+    heading: string;
+    emptyText: string;
+    latestLabel: string;
+
+    showTimestamp: boolean;
+
+    style?: TextStyle;
+    headingStyle?: TextStyle;
+    emptyTextStyle?: TextStyle;
+    latestLabelStyle?: TextStyle;
+    announcementTitleStyle?: TextStyle;
+    announcementTextStyle?: TextStyle;
+    timestampStyle?: TextStyle;
+
+    announcementStyle?: {
+      backgroundColor?: string;
+      borderColor?: string;
+      borderWidth?: number;
+      borderRadius?: number;
+    };
+  };
+};
+
 export type MicrositeBlock = (
   | BookmarkBlock
   | PuzzleBlock
@@ -4850,6 +5192,15 @@ export type MicrositeBlock = (
 | LiveJoinBlock
 | LiveTriviaBlock
 | LivePollBlock
+| LivePlayerCardBlock
+| LiveScheduleBlock
+| LiveSongRequestBlock
+| LiveSpinWheelBlock
+| LiveScavengerHuntBlock
+| LiveLotteryBlock
+| LiveLeaderboardBlock
+| LiveMysteryDropBlock
+| LiveAnnouncementBlock
 | SpeedDatingBlock
   | PopBalloonBlock
   | RegistryBlock
@@ -12968,7 +13319,803 @@ case "calendar_event":
       },
     },
   };
-  
+
+case "live_player_card":
+  return {
+    id: makeId("liveplayercard"),
+    type: "live_player_card",
+    label: "Player Card",
+
+    grid: {
+      ...grid,
+      colSpan: 4,
+      rowSpan: 4,
+    },
+
+    appearance: {
+      ...createDefaultBlockAppearance(),
+      backgroundColor: "#FFFFFF",
+      borderColor: "#E5E7EB",
+      borderWidth: 1,
+      borderRadius: 16,
+    },
+
+    data: {
+      heading: "Player Card",
+      scoreLabel: "Score",
+      teamLabel: "Team",
+      badgesLabel: "Badges",
+      joinRequiredText:
+        "Join the Live experience to view your player card.",
+
+      showAvatar: true,
+      showDisplayName: true,
+      showScore: true,
+      showTeam: true,
+      showBadges: true,
+
+      headingStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 22,
+        bold: true,
+        align: "center",
+      },
+
+      nameStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 18,
+        bold: true,
+        align: "center",
+      },
+
+      detailStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        align: "center",
+      },
+
+      joinRequiredTextStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        align: "center",
+      },
+
+      cardStyle: {
+        backgroundColor: "#F9FAFB",
+        borderColor: "#E5E7EB",
+        borderWidth: 1,
+        borderRadius: 14,
+      },
+
+      avatarStyle: {
+        size: 72,
+        borderColor: "#E5E7EB",
+        borderWidth: 2,
+        borderRadius: 999,
+      },
+    },
+  };
+
+case "live_schedule":
+  return {
+    id: makeId("liveschedule"),
+    type: "live_schedule",
+    label: "Live Schedule",
+
+    grid: {
+      ...grid,
+      colSpan: 6,
+      rowSpan: 5,
+    },
+
+    appearance: {
+      ...createDefaultBlockAppearance(),
+      backgroundColor: "#FFFFFF",
+      borderColor: "#E5E7EB",
+      borderWidth: 1,
+      borderRadius: 16,
+    },
+
+    data: {
+      heading: "Live Schedule",
+      emptyText: "No schedule items yet.",
+      currentLabel: "Now",
+      upcomingLabel: "Upcoming",
+      completedLabel: "Completed",
+
+      showTimes: true,
+      showDescriptions: true,
+      showStatuses: true,
+
+      headingStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 22,
+        bold: true,
+        align: "center",
+      },
+
+      timeStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 13,
+        bold: true,
+      },
+
+      titleStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 16,
+        bold: true,
+      },
+
+      descriptionStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 13,
+      },
+
+      statusStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 12,
+        bold: true,
+      },
+
+      emptyTextStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        align: "center",
+      },
+
+      itemStyle: {
+        backgroundColor: "#FFFFFF",
+        borderColor: "#E5E7EB",
+        borderWidth: 1,
+        borderRadius: 12,
+      },
+
+      currentItemStyle: {
+        backgroundColor: "#F3F4F6",
+        borderColor: "#111827",
+        borderWidth: 2,
+        borderRadius: 12,
+      },
+    },
+  };
+
+case "live_song_request":
+  return {
+    id: makeId("livesongrequest"),
+    type: "live_song_request",
+    label: "Song Request",
+
+    grid: {
+      ...grid,
+      colSpan: 6,
+      rowSpan: 5,
+    },
+
+    appearance: {
+      ...createDefaultBlockAppearance(),
+      backgroundColor: "#FFFFFF",
+      borderColor: "#E5E7EB",
+      borderWidth: 1,
+      borderRadius: 16,
+    },
+
+    data: {
+      heading: "Song Request",
+      helperText:
+        "Request a song for the event.",
+      joinRequiredText:
+        "Join the Live experience to request a song.",
+      songPlaceholder: "Song title",
+      artistPlaceholder: "Artist",
+      submitButtonLabel: "Request Song",
+      submittedLabel: "Request submitted",
+      queueHeading: "Up Next",
+
+      showQueue: true,
+
+      headingStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 22,
+        bold: true,
+        align: "center",
+      },
+
+      helperTextStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        align: "center",
+      },
+
+      joinRequiredTextStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        align: "center",
+      },
+
+      inputTextStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+      },
+
+      submitButtonTextStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        bold: true,
+        align: "center",
+        color: "#FFFFFF",
+      },
+
+      submittedLabelStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        bold: true,
+        align: "center",
+      },
+
+      queueHeadingStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 16,
+        bold: true,
+      },
+
+      queueTextStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 13,
+      },
+
+      inputStyle: {
+        backgroundColor: "#FFFFFF",
+        borderColor: "#D1D5DB",
+        borderWidth: 1,
+        borderRadius: 10,
+      },
+
+      submitButtonStyle: {
+        backgroundColor: "#111827",
+        borderColor: "#111827",
+        borderWidth: 1,
+        borderRadius: 10,
+      },
+
+      queueStyle: {
+        backgroundColor: "#F9FAFB",
+        borderColor: "#E5E7EB",
+        borderWidth: 1,
+        borderRadius: 12,
+      },
+    },
+  };
+
+case "live_spin_wheel":
+  return {
+    id: makeId("livespinwheel"),
+    type: "live_spin_wheel",
+    label: "Live Spin Wheel",
+
+    grid: {
+      ...grid,
+      colSpan: 6,
+      rowSpan: 6,
+    },
+
+    appearance: {
+      ...createDefaultBlockAppearance(),
+      backgroundColor: "#FFFFFF",
+      borderColor: "#E5E7EB",
+      borderWidth: 1,
+      borderRadius: 16,
+    },
+
+    data: {
+      heading: "Spin Wheel",
+      waitingText:
+        "Waiting for the next spin...",
+      joinRequiredText:
+        "Join the Live experience to participate.",
+      spinButtonLabel: "Spin",
+      resultHeading: "Result",
+
+      headingStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 22,
+        bold: true,
+        align: "center",
+      },
+
+      waitingTextStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        align: "center",
+      },
+
+      joinRequiredTextStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        align: "center",
+      },
+
+      spinButtonTextStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        bold: true,
+        align: "center",
+        color: "#FFFFFF",
+      },
+
+      resultHeadingStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 16,
+        bold: true,
+        align: "center",
+      },
+
+      resultTextStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        align: "center",
+      },
+
+      wheelStyle: {
+        backgroundColor: "#F9FAFB",
+        borderColor: "#111827",
+        borderWidth: 2,
+        borderRadius: 999,
+      },
+
+      spinButtonStyle: {
+        backgroundColor: "#111827",
+        borderColor: "#111827",
+        borderWidth: 1,
+        borderRadius: 10,
+      },
+
+      resultStyle: {
+        backgroundColor: "#F9FAFB",
+        borderColor: "#E5E7EB",
+        borderWidth: 1,
+        borderRadius: 12,
+      },
+    },
+  };
+
+case "live_scavenger_hunt":
+  return {
+    id: makeId("livescavengerhunt"),
+    type: "live_scavenger_hunt",
+    label: "Scavenger Hunt",
+
+    grid: {
+      ...grid,
+      colSpan: 6,
+      rowSpan: 6,
+    },
+
+    appearance: {
+      ...createDefaultBlockAppearance(),
+      backgroundColor: "#FFFFFF",
+      borderColor: "#E5E7EB",
+      borderWidth: 1,
+      borderRadius: 16,
+    },
+
+    data: {
+      heading: "Scavenger Hunt",
+      waitingText:
+        "Waiting for the hunt to begin...",
+      joinRequiredText:
+        "Join the Live experience to participate.",
+      completedLabel: "Completed",
+      progressLabel: "Progress",
+
+      showProgress: true,
+      showPoints: true,
+
+      headingStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 22,
+        bold: true,
+        align: "center",
+      },
+
+      waitingTextStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        align: "center",
+      },
+
+      joinRequiredTextStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        align: "center",
+      },
+
+      itemTitleStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 16,
+        bold: true,
+      },
+
+      itemDescriptionStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 13,
+      },
+
+      completedLabelStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 12,
+        bold: true,
+      },
+
+      progressStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 13,
+        bold: true,
+      },
+
+      itemStyle: {
+        backgroundColor: "#FFFFFF",
+        borderColor: "#E5E7EB",
+        borderWidth: 1,
+        borderRadius: 12,
+      },
+
+      completedItemStyle: {
+        backgroundColor: "#F3F4F6",
+        borderColor: "#111827",
+        borderWidth: 1,
+        borderRadius: 12,
+      },
+    },
+  };
+
+case "live_lottery":
+  return {
+    id: makeId("livelottery"),
+    type: "live_lottery",
+    label: "Live Lottery",
+
+    grid: {
+      ...grid,
+      colSpan: 5,
+      rowSpan: 5,
+    },
+
+    appearance: {
+      ...createDefaultBlockAppearance(),
+      backgroundColor: "#FFFFFF",
+      borderColor: "#E5E7EB",
+      borderWidth: 1,
+      borderRadius: 16,
+    },
+
+    data: {
+      heading: "Live Lottery",
+      helperText:
+        "Enter the live drawing for a chance to win.",
+      joinRequiredText:
+        "Join the Live experience to enter.",
+      enterButtonLabel: "Enter Drawing",
+      enteredLabel: "You're entered",
+      winnerHeading: "Winner",
+      waitingForDrawText:
+        "Waiting for the drawing...",
+
+      headingStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 22,
+        bold: true,
+        align: "center",
+      },
+
+      helperTextStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        align: "center",
+      },
+
+      joinRequiredTextStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        align: "center",
+      },
+
+      enterButtonTextStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        bold: true,
+        align: "center",
+        color: "#FFFFFF",
+      },
+
+      enteredLabelStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        bold: true,
+        align: "center",
+      },
+
+      winnerHeadingStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 16,
+        bold: true,
+        align: "center",
+      },
+
+      winnerTextStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 18,
+        bold: true,
+        align: "center",
+      },
+
+      waitingForDrawTextStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        align: "center",
+      },
+
+      enterButtonStyle: {
+        backgroundColor: "#111827",
+        borderColor: "#111827",
+        borderWidth: 1,
+        borderRadius: 10,
+      },
+
+      winnerStyle: {
+        backgroundColor: "#F9FAFB",
+        borderColor: "#E5E7EB",
+        borderWidth: 1,
+        borderRadius: 12,
+      },
+    },
+  };
+
+case "live_leaderboard":
+  return {
+    id: makeId("liveleaderboard"),
+    type: "live_leaderboard",
+    label: "Live Leaderboard",
+
+    grid: {
+      ...grid,
+      colSpan: 6,
+      rowSpan: 5,
+    },
+
+    appearance: {
+      ...createDefaultBlockAppearance(),
+      backgroundColor: "#FFFFFF",
+      borderColor: "#E5E7EB",
+      borderWidth: 1,
+      borderRadius: 16,
+    },
+
+    data: {
+      heading: "Leaderboard",
+      emptyText: "No scores yet.",
+      scoreLabel: "Score",
+      rankLabel: "Rank",
+      participantLabel: "Player",
+
+      showAvatar: true,
+      showRank: true,
+      showScore: true,
+      maxEntries: 10,
+
+      headingStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 22,
+        bold: true,
+        align: "center",
+      },
+
+      rankStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        bold: true,
+      },
+
+      participantStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        bold: true,
+      },
+
+      scoreStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        bold: true,
+        align: "right",
+      },
+
+      emptyTextStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        align: "center",
+      },
+
+      rowStyle: {
+        backgroundColor: "#FFFFFF",
+        borderColor: "#E5E7EB",
+        borderWidth: 1,
+        borderRadius: 10,
+      },
+
+      currentParticipantStyle: {
+        backgroundColor: "#F3F4F6",
+        borderColor: "#111827",
+        borderWidth: 2,
+        borderRadius: 10,
+      },
+    },
+  };
+
+case "live_mystery_drop":
+  return {
+    id: makeId("livemysterydrop"),
+    type: "live_mystery_drop",
+    label: "Mystery Drop",
+
+    grid: {
+      ...grid,
+      colSpan: 5,
+      rowSpan: 5,
+    },
+
+    appearance: {
+      ...createDefaultBlockAppearance(),
+      backgroundColor: "#FFFFFF",
+      borderColor: "#E5E7EB",
+      borderWidth: 1,
+      borderRadius: 16,
+    },
+
+    data: {
+      heading: "Mystery Drop",
+      waitingText:
+        "Nothing has dropped yet...",
+      joinRequiredText:
+        "Join the Live experience to reveal mystery drops.",
+      availableLabel: "A Mystery Drop is available!",
+      revealButtonLabel: "Reveal",
+      revealedLabel: "Revealed",
+
+      headingStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 22,
+        bold: true,
+        align: "center",
+      },
+
+      waitingTextStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        align: "center",
+      },
+
+      joinRequiredTextStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        align: "center",
+      },
+
+      availableLabelStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 16,
+        bold: true,
+        align: "center",
+      },
+
+      revealButtonTextStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        bold: true,
+        align: "center",
+        color: "#FFFFFF",
+      },
+
+      revealedLabelStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 13,
+        bold: true,
+        align: "center",
+      },
+
+      contentStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 16,
+        bold: true,
+        align: "center",
+      },
+
+      dropStyle: {
+        backgroundColor: "#F9FAFB",
+        borderColor: "#E5E7EB",
+        borderWidth: 1,
+        borderRadius: 14,
+      },
+
+      revealButtonStyle: {
+        backgroundColor: "#111827",
+        borderColor: "#111827",
+        borderWidth: 1,
+        borderRadius: 10,
+      },
+    },
+  };
+
+case "live_announcement":
+  return {
+    id: makeId("liveannouncement"),
+    type: "live_announcement",
+    label: "Live Announcement",
+
+    grid: {
+      ...grid,
+      colSpan: 6,
+      rowSpan: 4,
+    },
+
+    appearance: {
+      ...createDefaultBlockAppearance(),
+      backgroundColor: "#FFFFFF",
+      borderColor: "#E5E7EB",
+      borderWidth: 1,
+      borderRadius: 16,
+    },
+
+    data: {
+      heading: "Announcements",
+      emptyText: "No announcements yet.",
+      latestLabel: "Latest",
+
+      showTimestamp: true,
+
+      headingStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 22,
+        bold: true,
+        align: "center",
+      },
+
+      emptyTextStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        align: "center",
+      },
+
+      latestLabelStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 12,
+        bold: true,
+      },
+
+      announcementTitleStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 16,
+        bold: true,
+      },
+
+      announcementTextStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+      },
+
+      timestampStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 12,
+      },
+
+      announcementStyle: {
+        backgroundColor: "#F9FAFB",
+        borderColor: "#E5E7EB",
+        borderWidth: 1,
+        borderRadius: 12,
+      },
+    },
+  };
+
+
       case "qr_code":
   return {
     id: makeId("qr"),

@@ -30,6 +30,15 @@ import {
   LiveJoinInspector,
   LiveTriviaInspector,
   LivePollInspector,
+  LivePlayerCardInspector,
+  LiveScheduleInspector,
+  LiveSongRequestInspector,
+  LiveSpinWheelInspector,
+  LiveScavengerHuntInspector,
+  LiveLotteryInspector,
+  LiveLeaderboardInspector,
+  LiveMysteryDropInspector,
+  LiveAnnouncementInspector,
   SpreadsheetInspector,
   FileShareInspector,
   PuzzleInspector,
@@ -421,6 +430,87 @@ import {
   type LivePollStyleTarget,
   type LivePollTextTarget,
 } from "@/components/builder/formatting/livePollFormatting";
+
+import {
+  applyLivePlayerCardStylePatch,
+  applyLivePlayerCardTextStylePatch,
+  getLivePlayerCardStyle,
+  getLivePlayerCardTextStyle,
+  type LivePlayerCardStyleTarget,
+  type LivePlayerCardTextTarget,
+} from "@/components/builder/formatting/livePlayerCardFormatting";
+
+import {
+  applyLiveScheduleStylePatch,
+  applyLiveScheduleTextStylePatch,
+  getLiveScheduleStyle,
+  getLiveScheduleTextStyle,
+  type LiveScheduleStyleTarget,
+  type LiveScheduleTextTarget,
+} from "@/components/builder/formatting/liveScheduleFormatting";
+
+import {
+  applyLiveSongRequestStylePatch,
+  applyLiveSongRequestTextStylePatch,
+  getLiveSongRequestStyle,
+  getLiveSongRequestTextStyle,
+  type LiveSongRequestStyleTarget,
+  type LiveSongRequestTextTarget,
+} from "@/components/builder/formatting/liveSongRequestFormatting";
+
+import {
+  applyLiveSpinWheelStylePatch,
+  applyLiveSpinWheelTextStylePatch,
+  getLiveSpinWheelStyle,
+  getLiveSpinWheelTextStyle,
+  type LiveSpinWheelStyleTarget,
+  type LiveSpinWheelTextTarget,
+} from "@/components/builder/formatting/liveSpinWheelFormatting";
+
+import {
+  applyLiveScavengerHuntStylePatch,
+  applyLiveScavengerHuntTextStylePatch,
+  getLiveScavengerHuntStyle,
+  getLiveScavengerHuntTextStyle,
+  type LiveScavengerHuntStyleTarget,
+  type LiveScavengerHuntTextTarget,
+} from "@/components/builder/formatting/liveScavengerHuntFormatting";
+
+import {
+  applyLiveLotteryStylePatch,
+  applyLiveLotteryTextStylePatch,
+  getLiveLotteryStyle,
+  getLiveLotteryTextStyle,
+  type LiveLotteryStyleTarget,
+  type LiveLotteryTextTarget,
+} from "@/components/builder/formatting/liveLotteryFormatting";
+
+import {
+  applyLiveLeaderboardStylePatch,
+  applyLiveLeaderboardTextStylePatch,
+  getLiveLeaderboardStyle,
+  getLiveLeaderboardTextStyle,
+  type LiveLeaderboardStyleTarget,
+  type LiveLeaderboardTextTarget,
+} from "@/components/builder/formatting/liveLeaderboardFormatting";
+
+import {
+  applyLiveMysteryDropStylePatch,
+  applyLiveMysteryDropTextStylePatch,
+  getLiveMysteryDropStyle,
+  getLiveMysteryDropTextStyle,
+  type LiveMysteryDropStyleTarget,
+  type LiveMysteryDropTextTarget,
+} from "@/components/builder/formatting/liveMysteryDropFormatting";
+
+import {
+  applyLiveAnnouncementStylePatch,
+  applyLiveAnnouncementTextStylePatch,
+  getLiveAnnouncementStyle,
+  getLiveAnnouncementTextStyle,
+  type LiveAnnouncementStyleTarget,
+  type LiveAnnouncementTextTarget,
+} from "@/components/builder/formatting/liveAnnouncementFormatting";
 
 import {
   FONT_FAMILY_OPTIONS,
@@ -1294,6 +1384,51 @@ LIVE: [
     label: "Live Poll",
     type: "live_poll",
   },
+  {
+    kind: "block",
+    label: "Player Card",
+    type: "live_player_card",
+  },
+  {
+    kind: "block",
+    label: "Schedule",
+    type: "live_schedule",
+  },
+  {
+    kind: "block",
+    label: "Song Request",
+    type: "live_song_request",
+  },
+{
+  kind: "block",
+  label: "Live Spin Wheel",
+  type: "live_spin_wheel",
+},
+  {
+    kind: "block",
+    label: "Scavenger Hunt",
+    type: "live_scavenger_hunt",
+  },
+  {
+    kind: "block",
+    label: "Lottery",
+    type: "live_lottery",
+  },
+  {
+    kind: "block",
+    label: "Leaderboard",
+    type: "live_leaderboard",
+  },
+  {
+    kind: "block",
+    label: "Mystery Drop",
+    type: "live_mystery_drop",
+  },
+  {
+    kind: "block",
+    label: "Announcement",
+    type: "live_announcement",
+  },
 ],
 
 PREMIUM: [
@@ -1355,6 +1490,15 @@ const TOOL_DESCRIPTIONS: Record<string, string> = {
 
   "Join Experience":
   "Let visitors join the shared Live experience",
+  "Player Card": "Display each participant's live profile, score, team, and badges.",
+  Schedule: "Show the live event schedule and current activity.",
+  "Song Request": "Let participants request songs and view the request queue.",
+  "Live Spin Wheel": "Let participants interact with a live randomized spin wheel.",
+  "Scavenger Hunt": "Show live hunt challenges, progress, points, and completed items.",
+  Lottery: "Let participants enter a live drawing and view the selected winner.",
+  Leaderboard: "Display live participant rankings and scores.",
+  "Mystery Drop": "Reveal surprise content to participants during the live experience.",
+  Announcement: "Display live announcements and updates from the host.",
 
 Trivia:
   "Run interactive live trivia for participants",
@@ -2324,11 +2468,11 @@ function getToolIconPath(tool: (typeof CATEGORY_BUTTONS)[BottomCategory][number]
 
 if (tool.label === "Join Experience") return "/menu-icons/block-live-join-experience.svg";
 if (tool.label === "Trivia") return "/menu-icons/block-live-trivia.svg";
-if (tool.label === "Poll") return "/menu-icons/block-live-poll.svg";
+if (tool.label === "Live Poll") return "/menu-icons/block-live-poll.svg";
 if (tool.label === "Player Card") return "/menu-icons/block-live-player-card.svg";
 if (tool.label === "Schedule") return "/menu-icons/block-live-schedule.svg";
 if (tool.label === "Song Request") return "/menu-icons/block-live-song-request.svg";
-if (tool.label === "Spin Wheel") return "/menu-icons/block-live-spin-wheel.svg";
+if (tool.label === "Live Spin Wheel") return "/menu-icons/block-live-spin-wheel.svg";
 if (tool.label === "Scavenger Hunt") return "/menu-icons/block-live-scavenger-hunt.svg";
 if (tool.label === "Lottery") return "/menu-icons/block-live-lottery.svg";
 if (tool.label === "Leaderboard") return "/menu-icons/block-live-leaderboard.svg";
@@ -2634,6 +2778,60 @@ const [livePollTextTarget, setLivePollTextTarget] =
 
 const [livePollStyleTarget, setLivePollStyleTarget] =
   useState<LivePollStyleTarget>("block");
+
+const [livePlayerCardTextTarget, setLivePlayerCardTextTarget] =
+  useState<LivePlayerCardTextTarget>("heading");
+
+const [livePlayerCardStyleTarget, setLivePlayerCardStyleTarget] =
+  useState<LivePlayerCardStyleTarget>("block");
+
+const [liveScheduleTextTarget, setLiveScheduleTextTarget] =
+  useState<LiveScheduleTextTarget>("heading");
+
+const [liveScheduleStyleTarget, setLiveScheduleStyleTarget] =
+  useState<LiveScheduleStyleTarget>("block");
+
+const [liveSongRequestTextTarget, setLiveSongRequestTextTarget] =
+  useState<LiveSongRequestTextTarget>("heading");
+
+const [liveSongRequestStyleTarget, setLiveSongRequestStyleTarget] =
+  useState<LiveSongRequestStyleTarget>("block");
+
+const [liveSpinWheelTextTarget, setLiveSpinWheelTextTarget] =
+  useState<LiveSpinWheelTextTarget>("heading");
+
+const [liveSpinWheelStyleTarget, setLiveSpinWheelStyleTarget] =
+  useState<LiveSpinWheelStyleTarget>("block");
+
+const [liveScavengerHuntTextTarget, setLiveScavengerHuntTextTarget] =
+  useState<LiveScavengerHuntTextTarget>("heading");
+
+const [liveScavengerHuntStyleTarget, setLiveScavengerHuntStyleTarget] =
+  useState<LiveScavengerHuntStyleTarget>("block");
+
+const [liveLotteryTextTarget, setLiveLotteryTextTarget] =
+  useState<LiveLotteryTextTarget>("heading");
+
+const [liveLotteryStyleTarget, setLiveLotteryStyleTarget] =
+  useState<LiveLotteryStyleTarget>("block");
+
+const [liveLeaderboardTextTarget, setLiveLeaderboardTextTarget] =
+  useState<LiveLeaderboardTextTarget>("heading");
+
+const [liveLeaderboardStyleTarget, setLiveLeaderboardStyleTarget] =
+  useState<LiveLeaderboardStyleTarget>("block");
+
+const [liveMysteryDropTextTarget, setLiveMysteryDropTextTarget] =
+  useState<LiveMysteryDropTextTarget>("heading");
+
+const [liveMysteryDropStyleTarget, setLiveMysteryDropStyleTarget] =
+  useState<LiveMysteryDropStyleTarget>("block");
+
+const [liveAnnouncementTextTarget, setLiveAnnouncementTextTarget] =
+  useState<LiveAnnouncementTextTarget>("heading");
+
+const [liveAnnouncementStyleTarget, setLiveAnnouncementStyleTarget] =
+  useState<LiveAnnouncementStyleTarget>("block");
 
 const [fileShareTextTarget, setFileShareTextTarget] =
   useState<FileShareTextTarget>("heading");
@@ -3637,6 +3835,60 @@ const selectedStyle =
       livePollTextTarget,
     ) as TextStyle)
 
+: selectedBlockFromDraft?.type === "live_player_card"
+  ? (getLivePlayerCardTextStyle(
+      selectedBlockFromDraft,
+      livePlayerCardTextTarget,
+    ) as TextStyle)
+
+: selectedBlockFromDraft?.type === "live_schedule"
+  ? (getLiveScheduleTextStyle(
+      selectedBlockFromDraft,
+      liveScheduleTextTarget,
+    ) as TextStyle)
+
+: selectedBlockFromDraft?.type === "live_song_request"
+  ? (getLiveSongRequestTextStyle(
+      selectedBlockFromDraft,
+      liveSongRequestTextTarget,
+    ) as TextStyle)
+
+: selectedBlockFromDraft?.type === "live_spin_wheel"
+  ? (getLiveSpinWheelTextStyle(
+      selectedBlockFromDraft,
+      liveSpinWheelTextTarget,
+    ) as TextStyle)
+
+: selectedBlockFromDraft?.type === "live_scavenger_hunt"
+  ? (getLiveScavengerHuntTextStyle(
+      selectedBlockFromDraft,
+      liveScavengerHuntTextTarget,
+    ) as TextStyle)
+
+: selectedBlockFromDraft?.type === "live_lottery"
+  ? (getLiveLotteryTextStyle(
+      selectedBlockFromDraft,
+      liveLotteryTextTarget,
+    ) as TextStyle)
+
+: selectedBlockFromDraft?.type === "live_leaderboard"
+  ? (getLiveLeaderboardTextStyle(
+      selectedBlockFromDraft,
+      liveLeaderboardTextTarget,
+    ) as TextStyle)
+
+: selectedBlockFromDraft?.type === "live_mystery_drop"
+  ? (getLiveMysteryDropTextStyle(
+      selectedBlockFromDraft,
+      liveMysteryDropTextTarget,
+    ) as TextStyle)
+
+: selectedBlockFromDraft?.type === "live_announcement"
+  ? (getLiveAnnouncementTextStyle(
+      selectedBlockFromDraft,
+      liveAnnouncementTextTarget,
+    ) as TextStyle)
+
 : selectedBlockFromDraft?.type === "file_share"
   ? (getFileShareTextStyle(
       selectedBlockFromDraft,
@@ -3776,6 +4028,60 @@ const selectedAppearance =
   ? getLivePollStyle(
       selectedBlockFromDraft,
       livePollStyleTarget,
+    )
+
+: selectedBlockFromDraft?.type === "live_player_card"
+  ? getLivePlayerCardStyle(
+      selectedBlockFromDraft,
+      livePlayerCardStyleTarget,
+    )
+
+: selectedBlockFromDraft?.type === "live_schedule"
+  ? getLiveScheduleStyle(
+      selectedBlockFromDraft,
+      liveScheduleStyleTarget,
+    )
+
+: selectedBlockFromDraft?.type === "live_song_request"
+  ? getLiveSongRequestStyle(
+      selectedBlockFromDraft,
+      liveSongRequestStyleTarget,
+    )
+
+: selectedBlockFromDraft?.type === "live_spin_wheel"
+  ? getLiveSpinWheelStyle(
+      selectedBlockFromDraft,
+      liveSpinWheelStyleTarget,
+    )
+
+: selectedBlockFromDraft?.type === "live_scavenger_hunt"
+  ? getLiveScavengerHuntStyle(
+      selectedBlockFromDraft,
+      liveScavengerHuntStyleTarget,
+    )
+
+: selectedBlockFromDraft?.type === "live_lottery"
+  ? getLiveLotteryStyle(
+      selectedBlockFromDraft,
+      liveLotteryStyleTarget,
+    )
+
+: selectedBlockFromDraft?.type === "live_leaderboard"
+  ? getLiveLeaderboardStyle(
+      selectedBlockFromDraft,
+      liveLeaderboardStyleTarget,
+    )
+
+: selectedBlockFromDraft?.type === "live_mystery_drop"
+  ? getLiveMysteryDropStyle(
+      selectedBlockFromDraft,
+      liveMysteryDropStyleTarget,
+    )
+
+: selectedBlockFromDraft?.type === "live_announcement"
+  ? getLiveAnnouncementStyle(
+      selectedBlockFromDraft,
+      liveAnnouncementStyleTarget,
     )
   : getSelectionBlockAppearance(
           draft,
@@ -6430,6 +6736,64 @@ if (selectedBlock?.type === "live_poll") {
   return;
 }
 
+const liveTextFormattingHandlers: Record<
+  string,
+  [any, any]
+> = {
+  live_player_card: [
+    applyLivePlayerCardTextStylePatch,
+    livePlayerCardTextTarget,
+  ],
+  live_schedule: [
+    applyLiveScheduleTextStylePatch,
+    liveScheduleTextTarget,
+  ],
+  live_song_request: [
+    applyLiveSongRequestTextStylePatch,
+    liveSongRequestTextTarget,
+  ],
+  live_spin_wheel: [
+    applyLiveSpinWheelTextStylePatch,
+    liveSpinWheelTextTarget,
+  ],
+  live_scavenger_hunt: [
+    applyLiveScavengerHuntTextStylePatch,
+    liveScavengerHuntTextTarget,
+  ],
+  live_lottery: [
+    applyLiveLotteryTextStylePatch,
+    liveLotteryTextTarget,
+  ],
+  live_leaderboard: [
+    applyLiveLeaderboardTextStylePatch,
+    liveLeaderboardTextTarget,
+  ],
+  live_mystery_drop: [
+    applyLiveMysteryDropTextStylePatch,
+    liveMysteryDropTextTarget,
+  ],
+  live_announcement: [
+    applyLiveAnnouncementTextStylePatch,
+    liveAnnouncementTextTarget,
+  ],
+};
+
+if (
+  selectedBlock &&
+  liveTextFormattingHandlers[selectedBlock.type]
+) {
+  const [formatter, target] =
+    liveTextFormattingHandlers[selectedBlock.type];
+
+  updateSelectedBlock((block) =>
+    block.type !== selectedBlock.type
+      ? block
+      : formatter(block, target, patch),
+  );
+
+  return;
+}
+
 if (selectedBlock?.type === "file_share") {
   updateSelectedBlock((block) =>
     block.type !== "file_share"
@@ -7464,6 +7828,64 @@ if (selectedBlock?.type === "live_poll") {
           livePollStyleTarget,
           patch,
         ),
+  );
+
+  return;
+}
+
+const liveStyleFormattingHandlers: Record<
+  string,
+  [any, any]
+> = {
+  live_player_card: [
+    applyLivePlayerCardStylePatch,
+    livePlayerCardStyleTarget,
+  ],
+  live_schedule: [
+    applyLiveScheduleStylePatch,
+    liveScheduleStyleTarget,
+  ],
+  live_song_request: [
+    applyLiveSongRequestStylePatch,
+    liveSongRequestStyleTarget,
+  ],
+  live_spin_wheel: [
+    applyLiveSpinWheelStylePatch,
+    liveSpinWheelStyleTarget,
+  ],
+  live_scavenger_hunt: [
+    applyLiveScavengerHuntStylePatch,
+    liveScavengerHuntStyleTarget,
+  ],
+  live_lottery: [
+    applyLiveLotteryStylePatch,
+    liveLotteryStyleTarget,
+  ],
+  live_leaderboard: [
+    applyLiveLeaderboardStylePatch,
+    liveLeaderboardStyleTarget,
+  ],
+  live_mystery_drop: [
+    applyLiveMysteryDropStylePatch,
+    liveMysteryDropStyleTarget,
+  ],
+  live_announcement: [
+    applyLiveAnnouncementStylePatch,
+    liveAnnouncementStyleTarget,
+  ],
+};
+
+if (
+  selectedBlock &&
+  liveStyleFormattingHandlers[selectedBlock.type]
+) {
+  const [formatter, target] =
+    liveStyleFormattingHandlers[selectedBlock.type];
+
+  updateSelectedBlock((block) =>
+    block.type !== selectedBlock.type
+      ? block
+      : formatter(block, target, patch),
   );
 
   return;
@@ -12449,7 +12871,16 @@ if (block.type === "text_fx") {
 if (
   block.type === "live_join" ||
   block.type === "live_trivia" ||
-  block.type === "live_poll"
+  block.type === "live_poll" ||
+  block.type === "live_player_card" ||
+  block.type === "live_schedule" ||
+  block.type === "live_song_request" ||
+  block.type === "live_spin_wheel" ||
+  block.type === "live_scavenger_hunt" ||
+  block.type === "live_lottery" ||
+  block.type === "live_leaderboard" ||
+  block.type === "live_mystery_drop" ||
+  block.type === "live_announcement"
 ) {
   return (
     <div className="h-full w-full">
@@ -18627,6 +19058,132 @@ selectedBlock?.type === "live_poll" ? (
     inspectorInputClass={
       inspectorInputClass
     }
+  />
+) : null}
+
+{!isMultiSelection && selectedBlock?.type === "live_player_card" ? (
+  <LivePlayerCardInspector
+    selectedBlock={selectedBlock}
+    updateSelectedBlock={updateSelectedBlock}
+    livePlayerCardTextTarget={livePlayerCardTextTarget}
+    setLivePlayerCardTextTarget={setLivePlayerCardTextTarget}
+    livePlayerCardStyleTarget={livePlayerCardStyleTarget}
+    setLivePlayerCardStyleTarget={setLivePlayerCardStyleTarget}
+    inspectorCardClass={inspectorCardClass}
+    inspectorLabelClass={inspectorLabelClass}
+    inspectorInputClass={inspectorInputClass}
+  />
+) : null}
+
+{!isMultiSelection && selectedBlock?.type === "live_schedule" ? (
+  <LiveScheduleInspector
+    selectedBlock={selectedBlock}
+    updateSelectedBlock={updateSelectedBlock}
+    liveScheduleTextTarget={liveScheduleTextTarget}
+    setLiveScheduleTextTarget={setLiveScheduleTextTarget}
+    liveScheduleStyleTarget={liveScheduleStyleTarget}
+    setLiveScheduleStyleTarget={setLiveScheduleStyleTarget}
+    inspectorCardClass={inspectorCardClass}
+    inspectorLabelClass={inspectorLabelClass}
+    inspectorInputClass={inspectorInputClass}
+  />
+) : null}
+
+{!isMultiSelection && selectedBlock?.type === "live_song_request" ? (
+  <LiveSongRequestInspector
+    selectedBlock={selectedBlock}
+    updateSelectedBlock={updateSelectedBlock}
+    liveSongRequestTextTarget={liveSongRequestTextTarget}
+    setLiveSongRequestTextTarget={setLiveSongRequestTextTarget}
+    liveSongRequestStyleTarget={liveSongRequestStyleTarget}
+    setLiveSongRequestStyleTarget={setLiveSongRequestStyleTarget}
+    inspectorCardClass={inspectorCardClass}
+    inspectorLabelClass={inspectorLabelClass}
+    inspectorInputClass={inspectorInputClass}
+  />
+) : null}
+
+{!isMultiSelection && selectedBlock?.type === "live_spin_wheel" ? (
+  <LiveSpinWheelInspector
+    selectedBlock={selectedBlock}
+    updateSelectedBlock={updateSelectedBlock}
+    liveSpinWheelTextTarget={liveSpinWheelTextTarget}
+    setLiveSpinWheelTextTarget={setLiveSpinWheelTextTarget}
+    liveSpinWheelStyleTarget={liveSpinWheelStyleTarget}
+    setLiveSpinWheelStyleTarget={setLiveSpinWheelStyleTarget}
+    inspectorCardClass={inspectorCardClass}
+    inspectorLabelClass={inspectorLabelClass}
+    inspectorInputClass={inspectorInputClass}
+  />
+) : null}
+
+{!isMultiSelection && selectedBlock?.type === "live_scavenger_hunt" ? (
+  <LiveScavengerHuntInspector
+    selectedBlock={selectedBlock}
+    updateSelectedBlock={updateSelectedBlock}
+    liveScavengerHuntTextTarget={liveScavengerHuntTextTarget}
+    setLiveScavengerHuntTextTarget={setLiveScavengerHuntTextTarget}
+    liveScavengerHuntStyleTarget={liveScavengerHuntStyleTarget}
+    setLiveScavengerHuntStyleTarget={setLiveScavengerHuntStyleTarget}
+    inspectorCardClass={inspectorCardClass}
+    inspectorLabelClass={inspectorLabelClass}
+    inspectorInputClass={inspectorInputClass}
+  />
+) : null}
+
+{!isMultiSelection && selectedBlock?.type === "live_lottery" ? (
+  <LiveLotteryInspector
+    selectedBlock={selectedBlock}
+    updateSelectedBlock={updateSelectedBlock}
+    liveLotteryTextTarget={liveLotteryTextTarget}
+    setLiveLotteryTextTarget={setLiveLotteryTextTarget}
+    liveLotteryStyleTarget={liveLotteryStyleTarget}
+    setLiveLotteryStyleTarget={setLiveLotteryStyleTarget}
+    inspectorCardClass={inspectorCardClass}
+    inspectorLabelClass={inspectorLabelClass}
+    inspectorInputClass={inspectorInputClass}
+  />
+) : null}
+
+{!isMultiSelection && selectedBlock?.type === "live_leaderboard" ? (
+  <LiveLeaderboardInspector
+    selectedBlock={selectedBlock}
+    updateSelectedBlock={updateSelectedBlock}
+    liveLeaderboardTextTarget={liveLeaderboardTextTarget}
+    setLiveLeaderboardTextTarget={setLiveLeaderboardTextTarget}
+    liveLeaderboardStyleTarget={liveLeaderboardStyleTarget}
+    setLiveLeaderboardStyleTarget={setLiveLeaderboardStyleTarget}
+    inspectorCardClass={inspectorCardClass}
+    inspectorLabelClass={inspectorLabelClass}
+    inspectorInputClass={inspectorInputClass}
+  />
+) : null}
+
+{!isMultiSelection && selectedBlock?.type === "live_mystery_drop" ? (
+  <LiveMysteryDropInspector
+    selectedBlock={selectedBlock}
+    updateSelectedBlock={updateSelectedBlock}
+    liveMysteryDropTextTarget={liveMysteryDropTextTarget}
+    setLiveMysteryDropTextTarget={setLiveMysteryDropTextTarget}
+    liveMysteryDropStyleTarget={liveMysteryDropStyleTarget}
+    setLiveMysteryDropStyleTarget={setLiveMysteryDropStyleTarget}
+    inspectorCardClass={inspectorCardClass}
+    inspectorLabelClass={inspectorLabelClass}
+    inspectorInputClass={inspectorInputClass}
+  />
+) : null}
+
+{!isMultiSelection && selectedBlock?.type === "live_announcement" ? (
+  <LiveAnnouncementInspector
+    selectedBlock={selectedBlock}
+    updateSelectedBlock={updateSelectedBlock}
+    liveAnnouncementTextTarget={liveAnnouncementTextTarget}
+    setLiveAnnouncementTextTarget={setLiveAnnouncementTextTarget}
+    liveAnnouncementStyleTarget={liveAnnouncementStyleTarget}
+    setLiveAnnouncementStyleTarget={setLiveAnnouncementStyleTarget}
+    inspectorCardClass={inspectorCardClass}
+    inspectorLabelClass={inspectorLabelClass}
+    inspectorInputClass={inspectorInputClass}
   />
 ) : null}
 
