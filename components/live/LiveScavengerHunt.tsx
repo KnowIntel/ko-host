@@ -24,13 +24,14 @@ type Response = {
   };
 
   participantState?: {
-    completedItems?: Record<
-      string,
-      {
-        completedAt: string;
-        awardedPoints: number;
-      }
-    >;
+completedItems?: Record<
+  string,
+  {
+    completedAt: string;
+    awardedPoints: number;
+    responseText: string;
+  }
+>;
   };
 };
 
@@ -86,6 +87,12 @@ export default function LiveScavengerHunt({
   const [submittingId, setSubmittingId] =
     useState("");
 
+const [editingId, setEditingId] =
+  useState("");
+
+const [responses, setResponses] =
+  useState<Record<string, string>>({});
+
   const [error, setError] =
     useState("");
 
@@ -107,9 +114,10 @@ export default function LiveScavengerHunt({
     data?.participantState
       ?.completedItems ?? {};
 
-  async function complete(
-    itemId: string,
-  ) {
+async function complete(
+  itemId: string,
+  responseText: string,
+) {
     if (
       !experienceId ||
       submittingId
@@ -133,9 +141,10 @@ export default function LiveScavengerHunt({
             "Content-Type":
               "application/json",
           },
-          body: JSON.stringify({
-            itemId,
-          }),
+body: JSON.stringify({
+  itemId,
+  responseText,
+}),
         },
       );
 
@@ -156,6 +165,7 @@ export default function LiveScavengerHunt({
       }
 
       await refresh();
+      setEditingId("");
     } finally {
       setSubmittingId("");
     }
@@ -193,69 +203,130 @@ export default function LiveScavengerHunt({
       ) : null}
 
       <div className="mt-4 space-y-3">
-        {items.map((item) => {
-          const isCompleted =
-            Boolean(
-              completed[item.id],
-            );
+{items.map((item) => {
+  const completion =
+    completed[item.id];
 
-          return (
-            <button
-              type="button"
-              key={item.id}
-              disabled={
-                isCompleted ||
-                Boolean(submittingId)
-              }
-              onClick={() =>
-                void complete(item.id)
-              }
-              className="block w-full p-3 text-left disabled:cursor-default"
-              style={{
-                ...itemStyle,
-                ...(isCompleted
-                  ? completedItemStyle
-                  : {}),
-              }}
-            >
-              <div
-                className="font-semibold"
-                style={itemTitleStyle}
-              >
-                {item.title}
+  const isCompleted =
+    Boolean(completion);
 
-                {showPoints ? (
-                  <span>
-                    {" "}
-                    ({item.points} pts)
-                  </span>
-                ) : null}
-              </div>
+  const isEditing =
+    editingId === item.id;
 
-              {item.description ? (
-                <div
-                  className="mt-1"
-                  style={
-                    itemDescriptionStyle
-                  }
-                >
-                  {item.description}
-                </div>
-              ) : null}
+  const responseValue =
+    responses[item.id] ??
+    completion?.responseText ??
+    "";
 
-              {isCompleted ? (
-                <div
-                  className="mt-2 text-sm"
-                  style={
-                    completedLabelStyle
-                  }
-                >
-                  {completedLabel}
-                </div>
-              ) : null}
-            </button>
+  return (
+    <div
+      key={item.id}
+      className="w-full p-3 text-left"
+      style={{
+        ...itemStyle,
+        ...(isCompleted
+          ? completedItemStyle
+          : {}),
+      }}
+    >
+      <button
+        type="button"
+        disabled={Boolean(submittingId)}
+        onClick={() => {
+          setResponses((current) => ({
+            ...current,
+            [item.id]:
+              current[item.id] ??
+              completion?.responseText ??
+              "",
+          }));
+
+          setEditingId(
+            isEditing ? "" : item.id,
           );
-        })}
+
+          setError("");
+        }}
+        className="block w-full text-left disabled:cursor-default"
+      >
+        <div
+          className="font-semibold"
+          style={itemTitleStyle}
+        >
+          {item.title}
+
+          {showPoints ? (
+            <span>
+              {" "}
+              ({item.points} pts)
+            </span>
+          ) : null}
+        </div>
+
+        {item.description ? (
+          <div
+            className="mt-1"
+            style={itemDescriptionStyle}
+          >
+            {item.description}
+          </div>
+        ) : null}
+
+        {isCompleted && !isEditing ? (
+          <div
+            className="mt-2 text-sm"
+            style={completedLabelStyle}
+          >
+            {completedLabel}
+          </div>
+        ) : null}
+      </button>
+
+      {isEditing ? (
+        <div className="mt-3">
+          <input
+            type="text"
+            value={responseValue}
+            placeholder="Enter location, number, description, etc."
+            disabled={
+              submittingId === item.id
+            }
+            onChange={(event) =>
+              setResponses(
+                (current) => ({
+                  ...current,
+                  [item.id]:
+                    event.target.value,
+                }),
+              )
+            }
+            className="w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-900 disabled:opacity-50"
+          />
+
+          <button
+            type="button"
+            disabled={
+              submittingId === item.id
+            }
+            onClick={() =>
+              void complete(
+                item.id,
+                responseValue,
+              )
+            }
+            className="mt-2 rounded-xl bg-neutral-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+          >
+            {submittingId === item.id
+              ? "Saving..."
+              : isCompleted
+                ? "Update"
+                : "Complete"}
+          </button>
+        </div>
+      ) : null}
+    </div>
+  );
+})}
       </div>
 
       {error ? (
