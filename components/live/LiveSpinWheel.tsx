@@ -1,11 +1,25 @@
 "use client";
 
 import {
+  useMemo,
   useState,
   type CSSProperties,
 } from "react";
 
 import { useLiveEndpoint } from "@/components/live/useLiveEndpoint";
+
+type SpinResult = {
+  optionId: string;
+  label: string;
+  awardedPoints: number;
+  spunAt: string;
+};
+
+type WheelOption = {
+  id: string;
+  label: string;
+  points: number;
+};
 
 type Response = {
   ok: boolean;
@@ -13,27 +27,13 @@ type Response = {
   activity?: {
     id: string;
     name: string;
-    options: Array<{
-      id: string;
-      label: string;
-      points: number;
-    }>;
+    options: WheelOption[];
     allowMultipleSpins: boolean;
   };
 
   participantState?: {
-    spins?: Array<{
-      optionId: string;
-      label: string;
-      awardedPoints: number;
-      spunAt: string;
-    }>;
-    lastSpin?: {
-      optionId: string;
-      label: string;
-      awardedPoints: number;
-      spunAt: string;
-    };
+    spins?: SpinResult[];
+    lastSpin?: SpinResult;
   };
 };
 
@@ -85,22 +85,101 @@ export default function LiveSpinWheel({
   const [spinning, setSpinning] =
     useState(false);
 
+  const [rotation, setRotation] =
+    useState(0);
+
+  const [visibleResult, setVisibleResult] =
+    useState<SpinResult | null>(null);
+
   const [error, setError] =
     useState("");
 
   const lastSpin =
+    visibleResult ??
     data?.participantState
-      ?.lastSpin ?? null;
+      ?.lastSpin ??
+    null;
+
+  const options =
+    useMemo(
+      () =>
+        data?.activity?.options ??
+        [],
+      [data?.activity?.options],
+    );
+
+  /*
+   * Create equal visual segments.
+   *
+   * The colors are intentionally generated
+   * rather than tied to the result logic.
+   * The server remains authoritative.
+   */
+  const wheelBackground =
+    useMemo(() => {
+      if (options.length === 0) {
+        return undefined;
+      }
+
+      const segmentSize =
+        360 / options.length;
+
+      const segmentColors = [
+        "#111827",
+        "#e5e7eb",
+        "#9ca3af",
+        "#f3f4f6",
+        "#4b5563",
+        "#d1d5db",
+        "#6b7280",
+        "#f9fafb",
+      ];
+
+      const segments =
+        options.map(
+          (_, index) => {
+            const start =
+              index *
+              segmentSize;
+
+            const end =
+              start +
+              segmentSize;
+
+            const color =
+              segmentColors[
+                index %
+                  segmentColors.length
+              ];
+
+            return `${color} ${start}deg ${end}deg`;
+          },
+        );
+
+      return `conic-gradient(from -90deg, ${segments.join(
+        ", ",
+      )})`;
+    }, [options]);
 
   async function spin() {
-    if (!experienceId || spinning) {
+    if (
+      !experienceId ||
+      spinning ||
+      options.length === 0
+    ) {
       return;
     }
 
     setSpinning(true);
+    setVisibleResult(null);
     setError("");
 
     try {
+      /*
+       * Ask the server for the real result
+       * BEFORE determining where the visual
+       * wheel should stop.
+       */
       const response = await fetch(
         `/api/live/${encodeURIComponent(
           experienceId,
@@ -125,11 +204,174 @@ export default function LiveSpinWheel({
           payload?.error ||
             "Unable to spin.",
         );
+
         return;
       }
 
-      await refresh();
-    } finally {
+      /*
+       * Accept the server's authoritative
+       * result.
+       */
+      const resultSource =
+        payload.result ??
+        payload.spin ??
+        payload.lastSpin ??
+        null;
+
+      const resultOptionId =
+        typeof resultSource?.optionId ===
+        "string"
+          ? resultSource.optionId
+          : null;
+
+      let winningIndex =
+        resultOptionId
+          ? options.findIndex(
+              (option) =>
+                option.id ===
+                resultOptionId,
+            )
+          : -1;
+
+      /*
+       * Some endpoint responses may expose
+       * the selected option separately.
+       */
+      if (
+        winningIndex < 0 &&
+        typeof payload?.option?.id ===
+          "string"
+      ) {
+        winningIndex =
+          options.findIndex(
+            (option) =>
+              option.id ===
+              payload.option.id,
+          );
+      }
+
+      /*
+       * Last-resort label match is only for
+       * locating the server-selected segment.
+       * It does NOT choose the winner.
+       */
+      if (
+        winningIndex < 0 &&
+        typeof resultSource?.label ===
+          "string"
+      ) {
+        winningIndex =
+          options.findIndex(
+            (option) =>
+              option.label ===
+              resultSource.label,
+          );
+      }
+
+      if (winningIndex < 0) {
+        await refresh();
+
+        setError(
+          "Spin completed, but the wheel could not display the result.",
+        );
+
+        return;
+      }
+
+      const segmentSize =
+        360 / options.length;
+
+      /*
+       * Pointer is fixed at 12 o'clock.
+       *
+       * Rotate the center of the winning
+       * segment underneath that pointer.
+       */
+      const winningCenter =
+        winningIndex *
+          segmentSize +
+        segmentSize / 2;
+
+      const normalizedCurrent =
+        ((rotation % 360) +
+          360) %
+        360;
+
+      const desiredNormalized =
+        (360 -
+          winningCenter) %
+        360;
+
+      const adjustment =
+        (desiredNormalized -
+          normalizedCurrent +
+          360) %
+        360;
+
+      /*
+       * Five complete turns plus the exact
+       * landing adjustment.
+       */
+      const nextRotation =
+        rotation +
+        360 * 5 +
+        adjustment;
+
+      setRotation(
+        nextRotation,
+      );
+
+      /*
+       * Let the wheel finish visually before
+       * revealing the result.
+       */
+      window.setTimeout(
+        () => {
+          if (resultSource) {
+            setVisibleResult({
+              optionId:
+                resultSource.optionId ??
+                options[
+                  winningIndex
+                ].id,
+
+              label:
+                resultSource.label ??
+                options[
+                  winningIndex
+                ].label,
+
+              awardedPoints:
+                Number(
+                  resultSource.awardedPoints ??
+                    options[
+                      winningIndex
+                    ].points ??
+                    0,
+                ),
+
+              spunAt:
+                resultSource.spunAt ??
+                new Date().toISOString(),
+            });
+          }
+
+          void refresh();
+
+          setSpinning(false);
+        },
+        3200,
+      );
+    } catch (spinError) {
+      console.error(
+        "Spin Wheel request failed:",
+        spinError,
+      );
+
+      setError(
+        "Unable to spin.",
+      );
+
       setSpinning(false);
     }
   }
@@ -173,31 +415,89 @@ export default function LiveSpinWheel({
         {heading}
       </div>
 
-      <div
-        className="mx-auto mt-5 flex aspect-square w-full max-w-[240px] items-center justify-center rounded-full p-5"
-        style={wheelStyle}
-      >
-        <div>
-          {data.activity.options.map(
-            (option) => (
-              <div
-                key={option.id}
-                className="text-sm"
-              >
-                {option.label}
-              </div>
-            ),
+      {/* WHEEL */}
+      <div className="relative mx-auto mt-6 w-full max-w-[280px]">
+        {/* POINTER */}
+        <div className="absolute left-1/2 top-[-4px] z-20 -translate-x-1/2">
+          <div
+            className="h-0 w-0"
+            style={{
+              borderLeft:
+                "12px solid transparent",
+              borderRight:
+                "12px solid transparent",
+              borderTop:
+                "24px solid #111827",
+            }}
+          />
+        </div>
+
+        <div
+          className="relative aspect-square w-full overflow-hidden rounded-full border-4 border-neutral-900 shadow-md"
+          style={{
+            ...wheelStyle,
+
+            background:
+              wheelBackground,
+
+            transform: `rotate(${rotation}deg)`,
+
+            transition:
+              spinning
+                ? "transform 3.2s cubic-bezier(0.12, 0.72, 0.18, 1)"
+                : "none",
+          }}
+        >
+          {/* SEGMENT LABELS */}
+          {options.map(
+            (option, index) => {
+              const segmentSize =
+                360 /
+                options.length;
+
+              const angle =
+                index *
+                  segmentSize +
+                segmentSize / 2;
+
+              return (
+                <div
+                  key={option.id}
+                  className="pointer-events-none absolute left-1/2 top-1/2 h-1/2 w-1/2 origin-top-left"
+                  style={{
+                    transform: `rotate(${angle}deg)`,
+                  }}
+                >
+                  <div
+                    className="absolute left-1/2 top-[18%] max-w-[90px] -translate-x-1/2 text-center text-xs font-bold"
+                    style={{
+                      transform: `rotate(${-angle}deg)`,
+                    }}
+                  >
+                    {option.label}
+                  </div>
+                </div>
+              );
+            },
           )}
+
+          {/* CENTER HUB */}
+          <div className="absolute left-1/2 top-1/2 z-10 flex h-12 w-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-4 border-neutral-900 bg-white shadow-sm">
+            <div className="h-3 w-3 rounded-full bg-neutral-900" />
+          </div>
         </div>
       </div>
 
       <button
         type="button"
         disabled={
-          spinning || !canSpin
+          spinning ||
+          !canSpin
         }
-        onClick={() => void spin()}
-        className="mt-4 w-full px-4 py-3 disabled:opacity-50"
+        onClick={() =>
+          void spin()
+        }
+        className="mt-5 w-full px-4 py-3 disabled:opacity-50"
         style={{
           ...spinButtonStyle,
           ...spinButtonTextStyle,
@@ -208,7 +508,7 @@ export default function LiveSpinWheel({
           : spinButtonLabel}
       </button>
 
-      {lastSpin ? (
+      {lastSpin && !spinning ? (
         <div
           className="mt-4 p-3"
           style={resultStyle}
@@ -224,6 +524,7 @@ export default function LiveSpinWheel({
             style={resultTextStyle}
           >
             {lastSpin.label}
+
             {lastSpin.awardedPoints >
             0
               ? ` (+${lastSpin.awardedPoints})`
