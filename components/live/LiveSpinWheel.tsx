@@ -44,16 +44,24 @@ type Props = {
   spinButtonLabel: string;
   resultHeading: string;
 
-  headingStyle?: CSSProperties;
-  waitingTextStyle?: CSSProperties;
-  joinRequiredTextStyle?: CSSProperties;
-  spinButtonTextStyle?: CSSProperties;
-  resultHeadingStyle?: CSSProperties;
-  resultTextStyle?: CSSProperties;
+headingStyle?: CSSProperties;
+waitingTextStyle?: CSSProperties;
+joinRequiredTextStyle?: CSSProperties;
+wheelTextStyle?: CSSProperties;
+spinButtonTextStyle?: CSSProperties;
+resultHeadingStyle?: CSSProperties;
+resultTextStyle?: CSSProperties;
 
-  wheelStyle?: CSSProperties;
-  spinButtonStyle?: CSSProperties;
-  resultStyle?: CSSProperties;
+wheelStyle?: CSSProperties;
+spinButtonStyle?: CSSProperties;
+resultStyle?: CSSProperties;
+
+wheelColor1?: string;
+wheelColor2?: string;
+wheelColor3?: string;
+wheelColor4?: string;
+wheelColor5?: string;
+wheelColor6?: string;
 };
 
 export default function LiveSpinWheel({
@@ -64,13 +72,20 @@ export default function LiveSpinWheel({
   resultHeading,
   headingStyle,
   waitingTextStyle,
-  joinRequiredTextStyle,
-  spinButtonTextStyle,
-  resultHeadingStyle,
-  resultTextStyle,
-  wheelStyle,
-  spinButtonStyle,
-  resultStyle,
+joinRequiredTextStyle,
+wheelTextStyle,
+spinButtonTextStyle,
+resultHeadingStyle,
+resultTextStyle,
+wheelStyle,
+spinButtonStyle,
+resultStyle,
+wheelColor1,
+wheelColor2,
+wheelColor3,
+wheelColor4,
+wheelColor5,
+wheelColor6,
 }: Props) {
   const {
     data,
@@ -124,16 +139,14 @@ export default function LiveSpinWheel({
       const segmentSize =
         360 / options.length;
 
-      const segmentColors = [
-        "#111827",
-        "#e5e7eb",
-        "#9ca3af",
-        "#f3f4f6",
-        "#4b5563",
-        "#d1d5db",
-        "#6b7280",
-        "#f9fafb",
-      ];
+const segmentColors = [
+  wheelColor1 || "#111827",
+  wheelColor2 || "#e5e7eb",
+  wheelColor3 || "#9ca3af",
+  wheelColor4 || "#f3f4f6",
+  wheelColor5 || "#4b5563",
+  wheelColor6 || "#d1d5db",
+];
 
       const segments =
         options.map(
@@ -159,7 +172,15 @@ export default function LiveSpinWheel({
       return `conic-gradient(from -90deg, ${segments.join(
         ", ",
       )})`;
-    }, [options]);
+    }, [
+  options,
+  wheelColor1,
+  wheelColor2,
+  wheelColor3,
+  wheelColor4,
+  wheelColor5,
+  wheelColor6,
+]);
 
   async function spin() {
     if (
@@ -297,10 +318,11 @@ export default function LiveSpinWheel({
           360) %
         360;
 
-      const desiredNormalized =
-        (360 -
-          winningCenter) %
-        360;
+const desiredNormalized =
+  (270 -
+    winningCenter +
+    360) %
+  360;
 
       const adjustment =
         (desiredNormalized -
@@ -312,10 +334,10 @@ export default function LiveSpinWheel({
        * Five complete turns plus the exact
        * landing adjustment.
        */
-      const nextRotation =
-        rotation +
-        360 * 5 +
-        adjustment;
+const nextRotation =
+  rotation +
+  360 * 8 +
+  adjustment;
 
       setRotation(
         nextRotation,
@@ -468,14 +490,18 @@ export default function LiveSpinWheel({
                     transform: `rotate(${angle}deg)`,
                   }}
                 >
-                  <div
-                    className="absolute left-1/2 top-[18%] max-w-[90px] -translate-x-1/2 text-center text-xs font-bold"
-                    style={{
-                      transform: `rotate(${-angle}deg)`,
-                    }}
-                  >
-                    {option.label}
-                  </div>
+<div
+  className="absolute left-1/2 top-[18%] max-w-[90px] -translate-x-1/2 text-center text-xs font-bold"
+  style={{
+    ...wheelTextStyle,
+
+    transform: `rotate(${
+      -angle - rotation
+    }deg)`,
+  }}
+>
+  {option.label}
+</div>
                 </div>
               );
             },

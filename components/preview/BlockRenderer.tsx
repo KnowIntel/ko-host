@@ -42519,37 +42519,45 @@ case "live_spin_wheel": {
   const data = block.data as any;
 
   if (isBuilder) {
-  return (
-    <Surface block={block}>
-      <div className="flex h-full w-full flex-col items-center justify-center p-4 text-center">
-        <div
-          style={getContainerTextStyle(
-            data.headingStyle ?? data.style,
-            designKey,
-          )}
-        >
-          {data.heading || "Spin Wheel"}
-        </div>
+    return (
+      <Surface block={block}>
+        <div className="flex h-full w-full flex-col items-center justify-center p-4 text-center">
+          <div
+            style={getContainerTextStyle(
+              data.headingStyle ?? data.style,
+              designKey,
+            )}
+          >
+            {data.heading || "Spin Wheel"}
+          </div>
 
-        <div
-          className="mt-4 flex h-28 w-28 items-center justify-center rounded-full border-4 border-neutral-300"
-          style={data.wheelStyle ?? {}}
-        >
-          Spin
-        </div>
+          <div
+            className="mt-4 flex h-28 w-28 items-center justify-center rounded-full border-4 border-neutral-300"
+            style={data.wheelStyle ?? {}}
+          >
+            <span
+              style={getContainerTextStyle(
+                data.wheelTextStyle ??
+                  data.style,
+                designKey,
+              )}
+            >
+              Spin
+            </span>
+          </div>
 
-        <button
-          type="button"
-          disabled
-          className="mt-4 rounded-lg bg-black px-4 py-2 text-white"
-          style={data.spinButtonStyle ?? {}}
-        >
-          {data.spinButtonLabel || "Spin"}
-        </button>
-      </div>
-    </Surface>
-  );
-}
+          <button
+            type="button"
+            disabled
+            className="mt-4 rounded-lg bg-black px-4 py-2 text-white"
+            style={data.spinButtonStyle ?? {}}
+          >
+            {data.spinButtonLabel || "Spin"}
+          </button>
+        </div>
+      </Surface>
+    );
+  }
 
   return (
     <Surface block={block}>
@@ -42583,6 +42591,11 @@ case "live_spin_wheel": {
             data.style,
           designKey,
         )}
+        wheelTextStyle={getContainerTextStyle(
+          data.wheelTextStyle ??
+            data.style,
+          designKey,
+        )}
         spinButtonTextStyle={getContainerTextStyle(
           data.spinButtonTextStyle ??
             data.style,
@@ -42603,6 +42616,12 @@ case "live_spin_wheel": {
           data.spinButtonStyle ?? {}
         }
         resultStyle={data.resultStyle ?? {}}
+        wheelColor1={data.wheelColor1}
+        wheelColor2={data.wheelColor2}
+        wheelColor3={data.wheelColor3}
+        wheelColor4={data.wheelColor4}
+        wheelColor5={data.wheelColor5}
+        wheelColor6={data.wheelColor6}
       />
     </Surface>
   );

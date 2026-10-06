@@ -1,3 +1,5 @@
+// components\builder\inspector\LiveSpinWheelInspector.tsx
+
 "use client";
 
 import type {
@@ -58,6 +60,71 @@ export function LiveSpinWheelInspector({
         <div className={inspectorLabelClass()}>
           Formatting
         </div>
+        <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+  <div className={inspectorLabelClass()}>
+    Wheel Colors
+  </div>
+
+  <p className="mt-1 text-xs text-neutral-500">
+    Colors repeat when the wheel has more options.
+  </p>
+
+  <div className="mt-3 grid grid-cols-2 gap-3">
+    {[
+      ["wheelColor1", "#111827"],
+      ["wheelColor2", "#e5e7eb"],
+      ["wheelColor3", "#9ca3af"],
+      ["wheelColor4", "#f3f4f6"],
+      ["wheelColor5", "#4b5563"],
+      ["wheelColor6", "#d1d5db"],
+    ].map(
+      ([key, fallback], index) => (
+        <label
+          key={key}
+          className="block"
+        >
+          <span className="mb-1 block text-xs font-medium text-neutral-600">
+            Segment {index + 1}
+          </span>
+
+          <div className="flex items-center gap-2">
+            <input
+              type="color"
+              value={
+                selectedBlock.data[
+                  key
+                ] ?? fallback
+              }
+              onChange={(e) =>
+                updateData({
+                  [key]:
+                    e.target.value,
+                })
+              }
+              className="h-9 w-12 cursor-pointer rounded border border-neutral-300 bg-white p-1"
+            />
+
+            <input
+              type="text"
+              value={
+                selectedBlock.data[
+                  key
+                ] ?? fallback
+              }
+              onChange={(e) =>
+                updateData({
+                  [key]:
+                    e.target.value,
+                })
+              }
+              className={inspectorInputClass()}
+            />
+          </div>
+        </label>
+      ),
+    )}
+  </div>
+</div>
 
         <div className="mt-3">
           <div className={inspectorLabelClass()}>
@@ -80,6 +147,9 @@ export function LiveSpinWheelInspector({
             <option value="joinRequiredText">
               Join Required Text
             </option>
+            <option value="wheelText">
+  Wheel Option Text
+</option>
             <option value="spinButton">
               Spin Button
             </option>

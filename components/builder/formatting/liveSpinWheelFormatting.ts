@@ -1,3 +1,5 @@
+// components\builder\formatting\liveSpinWheelFormatting.ts
+
 import type {
   MicrositeBlock,
 } from "@/lib/templates/builder";
@@ -11,6 +13,7 @@ export type LiveSpinWheelTextTarget =
   | "heading"
   | "waitingText"
   | "joinRequiredText"
+  | "wheelText"
   | "spinButton"
   | "resultHeading"
   | "resultText";
@@ -39,6 +42,9 @@ function getTextStyleKey(
 
     case "joinRequiredText":
       return "joinRequiredTextStyle";
+
+    case "wheelText":
+      return "wheelTextStyle";
 
     case "spinButton":
       return "spinButtonTextStyle";
@@ -84,9 +90,14 @@ export function getLiveSpinWheelTextStyle(
   }
 
   const data = block.data as any;
-  const styleKey = getTextStyleKey(target);
+  const styleKey =
+    getTextStyleKey(target);
 
-  return data[styleKey] ?? data.style ?? {};
+  return (
+    data[styleKey] ??
+    data.style ??
+    {}
+  );
 }
 
 export function applyLiveSpinWheelTextStylePatch(
@@ -99,12 +110,15 @@ export function applyLiveSpinWheelTextStylePatch(
   }
 
   const data = block.data as any;
-  const styleKey = getTextStyleKey(target);
+  const styleKey =
+    getTextStyleKey(target);
 
   return {
     ...block,
+
     data: {
       ...data,
+
       [styleKey]: {
         ...(data[styleKey] ?? {}),
         ...patch,
@@ -136,7 +150,8 @@ export function getLiveSpinWheelStyle(
     };
   }
 
-  const styleKey = getStyleKey(target);
+  const styleKey =
+    getStyleKey(target);
 
   return data[styleKey] ?? {};
 }
@@ -155,12 +170,15 @@ export function applyLiveSpinWheelStylePatch(
   if (target === "block") {
     return {
       ...block,
+
       appearance: {
         ...(block.appearance ?? {}),
         ...patch,
       },
+
       data: {
         ...data,
+
         style: {
           ...(data.style ?? {}),
           ...patch,
@@ -169,12 +187,15 @@ export function applyLiveSpinWheelStylePatch(
     };
   }
 
-  const styleKey = getStyleKey(target);
+  const styleKey =
+    getStyleKey(target);
 
   return {
     ...block,
+
     data: {
       ...data,
+
       [styleKey]: {
         ...(data[styleKey] ?? {}),
         ...patch,
