@@ -480,8 +480,8 @@ const nextRotation =
     segmentSize / 2;
 
 const radians =
-  (angle * Math.PI) / 180;
-
+  ((angle - 60) * Math.PI) / 180;
+  
   const radius = 26;
 
   const x =
