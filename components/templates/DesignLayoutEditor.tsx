@@ -17847,6 +17847,85 @@ pageSurfaceStyle={{
 
 {!isMultiSelection &&
 selectedBlock &&
+[
+  "live_join",
+  "live_trivia",
+  "live_poll",
+  "live_player_card",
+  "live_schedule",
+  "live_song_request",
+  "live_spin_wheel",
+  "live_scavenger_hunt",
+  "live_lottery",
+  "live_leaderboard",
+  "live_mystery_drop",
+  "live_announcement",
+].includes(selectedBlock.type) ? (
+  <div className={inspectorCardClass()}>
+    <div className={inspectorLabelClass()}>
+      Live Experience
+    </div>
+
+    <div className="mt-2 text-xs leading-5 text-neutral-500">
+      Live Experience blocks add real-time,
+      interactive features that participants can
+      use together on your published microsite.
+    </div>
+
+    <div className="mt-4 rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
+      <div className="text-xs font-semibold text-neutral-800">
+        How it works
+      </div>
+
+      <div className="mt-2 space-y-2 text-xs leading-5 text-neutral-600">
+        <p>
+          Add and design Live blocks here just
+          like other microsite blocks.
+        </p>
+
+        <p>
+          Participants enter through the{" "}
+          <span className="font-semibold text-neutral-800">
+            Join Experience
+          </span>{" "}
+          block, which connects them to the
+          shared Live Experience.
+        </p>
+
+        <p>
+          Use{" "}
+          <span className="font-semibold text-neutral-800">
+            Live Manager
+          </span>{" "}
+          to prepare and manage interactive
+          activities.
+        </p>
+
+        <p>
+          Use{" "}
+          <span className="font-semibold text-neutral-800">
+            Host Control
+          </span>{" "}
+          during the experience to control live
+          activity and participant interactions.
+        </p>
+      </div>
+    </div>
+
+    <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-3 text-xs leading-5 text-amber-900">
+      <span className="font-semibold">
+        Builder preview:
+      </span>{" "}
+      Live blocks may show sample or placeholder
+      information while you design. Participant
+      and event data appears on the published
+      microsite during the Live Experience.
+    </div>
+  </div>
+) : null}
+
+{!isMultiSelection &&
+selectedBlock &&
 selectedBlock.type !== "content_panel" ? (
   (() => {
     const slideshowPanels = draft.blocks.filter(
