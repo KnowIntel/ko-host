@@ -1,10 +1,16 @@
+// components\live\LiveJoinExperience.tsx
+
 "use client";
 
 import {
+  useEffect,
   useState,
   type CSSProperties,
+  type ChangeEvent,
   type FormEvent,
 } from "react";
+
+import { uploadImage } from "@/lib/uploadImage";
 
 import { useLiveRuntime } from "@/components/live/LiveRuntimeContext";
 
@@ -65,18 +71,151 @@ const {
   const [displayName, setDisplayName] =
     useState("");
 
-  async function handleSubmit(
-    event: FormEvent<HTMLFormElement>,
-  ) {
-    event.preventDefault();
+const [avatarFile, setAvatarFile] =
+  useState<File | null>(null);
+
+const [avatarPreviewUrl, setAvatarPreviewUrl] =
+  useState<string | null>(null);
+
+const [avatarUploading, setAvatarUploading] =
+  useState(false);
+
+const [avatarError, setAvatarError] =
+  useState<string | null>(null);
+
+  useEffect(() => {
+  return () => {
+    if (avatarPreviewUrl) {
+      URL.revokeObjectURL(
+        avatarPreviewUrl,
+      );
+    }
+  };
+}, [avatarPreviewUrl]);
+
+function handleAvatarChange(
+  event: ChangeEvent<HTMLInputElement>,
+) {
+  const file =
+    event.target.files?.[0] ?? null;
+
+  setAvatarError(null);
+
+  if (!file) {
+    return;
+  }
+
+  if (!file.type.startsWith("image/")) {
+    setAvatarError(
+      "Please choose an image file.",
+    );
+
+    event.target.value = "";
+    return;
+  }
+
+  if (file.size > 10 * 1024 * 1024) {
+    setAvatarError(
+      "Avatar image must be 10MB or smaller.",
+    );
+
+    event.target.value = "";
+    return;
+  }
+
+  const previewUrl =
+    URL.createObjectURL(file);
+
+  setAvatarFile(file);
+
+  setAvatarPreviewUrl(
+    (currentPreviewUrl) => {
+      if (currentPreviewUrl) {
+        URL.revokeObjectURL(
+          currentPreviewUrl,
+        );
+      }
+
+      return previewUrl;
+    },
+  );
+
+  event.target.value = "";
+}
+
+function handleRemoveAvatar() {
+  setAvatarFile(null);
+  setAvatarError(null);
+
+  setAvatarPreviewUrl(
+    (currentPreviewUrl) => {
+      if (currentPreviewUrl) {
+        URL.revokeObjectURL(
+          currentPreviewUrl,
+        );
+      }
+
+      return null;
+    },
+  );
+}
+
+async function handleSubmit(
+  event: FormEvent<HTMLFormElement>,
+) {
+  event.preventDefault();
+
+  setAvatarError(null);
+
+  try {
+    let avatarUrl: string | null = null;
+
+    if (avatarFile) {
+      setAvatarUploading(true);
+
+      const uploaded =
+        await uploadImage(avatarFile);
+
+      avatarUrl = uploaded.url;
+    }
 
     const joined =
-      await joinExperience(displayName);
+      await joinExperience(
+        displayName,
+        avatarUrl,
+      );
 
-    if (joined) {
-      setDisplayName("");
+    if (!joined) {
+      return;
     }
+
+    setDisplayName("");
+    setAvatarFile(null);
+
+    setAvatarPreviewUrl(
+      (currentPreviewUrl) => {
+        if (currentPreviewUrl) {
+          URL.revokeObjectURL(
+            currentPreviewUrl,
+          );
+        }
+
+        return null;
+      },
+    );
+  } catch (error) {
+    console.error(
+      "Live avatar upload failed:",
+      error,
+    );
+
+    setAvatarError(
+      "Unable to upload your avatar. Please try again.",
+    );
+  } finally {
+    setAvatarUploading(false);
   }
+}
 
   if (!experience) {
     return null;
@@ -176,7 +315,7 @@ return (
         value={displayName}
         maxLength={50}
         autoComplete="off"
-        disabled={joining}
+        disabled={joining || avatarUploading}
         onChange={(event) =>
           setDisplayName(event.target.value)
         }
@@ -188,6 +327,75 @@ return (
         }}
       />
 
+      <div className="mt-3">
+        <div className="mb-2 text-sm font-medium">
+          Player avatar{" "}
+          <span className="font-normal opacity-60">
+            (optional)
+          </span>
+        </div>
+
+        {avatarPreviewUrl ? (
+          <div className="flex items-center gap-3">
+            <img
+              src={avatarPreviewUrl}
+              alt="Avatar preview"
+              className="h-16 w-16 rounded-full object-cover"
+            />
+
+            <div className="flex flex-wrap gap-2">
+              <label className="cursor-pointer rounded-lg border border-current/20 px-3 py-2 text-sm">
+                Replace
+
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  disabled={
+                    joining ||
+                    avatarUploading
+                  }
+                  onChange={handleAvatarChange}
+                />
+              </label>
+
+              <button
+                type="button"
+                disabled={
+                  joining ||
+                  avatarUploading
+                }
+                onClick={handleRemoveAvatar}
+                className="rounded-lg border border-current/20 px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+        ) : (
+          <label className="inline-flex cursor-pointer items-center rounded-lg border border-current/20 px-3 py-2 text-sm">
+            Upload avatar
+
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              disabled={
+                joining ||
+                avatarUploading
+              }
+              onChange={handleAvatarChange}
+            />
+          </label>
+        )}
+
+        {avatarError ? (
+          <div className="mt-2 text-sm text-red-600">
+            {avatarError}
+          </div>
+        ) : null}
+      </div>
+
       {joinError ? (
         <div className="mt-2 text-sm text-red-600">
           {joinError}
@@ -198,6 +406,7 @@ return (
         type="submit"
         disabled={
           joining ||
+          avatarUploading ||
           !displayName.trim()
         }
         className="mt-3 w-full rounded-lg bg-black px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
@@ -206,9 +415,11 @@ return (
           ...(joinButtonTextStyle ?? {}),
         }}
       >
-        {joining
-          ? "Joining..."
-          : joinButtonLabel}
+        {avatarUploading
+          ? "Uploading avatar..."
+          : joining
+            ? "Joining..."
+            : joinButtonLabel}
       </button>
     </form>
   </div>

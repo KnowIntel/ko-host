@@ -1,3 +1,5 @@
+//  app\api\live\[experienceId]\session\route.ts
+
 import { NextRequest, NextResponse } from "next/server";
 
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";

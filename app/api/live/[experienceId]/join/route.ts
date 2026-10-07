@@ -1,3 +1,6 @@
+// app\api\live\[experienceId]\join\route.ts
+
+
 import { NextRequest, NextResponse } from "next/server";
 
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
@@ -22,6 +25,31 @@ function normalizeDisplayName(value: unknown) {
     .trim()
     .replace(/\s+/g, " ")
     .slice(0, MAX_DISPLAY_NAME_LENGTH);
+}
+
+function normalizeAvatarUrl(
+  value: unknown,
+): string | null {
+  const avatarUrl = String(value ?? "").trim();
+
+  if (!avatarUrl) {
+    return null;
+  }
+
+  try {
+    const parsed = new URL(avatarUrl);
+
+    if (
+      parsed.protocol !== "https:" &&
+      parsed.protocol !== "http:"
+    ) {
+      return null;
+    }
+
+    return avatarUrl.slice(0, 2000);
+  } catch {
+    return null;
+  }
 }
 
 export async function POST(
@@ -55,11 +83,15 @@ export async function POST(
       );
     }
 
-    const body = await request.json().catch(() => null);
+const body = await request.json().catch(() => null);
 
-    const displayName = normalizeDisplayName(
-      body?.displayName,
-    );
+const displayName = normalizeDisplayName(
+  body?.displayName,
+);
+
+const avatarUrl = normalizeAvatarUrl(
+  body?.avatarUrl,
+);
 
     if (!displayName) {
       return NextResponse.json(
@@ -157,11 +189,12 @@ export async function POST(
       error: participantError,
     } = await supabase
       .from("live_participants")
-      .insert({
-        experience_id: safeExperienceId,
-        display_name: displayName,
-        status: "active",
-      })
+.insert({
+  experience_id: safeExperienceId,
+  display_name: displayName,
+  avatar_url: avatarUrl,
+  status: "active",
+})
       .select(
         "id, experience_id, display_name, avatar_url, status, joined_at",
       )

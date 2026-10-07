@@ -73,9 +73,10 @@ type LiveRuntimeValue = {
 
   joinError: string | null;
 
-  joinExperience: (
-    displayName: string,
-  ) => Promise<boolean>;
+joinExperience: (
+  displayName: string,
+  avatarUrl?: string | null,
+) => Promise<boolean>;
 
   leaveExperience: () => Promise<boolean>;
 
@@ -326,10 +327,11 @@ export function LiveRuntimeProvider({
     [liveExperience],
   );
 
-  const joinExperience = useCallback(
-    async (
-      displayName: string,
-    ): Promise<boolean> => {
+const joinExperience = useCallback(
+  async (
+    displayName: string,
+    avatarUrl?: string | null,
+  ): Promise<boolean> => {
       if (!liveExperience?.id) {
         setJoinError(
           "This Live experience is not available.",
@@ -368,9 +370,14 @@ export function LiveRuntimeProvider({
                 "application/json",
             },
 
-            body: JSON.stringify({
-              displayName: safeDisplayName,
-            }),
+body: JSON.stringify({
+  displayName: safeDisplayName,
+  avatarUrl:
+    typeof avatarUrl === "string" &&
+    avatarUrl.trim()
+      ? avatarUrl.trim()
+      : null,
+}),
           },
         );
 

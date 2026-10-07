@@ -1,3 +1,5 @@
+// app\api\live\[experienceId]\player-card\route.ts
+
 import { NextResponse } from "next/server";
 
 import { authenticateLiveParticipant } from "@/lib/live/authenticateParticipant";

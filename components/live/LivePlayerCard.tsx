@@ -58,10 +58,9 @@ export default function LivePlayerCard({
     data,
     loading,
     authenticated,
-  } =
-    useLiveEndpoint<Response>(
-      "player-card",
-    );
+  } = useLiveEndpoint<Response>(
+    "player-card",
+  );
 
   if (!authenticated) {
     return (
@@ -89,10 +88,21 @@ export default function LivePlayerCard({
     return null;
   }
 
+  const avatarUrl =
+    typeof participant.avatarUrl ===
+      "string" &&
+    participant.avatarUrl.trim()
+      ? participant.avatarUrl.trim()
+      : null;
+
+  const avatarFallback =
+    participant.displayName
+      .trim()
+      .slice(0, 1)
+      .toUpperCase();
+
   return (
-    <div
-      className="h-full w-full overflow-auto p-4"
-    >
+    <div className="h-full w-full overflow-auto p-4">
       <div
         className="mx-auto w-full max-w-md p-4"
         style={cardStyle}
@@ -106,21 +116,20 @@ export default function LivePlayerCard({
 
         <div className="mt-4 flex items-center gap-4">
           {showAvatar ? (
-            participant.avatarUrl ? (
+            avatarUrl ? (
               <img
-                src={participant.avatarUrl}
-                alt=""
-                className="shrink-0 object-cover"
+                src={avatarUrl}
+                alt={`${participant.displayName} avatar`}
+                className="h-14 w-14 shrink-0 rounded-full object-cover"
                 style={avatarStyle}
               />
             ) : (
               <div
                 className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border text-xl font-semibold"
                 style={avatarStyle}
+                aria-label={`${participant.displayName} avatar`}
               >
-                {participant.displayName
-                  .slice(0, 1)
-                  .toUpperCase()}
+                {avatarFallback}
               </div>
             )
           ) : null}
