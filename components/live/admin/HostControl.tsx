@@ -1316,7 +1316,7 @@ export default function HostControl({
 </div>
       </div>
 
-            {/* ANNOUNCEMENTS */}
+      {/* ANNOUNCEMENTS */}
       <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
@@ -1325,82 +1325,201 @@ export default function HostControl({
             </h2>
 
             <p className="mt-1 text-sm text-neutral-600">
-              Publish prepared announcements to participants.
+              Create and publish announcements
+              to participants.
             </p>
           </div>
 
           <div className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold">
-            {data.operations.announcements.length}
+            {
+              data.operations.announcements
+                .length
+            }
           </div>
         </div>
 
-        <div className="mt-5 space-y-3">
-          {data.operations.announcements.length === 0 ? (
-            <div className="rounded-xl bg-neutral-50 p-4 text-sm text-neutral-500">
-              No announcements.
+        {/* CREATE ANNOUNCEMENT */}
+        <form
+          className="mt-5 rounded-xl border border-neutral-200 bg-neutral-50 p-4"
+          onSubmit={(event) => {
+            event.preventDefault();
+
+            const form =
+              event.currentTarget;
+
+            const formData =
+              new FormData(form);
+
+            const title = String(
+              formData.get(
+                "announcementTitle",
+              ) ?? "",
+            ).trim();
+
+            const announcementMessage =
+              String(
+                formData.get(
+                  "announcementMessage",
+                ) ?? "",
+              ).trim();
+
+            if (!announcementMessage) {
+              return;
+            }
+
+            void runHostAction(
+              "create_announcement",
+              {
+                title,
+                message:
+                  announcementMessage,
+              },
+              "Announcement created.",
+            ).then((result) => {
+              if (result) {
+                form.reset();
+              }
+            });
+          }}
+        >
+          <div className="text-sm font-semibold">
+            Add Announcement
+          </div>
+
+          <div className="mt-3 grid gap-3">
+            <input
+              name="announcementTitle"
+              type="text"
+              maxLength={200}
+              placeholder="Title (optional)"
+              className="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm outline-none focus:border-neutral-500"
+            />
+
+            <textarea
+              name="announcementMessage"
+              required
+              maxLength={2000}
+              rows={4}
+              placeholder="Announcement message"
+              className="w-full resize-y rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm outline-none focus:border-neutral-500"
+            />
+
+            <div>
+              <button
+                type="submit"
+                disabled={
+                  changingHostAction !== null
+                }
+                className="rounded-lg bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                {changingHostAction ===
+                "create_announcement"
+                  ? "Adding..."
+                  : "Add Announcement"}
+              </button>
             </div>
-          ) : (
-            data.operations.announcements.map(
-              (announcement) => (
-                <div
-                  key={announcement.id}
-                  className="rounded-xl border border-neutral-200 p-4"
-                >
-                  <div className="flex flex-wrap items-start justify-between gap-4">
-                    <div className="min-w-0 flex-1">
-                      <div className="font-medium">
-                        {announcement.title}
-                      </div>
+          </div>
+        </form>
 
-                      <div className="mt-1 text-sm text-neutral-600">
-                        {announcement.message}
-                      </div>
+        {/* PREPARED ANNOUNCEMENTS */}
+        <div className="mt-5">
+          <div className="mb-3 text-sm font-semibold">
+            Prepared Announcements
+          </div>
 
-                      <div className="mt-2 text-xs text-neutral-500">
-                        Status:{" "}
-                        <span className="font-medium capitalize">
-                          {announcement.status}
-                        </span>
-                      </div>
-                    </div>
+          <div className="space-y-3">
+            {data.operations.announcements
+              .length === 0 ? (
+              <div className="rounded-xl bg-neutral-50 p-4 text-sm text-neutral-500">
+                No announcements.
+              </div>
+            ) : (
+              data.operations.announcements.map(
+                (announcement) => (
+                  <div
+                    key={announcement.id}
+                    className="rounded-xl border border-neutral-200 p-4"
+                  >
+                    <div className="flex flex-wrap items-start justify-between gap-4">
+                      <div className="min-w-0 flex-1">
+                        {announcement.title ? (
+                          <div className="font-medium">
+                            {
+                              announcement.title
+                            }
+                          </div>
+                        ) : null}
 
-                    <button
-                      type="button"
-                      disabled={
-                        changingHostAction !== null ||
-                        announcement.status ===
-                          "published"
-                      }
-                      onClick={() => {
-                        void runHostAction(
-                          "publish_announcement",
+                        <div
+                          className={
+                            announcement.title
+                              ? "mt-1 text-sm text-neutral-600"
+                              : "text-sm text-neutral-600"
+                          }
+                        >
                           {
-                            announcementId:
-                              announcement.id,
-                          },
-                          "Announcement published.",
-                        );
-                      }}
-                      className={
-                        announcement.status ===
-                        "published"
-                          ? "rounded-xl bg-black px-4 py-2 text-sm font-semibold text-white"
-                          : "rounded-xl border border-neutral-300 px-4 py-2 text-sm font-semibold hover:bg-neutral-50 disabled:opacity-40"
-                      }
-                    >
-                      {changingHostAction ===
-                        "publish_announcement"
-                        ? "Publishing..."
-                        : announcement.status ===
+                            announcement.message
+                          }
+                        </div>
+
+                        <div className="mt-2 text-xs text-neutral-500">
+                          Status:{" "}
+                          <span className="font-medium capitalize">
+                            {
+                              announcement.status
+                            }
+                          </span>
+                        </div>
+
+                        {announcement.publishedAt ? (
+                          <div className="mt-1 text-xs text-neutral-500">
+                            Published{" "}
+                            {new Date(
+                              announcement.publishedAt,
+                            ).toLocaleString()}
+                          </div>
+                        ) : null}
+                      </div>
+
+                      <button
+                        type="button"
+                        disabled={
+                          changingHostAction !==
+                            null ||
+                          announcement.status ===
                             "published"
-                          ? "Published"
-                          : "Publish"}
-                    </button>
+                        }
+                        onClick={() => {
+                          void runHostAction(
+                            "publish_announcement",
+                            {
+                              announcementId:
+                                announcement.id,
+                            },
+                            "Announcement published.",
+                          );
+                        }}
+                        className={
+                          announcement.status ===
+                          "published"
+                            ? "rounded-xl bg-black px-4 py-2 text-sm font-semibold text-white"
+                            : "rounded-xl border border-neutral-300 px-4 py-2 text-sm font-semibold hover:bg-neutral-50 disabled:opacity-40"
+                        }
+                      >
+                        {changingHostAction ===
+                        "publish_announcement"
+                          ? "Publishing..."
+                          : announcement.status ===
+                              "published"
+                            ? "Published"
+                            : "Publish"}
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ),
-            )
-          )}
+                ),
+              )
+            )}
+          </div>
         </div>
       </div>
 

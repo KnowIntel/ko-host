@@ -1183,6 +1183,121 @@ if (
       });
     }
 
+        /*
+     * ================================================================
+     * ANNOUNCEMENT — CREATE
+     * ================================================================
+     */
+    if (
+      action ===
+      "create_announcement"
+    ) {
+      const title = cleanText(
+        body.title,
+        200,
+      );
+
+      const message = cleanText(
+        body.message,
+        2000,
+      );
+
+      if (!message) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error:
+              "Announcement message is required.",
+          },
+          { status: 400 },
+        );
+      }
+
+      const now =
+        new Date().toISOString();
+
+      const {
+        data: announcement,
+        error: announcementError,
+      } = await sb
+        .from(
+          "live_announcements",
+        )
+        .insert({
+          experience_id:
+            experience.id,
+
+          title:
+            title || null,
+
+          message,
+
+          status: "draft",
+
+          published_at: null,
+
+          created_at: now,
+
+          updated_at: now,
+        })
+        .select(
+          "id, title, message, status, published_at, created_at, updated_at",
+        )
+        .single();
+
+      if (
+        announcementError ||
+        !announcement
+      ) {
+        console.error(
+          "Announcement creation failed:",
+          announcementError,
+        );
+
+        return NextResponse.json(
+          {
+            ok: false,
+            error:
+              "Announcement could not be created.",
+          },
+          { status: 500 },
+        );
+      }
+
+      await broadcastChange(
+        sb,
+        experience.id,
+        currentActivityId,
+      );
+
+      return NextResponse.json({
+        ok: true,
+        action,
+
+        announcement: {
+          id: announcement.id,
+
+          title:
+            announcement.title,
+
+          message:
+            announcement.message,
+
+          status:
+            announcement.status,
+
+          publishedAt:
+            announcement.published_at,
+
+          createdAt:
+            announcement.created_at,
+
+          updatedAt:
+            announcement.updated_at,
+        },
+      });
+    }
+
     /*
      * ================================================================
      * ANNOUNCEMENT — PUBLISH
