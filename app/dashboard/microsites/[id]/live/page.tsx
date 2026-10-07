@@ -90,7 +90,7 @@ export default async function MicrositeLiveManagerPage({
               Ko-Host
             </div>
 
-<h1 className="mt-2 text-xl font-black tracking-tight text-neutral-950">
+<h1 className="mt-2 text-3xl font-black tracking-tight text-neutral-950">
   Live Manager
 </h1>
 

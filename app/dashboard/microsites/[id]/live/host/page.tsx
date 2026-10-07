@@ -90,7 +90,7 @@ export default async function MicrositeHostControlPage({
               Ko-Host
             </div>
 
-<h1 className="mt-2 text-xl font-black tracking-tight text-neutral-950">
+<h1 className="mt-2 text-3xl font-black tracking-tight text-neutral-950">
   Host Control
 </h1>
 
