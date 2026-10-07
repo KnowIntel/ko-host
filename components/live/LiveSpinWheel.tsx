@@ -44,24 +44,24 @@ type Props = {
   spinButtonLabel: string;
   resultHeading: string;
 
-headingStyle?: CSSProperties;
-waitingTextStyle?: CSSProperties;
-joinRequiredTextStyle?: CSSProperties;
-wheelTextStyle?: CSSProperties;
-spinButtonTextStyle?: CSSProperties;
-resultHeadingStyle?: CSSProperties;
-resultTextStyle?: CSSProperties;
+  headingStyle?: CSSProperties;
+  waitingTextStyle?: CSSProperties;
+  joinRequiredTextStyle?: CSSProperties;
+  wheelTextStyle?: CSSProperties;
+  spinButtonTextStyle?: CSSProperties;
+  resultHeadingStyle?: CSSProperties;
+  resultTextStyle?: CSSProperties;
 
-wheelStyle?: CSSProperties;
-spinButtonStyle?: CSSProperties;
-resultStyle?: CSSProperties;
+  wheelStyle?: CSSProperties;
+  spinButtonStyle?: CSSProperties;
+  resultStyle?: CSSProperties;
 
-wheelColor1?: string;
-wheelColor2?: string;
-wheelColor3?: string;
-wheelColor4?: string;
-wheelColor5?: string;
-wheelColor6?: string;
+  wheelColor1?: string;
+  wheelColor2?: string;
+  wheelColor3?: string;
+  wheelColor4?: string;
+  wheelColor5?: string;
+  wheelColor6?: string;
 };
 
 export default function LiveSpinWheel({
@@ -70,32 +70,34 @@ export default function LiveSpinWheel({
   joinRequiredText,
   spinButtonLabel,
   resultHeading,
+
   headingStyle,
   waitingTextStyle,
-joinRequiredTextStyle,
-wheelTextStyle,
-spinButtonTextStyle,
-resultHeadingStyle,
-resultTextStyle,
-wheelStyle,
-spinButtonStyle,
-resultStyle,
-wheelColor1,
-wheelColor2,
-wheelColor3,
-wheelColor4,
-wheelColor5,
-wheelColor6,
+  joinRequiredTextStyle,
+  wheelTextStyle,
+  spinButtonTextStyle,
+  resultHeadingStyle,
+  resultTextStyle,
+
+  wheelStyle,
+  spinButtonStyle,
+  resultStyle,
+
+  wheelColor1,
+  wheelColor2,
+  wheelColor3,
+  wheelColor4,
+  wheelColor5,
+  wheelColor6,
 }: Props) {
   const {
     data,
     authenticated,
     experienceId,
     refresh,
-  } =
-    useLiveEndpoint<Response>(
-      "spin-wheel",
-    );
+  } = useLiveEndpoint<Response>(
+    "spin-wheel",
+  );
 
   const [spinning, setSpinning] =
     useState(false);
@@ -103,84 +105,164 @@ wheelColor6,
   const [rotation, setRotation] =
     useState(0);
 
-  const [visibleResult, setVisibleResult] =
-    useState<SpinResult | null>(null);
+  const [
+    visibleResult,
+    setVisibleResult,
+  ] = useState<SpinResult | null>(
+    null,
+  );
 
   const [error, setError] =
     useState("");
 
   const lastSpin =
     visibleResult ??
-    data?.participantState
-      ?.lastSpin ??
+    data?.participantState?.lastSpin ??
     null;
 
-  const options =
-    useMemo(
-      () =>
-        data?.activity?.options ??
-        [],
-      [data?.activity?.options],
-    );
+  const options = useMemo(
+    () =>
+      data?.activity?.options ?? [],
+    [data?.activity?.options],
+  );
 
   /*
-   * Create equal visual segments.
+   * ================================================================
+   * WHEEL GEOMETRY
+   * ================================================================
    *
-   * The colors are intentionally generated
-   * rather than tied to the result logic.
-   * The server remains authoritative.
+   * The Live Spin Wheel uses the same SVG geometry approach as the
+   * standard Spin Wheel.
+   *
+   * Segments and labels share the same SVG coordinate system so the
+   * labels remain centered correctly regardless of the number of
+   * configured options.
    */
-  const wheelBackground =
-    useMemo(() => {
-      if (options.length === 0) {
-        return undefined;
-      }
 
-      const segmentSize =
-        360 / options.length;
+  const wheelSize = 240;
+  const wheelCenter =
+    wheelSize / 2;
+  const wheelRadius = 112;
 
-const segmentColors = [
-  wheelColor1 || "#111827",
-  wheelColor2 || "#e5e7eb",
-  wheelColor3 || "#9ca3af",
-  wheelColor4 || "#f3f4f6",
-  wheelColor5 || "#4b5563",
-  wheelColor6 || "#d1d5db",
-];
+  const anglePerOption =
+    options.length > 0
+      ? 360 / options.length
+      : 360;
 
-      const segments =
-        options.map(
-          (_, index) => {
-            const start =
-              index *
-              segmentSize;
+  const polarToCartesian = (
+    angle: number,
+  ) => {
+    const radians =
+      ((angle - 90) *
+        Math.PI) /
+      180;
 
-            const end =
-              start +
-              segmentSize;
+    return {
+      x:
+        wheelCenter +
+        wheelRadius *
+          Math.cos(radians),
 
-            const color =
-              segmentColors[
-                index %
-                  segmentColors.length
-              ];
+      y:
+        wheelCenter +
+        wheelRadius *
+          Math.sin(radians),
+    };
+  };
 
-            return `${color} ${start}deg ${end}deg`;
-          },
+  const createSegmentPath = (
+    index: number,
+  ) => {
+    const startAngle =
+      index * anglePerOption;
+
+    const endAngle =
+      startAngle +
+      anglePerOption;
+
+    const start =
+      polarToCartesian(
+        startAngle,
+      );
+
+    const end =
+      polarToCartesian(
+        endAngle,
+      );
+
+    const largeArcFlag =
+      anglePerOption > 180
+        ? 1
+        : 0;
+
+    return [
+      `M ${wheelCenter} ${wheelCenter}`,
+      `L ${start.x} ${start.y}`,
+      `A ${wheelRadius} ${wheelRadius} 0 ${largeArcFlag} 1 ${end.x} ${end.y}`,
+      "Z",
+    ].join(" ");
+  };
+
+  const wrapWheelLabel = (
+    label: string,
+  ) => {
+    const words = String(
+      label || "",
+    )
+      .trim()
+      .split(/\s+/);
+
+    const lines: string[] = [];
+    let currentLine = "";
+
+    words.forEach((word) => {
+      const nextLine =
+        currentLine
+          ? `${currentLine} ${word}`
+          : word;
+
+      if (
+        nextLine.length > 10 &&
+        currentLine
+      ) {
+        lines.push(
+          currentLine,
         );
 
-      return `conic-gradient(from -90deg, ${segments.join(
-        ", ",
-      )})`;
-    }, [
-  options,
-  wheelColor1,
-  wheelColor2,
-  wheelColor3,
-  wheelColor4,
-  wheelColor5,
-  wheelColor6,
-]);
+        currentLine = word;
+      } else {
+        currentLine =
+          nextLine;
+      }
+    });
+
+    if (currentLine) {
+      lines.push(
+        currentLine,
+      );
+    }
+
+    return lines.slice(
+      0,
+      3,
+    );
+  };
+
+  /*
+   * Builder-configured segment colors.
+   *
+   * These affect only the visual wheel. The server remains
+   * authoritative for the selected option and awarded points.
+   */
+
+  const segmentColors = [
+    wheelColor1 || "#111827",
+    wheelColor2 || "#e5e7eb",
+    wheelColor3 || "#9ca3af",
+    wheelColor4 || "#f3f4f6",
+    wheelColor5 || "#4b5563",
+    wheelColor6 || "#d1d5db",
+  ];
 
   async function spin() {
     if (
@@ -197,25 +279,29 @@ const segmentColors = [
 
     try {
       /*
-       * Ask the server for the real result
-       * BEFORE determining where the visual
-       * wheel should stop.
+       * Ask the server for the real result BEFORE determining where
+       * the visual wheel should stop.
        */
-      const response = await fetch(
-        `/api/live/${encodeURIComponent(
-          experienceId,
-        )}/spin-wheel/spin`,
-        {
-          method: "POST",
-          credentials: "include",
-          cache: "no-store",
-        },
-      );
+
+      const response =
+        await fetch(
+          `/api/live/${encodeURIComponent(
+            experienceId,
+          )}/spin-wheel/spin`,
+          {
+            method: "POST",
+            credentials:
+              "include",
+            cache: "no-store",
+          },
+        );
 
       const payload =
         await response
           .json()
-          .catch(() => null);
+          .catch(
+            () => null,
+          );
 
       if (
         !response.ok ||
@@ -226,13 +312,15 @@ const segmentColors = [
             "Unable to spin.",
         );
 
+        setSpinning(false);
+
         return;
       }
 
       /*
-       * Accept the server's authoritative
-       * result.
+       * Accept the server's authoritative result.
        */
+
       const resultSource =
         payload.result ??
         payload.spin ??
@@ -255,13 +343,14 @@ const segmentColors = [
           : -1;
 
       /*
-       * Some endpoint responses may expose
-       * the selected option separately.
+       * Some endpoint responses may expose the selected option
+       * separately.
        */
+
       if (
         winningIndex < 0 &&
-        typeof payload?.option?.id ===
-          "string"
+        typeof payload?.option
+          ?.id === "string"
       ) {
         winningIndex =
           options.findIndex(
@@ -272,10 +361,12 @@ const segmentColors = [
       }
 
       /*
-       * Last-resort label match is only for
-       * locating the server-selected segment.
+       * Last-resort label match is only for locating the
+       * server-selected segment.
+       *
        * It does NOT choose the winner.
        */
+
       if (
         winningIndex < 0 &&
         typeof resultSource?.label ===
@@ -289,25 +380,33 @@ const segmentColors = [
           );
       }
 
-      if (winningIndex < 0) {
+      if (
+        winningIndex < 0
+      ) {
         await refresh();
 
         setError(
           "Spin completed, but the wheel could not display the result.",
         );
 
+        setSpinning(false);
+
         return;
       }
 
       const segmentSize =
-        360 / options.length;
+        360 /
+        options.length;
 
       /*
        * Pointer is fixed at 12 o'clock.
        *
-       * Rotate the center of the winning
-       * segment underneath that pointer.
+       * Keep the existing Live Spin Wheel landing calculation
+       * unchanged for this rendering update. Once static SVG
+       * positioning is verified, pointer/result alignment can be
+       * validated independently.
        */
+
       const winningCenter =
         winningIndex *
           segmentSize +
@@ -318,11 +417,11 @@ const segmentColors = [
           360) %
         360;
 
-const desiredNormalized =
-  (270 -
-    winningCenter +
-    360) %
-  360;
+      const desiredNormalized =
+        (270 -
+          winningCenter +
+          360) %
+        360;
 
       const adjustment =
         (desiredNormalized -
@@ -331,77 +430,87 @@ const desiredNormalized =
         360;
 
       /*
-       * Five complete turns plus the exact
-       * landing adjustment.
+       * Eight complete turns plus the exact landing adjustment.
        */
-const nextRotation =
-  rotation +
-  360 * 8 +
-  adjustment;
+
+      const nextRotation =
+        rotation +
+        360 * 8 +
+        adjustment;
 
       setRotation(
         nextRotation,
       );
 
       /*
-       * Let the wheel finish visually before
-       * revealing the result.
+       * Let the wheel finish visually before revealing the result.
        */
+
       window.setTimeout(
         () => {
-          if (resultSource) {
-            setVisibleResult({
-              optionId:
-                resultSource.optionId ??
-                options[
-                  winningIndex
-                ].id,
+          if (
+            resultSource
+          ) {
+            setVisibleResult(
+              {
+                optionId:
+                  resultSource.optionId ??
+                  options[
+                    winningIndex
+                  ].id,
 
-              label:
-                resultSource.label ??
-                options[
-                  winningIndex
-                ].label,
+                label:
+                  resultSource.label ??
+                  options[
+                    winningIndex
+                  ].label,
 
-              awardedPoints:
-                Number(
-                  resultSource.awardedPoints ??
-                    options[
-                      winningIndex
-                    ].points ??
-                    0,
-                ),
+                awardedPoints:
+                  Number(
+                    resultSource.awardedPoints ??
+                      options[
+                        winningIndex
+                      ].points ??
+                      0,
+                  ),
 
-              spunAt:
-                resultSource.spunAt ??
-                new Date().toISOString(),
-            });
+                spunAt:
+                  resultSource.spunAt ??
+                  new Date().toISOString(),
+              },
+            );
           }
 
-void (async () => {
-  await refresh();
+          void (async () => {
+            await refresh();
 
-  try {
-    await fetch(
-      `/api/live/${encodeURIComponent(
-        experienceId,
-      )}/spin-wheel/refresh`,
-      {
-        method: "POST",
-        credentials: "include",
-        cache: "no-store",
-      },
-    );
-  } catch (refreshError) {
-    console.error(
-      "Spin Wheel Live refresh failed:",
-      refreshError,
-    );
-  }
-})();
+            try {
+              await fetch(
+                `/api/live/${encodeURIComponent(
+                  experienceId,
+                )}/spin-wheel/refresh`,
+                {
+                  method:
+                    "POST",
+                  credentials:
+                    "include",
+                  cache:
+                    "no-store",
+                },
+              );
+            } catch (
+              refreshError
+            ) {
+              console.error(
+                "Spin Wheel Live refresh failed:",
+                refreshError,
+              );
+            }
+          })();
 
-setSpinning(false);
-
+          setSpinning(
+            false,
+          );
         },
         3200,
       );
@@ -423,7 +532,9 @@ setSpinning(false);
     return (
       <div
         className="p-4 text-center"
-        style={joinRequiredTextStyle}
+        style={
+          joinRequiredTextStyle
+        }
       >
         {joinRequiredText}
       </div>
@@ -434,7 +545,9 @@ setSpinning(false);
     return (
       <div
         className="p-4 text-center"
-        style={waitingTextStyle}
+        style={
+          waitingTextStyle
+        }
       >
         {waitingText}
       </div>
@@ -442,11 +555,12 @@ setSpinning(false);
   }
 
   const spins =
-    data.participantState?.spins ??
-    [];
+    data.participantState
+      ?.spins ?? [];
 
   const canSpin =
-    data.activity.allowMultipleSpins ||
+    data.activity
+      .allowMultipleSpins ||
     spins.length === 0;
 
   return (
@@ -475,14 +589,16 @@ setSpinning(false);
           />
         </div>
 
+        {/*
+         * Rotate the complete SVG.
+         *
+         * Because both the segment paths and their text live inside
+         * this SVG, labels remain attached to the correct segments
+         * throughout the animation.
+         */}
         <div
-          className="relative aspect-square w-full overflow-hidden rounded-full border-4 border-neutral-900 shadow-md"
+          className="relative aspect-square w-full"
           style={{
-            ...wheelStyle,
-
-            background:
-              wheelBackground,
-
             transform: `rotate(${rotation}deg)`,
 
             transition:
@@ -491,84 +607,179 @@ setSpinning(false);
                 : "none",
           }}
         >
-{/* SEGMENT LABELS */}
-{options.map((option, index) => {
-  const segmentSize =
-    360 / options.length;
+          <svg
+            viewBox={`0 0 ${wheelSize} ${wheelSize}`}
+            className="h-full w-full overflow-hidden rounded-full border-4 border-neutral-900 shadow-md"
+            style={
+              wheelStyle
+            }
+          >
+            {options.map(
+              (
+                option,
+                index,
+              ) => {
+                /*
+                 * Use the same angular midpoint for both the segment
+                 * and its label.
+                 */
 
-  /*
-   * The conic-gradient begins at -90deg,
-   * which places the first segment at
-   * 12 o'clock.
-   *
-   * Position every label at the true
-   * angular center of its segment using
-   * that same coordinate system.
-   */
-  const segmentCenter =
-    index * segmentSize +
-    segmentSize / 2;
+                const midAngle =
+                  index *
+                    anglePerOption +
+                  anglePerOption /
+                    2;
 
-  const radians =
-    ((segmentCenter - 90) *
-      Math.PI) /
-    180;
+                const textPoint =
+                  polarToCartesian(
+                    midAngle,
+                  );
 
-  /*
-   * Keep the label approximately halfway
-   * between the center hub and the outer
-   * edge of the wheel.
-   */
-  const radius = 30;
+                /*
+                 * Place the label halfway between the wheel center
+                 * and the outer point at the segment's midpoint.
+                 *
+                 * This is the proven positioning method used by the
+                 * standard Spin Wheel.
+                 */
 
-  const x =
-    50 +
-    Math.cos(radians) *
-      radius;
+                const textX =
+                  (wheelCenter +
+                    textPoint.x) /
+                  2;
 
-  const y =
-    50 +
-    Math.sin(radians) *
-      radius;
+                const textY =
+                  (wheelCenter +
+                    textPoint.y) /
+                  2;
 
-  /*
-   * Give narrower slices slightly less
-   * horizontal room so longer labels wrap
-   * instead of spilling into neighboring
-   * segments.
-   */
-  const labelWidth =
-    options.length <= 4
-      ? 92
-      : options.length === 5
-        ? 78
-        : options.length === 6
-          ? 68
-          : 60;
+                const segmentColor =
+                  segmentColors[
+                    index %
+                      segmentColors.length
+                  ];
 
-  return (
-    <div
-      key={option.id}
-      className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 text-center text-xs font-bold leading-tight"
-      style={{
-        ...wheelTextStyle,
-        left: `${x}%`,
-        top: `${y}%`,
-        width: `${labelWidth}px`,
-        maxWidth: `${labelWidth}px`,
-        overflowWrap: "break-word",
-        transform: `translate(-50%, -50%) rotate(${-rotation}deg)`,
-      }}
-    >
-      {option.label}
-    </div>
-  );
-})}
+                const labelLines =
+                  wrapWheelLabel(
+                    option.label,
+                  );
 
-          {/* CENTER HUB */}
-          <div className="absolute left-1/2 top-1/2 z-10 flex h-12 w-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-4 border-neutral-900 bg-white shadow-sm">
-            <div className="h-3 w-3 rounded-full bg-neutral-900" />
-          </div>
+                return (
+                  <g
+                    key={
+                      option.id ??
+                      index
+                    }
+                  >
+                    <path
+                      d={createSegmentPath(
+                        index,
+                      )}
+                      fill={
+                        segmentColor
+                      }
+                      stroke="#FFFFFF"
+                      strokeWidth="2"
+                    />
+
+                    <text
+                      x={textX}
+                      y={textY}
+                      fill={
+                        typeof wheelTextStyle
+                          ?.color ===
+                        "string"
+                          ? wheelTextStyle.color
+                          : "#FFFFFF"
+                      }
+                      fontSize={
+                        typeof wheelTextStyle
+                          ?.fontSize ===
+                        "number"
+                          ? wheelTextStyle.fontSize
+                          : typeof wheelTextStyle
+                                ?.fontSize ===
+                              "string"
+                            ? wheelTextStyle.fontSize
+                            : 12
+                      }
+                      fontWeight={
+                        wheelTextStyle
+                          ?.fontWeight ??
+                        "700"
+                      }
+                      fontStyle={
+                        wheelTextStyle
+                          ?.fontStyle
+                      }
+                      fontFamily={
+                        wheelTextStyle
+                          ?.fontFamily
+                      }
+                      textAnchor="middle"
+                      dominantBaseline="middle"
+                      transform={`rotate(${midAngle}, ${textX}, ${textY})`}
+                    >
+                      {labelLines.map(
+                        (
+                          line,
+                          lineIndex,
+                        ) => (
+                          <tspan
+                            key={`${option.id}_${lineIndex}`}
+                            x={
+                              textX
+                            }
+                            dy={
+                              lineIndex ===
+                              0
+                                ? `${
+                                    -(
+                                      labelLines.length -
+                                      1
+                                    ) *
+                                    6
+                                  }`
+                                : "12"
+                            }
+                          >
+                            {
+                              line
+                            }
+                          </tspan>
+                        ),
+                      )}
+                    </text>
+                  </g>
+                );
+              },
+            )}
+
+            {/* CENTER HUB */}
+            <circle
+              cx={
+                wheelCenter
+              }
+              cy={
+                wheelCenter
+              }
+              r="28"
+              fill="#FFFFFF"
+              stroke="#111827"
+              strokeWidth="4"
+            />
+
+            <circle
+              cx={
+                wheelCenter
+              }
+              cy={
+                wheelCenter
+              }
+              r="12"
+              fill="#111827"
+            />
+          </svg>
         </div>
       </div>
 
@@ -592,20 +803,27 @@ setSpinning(false);
           : spinButtonLabel}
       </button>
 
-      {lastSpin && !spinning ? (
+      {lastSpin &&
+      !spinning ? (
         <div
           className="mt-4 p-3"
-          style={resultStyle}
+          style={
+            resultStyle
+          }
         >
           <div
             className="font-semibold"
-            style={resultHeadingStyle}
+            style={
+              resultHeadingStyle
+            }
           >
             {resultHeading}
           </div>
 
           <div
-            style={resultTextStyle}
+            style={
+              resultTextStyle
+            }
           >
             {lastSpin.label}
 
