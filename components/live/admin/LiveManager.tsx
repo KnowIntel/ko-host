@@ -800,15 +800,24 @@ async function activateActivity() {
   const activityType =
     selectedActivity.activityType;
 
-  let nextState: Record<
-    string,
-    unknown
-  > = {};
+const isUpdatingCurrentActivity =
+  sharedState.currentActivityId ===
+    selectedActivity.id &&
+  sharedState.currentActivityType ===
+    activityType;
 
-  if (
-    activityType === "trivia" ||
-    activityType === "poll"
-  ) {
+let nextState: Record<
+  string,
+  unknown
+> = isUpdatingCurrentActivity
+  ? { ...sharedState.state }
+  : {};
+
+if (
+  !isUpdatingCurrentActivity &&
+  (activityType === "trivia" ||
+    activityType === "poll")
+) {
     const activityQuestions =
       normalizeQuestions(
         selectedActivity,
@@ -2556,64 +2565,55 @@ currentActivityType:
                             <label className="text-xs text-neutral-600">
                               Points{" "}
 
-                              <input
-                                type="number"
-                                min={
-                                  0
-                                }
-                                max={
-                                  100000
-                                }
-                                value={
-                                  drop.points
-                                }
-                                onChange={(
-                                  event,
-                                ) =>
-                                  updateSelectedActivity(
-                                    (
-                                      activity,
-                                    ) => ({
-                                      ...activity,
+<input
+  type="number"
+  min={0}
+  max={100000}
+  value={
+    drop.points === 0
+      ? ""
+      : drop.points
+  }
+  placeholder="100"
+  onChange={(event) => {
+    const value =
+      event.target.value;
 
-                                      configuration:
-                                        {
-                                          ...activity.configuration,
+    updateSelectedActivity(
+      (activity) => ({
+        ...activity,
 
-                                          drops:
-                                            normalizeMysteryDrops(
-                                              activity,
-                                            ).map(
-                                              (
-                                                current,
-                                              ) =>
-                                                current.id ===
-                                                drop.id
-                                                  ? {
-                                                      ...current,
+        configuration: {
+          ...activity.configuration,
 
-                                                      points:
-                                                        Math.max(
-                                                          0,
-                                                          Math.min(
-                                                            100000,
-                                                            Number(
-                                                              event
-                                                                .target
-                                                                .value,
-                                                            ) ||
-                                                              0,
-                                                          ),
-                                                        ),
-                                                    }
-                                                  : current,
-                                            ),
-                                        },
-                                    }),
-                                  )
-                                }
-                                className="ml-2 w-24 rounded-xl border border-neutral-300 px-3 py-2"
-                              />
+          drops:
+            normalizeMysteryDrops(
+              activity,
+            ).map((current) =>
+              current.id === drop.id
+                ? {
+                    ...current,
+
+                    points:
+                      value === ""
+                        ? 0
+                        : Math.max(
+                            0,
+                            Math.min(
+                              100000,
+                              Number(value) ||
+                                0,
+                            ),
+                          ),
+                  }
+                : current,
+            ),
+        },
+      }),
+    );
+  }}
+  className="ml-2 w-24 rounded-xl border border-neutral-300 px-3 py-2"
+/>
                             </label>
 
                             <button
