@@ -72,6 +72,10 @@ export function ButtonInspector({
     styleType ===
     "media_circle";
 
+const isReveal =
+  styleType ===
+  "reveal";
+
 const iconTools = useMemo(
   () =>
     (CATEGORY_BUTTONS.ICONS ?? []).filter(
@@ -178,11 +182,12 @@ const iconTools = useMemo(
     onChange={(e) =>
       patchButtonData({
         styleType:
-          e.target.value as
-            | "solid"
-            | "outline"
-            | "soft"
-            | "media_circle",
+e.target.value as
+  | "solid"
+  | "outline"
+  | "soft"
+  | "media_circle"
+  | "reveal",
       })
     }
     className={
@@ -204,6 +209,9 @@ const iconTools = useMemo(
     <option value="media_circle">
       Media Circle
     </option>
+    <option value="reveal">
+  Reveal
+</option>
   </select>
 </div>
 
@@ -211,7 +219,7 @@ const iconTools = useMemo(
       {/* BUTTON TEXT */}
       {/* ============================================================ */}
 
-      {!isMediaCircle ? (
+      {!isMediaCircle && !isReveal ? (
         <div className="mt-4">
           <div
             className={
@@ -240,7 +248,9 @@ const iconTools = useMemo(
         </div>
       ) : null}
 
-                   {/* ============================================================ */}
+{!isReveal ? (
+  <>
+      {/* ============================================================ */}
       {/* LINK TO */}
       {/* ============================================================ */}
 
@@ -289,119 +299,255 @@ const iconTools = useMemo(
       {/* BUTTON LINK */}
       {/* ============================================================ */}
 
-      <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
-        <div
-          className={
-            inspectorLabelClass()
-          }
-        >
-          Button Link
-        </div>
-
-        {(
-          data.linkType ??
-          "url"
-        ) === "url" ? (
-          <input
-            type="text"
-            value={
-              data.buttonUrl ??
-              ""
-            }
-            onChange={(e) =>
-              patchButtonData({
-                buttonUrl:
-                  e.target.value,
-              })
-            }
-            placeholder="https://example.com"
+      {!isReveal ? (
+        <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+          <div
             className={
-              inspectorInputClass()
+              inspectorLabelClass()
             }
-          />
-        ) : null}
+          >
+            Button Link
+          </div>
 
-        {data.linkType ===
-        "page" ? (
-          <div className="mt-3">
-            <div
-              className={
-                inspectorLabelClass()
-              }
-            >
-              Page ID / URL
-            </div>
-
+          {(
+            data.linkType ??
+            "url"
+          ) === "url" ? (
             <input
               type="text"
               value={
-                data.pageId ??
+                data.buttonUrl ??
                 ""
               }
               onChange={(e) =>
                 patchButtonData({
-                  pageId:
-                    e.target.value,
-
                   buttonUrl:
                     e.target.value,
                 })
               }
-              placeholder="/about"
+              placeholder="https://example.com"
               className={
                 inspectorInputClass()
               }
             />
-          </div>
-        ) : null}
+          ) : null}
 
-        {data.linkType ===
-        "bookmark" ? (
+          {data.linkType ===
+          "page" ? (
+            <div className="mt-3">
+              <div
+                className={
+                  inspectorLabelClass()
+                }
+              >
+                Page ID / URL
+              </div>
+
+              <input
+                type="text"
+                value={
+                  data.pageId ??
+                  ""
+                }
+                onChange={(e) =>
+                  patchButtonData({
+                    pageId:
+                      e.target.value,
+
+                    buttonUrl:
+                      e.target.value,
+                  })
+                }
+                placeholder="/about"
+                className={
+                  inspectorInputClass()
+                }
+              />
+            </div>
+          ) : null}
+
+          {data.linkType ===
+          "bookmark" ? (
+            <div className="mt-3">
+              <div
+                className={
+                  inspectorLabelClass()
+                }
+              >
+                Bookmark
+              </div>
+
+              <input
+                type="text"
+                value={
+                  data.bookmarkName ??
+                  ""
+                }
+                onChange={(e) => {
+                  const bookmarkName =
+                    e.target.value;
+
+                  patchButtonData({
+                    bookmarkName,
+
+                    buttonUrl:
+                      bookmarkName
+                        ? bookmarkName.startsWith(
+                            "#",
+                          )
+                          ? bookmarkName
+                          : `#${bookmarkName}`
+                        : "",
+                  });
+                }}
+                placeholder="section-name"
+                className={
+                  inspectorInputClass()
+                }
+              />
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+  </>
+) : null}
+
+      {/* ============================================================ */}
+      {/* REVEAL CONTENT */}
+      {/* ============================================================ */}
+
+      {isReveal ? (
+        <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+          <div
+            className={
+              inspectorLabelClass()
+            }
+          >
+            Reveal Content
+          </div>
+
+          {/* ======================================================== */}
+          {/* REVEAL TITLE */}
+          {/* ======================================================== */}
+
           <div className="mt-3">
             <div
               className={
                 inspectorLabelClass()
               }
             >
-              Bookmark
+              Title
             </div>
 
             <input
               type="text"
               value={
-                data.bookmarkName ??
+                data.revealTitle ??
                 ""
               }
-              onChange={(e) => {
-                const bookmarkName =
-                  e.target.value;
-
+              onChange={(e) =>
                 patchButtonData({
-                  bookmarkName,
-
-                  buttonUrl:
-                    bookmarkName
-                      ? bookmarkName.startsWith(
-                          "#",
-                        )
-                        ? bookmarkName
-                        : `#${bookmarkName}`
-                      : "",
-                });
-              }}
-              placeholder="section-name"
+                  revealTitle:
+                    e.target.value,
+                })
+              }
+              placeholder="Optional title"
               className={
                 inspectorInputClass()
               }
             />
+
+            <div className="mt-1 text-xs text-neutral-500">
+              Optional one-line title shown at the top of the expanded reveal.
+            </div>
           </div>
-        ) : null}
-      </div>
+
+          {/* ======================================================== */}
+          {/* REVEAL IMAGE */}
+          {/* ======================================================== */}
+
+          <div className="mt-4">
+            <div
+              className={
+                inspectorLabelClass()
+              }
+            >
+              Reveal Image
+            </div>
+
+            {data.revealImageUrl ? (
+              <div className="mt-2 flex min-h-32 items-center justify-center overflow-hidden rounded-xl border border-neutral-200 bg-white">
+                <img
+                  src={
+                    data.revealImageUrl
+                  }
+                  alt=""
+                  className="max-h-40 w-full object-contain"
+                />
+              </div>
+            ) : null}
+
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() =>
+                  openImagePicker({
+                    multiple:
+                      false,
+
+                    onSelect:
+                      async (
+                        files:
+                          File[],
+                      ) => {
+                        const file =
+                          files[0];
+
+                        if (!file) {
+                          return;
+                        }
+
+                        const uploaded =
+                          await uploadBuilderImageFile(
+                            file,
+                          );
+
+                        patchButtonData({
+                          revealImageUrl:
+                            uploaded.url,
+                        });
+                      },
+                  })
+                }
+                className="inline-flex h-10 items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-900 hover:border-neutral-900"
+              >
+                {data.revealImageUrl
+                  ? "Change Image"
+                  : "Add Image"}
+              </button>
+
+              {data.revealImageUrl ? (
+                <button
+                  type="button"
+                  onClick={() =>
+                    patchButtonData({
+                      revealImageUrl:
+                        "",
+                    })
+                  }
+                  className="inline-flex h-10 items-center justify-center rounded-xl border border-red-200 bg-red-50 px-4 text-sm font-medium text-red-700 hover:bg-red-100"
+                >
+                  Remove
+                </button>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {/* ============================================================ */}
       {/* MEDIA TYPE */}
       {/* ============================================================ */}
-
       <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
         <div
           className={

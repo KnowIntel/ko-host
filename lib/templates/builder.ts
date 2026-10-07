@@ -741,12 +741,20 @@ export type CtaBlock = BaseBlock & {
     pageId?: string;
 
     bookmarkName?: string;
+/*
+ * ================================================================
+ * REVEAL CONTENT
+ * ================================================================
+ */
 
-    /*
-     * ================================================================
-     * BUTTON MEDIA
-     * ================================================================
-     */
+revealImageUrl?: string;
+revealTitle?: string;
+
+/*
+ * ================================================================
+ * BUTTON MEDIA
+ * ================================================================
+ */
 
 buttonImageUrl?: string;
 buttonIconUrl?: string;
@@ -774,11 +782,12 @@ buttonImageSize?: number;
      * ================================================================
      */
 
-    styleType?:
-      | "solid"
-      | "outline"
-      | "soft"
-      | "media_circle";
+styleType?:
+  | "solid"
+  | "outline"
+  | "soft"
+  | "media_circle"
+  | "reveal";
   };
 };
 
@@ -7079,6 +7088,9 @@ case "cta":
        * BUTTON MEDIA
        * ================================================================
        */
+
+revealImageUrl: "",
+revealTitle: "",
 
 buttonImageUrl: "",
 buttonIconUrl: "",
