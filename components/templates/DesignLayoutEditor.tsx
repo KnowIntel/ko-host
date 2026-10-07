@@ -669,6 +669,7 @@ pages?: Array<{
 activePageId?: string | null;
 activePageSlug?: string;
 micrositeSlug?: string;
+micrositeId?: string;
 onSelectPage?: (pageId: string) => void;
 onReorderPages?: (nextPages: Array<{
   id: string;
@@ -2645,8 +2646,9 @@ export default function DesignLayoutEditor({
   pages,
   activePageId,
   activePageSlug,
-  micrositeSlug,
-  onSelectPage,
+micrositeSlug,
+micrositeId,
+onSelectPage,
   onReorderPages,
   saveState,
   saveMessage,
@@ -17894,14 +17896,20 @@ selectedBlock &&
 
 <p>
   Use{" "}
-  <a
-    href={`/dashboard/microsites/${micrositeId}/live`}
-    target="_blank"
-    rel="noopener noreferrer"
-    className="font-semibold text-neutral-900 underline underline-offset-2 hover:text-black"
-  >
-    Live Manager
-  </a>{" "}
+  {micrositeId ? (
+    <a
+      href={`/dashboard/microsites/${micrositeId}/live`}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="font-semibold text-neutral-900 underline underline-offset-2 hover:text-black"
+    >
+      Live Manager
+    </a>
+  ) : (
+    <span className="font-semibold text-neutral-800">
+      Live Manager
+    </span>
+  )}{" "}
   to prepare and manage interactive
   activities.
 </p>

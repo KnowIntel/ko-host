@@ -39,6 +39,7 @@ pages?: Array<{
 activePageId?: string | null;
 activePageSlug?: string;
 micrositeSlug?: string;
+micrositeId?: string;
 onSelectPage?: (pageId: string) => void;
 onReorderPages?: (nextPages: Array<{
   id: string;
@@ -180,7 +181,8 @@ export default function TemplateDraftEditor({
   pages,
   activePageId,
   activePageSlug,
-  micrositeSlug,
+micrositeSlug,
+micrositeId,
 onSelectPage,
 onReorderPages,
 }: Props) {
@@ -416,8 +418,9 @@ onRenameActivePage={onRenameActivePage}
   pages={pages}
   activePageId={activePageId}
   activePageSlug={activePageSlug}
-  micrositeSlug={micrositeSlug}
-  onSelectPage={onSelectPage}
+micrositeSlug={micrositeSlug}
+micrositeId={micrositeId}
+onSelectPage={onSelectPage}
   onReorderPages={onReorderPages}
   saveState={effectiveSaveState}
   saveMessage={effectiveSaveMessage}

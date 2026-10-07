@@ -803,6 +803,7 @@ return (
   initialDraft={editorDraft}
   onSave={saveBuilderDraft}
   microsite={site}
+  micrositeId={site.id}
 
   onOpenAddPage={openAddPageModal}
   onDuplicateActivePage={() => {
