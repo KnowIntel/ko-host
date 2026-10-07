@@ -1436,54 +1436,144 @@ export default function HostControl({
               </div>
             </div>
 
-            {/* LOTTERY */}
-            {data.activity.activityType ===
-            "lottery" ? (
-              <div className="mt-5">
-                <button
-                  type="button"
-                  disabled={
-                    changingHostAction !== null
-                  }
-                  onClick={() => {
-                    void runHostAction(
-                      "draw_lottery_winner",
-                      {},
-                      "Lottery winner selected.",
-                    );
-                  }}
-                  className="rounded-xl bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-800 disabled:opacity-40"
-                >
-                  {changingHostAction ===
-                  "draw_lottery_winner"
-                    ? "Drawing..."
-                    : "Draw Winner"}
-                </button>
+{/* LOTTERY */}
+{data.activity.activityType ===
+"lottery" ? (
+  <div className="mt-5 space-y-4">
+    {(() => {
+      const entrants =
+        data.activityRuntime?.participantStates
+          .map((participant) => {
+            const entries = Array.isArray(
+              participant.state.entries,
+            )
+              ? participant.state.entries
+              : [];
 
-                {data.activityRuntime?.sharedState
-                  .lotteryWinner ? (
-                  <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-4">
-                    <div className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
-                      Current Winner
+            const entryCount =
+              typeof participant.state
+                .entryCount === "number"
+                ? participant.state.entryCount
+                : entries.length;
+
+            return {
+              participant,
+              entryCount,
+            };
+          })
+          .filter(
+            ({ entryCount }) =>
+              entryCount > 0,
+          ) ?? [];
+
+      return (
+        <>
+          <div className="overflow-hidden rounded-xl border border-neutral-200">
+            <div className="flex items-center justify-between gap-3 border-b border-neutral-200 bg-neutral-50 px-4 py-3">
+              <div>
+                <div className="text-sm font-semibold text-neutral-900">
+                  Participants Entered
+                </div>
+
+                <div className="mt-0.5 text-xs text-neutral-500">
+                  Participants currently
+                  entered in this drawing.
+                </div>
+              </div>
+
+              <div className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-neutral-700">
+                {entrants.length}{" "}
+                {entrants.length === 1
+                  ? "entrant"
+                  : "entrants"}
+              </div>
+            </div>
+
+            {entrants.length === 0 ? (
+              <div className="p-4 text-sm text-neutral-500">
+                No participants have entered
+                the drawing yet.
+              </div>
+            ) : (
+              entrants.map(
+                ({
+                  participant,
+                  entryCount,
+                }) => (
+                  <div
+                    key={
+                      participant.participantId
+                    }
+                    className="flex items-center justify-between gap-4 border-b border-neutral-100 p-4 last:border-b-0"
+                  >
+                    <div className="min-w-0">
+                      <div className="font-medium text-neutral-900">
+                        {
+                          participant.displayName
+                        }
+                      </div>
                     </div>
 
-                    <div className="mt-1 text-lg font-semibold">
-                      {String(
-                        (
-                          data.activityRuntime
-                            .sharedState
-                            .lotteryWinner as Record<
-                            string,
-                            unknown
-                          >
-                        ).displayName ??
-                          "Winner",
-                      )}
+                    <div className="shrink-0 rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold text-neutral-700">
+                      {entryCount}{" "}
+                      {entryCount === 1
+                        ? "entry"
+                        : "entries"}
                     </div>
                   </div>
-                ) : null}
+                ),
+              )
+            )}
+          </div>
+
+          {data.activityRuntime?.sharedState
+            .lotteryWinner ? (
+            <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-4">
+              <div className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                Current Winner
               </div>
-            ) : null}
+
+              <div className="mt-1 text-lg font-semibold">
+                {String(
+                  (
+                    data.activityRuntime
+                      .sharedState
+                      .lotteryWinner as Record<
+                      string,
+                      unknown
+                    >
+                  ).displayName ??
+                    "Winner",
+                )}
+              </div>
+            </div>
+          ) : null}
+
+          <button
+            type="button"
+            disabled={
+              changingHostAction !== null ||
+              entrants.length === 0
+            }
+            onClick={() => {
+              void runHostAction(
+                "draw_lottery_winner",
+                {},
+                "Lottery winner selected.",
+              );
+            }}
+            className="rounded-xl bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {changingHostAction ===
+            "draw_lottery_winner"
+              ? "Drawing..."
+              : "Draw Winner"}
+          </button>
+        </>
+      );
+    })()}
+  </div>
+) : null}
 
             {/* MYSTERY DROP */}
             {data.activity.activityType ===
