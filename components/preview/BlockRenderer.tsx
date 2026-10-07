@@ -3377,24 +3377,28 @@ const numberedCircleValue =
 
   const solidStyle:
     React.CSSProperties = {
-    background:
-      submitted
-        ? "#16a34a"
-        : appearance.backgroundColor &&
-            appearance.backgroundColor !==
-              "transparent"
-          ? appearance.backgroundColor
-          : "#111827",
+background:
+  submitted
+    ? "#16a34a"
+    : buttonMediaType === "icon"
+      ? "transparent"
+      : appearance.backgroundColor &&
+          appearance.backgroundColor !==
+            "transparent"
+        ? appearance.backgroundColor
+        : "#111827",
 
     color:
       style.color ||
       "#ffffff",
 
-    borderColor:
-      submitted
-        ? "#16a34a"
-        : appearance.borderColor ||
-          "transparent",
+borderColor:
+  submitted
+    ? "#16a34a"
+    : buttonMediaType === "icon"
+      ? "transparent"
+      : appearance.borderColor ||
+        "transparent",
 
     borderWidth:
       appearance.borderWidth,
