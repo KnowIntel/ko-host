@@ -17897,7 +17897,7 @@ selectedBlock &&
           <span className="font-semibold text-neutral-800">
             Live Manager
           </span>{" "}
-          to prepare and manage interactive
+          in your dashboard to prepare and manage interactive
           activities.
         </p>
 
@@ -17906,7 +17906,7 @@ selectedBlock &&
           <span className="font-semibold text-neutral-800">
             Host Control
           </span>{" "}
-          during the experience to control live
+          in your dashboard during the experience to control live
           activity and participant interactions.
         </p>
       </div>
