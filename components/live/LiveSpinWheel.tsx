@@ -417,12 +417,10 @@ export default function LiveSpinWheel({
           360) %
         360;
 
-      const desiredNormalized =
-        (270 -
-          winningCenter +
-          360) %
-        360;
-
+const desiredNormalized =
+  (360 -
+    winningCenter) %
+  360;
       const adjustment =
         (desiredNormalized -
           normalizedCurrent +
