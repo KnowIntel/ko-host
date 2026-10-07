@@ -99,9 +99,16 @@ export default function LiveLottery({
     );
   }
 
-  if (!data?.activity) {
-    return null;
-  }
+if (!data?.activity) {
+  return (
+    <div
+      className="p-4 text-center"
+      style={helperTextStyle}
+    >
+      No active Lottery is available.
+    </div>
+  );
+}
 
   const entryCount =
     data.participantState
