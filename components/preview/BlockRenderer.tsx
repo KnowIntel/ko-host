@@ -3274,6 +3274,11 @@ function CtaButtonLive() {
   const [submitting, setSubmitting] =
     useState(false);
 
+const [
+  revealCollapsed,
+  setRevealCollapsed,
+] = useState(false);
+
   const appearance =
     getAppearanceStyle(
       block,
@@ -3285,14 +3290,15 @@ function CtaButtonLive() {
       designKey,
     );
 
-  const buttonStyleType =
-    ((block.data as any).styleType as
-      | "solid"
-      | "outline"
-      | "soft"
-      | "media_circle"
-      | undefined) ??
-    "solid";
+const buttonStyleType =
+  ((block.data as any).styleType as
+    | "solid"
+    | "outline"
+    | "soft"
+    | "media_circle"
+    | "reveal"
+    | undefined) ??
+  "solid";
 
   const buttonMediaType =
     ((block.data as any).buttonMediaType as
@@ -3359,6 +3365,10 @@ const numberedCircleValue =
   const isMediaCircle =
     buttonStyleType ===
     "media_circle";
+
+const isReveal =
+  buttonStyleType ===
+  "reveal";
 
   const submittedText =
     ((block.data as any).submittedText as
