@@ -4192,16 +4192,21 @@ const revealTitle =
 
 if (isReveal && !revealCollapsed) {
   return (
-    <div className="h-full w-full overflow-hidden">
+    <div className="flex h-full w-full items-start justify-start overflow-visible">
       <button
         type="button"
         aria-expanded="true"
         onClick={() =>
           setRevealCollapsed(true)
         }
-        className="relative block h-full w-full cursor-pointer overflow-hidden"
+        className="relative block cursor-pointer overflow-hidden"
         style={{
           ...appearance,
+
+          width: "100%",
+          aspectRatio: "1 / 1",
+          height: "auto",
+          maxHeight: "100%",
 
           padding: 0,
 
@@ -4248,8 +4253,134 @@ if (isReveal && !revealCollapsed) {
   );
 }
 
-    return (
-      <div className="h-full w-full overflow-hidden">
+/*
+ * ================================================================
+ * REVEAL — COLLAPSED
+ * ================================================================
+ */
+
+if (isReveal && revealCollapsed) {
+  const collapsedSize = 100;
+
+  return (
+    <div className="relative h-full w-full overflow-visible">
+      <button
+        type="button"
+        aria-expanded="false"
+        aria-label={
+          revealTitle
+            ? `Show ${revealTitle}`
+            : "Show reveal"
+        }
+        onClick={() =>
+          setRevealCollapsed(false)
+        }
+        className="absolute bottom-0 right-0 flex cursor-pointer items-center justify-center overflow-hidden"
+        style={{
+          ...appearance,
+
+          width: collapsedSize,
+          height: collapsedSize,
+
+          padding: 0,
+
+          background:
+            buttonMediaType === "icon"
+              ? "transparent"
+              : appearance.backgroundColor &&
+                  appearance.backgroundColor !==
+                    "transparent"
+                ? appearance.backgroundColor
+                : "transparent",
+
+          borderColor:
+            buttonMediaType === "icon"
+              ? "transparent"
+              : appearance.borderColor ||
+                "transparent",
+        }}
+      >
+        {buttonMediaUrl ? (
+          buttonMediaType === "icon" ? (
+            numberedCircleValue ? (
+              <svg
+                viewBox="0 0 122.88 122.88"
+                aria-hidden="true"
+                className="block h-full w-full"
+              >
+                <circle
+                  cx="61.44"
+                  cy="61.44"
+                  r="61.44"
+                  fill={buttonIconColor}
+                />
+
+                <text
+                  x="61.44"
+                  y="67"
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  fill="#ffffff"
+                  fontSize={
+                    numberedCircleValue === "10"
+                      ? "44"
+                      : "58"
+                  }
+                  fontWeight="800"
+                  fontFamily="Arial, Helvetica, sans-serif"
+                >
+                  {numberedCircleValue}
+                </text>
+              </svg>
+            ) : (
+              <span
+                aria-hidden="true"
+                className="block h-full w-full"
+                style={{
+                  backgroundColor:
+                    buttonIconColor,
+
+                  WebkitMaskImage:
+                    `url("${buttonMediaUrl}")`,
+
+                  maskImage:
+                    `url("${buttonMediaUrl}")`,
+
+                  WebkitMaskRepeat:
+                    "no-repeat",
+
+                  maskRepeat:
+                    "no-repeat",
+
+                  WebkitMaskPosition:
+                    "center",
+
+                  maskPosition:
+                    "center",
+
+                  WebkitMaskSize:
+                    "contain",
+
+                  maskSize:
+                    "contain",
+                }}
+              />
+            )
+          ) : (
+            <img
+              src={buttonMediaUrl}
+              alt=""
+              className="block h-full w-full object-cover"
+            />
+          )
+        ) : null}
+      </button>
+    </div>
+  );
+}
+
+return (
+  <div className="h-full w-full overflow-hidden">
         <div
           className="flex h-full w-full px-4 py-2"
           style={{
@@ -4267,7 +4398,10 @@ if (isReveal && !revealCollapsed) {
 <button
   type="button"
   onClick={
-    handleLinkedFieldSubmit
+    isReveal
+      ? () =>
+          setRevealCollapsed(false)
+      : handleLinkedFieldSubmit
   }
   disabled={
     submitting
@@ -4585,7 +4719,7 @@ buttonMediaUrl ? (
   {/* BUTTON TEXT */}
   {/* ============================================================ */}
 
-  {!isMediaCircle ? (
+  {!isMediaCircle && !isReveal ? (
     <span>
       {submitted
         ? submittedText
@@ -4601,83 +4735,84 @@ buttonMediaUrl ? (
   {/* MEDIA AFTER */}
   {/* ============================================================ */}
 
-{!isMediaCircle &&
-buttonMediaUrl &&
-buttonImagePlacement ===
-  "after" ? (
-  buttonMediaType ===
-  "icon" ? (
-    <span
-      aria-hidden="true"
-      className="block shrink-0"
-      style={{
-        width:
-          `${
-            (block.data as any)
-              .buttonImageSize ??
-            20
-          }px`,
+  {!isMediaCircle &&
+  !isReveal &&
+  buttonMediaUrl &&
+  buttonImagePlacement ===
+    "after" ? (
+    buttonMediaType ===
+    "icon" ? (
+      <span
+        aria-hidden="true"
+        className="block shrink-0"
+        style={{
+          width:
+            `${
+              (block.data as any)
+                .buttonImageSize ??
+              20
+            }px`,
 
-        height:
-          `${
-            (block.data as any)
-              .buttonImageSize ??
-            20
-          }px`,
+          height:
+            `${
+              (block.data as any)
+                .buttonImageSize ??
+              20
+            }px`,
 
-        backgroundColor:
-          buttonIconColor,
+          backgroundColor:
+            buttonIconColor,
 
-        WebkitMaskImage:
-          `url("${buttonMediaUrl}")`,
+          WebkitMaskImage:
+            `url("${buttonMediaUrl}")`,
 
-        maskImage:
-          `url("${buttonMediaUrl}")`,
+          maskImage:
+            `url("${buttonMediaUrl}")`,
 
-        WebkitMaskRepeat:
-          "no-repeat",
+          WebkitMaskRepeat:
+            "no-repeat",
 
-        maskRepeat:
-          "no-repeat",
+          maskRepeat:
+            "no-repeat",
 
-        WebkitMaskPosition:
-          "center",
+          WebkitMaskPosition:
+            "center",
 
-        maskPosition:
-          "center",
+          maskPosition:
+            "center",
 
-        WebkitMaskSize:
-          "contain",
+          WebkitMaskSize:
+            "contain",
 
-        maskSize:
-          "contain",
-      }}
-    />
-  ) : (
-    <img
-      src={
-        buttonMediaUrl
-      }
-      alt=""
-      style={{
-        width:
-          `${
-            (block.data as any)
-              .buttonImageSize ??
-            20
-          }px`,
+          maskSize:
+            "contain",
+        }}
+      />
+    ) : (
+      <img
+        src={
+          buttonMediaUrl
+        }
+        alt=""
+        style={{
+          width:
+            `${
+              (block.data as any)
+                .buttonImageSize ??
+              20
+            }px`,
 
-        height:
-          `${
-            (block.data as any)
-              .buttonImageSize ??
-            20
-          }px`,
-      }}
-      className="shrink-0 object-contain"
-    />
-  )
-) : null}
+          height:
+            `${
+              (block.data as any)
+                .buttonImageSize ??
+              20
+            }px`,
+        }}
+        className="shrink-0 object-contain"
+      />
+    )
+  ) : null}
 </button>
         </div>
       </div>
