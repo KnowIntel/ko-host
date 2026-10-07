@@ -496,29 +496,67 @@ setSpinning(false);
   const segmentSize =
     360 / options.length;
 
-  const angle =
+  /*
+   * The conic-gradient begins at -90deg,
+   * which places the first segment at
+   * 12 o'clock.
+   *
+   * Position every label at the true
+   * angular center of its segment using
+   * that same coordinate system.
+   */
+  const segmentCenter =
     index * segmentSize +
     segmentSize / 2;
 
-const radians =
-  ((angle - 60) * Math.PI) / 180;
+  const radians =
+    ((segmentCenter - 90) *
+      Math.PI) /
+    180;
 
-  const radius = 26;
+  /*
+   * Keep the label approximately halfway
+   * between the center hub and the outer
+   * edge of the wheel.
+   */
+  const radius = 30;
 
   const x =
-    50 + Math.cos(radians) * radius;
+    50 +
+    Math.cos(radians) *
+      radius;
 
   const y =
-    50 + Math.sin(radians) * radius;
+    50 +
+    Math.sin(radians) *
+      radius;
+
+  /*
+   * Give narrower slices slightly less
+   * horizontal room so longer labels wrap
+   * instead of spilling into neighboring
+   * segments.
+   */
+  const labelWidth =
+    options.length <= 4
+      ? 92
+      : options.length === 5
+        ? 78
+        : options.length === 6
+          ? 68
+          : 60;
 
   return (
     <div
       key={option.id}
-      className="pointer-events-none absolute max-w-[90px] -translate-x-1/2 -translate-y-1/2 text-center text-xs font-bold"
+      className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 text-center text-xs font-bold leading-tight"
       style={{
         ...wheelTextStyle,
         left: `${x}%`,
         top: `${y}%`,
+        width: `${labelWidth}px`,
+        maxWidth: `${labelWidth}px`,
+        overflowWrap: "break-word",
         transform: `translate(-50%, -50%) rotate(${-rotation}deg)`,
       }}
     >
