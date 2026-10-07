@@ -17901,7 +17901,7 @@ selectedBlock &&
       href={`/dashboard/microsites/${micrositeId}/live`}
       target="_blank"
       rel="noopener noreferrer"
-      className="font-semibold text-neutral-900 underline underline-offset-2 hover:text-black"
+      className="font-semibold text-blue-600 underline underline-offset-2 hover:text-blue-700"
     >
       Live Manager
     </a>
