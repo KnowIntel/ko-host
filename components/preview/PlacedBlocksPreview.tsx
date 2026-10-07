@@ -2,9 +2,21 @@
 
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+
 import * as htmlToImage from "html-to-image";
-import { LiveRuntimeProvider } from "@/components/live/LiveRuntimeContext";
+import {
+  LiveRuntimeProvider,
+  useLiveRuntime,
+} from "@/components/live/LiveRuntimeContext";
+
+import LiveJoinExperience from "@/components/live/LiveJoinExperience";
 
 import type {
   BuilderDraft,
@@ -267,6 +279,217 @@ function hasMeaningfulText(value?: string) {
   return typeof value === "string" && value.trim().length > 0;
 }
 
+function LiveJoinEntryGate({
+  joinBlock,
+  onGateActiveChange,
+}: {
+  joinBlock: Extract<
+    BuilderDraft["blocks"][number],
+    { type: "live_join" }
+  > | null;
+
+  onGateActiveChange: (
+    active: boolean,
+  ) => void;
+}) {
+  const {
+    authenticated,
+    sessionLoading,
+  } = useLiveRuntime();
+
+const [closing, setClosing] =
+  useState(false);
+
+const [visible, setVisible] =
+  useState(true);
+
+useEffect(() => {
+  const gateActive =
+    Boolean(joinBlock) &&
+    !sessionLoading &&
+    visible;
+
+  onGateActiveChange(gateActive);
+
+  return () => {
+    onGateActiveChange(false);
+  };
+}, [
+  joinBlock,
+  sessionLoading,
+  visible,
+  onGateActiveChange,
+]);
+
+const wasAuthenticatedRef =
+  useRef(false);
+
+  useEffect(() => {
+    if (
+      authenticated &&
+      !wasAuthenticatedRef.current
+    ) {
+      setClosing(true);
+
+      const timeoutId =
+        window.setTimeout(() => {
+          setClosing(false);
+        }, 300);
+
+      wasAuthenticatedRef.current = true;
+
+      return () => {
+        window.clearTimeout(timeoutId);
+      };
+    }
+
+    wasAuthenticatedRef.current =
+      authenticated;
+  }, [authenticated]);
+
+if (
+  !joinBlock ||
+  sessionLoading ||
+  !visible
+) {
+  return null;
+}
+
+  const data = joinBlock.data as any;
+
+  return (
+    <div
+      className="fixed inset-0 flex items-center justify-center p-4"
+      style={{
+        zIndex: 2147483000,
+      }}
+    >
+      {/* Darkened / blurred view of the microsite */}
+      <div
+        className="absolute inset-0 bg-black/60 backdrop-blur-md"
+        aria-hidden="true"
+      />
+
+      {/* Entry card */}
+      <div
+        className={[
+          "relative w-full max-w-md",
+          "transition-all duration-300 ease-out",
+          closing
+            ? "scale-75 opacity-0"
+            : "scale-100 opacity-100",
+        ].join(" ")}
+        style={{
+          ...(joinBlock.appearance
+            ?.backgroundColor
+            ? {
+                backgroundColor:
+                  joinBlock.appearance
+                    .backgroundColor,
+              }
+            : {
+                backgroundColor: "#ffffff",
+              }),
+
+          borderColor:
+            joinBlock.appearance
+              ?.borderColor ??
+            "#e5e7eb",
+
+          borderWidth:
+            `${
+              joinBlock.appearance
+                ?.borderWidth ?? 1
+            }px`,
+
+          borderStyle: "solid",
+
+          borderRadius:
+            `${
+              joinBlock.appearance
+                ?.borderRadius ?? 16
+            }px`,
+
+          padding: "24px",
+
+          boxShadow:
+            "0 24px 80px rgba(0, 0, 0, 0.35)",
+        }}
+      >
+        <LiveJoinExperience
+          heading={
+            data.heading ||
+            "Join Live Experience"
+          }
+          helperText={
+            data.helperText ||
+            "Enter a display name to participate."
+          }
+          namePlaceholder={
+            data.namePlaceholder ||
+            "Display name"
+          }
+          joinButtonLabel={
+            data.joinButtonLabel ||
+            "Join Experience"
+          }
+          connectedLabel={
+            data.connectedLabel ||
+            "Live Participant"
+          }
+          leaveButtonLabel={
+            data.leaveButtonLabel ||
+            "Leave Experience"
+          }
+
+          headingStyle={
+            data.headingStyle ??
+            data.style
+          }
+          helperTextStyle={
+            data.helperTextStyle ??
+            data.style
+          }
+          namePlaceholderStyle={
+            data.namePlaceholderStyle ??
+            data.style
+          }
+          joinButtonTextStyle={
+            data.joinButtonTextStyle ??
+            data.style
+          }
+          connectedLabelStyle={
+            data.connectedLabelStyle ??
+            data.style
+          }
+          participantNameStyle={
+            data.participantNameStyle ??
+            data.style
+          }
+          connectedMessageStyle={
+            data.connectedMessageStyle ??
+            data.style
+          }
+          leaveButtonTextStyle={
+            data.leaveButtonTextStyle ??
+            data.style
+          }
+
+          inputStyle={
+            data.inputStyle ?? {}
+          }
+          joinButtonStyle={
+            data.joinButtonStyle ?? {}
+          }
+          leaveButtonStyle={
+            data.leaveButtonStyle ?? {}
+          }
+        />
+      </div>
+    </div>
+  );
+}
+
 export default function PlacedBlocksPreview({
   draft,
   designKey,
@@ -288,6 +511,16 @@ const [containerWidth, setContainerWidth] = useState<number>(0);
 
 const [activeBookmarkSlug, setActiveBookmarkSlug] =
   useState<string | null>(null);
+
+const [
+  liveJoinGateActive,
+  setLiveJoinGateActive,
+] = useState(false);
+
+const handleLiveJoinGateActiveChange =
+  useCallback((active: boolean) => {
+    setLiveJoinGateActive(active);
+  }, []);
 
 useEffect(() => {
   let timeoutId: number | null = null;
@@ -427,6 +660,20 @@ useEffect(() => {
       );
     }
   };
+}, [draft.blocks]);
+
+const liveJoinBlock = useMemo(() => {
+  const block = (draft.blocks ?? []).find(
+    (
+      candidate,
+    ): candidate is Extract<
+      (typeof draft.blocks)[number],
+      { type: "live_join" }
+    > =>
+      candidate.type === "live_join",
+  );
+
+  return block ?? null;
 }, [draft.blocks]);
 
   const pageLengthConfig = useMemo(
@@ -918,6 +1165,15 @@ return (
     <>
       <style>{BOOKMARK_ANIMATION_STYLES}</style>
 
+      {!previewMode && liveExperience ? (
+<LiveJoinEntryGate
+  joinBlock={liveJoinBlock}
+  onGateActiveChange={
+    handleLiveJoinGateActiveChange
+  }
+/>
+      ) : null}
+
     <div
       ref={containerRef}
   data-ko-preview-scrollbar-hidden="true"
@@ -1267,7 +1523,17 @@ zIndex:
     ? -1
     : itemStyle.zIndex,
   overflow: isScrollableBlock ? "hidden" : "visible",
-  pointerEvents: block.type === "bookmark" ? "none" : isInteractiveBlock ? "auto" : "none",
+pointerEvents:
+  block.type === "bookmark"
+    ? "none"
+    : liveJoinGateActive &&
+        block.type === "live_join"
+      ? "none"
+      : previewMode
+        ? "auto"
+        : isInteractiveBlock
+          ? "auto"
+          : "none",
   isolation: "isolate",
 }}
     >
