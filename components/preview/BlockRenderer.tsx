@@ -3321,6 +3321,41 @@ const buttonIconColor =
       "#ffffff",
   );
 
+const numberedCircleMatch =
+  buttonMediaType === "icon"
+    ? buttonMediaUrl.match(
+        /circle-(one|two|three|four|five|six|seven|eight|nine|ten)\.svg$/,
+      )
+    : null;
+
+const numberedCircleValue =
+  numberedCircleMatch
+    ? {
+        one: "1",
+        two: "2",
+        three: "3",
+        four: "4",
+        five: "5",
+        six: "6",
+        seven: "7",
+        eight: "8",
+        nine: "9",
+        ten: "10",
+      }[
+        numberedCircleMatch[1] as
+          | "one"
+          | "two"
+          | "three"
+          | "four"
+          | "five"
+          | "six"
+          | "seven"
+          | "eight"
+          | "nine"
+          | "ten"
+      ]
+    : null;
+
   const isMediaCircle =
     buttonStyleType ===
     "media_circle";
@@ -4253,8 +4288,54 @@ if (
 buttonMediaUrl &&
 buttonImagePlacement !==
   "after" ? (
-  buttonMediaType ===
-  "icon" ? (
+buttonMediaType ===
+"icon" ? (
+  numberedCircleValue ? (
+    <svg
+      viewBox="0 0 122.88 122.88"
+      aria-hidden="true"
+      className="block shrink-0"
+      style={{
+        width:
+          `${
+            (block.data as any)
+              .buttonImageSize ??
+            20
+          }px`,
+
+        height:
+          `${
+            (block.data as any)
+              .buttonImageSize ??
+            20
+          }px`,
+      }}
+    >
+      <circle
+        cx="61.44"
+        cy="61.44"
+        r="61.44"
+        fill={buttonIconColor}
+      />
+
+      <text
+        x="61.44"
+        y="67"
+        textAnchor="middle"
+        dominantBaseline="middle"
+        fill="#ffffff"
+        fontSize={
+          numberedCircleValue === "10"
+            ? "44"
+            : "58"
+        }
+        fontWeight="800"
+        fontFamily="Arial, Helvetica, sans-serif"
+      >
+        {numberedCircleValue}
+      </text>
+    </svg>
+  ) : (
     <span
       aria-hidden="true"
       className="block shrink-0"
@@ -4301,7 +4382,8 @@ buttonImagePlacement !==
           "contain",
       }}
     />
-  ) : (
+  )
+) : (
     <img
       src={
         buttonMediaUrl
