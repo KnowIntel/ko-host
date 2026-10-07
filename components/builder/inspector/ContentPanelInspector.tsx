@@ -1826,69 +1826,58 @@ const [
         No icon
       </option>
 
-      {CATEGORY_BUTTONS.Icons
-        .filter(
-          (tool: any) =>
-            tool.kind ===
-              "block" &&
-            tool.type ===
-              "icon",
-        )
-        .filter(
-          (tool: any) => {
-            const search =
-              (
-                iconSearchByPanel[
-                  panel.id
-                ] ?? ""
-              )
-                .trim()
-                .toLowerCase();
+{(
+  Array.isArray(
+    CATEGORY_BUTTONS?.Icons,
+  )
+    ? CATEGORY_BUTTONS.Icons
+    : []
+)
+  .filter(
+    (tool: any) =>
+      tool.kind === "block" &&
+      tool.type === "icon",
+  )
+  .filter((tool: any) => {
+    const search = (
+      iconSearchByPanel[
+        panel.id
+      ] ?? ""
+    )
+      .trim()
+      .toLowerCase();
 
-            if (!search) {
-              return true;
-            }
+    if (!search) {
+      return true;
+    }
 
-            const label =
-              String(
-                tool.label ??
-                  "",
-              ).toLowerCase();
+    const label = String(
+      tool.label ?? "",
+    ).toLowerCase();
 
-            const iconName =
-              String(
-                tool.iconName ??
-                  "",
-              ).toLowerCase();
+    const iconName = String(
+      tool.iconName ?? "",
+    ).toLowerCase();
 
-            return (
-              label.includes(
-                search,
-              ) ||
-              iconName.includes(
-                search,
-              )
-            );
-          },
-        )
-        .map(
-          (tool: any) => (
-            <option
-              key={
-                tool.iconName ??
-                tool.label
-              }
-              value={
-                tool.iconName ??
-                ""
-              }
-            >
-              {
-                tool.label
-              }
-            </option>
-          ),
-        )}
+    return (
+      label.includes(search) ||
+      iconName.includes(search)
+    );
+  })
+  .map((tool: any) => (
+    <option
+      key={
+        tool.iconName ??
+        tool.label
+      }
+      value={
+        tool.iconName ??
+        ""
+      }
+    >
+      {tool.label}
+    </option>
+  ))}
     </select>
 
     {panel.icon ? (

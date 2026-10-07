@@ -1,3 +1,5 @@
+// components\blocks\ContentPanelBlock.tsx
+
 "use client";
 
 import {
