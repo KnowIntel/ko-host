@@ -46,6 +46,12 @@ export async function POST(
       asLiveRecord(body).itemId,
     );
 
+    const responseText = String(
+  asLiveRecord(body).responseText ?? "",
+)
+  .trim()
+  .slice(0, 1000);
+
     if (!itemId) {
       return NextResponse.json(
         {
