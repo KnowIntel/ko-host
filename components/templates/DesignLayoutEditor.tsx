@@ -17892,14 +17892,19 @@ selectedBlock &&
           shared Live Experience.
         </p>
 
-        <p>
-          Use{" "}
-          <span className="font-semibold text-neutral-800">
-            Live Manager
-          </span>{" "}
-          in your dashboard to prepare and manage interactive
-          activities.
-        </p>
+<p>
+  Use{" "}
+  <a
+    href={`/dashboard/microsites/${micrositeId}/live`}
+    target="_blank"
+    rel="noopener noreferrer"
+    className="font-semibold text-neutral-900 underline underline-offset-2 hover:text-black"
+  >
+    Live Manager
+  </a>{" "}
+  to prepare and manage interactive
+  activities.
+</p>
 
         <p>
           Use{" "}
