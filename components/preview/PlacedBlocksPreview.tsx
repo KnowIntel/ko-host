@@ -292,36 +292,89 @@ function LiveJoinEntryGate({
     active: boolean,
   ) => void;
 }) {
-  const {
-    authenticated,
-    sessionLoading,
-  } = useLiveRuntime();
+const {
+  authenticated,
+  sessionLoading,
+  experience,
+} = useLiveRuntime();
 
-  useEffect(() => {
-    const gateActive =
-      Boolean(joinBlock) &&
-      !sessionLoading &&
-      !authenticated;
+const [
+  gateWasShown,
+  setGateWasShown,
+] = useState(false);
 
-    onGateActiveChange(gateActive);
+const [
+  gateFinished,
+  setGateFinished,
+] = useState(false);
 
-    return () => {
-      onGateActiveChange(false);
-    };
-  }, [
-    joinBlock,
-    sessionLoading,
-    authenticated,
-    onGateActiveChange,
-  ]);
-
+useEffect(() => {
   if (
     !joinBlock ||
     sessionLoading ||
     authenticated
   ) {
-    return null;
+    return;
   }
+
+  setGateWasShown(true);
+}, [
+  joinBlock,
+  sessionLoading,
+  authenticated,
+]);
+
+useEffect(() => {
+  if (
+    !authenticated ||
+    !gateWasShown ||
+    gateFinished
+  ) {
+    return;
+  }
+
+  const timeoutId = window.setTimeout(() => {
+    setGateFinished(true);
+  }, 2000);
+
+  return () => {
+    window.clearTimeout(timeoutId);
+  };
+}, [
+  authenticated,
+  gateWasShown,
+  gateFinished,
+]);
+
+useEffect(() => {
+  const gateActive =
+    Boolean(joinBlock) &&
+    !sessionLoading &&
+    !gateFinished &&
+    (!authenticated || gateWasShown);
+
+  onGateActiveChange(gateActive);
+
+  return () => {
+    onGateActiveChange(false);
+  };
+}, [
+  joinBlock,
+  sessionLoading,
+  authenticated,
+  gateWasShown,
+  gateFinished,
+  onGateActiveChange,
+]);
+
+if (
+  !joinBlock ||
+  sessionLoading ||
+  gateFinished ||
+  (authenticated && !gateWasShown)
+) {
+  return null;
+}
 
   const data = joinBlock.data as any;
 
@@ -377,75 +430,104 @@ function LiveJoinEntryGate({
             "0 24px 80px rgba(0, 0, 0, 0.35)",
         }}
       >
-        <LiveJoinExperience
-          heading={
-            data.heading ||
-            "Join Live Experience"
-          }
-          helperText={
-            data.helperText ||
-            "Enter a display name to participate."
-          }
-          namePlaceholder={
-            data.namePlaceholder ||
-            "Display name"
-          }
-          joinButtonLabel={
-            data.joinButtonLabel ||
-            "Join Experience"
-          }
-          connectedLabel={
-            data.connectedLabel ||
-            "Live Participant"
-          }
-          leaveButtonLabel={
-            data.leaveButtonLabel ||
-            "Leave Experience"
-          }
+{authenticated && gateWasShown ? (
+  <div className="flex min-h-[180px] w-full flex-col items-center justify-center text-center">
+    <div
+      className="text-xl font-semibold"
+      style={
+        data.headingStyle ??
+        data.style
+      }
+    >
+      You're now connected
+    </div>
 
-          headingStyle={
-            data.headingStyle ??
-            data.style
-          }
-          helperTextStyle={
-            data.helperTextStyle ??
-            data.style
-          }
-          namePlaceholderStyle={
-            data.namePlaceholderStyle ??
-            data.style
-          }
-          joinButtonTextStyle={
-            data.joinButtonTextStyle ??
-            data.style
-          }
-          connectedLabelStyle={
-            data.connectedLabelStyle ??
-            data.style
-          }
-          participantNameStyle={
-            data.participantNameStyle ??
-            data.style
-          }
-          connectedMessageStyle={
-            data.connectedMessageStyle ??
-            data.style
-          }
-          leaveButtonTextStyle={
-            data.leaveButtonTextStyle ??
-            data.style
-          }
+<div
+  className="mt-2 text-sm opacity-70"
+  style={
+    data.helperTextStyle ??
+    data.style
+  }
+>
+  You're now connected to{" "}
+  <span className="font-semibold">
+    {experience?.name ||
+      "the Live Experience"}
+  </span>
+  .
+</div>
+  </div>
+) : (
+  <LiveJoinExperience
+    heading={
+      data.heading ||
+      "Join Live Experience"
+    }
+    helperText={
+      data.helperText ||
+      "Enter a display name to participate."
+    }
+    namePlaceholder={
+      data.namePlaceholder ||
+      "Display name"
+    }
+    joinButtonLabel={
+      data.joinButtonLabel ||
+      "Join Experience"
+    }
+    connectedLabel={
+      data.connectedLabel ||
+      "Live Participant"
+    }
+    leaveButtonLabel={
+      data.leaveButtonLabel ||
+      "Leave Experience"
+    }
 
-          inputStyle={
-            data.inputStyle ?? {}
-          }
-          joinButtonStyle={
-            data.joinButtonStyle ?? {}
-          }
-          leaveButtonStyle={
-            data.leaveButtonStyle ?? {}
-          }
-        />
+    headingStyle={
+      data.headingStyle ??
+      data.style
+    }
+    helperTextStyle={
+      data.helperTextStyle ??
+      data.style
+    }
+    namePlaceholderStyle={
+      data.namePlaceholderStyle ??
+      data.style
+    }
+    joinButtonTextStyle={
+      data.joinButtonTextStyle ??
+      data.style
+    }
+    connectedLabelStyle={
+      data.connectedLabelStyle ??
+      data.style
+    }
+    participantNameStyle={
+      data.participantNameStyle ??
+      data.style
+    }
+    connectedMessageStyle={
+      data.connectedMessageStyle ??
+      data.style
+    }
+    leaveButtonTextStyle={
+      data.leaveButtonTextStyle ??
+      data.style
+    }
+
+    inputStyle={
+      data.inputStyle ?? {}
+    }
+    joinButtonStyle={
+      data.joinButtonStyle ?? {}
+    }
+    leaveButtonStyle={
+      data.leaveButtonStyle ?? {}
+    }
+  />
+)}
       </div>
     </div>
   );

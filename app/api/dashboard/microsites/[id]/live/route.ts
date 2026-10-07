@@ -300,13 +300,19 @@ export async function POST(
         error,
       } = await sb
         .from("live_experiences")
-        .update({
-          owner_clerk_user_id: userId,
-          name,
-          is_enabled: true,
-          updated_at:
-            new Date().toISOString(),
-        })
+.update({
+  owner_clerk_user_id: userId,
+  ...(typeof body?.name === "string" &&
+  body.name.trim()
+    ? {
+        name: normalizeExperienceName(
+          body.name,
+        ),
+      }
+    : {}),
+  is_enabled: true,
+  updated_at: new Date().toISOString(),
+})
         .eq("id", existingExperience.id)
         .select(
           "id, microsite_id, name, status, is_enabled, started_at, ended_at",
@@ -493,39 +499,64 @@ export async function PATCH(
     const body =
       await req.json().catch(() => ({}));
 
-    const requestedStatus = String(
-      body?.status ?? "",
+const validStatuses = [
+  "before",
+  "live",
+  "paused",
+  "ended",
+  "after",
+] as const;
+
+type LiveStatus =
+  (typeof validStatuses)[number];
+
+const hasStatus =
+  typeof body?.status === "string";
+
+const hasName =
+  typeof body?.name === "string";
+
+if (!hasStatus && !hasName) {
+  return NextResponse.json(
+    {
+      ok: false,
+      error:
+        "No Live experience update was provided.",
+    },
+    { status: 400 },
+  );
+}
+
+let nextStatus: LiveStatus | null = null;
+
+if (hasStatus) {
+  const requestedStatus = String(
+    body.status,
+  )
+    .trim()
+    .toLowerCase();
+
+  if (
+    !validStatuses.includes(
+      requestedStatus as LiveStatus,
     )
-      .trim()
-      .toLowerCase();
+  ) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "Invalid Live status.",
+      },
+      { status: 400 },
+    );
+  }
 
-    const validStatuses = [
-      "before",
-      "live",
-      "paused",
-      "ended",
-      "after",
-    ] as const;
+  nextStatus =
+    requestedStatus as LiveStatus;
+}
 
-    type LiveStatus =
-      (typeof validStatuses)[number];
-
-    if (
-      !validStatuses.includes(
-        requestedStatus as LiveStatus,
-      )
-    ) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "Invalid Live status.",
-        },
-        { status: 400 },
-      );
-    }
-
-    const nextStatus =
-      requestedStatus as LiveStatus;
+const nextName = hasName
+  ? normalizeExperienceName(body.name)
+  : null;
 
     const sb = getSupabaseAdmin();
 
@@ -569,15 +600,23 @@ export async function PATCH(
 
     const now = new Date().toISOString();
 
-    const updatePayload: {
-      status: LiveStatus;
-      updated_at: string;
-      started_at?: string | null;
-      ended_at?: string | null;
-    } = {
-      status: nextStatus,
-      updated_at: now,
-    };
+const updatePayload: {
+  status?: LiveStatus;
+  name?: string;
+  updated_at: string;
+  started_at?: string | null;
+  ended_at?: string | null;
+} = {
+  updated_at: now,
+};
+
+if (nextStatus) {
+  updatePayload.status = nextStatus;
+}
+
+if (nextName) {
+  updatePayload.name = nextName;
+}
 
     /*
      * First transition into Live records when the

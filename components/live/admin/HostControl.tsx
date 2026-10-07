@@ -296,13 +296,23 @@ export default function HostControl({
     setShowEndConfirm,
   ] = useState(false);
 
-  const [
-    changingLifecycle,
-    setChangingLifecycle,
-  ] = useState(false);
+const [
+  changingLifecycle,
+  setChangingLifecycle,
+] = useState(false);
 
-  const [error, setError] =
-    useState<string | null>(null);
+const [
+  experienceName,
+  setExperienceName,
+] = useState("");
+
+const [
+  savingExperienceName,
+  setSavingExperienceName,
+] = useState(false);
+
+const [error, setError] =
+  useState<string | null>(null);
 
   const [message, setMessage] =
     useState<string | null>(null);
@@ -362,6 +372,16 @@ export default function HostControl({
       showLoading: true,
     });
   }, [loadHostState]);
+
+  useEffect(() => {
+  if (!data?.experience.name) {
+    return;
+  }
+
+  setExperienceName(
+    data.experience.name,
+  );
+}, [data?.experience.name]);
 
   /*
    * Server APIs broadcast this event
@@ -508,6 +528,66 @@ export default function HostControl({
         return status;
     }
   }
+
+  async function saveExperienceName() {
+  const name = experienceName.trim();
+
+  if (!name) {
+    setError(
+      "Live Experience Title is required.",
+    );
+    return;
+  }
+
+  setSavingExperienceName(true);
+  setError(null);
+  setMessage(null);
+
+  try {
+    const response = await fetch(
+      `/api/dashboard/microsites/${micrositeId}/live`,
+      {
+        method: "PATCH",
+
+        headers: {
+          "Content-Type":
+            "application/json",
+        },
+
+        body: JSON.stringify({
+          name,
+        }),
+      },
+    );
+
+    const payload =
+      await response.json();
+
+    if (
+      !response.ok ||
+      !payload?.ok
+    ) {
+      throw new Error(
+        payload?.error ||
+          "Unable to update Live Experience Title.",
+      );
+    }
+
+    await loadHostState();
+
+    setMessage(
+      "Live Experience Title updated.",
+    );
+  } catch (saveError) {
+    setError(
+      saveError instanceof Error
+        ? saveError.message
+        : "Unable to update Live Experience Title.",
+    );
+  } finally {
+    setSavingExperienceName(false);
+  }
+}
 
   async function setExperienceStatus(
     status:
@@ -815,6 +895,59 @@ export default function HostControl({
             )}
           </div>
         </div>
+
+<div className="mt-5 rounded-xl border border-neutral-200 bg-neutral-50 p-4">
+  <label className="block">
+    <span className="text-sm font-semibold text-neutral-900">
+      Live Experience Title
+    </span>
+
+    <span className="mt-1 block text-xs text-neutral-500">
+      The name participants will see when
+      connecting to this Live Experience.
+    </span>
+
+    <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+      <input
+        type="text"
+        value={experienceName}
+        maxLength={100}
+        disabled={savingExperienceName}
+        onChange={(event) => {
+          setExperienceName(
+            event.target.value,
+          );
+        }}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            void saveExperienceName();
+          }
+        }}
+        placeholder="Live Experience"
+        className="min-w-0 flex-1 rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm outline-none focus:border-neutral-500 disabled:cursor-not-allowed disabled:opacity-60"
+      />
+
+      <button
+        type="button"
+        disabled={
+          savingExperienceName ||
+          !experienceName.trim() ||
+          experienceName.trim() ===
+            data.experience.name
+        }
+        onClick={() => {
+          void saveExperienceName();
+        }}
+        className="rounded-lg bg-black px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-neutral-800 disabled:cursor-not-allowed disabled:bg-neutral-200 disabled:text-neutral-500"
+      >
+        {savingExperienceName
+          ? "Saving..."
+          : "Save Title"}
+      </button>
+    </div>
+  </label>
+</div>
 
 <div className="mt-5 flex flex-wrap gap-2">
   <button
