@@ -297,63 +297,31 @@ function LiveJoinEntryGate({
     sessionLoading,
   } = useLiveRuntime();
 
-const [closing, setClosing] =
-  useState(false);
-
-const [visible, setVisible] =
-  useState(true);
-
-useEffect(() => {
-  const gateActive =
-    Boolean(joinBlock) &&
-    !sessionLoading &&
-    visible;
-
-  onGateActiveChange(gateActive);
-
-  return () => {
-    onGateActiveChange(false);
-  };
-}, [
-  joinBlock,
-  sessionLoading,
-  visible,
-  onGateActiveChange,
-]);
-
-const wasAuthenticatedRef =
-  useRef(false);
-
   useEffect(() => {
-    if (
-      authenticated &&
-      !wasAuthenticatedRef.current
-    ) {
-      setClosing(true);
+    const gateActive =
+      Boolean(joinBlock) &&
+      !sessionLoading &&
+      !authenticated;
 
-      const timeoutId =
-        window.setTimeout(() => {
-          setClosing(false);
-        }, 300);
+    onGateActiveChange(gateActive);
 
-      wasAuthenticatedRef.current = true;
+    return () => {
+      onGateActiveChange(false);
+    };
+  }, [
+    joinBlock,
+    sessionLoading,
+    authenticated,
+    onGateActiveChange,
+  ]);
 
-      return () => {
-        window.clearTimeout(timeoutId);
-      };
-    }
-
-    wasAuthenticatedRef.current =
-      authenticated;
-  }, [authenticated]);
-
-if (
-  !joinBlock ||
-  sessionLoading ||
-  !visible
-) {
-  return null;
-}
+  if (
+    !joinBlock ||
+    sessionLoading ||
+    authenticated
+  ) {
+    return null;
+  }
 
   const data = joinBlock.data as any;
 
@@ -364,21 +332,15 @@ if (
         zIndex: 2147483000,
       }}
     >
-      {/* Darkened / blurred view of the microsite */}
+      {/* Darkened / blurred microsite */}
       <div
         className="absolute inset-0 bg-black/60 backdrop-blur-md"
         aria-hidden="true"
       />
 
-      {/* Entry card */}
+      {/* Temporary entry card */}
       <div
-        className={[
-          "relative w-full max-w-md",
-          "transition-all duration-300 ease-out",
-          closing
-            ? "scale-75 opacity-0"
-            : "scale-100 opacity-100",
-        ].join(" ")}
+        className="relative w-full max-w-md"
         style={{
           ...(joinBlock.appearance
             ?.backgroundColor
@@ -388,7 +350,8 @@ if (
                     .backgroundColor,
               }
             : {
-                backgroundColor: "#ffffff",
+                backgroundColor:
+                  "#ffffff",
               }),
 
           borderColor:
@@ -396,19 +359,17 @@ if (
               ?.borderColor ??
             "#e5e7eb",
 
-          borderWidth:
-            `${
-              joinBlock.appearance
-                ?.borderWidth ?? 1
-            }px`,
+          borderWidth: `${
+            joinBlock.appearance
+              ?.borderWidth ?? 1
+          }px`,
 
           borderStyle: "solid",
 
-          borderRadius:
-            `${
-              joinBlock.appearance
-                ?.borderRadius ?? 16
-            }px`,
+          borderRadius: `${
+            joinBlock.appearance
+              ?.borderRadius ?? 16
+          }px`,
 
           padding: "24px",
 
