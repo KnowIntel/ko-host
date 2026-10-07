@@ -4170,6 +4170,84 @@ if (
         | undefined) ??
       "before";
 
+const revealImageUrl =
+  String(
+    (block.data as any)
+      .revealImageUrl ??
+      "",
+  ).trim();
+
+const revealTitle =
+  String(
+    (block.data as any)
+      .revealTitle ??
+      "",
+  ).trim();
+
+/*
+ * ================================================================
+ * REVEAL — EXPANDED
+ * ================================================================
+ */
+
+if (isReveal && !revealCollapsed) {
+  return (
+    <div className="h-full w-full overflow-hidden">
+      <button
+        type="button"
+        aria-expanded="true"
+        onClick={() =>
+          setRevealCollapsed(true)
+        }
+        className="relative block h-full w-full cursor-pointer overflow-hidden"
+        style={{
+          ...appearance,
+
+          padding: 0,
+
+          transform:
+            `translate(${posX - 50}%, ${posY - 50}%)`,
+        }}
+      >
+        {revealImageUrl ? (
+          <img
+            src={revealImageUrl}
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center bg-neutral-100 text-xs text-neutral-400">
+            Add Reveal Image
+          </div>
+        )}
+
+        {revealTitle ? (
+          <div
+            className="absolute left-0 right-0 top-0 z-10 px-3 py-2"
+            style={{
+              ...style,
+
+              background:
+                "rgba(0, 0, 0, 0.45)",
+
+              color:
+                style.color ||
+                "#ffffff",
+
+              textAlign:
+                block.data.style
+                  ?.align ??
+                "center",
+            }}
+          >
+            {revealTitle}
+          </div>
+        ) : null}
+      </button>
+    </div>
+  );
+}
+
     return (
       <div className="h-full w-full overflow-hidden">
         <div
