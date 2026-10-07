@@ -1,3 +1,5 @@
+// app\api\dashboard\microsites\[id]\live\host\actions\route.ts
+
 import { randomInt } from "crypto";
 
 import { NextResponse } from "next/server";

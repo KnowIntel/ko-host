@@ -72,15 +72,17 @@ export default function LiveLottery({
   enterButtonStyle,
   winnerStyle,
 }: Props) {
-  const {
-    data,
-    authenticated,
-    experienceId,
-    refresh,
-  } =
-    useLiveEndpoint<Response>(
-      "lottery",
-    );
+const {
+  data,
+  loading,
+  error: loadError,
+  authenticated,
+  experienceId,
+  refresh,
+} =
+  useLiveEndpoint<Response>(
+    "lottery",
+  );
 
   const [entering, setEntering] =
     useState(false);
@@ -99,6 +101,28 @@ export default function LiveLottery({
     );
   }
 
+if (loading) {
+  return (
+    <div
+      className="p-4 text-center"
+      style={helperTextStyle}
+    >
+      Loading Lottery...
+    </div>
+  );
+}
+
+if (loadError) {
+  return (
+    <div
+      className="p-4 text-center"
+      style={helperTextStyle}
+    >
+      {loadError}
+    </div>
+  );
+}
+
 if (!data?.activity) {
   return (
     <div
@@ -109,7 +133,6 @@ if (!data?.activity) {
     </div>
   );
 }
-
   const entryCount =
     data.participantState
       ?.entryCount ??
