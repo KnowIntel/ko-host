@@ -176,13 +176,14 @@ export async function POST(
 
     const now = new Date().toISOString();
 
-    const nextCompletedItems = {
-      ...completedItems,
-      [itemId]: {
-        completedAt: now,
-        awardedPoints,
-      },
-    };
+const nextCompletedItems = {
+  ...completedItems,
+  [itemId]: {
+    completedAt: now,
+    awardedPoints,
+    responseText,
+  },
+};
 
     const completedCount =
       Object.keys(
