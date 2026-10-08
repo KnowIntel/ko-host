@@ -19185,51 +19185,6 @@ updateSelectedBlock((block) =>
     </div>
   ) : null}
 
-  {/* Shared animation setting for all Live Blocks */}
-{!isMultiSelection &&
-  selectedBlock?.type.startsWith("live_") ? (
-    <div className={inspectorCardClass()}>
-      <div className="space-y-2">
-        <label className={inspectorInputClass()}>
-          Animation
-        </label>
-
-        <select
-          className={inspectorLabelClass()}
-          value={
-            (selectedBlock.data as any).animation ??
-            "none"
-          }
-          onChange={(event) => {
-            const animation = event.target.value as
-              | "none"
-              | "focus"
-              | "spotlight";
-
-            updateSelectedBlock(
-              (block) =>
-                ({
-                  ...block,
-                  data: {
-                    ...block.data,
-                    animation,
-                  },
-                }) as MicrositeBlock,
-            );
-          }}
-        >
-          <option value="none">None</option>
-          <option value="focus">Focus</option>
-          <option value="spotlight">Spotlight</option>
-        </select>
-
-        <p className="text-xs opacity-60">
-          Activated by clicking a noninteractive area
-          of the Live Block.
-        </p>
-      </div>
-    </div>
-  ) : null}
 
 {!isMultiSelection && selectedBlock?.type === "live_join" ? (
   <LiveJoinInspector

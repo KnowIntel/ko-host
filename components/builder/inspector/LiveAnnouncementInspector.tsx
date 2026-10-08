@@ -114,6 +114,30 @@ export function LiveAnnouncementInspector({
             </option>
           </select>
         </div>
+
+        <div className="mt-3">
+          <div className={inspectorLabelClass()}>
+            Animation
+          </div>
+
+          <select
+            value={selectedBlock.data.animation ?? "none"}
+            onChange={(e) =>
+              updateSelectedBlock((block: any) => ({
+                ...block,
+                data: {
+                  ...block.data,
+                  animation: e.target.value,
+                },
+              }))
+            }
+            className={inspectorInputClass()}
+          >
+            <option value="none">None</option>
+            <option value="focus">Focus</option>
+            <option value="spotlight">Spotlight</option>
+          </select>
+        </div>
       </div>
 
       <div className="mt-4">

@@ -586,6 +586,11 @@ const [activeLiveAnimation, setActiveLiveAnimation] = useState<{
   animation: LiveAnimation;
 } | null>(null);
 
+const [liveFocusOffset, setLiveFocusOffset] = useState<{
+  x: number;
+  y: number;
+} | null>(null);
+
 const handleLiveAnimationClick = useCallback(
   (
     event: React.MouseEvent<HTMLDivElement>,
@@ -596,7 +601,12 @@ const handleLiveAnimationClick = useCallback(
       return;
     }
 
-    if (activeLiveAnimation) return;
+    if (activeLiveAnimation) {
+  if (activeLiveAnimation.blockId === blockId) {
+    setActiveLiveAnimation(null);
+  }
+  return;
+}
 
     const target = event.target;
 
@@ -640,6 +650,7 @@ const handleLiveAnimationClick = useCallback(
   },
   [activeLiveAnimation],
 );
+
 
 useEffect(() => {
   if (!activeLiveAnimation) return;
@@ -1388,6 +1399,57 @@ const scaledContentWidthPercent =
     ? (containerWidth || logicalPageWidth) / (logicalPageWidth * previewScale) * 100
     : 100;
 
+    useEffect(() => {
+  if (
+    !activeLiveAnimation ||
+    activeLiveAnimation.animation !== "focus"
+  ) {
+    setLiveFocusOffset(null);
+    return;
+  }
+
+  const container = containerRef.current;
+  if (!container) return;
+
+  const block = Array.from(
+    container.querySelectorAll<HTMLElement>(
+      "[data-preview-block-id]",
+    ),
+  ).find(
+    (element) =>
+      element.dataset.previewBlockId ===
+      activeLiveAnimation.blockId,
+  );
+
+  if (!block) return;
+
+  const calculateOffset = () => {
+    const rect = block.getBoundingClientRect();
+
+    const currentX = liveFocusOffset?.x ?? 0;
+    const currentY = liveFocusOffset?.y ?? 0;
+
+    const scale = Math.max(0.01, previewScale);
+
+    setLiveFocusOffset({
+      x:
+        currentX +
+        (window.innerWidth / 2 -
+          (rect.left + rect.width / 2)) /
+          scale,
+      y:
+        currentY +
+        (window.innerHeight / 2 -
+          (rect.top + rect.height / 2)) /
+          scale,
+    });
+  };
+
+  const frame = window.requestAnimationFrame(calculateOffset);
+
+  return () => window.cancelAnimationFrame(frame);
+}, [activeLiveAnimation, previewScale]);
+
 return (
   <LiveRuntimeProvider liveExperience={liveExperience}>
     <>
@@ -1467,7 +1529,9 @@ return (
     minHeight: scaledPageHeight,
     margin: 0,
     padding: 0,
-    overflow: "hidden",
+overflow: activeLiveAnimation?.animation === "focus"
+  ? "visible"
+  : "hidden",
   }}
 >
 <div
@@ -1784,6 +1848,13 @@ pdf.save(`${frameBlock.data.frameName?.trim() || "frame-capture"}.pdf`);
   }
 style={{
   ...itemStyle,
+
+  transform:
+    activeLiveAnimation?.blockId === block.id &&
+    activeLiveAnimation.animation === "focus" &&
+    liveFocusOffset
+      ? `translate(${liveFocusOffset.x}px, ${liveFocusOffset.y}px)`
+      : undefined,
 
   zIndex:
     activeLiveAnimation?.blockId === block.id

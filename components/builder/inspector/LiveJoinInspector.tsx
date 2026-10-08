@@ -100,6 +100,26 @@ export function LiveJoinInspector({
       <option value="leaveButton">Leave Button</option>
     </select>
   </div>
+
+  <div className="mt-3">
+    <div className={inspectorLabelClass()}>
+      Animation
+    </div>
+
+    <select
+      value={selectedBlock.data.animation ?? "none"}
+      onChange={(e) =>
+        updateLiveJoinData({
+          animation: e.target.value,
+        })
+      }
+      className={inspectorInputClass()}
+    >
+      <option value="none">None</option>
+      <option value="focus">Focus</option>
+      <option value="spotlight">Spotlight</option>
+    </select>
+  </div>
 </div>
 
       <div className="mt-4">
