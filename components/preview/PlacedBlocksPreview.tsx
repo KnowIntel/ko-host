@@ -558,6 +558,11 @@ const [collapsedRevealIds, setCollapsedRevealIds] =
 
 const handleRevealCollapsedChange = useCallback(
   (blockId: string, collapsed: boolean) => {
+    console.log("PARENT REVEAL HANDLER CALLED", {
+      blockId,
+      collapsed,
+    });
+
     const revealBlock = (draft.blocks ?? []).find(
       (block) => block.id === blockId,
     );
