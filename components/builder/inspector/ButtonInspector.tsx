@@ -477,6 +477,34 @@ e.target.value as
                 Show "Press to Reveal" Title
               </label>
 
+              {/* REVEAL ACTION */}
+              <div className="mt-4">
+                <div className={inspectorLabelClass()}>
+                  Action
+                </div>
+
+                <select
+                  value={data.revealAction ?? "collapse"}
+                  onChange={(e) =>
+                    patchButtonData({
+                      revealAction: e.target.value,
+                    })
+                  }
+                  className={inspectorInputClass()}
+                >
+                  <option value="collapse">
+                    Collapse Only
+                  </option>
+                  <option value="zoom_focus">
+                    Collapse & Zoom to Focus
+                  </option>
+                </select>
+
+                <div className="mt-1 text-xs text-neutral-500">
+                  Choose what happens when the expanded Reveal block is pressed.
+                </div>
+              </div>
+
           {/* ======================================================== */}
           {/* REVEAL IMAGE */}
           {/* ======================================================== */}
