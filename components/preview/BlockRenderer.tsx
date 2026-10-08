@@ -4235,7 +4235,7 @@ style={{
   <img
     src={revealImageUrl}
     alt=""
-    className="absolute inset-0 h-full w-full object-contain"
+    className="absolute inset-0 h-full w-full object-cover"
   />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center bg-neutral-100 text-xs text-neutral-400">
