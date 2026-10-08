@@ -4295,6 +4295,13 @@ if (isReveal && !revealCollapsed) {
   type="button"
   aria-expanded="true"
 onClick={(e) => {
+  console.log("REVEAL CLICK", {
+    blockId: block.id,
+    isRevealZoomFocus,
+    revealAction,
+    revealCollapsed,
+  });
+
   if (isRevealZoomFocus) {
     captureRevealFocusRect(e.currentTarget);
   }
