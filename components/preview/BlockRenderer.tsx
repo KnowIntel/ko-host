@@ -3292,6 +3292,13 @@ console.log("REVEAL STATE", {
   blockId: block.id,
   revealCollapsed,
 });
+useEffect(() => {
+  console.log("REVEAL MOUNTED", block.id);
+
+  return () => {
+    console.log("REVEAL UNMOUNTED", block.id);
+  };
+}, []);
 
   const appearance =
     getAppearanceStyle(
