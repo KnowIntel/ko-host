@@ -209,6 +209,8 @@ type Props = {
 
   isBuilder?: boolean;
 
+  revealCollapsed?: boolean;
+
   onRevealCollapsedChange?: (
     blockId: string,
     collapsed: boolean,
