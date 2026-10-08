@@ -28,6 +28,7 @@ import {
   type EnrollmentBoardProfileEventDetail,
 } from "@/components/blocks/enrollmentBoardEvents";
 import { getFontFamily } from "@/lib/fonts";
+const revealFocusRects = new Map<string, DOMRect>();  
 
 type SpeedDatingParticipant = {
   id: string;
@@ -3286,7 +3287,7 @@ function renderCta(
   ) => void,
   revealCollapsed = false,
 ) {
-const revealFocusRects = new Map<string, DOMRect>();  
+
 function CtaButtonLive() {
   const [submitted, setSubmitted] =
     useState(false);
