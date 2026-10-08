@@ -1803,6 +1803,7 @@ return (
         serverNow={serverNow}
         previewMode={previewMode}
         onRevealCollapsedChange={handleRevealCollapsedChange}
+        revealCollapsed={collapsedRevealIds.has(previewBlock.id)}
         cartItems={cartItems}
       cartSubtotal={cartSubtotal}
       listingQuantities={listingQuantities}

@@ -3277,6 +3277,7 @@ function renderCta(
     blockId: string,
     collapsed: boolean,
   ) => void,
+  revealCollapsed = false,
 ) {
 function CtaButtonLive() {
   const [submitted, setSubmitted] =
@@ -3285,10 +3286,9 @@ function CtaButtonLive() {
   const [submitting, setSubmitting] =
     useState(false);
 
-const [
-  revealCollapsed,
-  setRevealCollapsed,
-] = useState(false);
+const setRevealCollapsed = (collapsed: boolean) => {
+  onRevealCollapsedChange?.(block.id, collapsed);
+};
 
 console.log("REVEAL STATE", {
   blockId: block.id,
@@ -4221,7 +4221,6 @@ if (isReveal && !revealCollapsed) {
   aria-expanded="true"
 onClick={() => {
   setRevealCollapsed(true);
-  onRevealCollapsedChange?.(block.id, true);
 }}
   className="relative block cursor-pointer overflow-hidden"
   style={{
@@ -4289,7 +4288,6 @@ if (isReveal && revealCollapsed) {
   aria-label={revealTitle ? `Show ${revealTitle}` : "Show reveal"}
 onClick={() => {
   setRevealCollapsed(false);
-  onRevealCollapsedChange?.(block.id, false);
 }}
   className="absolute bottom-0 right-0 flex cursor-pointer items-center justify-center overflow-hidden"
   style={{
@@ -41493,6 +41491,7 @@ export default function BlockRenderer({
   serverNow,
   previewMode = false,
   isBuilder = false,
+  revealCollapsed = false,
   onRevealCollapsedChange,
   cartItems,
   cartSubtotal,
@@ -41667,6 +41666,7 @@ case "cta":
     micrositeSlug,
     pages,
     onRevealCollapsedChange,
+    revealCollapsed,
   );
 
     case "countdown":
