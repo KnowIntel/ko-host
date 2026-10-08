@@ -209,6 +209,11 @@ type Props = {
 
   isBuilder?: boolean;
 
+  onRevealCollapsedChange?: (
+    blockId: string,
+    collapsed: boolean,
+  ) => void;
+
   cartItems?: CartItem[];
 
   cartSubtotal?: number;
@@ -3266,6 +3271,10 @@ function renderCta(
     title?: string | null;
     display_order?: number | null;
   }>,
+  onRevealCollapsedChange?: (
+    blockId: string,
+    collapsed: boolean,
+  ) => void,
 ) {
 function CtaButtonLive() {
   const [submitted, setSubmitted] =
@@ -4193,27 +4202,24 @@ const revealTitle =
 if (isReveal && !revealCollapsed) {
   return (
     <div className="flex h-full w-full items-start justify-start overflow-visible">
-      <button
-        type="button"
-        aria-expanded="true"
-        onClick={() =>
-          setRevealCollapsed(true)
-        }
-        className="relative block cursor-pointer overflow-hidden"
-        style={{
-          ...appearance,
-
-          width: "100%",
-          aspectRatio: "1 / 1",
-          height: "auto",
-          maxHeight: "100%",
-
-          padding: 0,
-
-          transform:
-            `translate(${posX - 50}%, ${posY - 50}%)`,
-        }}
-      >
+<button
+  type="button"
+  aria-expanded="true"
+onClick={() => {
+  setRevealCollapsed(true);
+  onRevealCollapsedChange?.(block.id, true);
+}}
+  className="relative block cursor-pointer overflow-hidden"
+  style={{
+    ...appearance,
+    width: "100%",
+    aspectRatio: "1 / 1",
+    height: "auto",
+    maxHeight: "100%",
+    padding: 0,
+    transform: `translate(${posX - 50}%, ${posY - 50}%)`,
+  }}
+>
         {revealImageUrl ? (
           <img
             src={revealImageUrl}
@@ -4264,42 +4270,33 @@ if (isReveal && revealCollapsed) {
 
   return (
     <div className="relative h-full w-full overflow-visible">
-      <button
-        type="button"
-        aria-expanded="false"
-        aria-label={
-          revealTitle
-            ? `Show ${revealTitle}`
-            : "Show reveal"
-        }
-        onClick={() =>
-          setRevealCollapsed(false)
-        }
-        className="absolute bottom-0 right-0 flex cursor-pointer items-center justify-center overflow-hidden"
-        style={{
-          ...appearance,
-
-          width: collapsedSize,
-          height: collapsedSize,
-
-          padding: 0,
-
-          background:
-            buttonMediaType === "icon"
-              ? "transparent"
-              : appearance.backgroundColor &&
-                  appearance.backgroundColor !==
-                    "transparent"
-                ? appearance.backgroundColor
-                : "transparent",
-
-          borderColor:
-            buttonMediaType === "icon"
-              ? "transparent"
-              : appearance.borderColor ||
-                "transparent",
-        }}
-      >
+<button
+  type="button"
+  aria-expanded="false"
+  aria-label={revealTitle ? `Show ${revealTitle}` : "Show reveal"}
+onClick={() => {
+  setRevealCollapsed(false);
+  onRevealCollapsedChange?.(block.id, false);
+}}
+  className="absolute bottom-0 right-0 flex cursor-pointer items-center justify-center overflow-hidden"
+  style={{
+    ...appearance,
+    width: collapsedSize,
+    height: collapsedSize,
+    padding: 0,
+    background:
+      buttonMediaType === "icon"
+        ? "transparent"
+        : appearance.backgroundColor &&
+            appearance.backgroundColor !== "transparent"
+          ? appearance.backgroundColor
+          : "transparent",
+    borderColor:
+      buttonMediaType === "icon"
+        ? "transparent"
+        : appearance.borderColor || "transparent",
+  }}
+>
         {buttonMediaUrl ? (
           buttonMediaType === "icon" ? (
             numberedCircleValue ? (
@@ -41483,6 +41480,7 @@ export default function BlockRenderer({
   serverNow,
   previewMode = false,
   isBuilder = false,
+  onRevealCollapsedChange,
   cartItems,
   cartSubtotal,
   listingQuantities,
@@ -41655,6 +41653,7 @@ case "cta":
     designKey,
     micrositeSlug,
     pages,
+    onRevealCollapsedChange,
   );
 
     case "countdown":

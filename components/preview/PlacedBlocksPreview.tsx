@@ -551,6 +551,25 @@ export default function PlacedBlocksPreview({
   const metadata = getMetadata(templateKey, designKey);
   const containerRef = useRef<HTMLDivElement | null>(null);
 const [containerWidth, setContainerWidth] = useState<number>(0);
+const [collapsedRevealIds, setCollapsedRevealIds] =
+  useState<Set<string>>(() => new Set());
+
+const handleRevealCollapsedChange = useCallback(
+  (blockId: string, collapsed: boolean) => {
+    setCollapsedRevealIds((previous) => {
+      const next = new Set(previous);
+
+      if (collapsed) {
+        next.add(blockId);
+      } else {
+        next.delete(blockId);
+      }
+
+      return next;
+    });
+  },
+  [],
+);
 
 const [activeBookmarkSlug, setActiveBookmarkSlug] =
   useState<string | null>(null);
@@ -1404,23 +1423,35 @@ const baseItemStyle = getItemStyle(
   logicalRowHeight,
 );
 
+const isCollapsedReveal =
+  block.type === "cta" &&
+  block.data.styleType === "reveal" &&
+  collapsedRevealIds.has(block.id);
+
 const itemStyle =
   block.type === "bookmark"
     ? {
         ...baseItemStyle,
-
-        /*
-         * Bookmark is only a location anchor.
-         *
-         * Preserve its calculated grid position,
-         * but keep its actual canvas footprint tiny.
-         */
         width: 4,
         height: 4,
         minWidth: 4,
         minHeight: 4,
       }
-    : baseItemStyle;
+    : isCollapsedReveal
+      ? {
+          ...baseItemStyle,
+          left:
+            Number(baseItemStyle.left) +
+            Number(baseItemStyle.width) -
+            getColumnWidth(logicalPageWidth),
+          top:
+            Number(baseItemStyle.top) +
+            Number(baseItemStyle.height) -
+            logicalRowHeight * 1.25,
+          width: getColumnWidth(logicalPageWidth),
+          height: logicalRowHeight * 1.25,
+        }
+      : baseItemStyle;
 const showVerticalScrollbar =
   (block as any).showVerticalScrollbar === true ||
   (block.data as any)?.showVerticalScrollbar === true;
@@ -1769,9 +1800,10 @@ return (
         null
       }
       liveExperience={liveExperience}
-      serverNow={serverNow}
-      previewMode={previewMode}
-      cartItems={cartItems}
+        serverNow={serverNow}
+        previewMode={previewMode}
+        onRevealCollapsedChange={handleRevealCollapsedChange}
+        cartItems={cartItems}
       cartSubtotal={cartSubtotal}
       listingQuantities={listingQuantities}
       onDownloadFrame={handleDownloadFrame as any}
