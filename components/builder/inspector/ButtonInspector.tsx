@@ -539,14 +539,144 @@ e.target.value as
                 >
                   Remove
                 </button>
-              ) : null}
+                ) : null}
+              </div>
+
+              {/* REVEAL IMAGE ZOOM */}
+              <div className="mt-4">
+                <div className="flex items-center justify-between">
+                  <div className={inspectorLabelClass()}>
+                    Zoom
+                  </div>
+                  <div className="text-xs text-neutral-500">
+                    {Number(data.revealImageZoom ?? 100)}%
+                  </div>
+                </div>
+
+                <input
+                  type="range"
+                  min={50}
+                  max={300}
+                  step={1}
+                  value={Number(data.revealImageZoom ?? 100)}
+                  onChange={(e) =>
+                    patchButtonData({
+                      revealImageZoom: Number(e.target.value),
+                    })
+                  }
+                  className="mt-2 w-full"
+                />
+              </div>
+
+              {/* REVEAL IMAGE HORIZONTAL POSITION */}
+              <div className="mt-4">
+                <div className="flex items-center justify-between">
+                  <div className={inspectorLabelClass()}>
+                    Horizontal Position
+                  </div>
+                  <div className="text-xs text-neutral-500">
+                    {Number(data.revealImagePositionX ?? 50)}%
+                  </div>
+                </div>
+
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  step={1}
+                  value={Number(data.revealImagePositionX ?? 50)}
+                  onChange={(e) =>
+                    patchButtonData({
+                      revealImagePositionX: Number(e.target.value),
+                    })
+                  }
+                  className="mt-2 w-full"
+                />
+              </div>
+
+              {/* REVEAL IMAGE VERTICAL POSITION */}
+              <div className="mt-4">
+                <div className="flex items-center justify-between">
+                  <div className={inspectorLabelClass()}>
+                    Vertical Position
+                  </div>
+                  <div className="text-xs text-neutral-500">
+                    {Number(data.revealImagePositionY ?? 50)}%
+                  </div>
+                </div>
+
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  step={1}
+                  value={Number(data.revealImagePositionY ?? 50)}
+                  onChange={(e) =>
+                    patchButtonData({
+                      revealImagePositionY: Number(e.target.value),
+                    })
+                  }
+                  className="mt-2 w-full"
+                />
+              </div>
+
+              {/* REVEAL IMAGE ROTATION */}
+              <div className="mt-4">
+                <div className="flex items-center justify-between">
+                  <div className={inspectorLabelClass()}>
+                    Rotation
+                  </div>
+                  <div className="text-xs text-neutral-500">
+                    {Number(data.revealImageRotation ?? 0)}°
+                  </div>
+                </div>
+
+                <input
+                  type="range"
+                  min={-180}
+                  max={180}
+                  step={1}
+                  value={Number(data.revealImageRotation ?? 0)}
+                  onChange={(e) =>
+                    patchButtonData({
+                      revealImageRotation: Number(e.target.value),
+                    })
+                  }
+                  className="mt-2 w-full"
+                />
+              </div>
+
+              {/* REVEAL IMAGE OPACITY */}
+              <div className="mt-4">
+                <div className="flex items-center justify-between">
+                  <div className={inspectorLabelClass()}>
+                    Opacity
+                  </div>
+                  <div className="text-xs text-neutral-500">
+                    {Number(data.revealImageOpacity ?? 100)}%
+                  </div>
+                </div>
+
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  step={1}
+                  value={Number(data.revealImageOpacity ?? 100)}
+                  onChange={(e) =>
+                    patchButtonData({
+                      revealImageOpacity: Number(e.target.value),
+                    })
+                  }
+                  className="mt-2 w-full"
+                />
+              </div>
             </div>
           </div>
-        </div>
-      ) : null}
+        ) : null}
 
-      {/* ============================================================ */}
-      {/* MEDIA TYPE */}
+        {/* ============================================================ */}
+        {/* MEDIA TYPE */}
       {/* ============================================================ */}
       <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
         <div

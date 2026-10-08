@@ -4236,6 +4236,12 @@ style={{
     src={revealImageUrl}
     alt=""
     className="absolute inset-0 h-full w-full object-cover"
+style={{
+  transform: `scale(${Number((block.data as any).revealImageZoom ?? 100) / 100}) rotate(${Number((block.data as any).revealImageRotation ?? 0)}deg)`,
+  objectPosition: `${Number((block.data as any).revealImagePositionX ?? 50)}% ${Number((block.data as any).revealImagePositionY ?? 50)}%`,
+  transformOrigin: "center center",
+  opacity: Number((block.data as any).revealImageOpacity ?? 100) / 100,
+}}
   />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center bg-neutral-100 text-xs text-neutral-400">
