@@ -19105,6 +19105,86 @@ selectedBlock?.type === "donation" ? (
   />
 ) : null}
 
+{/* SHARED LIVE BLOCK APPEARANCE */}
+{!isMultiSelection &&
+  selectedBlock &&
+  [
+    "live_join",
+    "live_trivia",
+    "live_poll",
+    "live_player_card",
+    "live_schedule",
+    "live_song_request",
+    "live_spin_wheel",
+    "live_scavenger_hunt",
+    "live_lottery",
+    "live_leaderboard",
+    "live_mystery_drop",
+    "live_announcement",
+  ].includes(selectedBlock.type) ? (
+    <div className={inspectorCardClass()}>
+      <div className={inspectorLabelClass()}>
+        Live Block Appearance
+      </div>
+      <div className="mt-3 space-y-2">
+        <div className="flex items-center justify-between text-xs">
+          <label>Rotation</label>
+          <span>
+            {Number((selectedBlock.data as any).rotation ?? 0)}°
+          </span>
+        </div>
+
+        <input
+          type="range"
+          min={-180}
+          max={180}
+          step={1}
+          value={Number((selectedBlock.data as any).rotation ?? 0)}
+onChange={(e) =>
+updateSelectedBlock((block) =>
+  ({
+    ...block,
+    data: {
+      ...block.data,
+      rotation: Number(e.target.value),
+    },
+  }) as MicrositeBlock
+)
+}
+          className="w-full"
+        />
+      </div>
+      <div className="mt-3 space-y-2">
+  <div className="flex items-center justify-between text-xs">
+    <label>Opacity</label>
+    <span>
+      {Number((selectedBlock.data as any).opacity ?? 100)}%
+    </span>
+  </div>
+
+  <input
+    type="range"
+    min={0}
+    max={100}
+    step={1}
+    value={Number((selectedBlock.data as any).opacity ?? 100)}
+onChange={(e) =>
+updateSelectedBlock((block) =>
+  ({
+    ...block,
+    data: {
+      ...block.data,
+      opacity: Number(e.target.value),
+    },
+  }) as MicrositeBlock
+)
+}
+    className="w-full"
+  />
+</div>
+    </div>
+  ) : null}
+
 {!isMultiSelection && selectedBlock?.type === "live_join" ? (
   <LiveJoinInspector
     selectedBlock={selectedBlock}

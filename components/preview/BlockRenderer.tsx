@@ -847,10 +847,17 @@ function Surface({
         padded ? "p-4" : "",
         className,
       ].join(" ")}
-      style={{
-        ...getAppearanceStyle(block),
-        ...(styleOverride ?? {}),
-      }}
+style={{
+  ...getAppearanceStyle(block),
+  ...(styleOverride ?? {}),
+  ...(block.type.startsWith("live_")
+    ? {
+        transform: `rotate(${Number((block.data as any).rotation ?? 0)}deg)`,
+        transformOrigin: "center center",
+        opacity: Number((block.data as any).opacity ?? 100) / 100,
+      }
+    : {}),
+}}
     >
       {children}
     </div>
