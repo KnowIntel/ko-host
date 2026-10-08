@@ -579,6 +579,84 @@ const [containerWidth, setContainerWidth] = useState<number>(0);
 const [collapsedRevealIds, setCollapsedRevealIds] =
   useState<Set<string>>(() => new Set());
 
+type LiveAnimation = "focus" | "spotlight";
+
+const [activeLiveAnimation, setActiveLiveAnimation] = useState<{
+  blockId: string;
+  animation: LiveAnimation;
+} | null>(null);
+
+const handleLiveAnimationClick = useCallback(
+  (
+    event: React.MouseEvent<HTMLDivElement>,
+    blockId: string,
+    animation: string,
+  ) => {
+    if (animation !== "focus" && animation !== "spotlight") {
+      return;
+    }
+
+    if (activeLiveAnimation) return;
+
+    const target = event.target;
+
+    if (!(target instanceof Element)) return;
+
+    // Preserve normal operation of interactive elements.
+    if (
+      target.closest(
+        [
+          "button",
+          "input",
+          "textarea",
+          "select",
+          "option",
+          "a",
+          "label",
+          "summary",
+          "[contenteditable]",
+          '[role="button"]',
+          '[role="link"]',
+          '[role="textbox"]',
+          '[role="slider"]',
+          '[role="switch"]',
+          '[role="checkbox"]',
+          '[role="radio"]',
+          '[role="combobox"]',
+          '[role="listbox"]',
+          '[role="menuitem"]',
+          '[role="tab"]',
+          "[data-no-live-animation]",
+        ].join(","),
+      )
+    ) {
+      return;
+    }
+
+    setActiveLiveAnimation({
+      blockId,
+      animation,
+    });
+  },
+  [activeLiveAnimation],
+);
+
+useEffect(() => {
+  if (!activeLiveAnimation) return;
+
+  const handleEscape = (event: KeyboardEvent) => {
+    if (event.key === "Escape") {
+      setActiveLiveAnimation(null);
+    }
+  };
+
+  document.addEventListener("keydown", handleEscape);
+
+  return () => {
+    document.removeEventListener("keydown", handleEscape);
+  };
+}, [activeLiveAnimation]);
+
 const handleRevealCollapsedChange = useCallback(
   (blockId: string, collapsed: boolean) => {
     console.log("PARENT REVEAL HANDLER CALLED", {
@@ -1313,6 +1391,7 @@ const scaledContentWidthPercent =
 return (
   <LiveRuntimeProvider liveExperience={liveExperience}>
     <>
+
       <style>{BOOKMARK_ANIMATION_STYLES}</style>
 
       {!previewMode && liveExperience ? (
@@ -1406,6 +1485,22 @@ return (
     willChange: "transform",
   }}
 >
+  {activeLiveAnimation && (
+  <div
+    aria-label="Close Live Block animation"
+    onClick={() => setActiveLiveAnimation(null)}
+    style={{
+      position: "absolute",
+      inset: 0,
+      minHeight: pageHeight,
+      zIndex: 2147482000,
+      backgroundColor: "rgba(0, 0, 0, 0.55)",
+      backdropFilter: "blur(8px)",
+      WebkitBackdropFilter: "blur(8px)",
+      cursor: "pointer",
+    }}
+  />
+)}
 {showTitle ? (
   <div
     style={{
@@ -1673,6 +1768,15 @@ pdf.save(`${frameBlock.data.frameName?.trim() || "frame-capture"}.pdf`);
   key={block.id}
   data-preview-block-id={block.id}
   data-preview-block-type={block.type}
+  onClick={(event) => {
+  if (!block.type.startsWith("live_")) return;
+
+  handleLiveAnimationClick(
+    event,
+    block.id,
+    String((block.data as any).animation ?? "none"),
+  );
+}}
   id={
     block.type === "bookmark"
       ? String((block.data as any).slug || block.id)
@@ -1680,22 +1784,33 @@ pdf.save(`${frameBlock.data.frameName?.trim() || "frame-capture"}.pdf`);
   }
 style={{
   ...itemStyle,
-zIndex:
-  block.type === "bookmark"
-    ? -1
-    : itemStyle.zIndex,
+
+  zIndex:
+    activeLiveAnimation?.blockId === block.id
+      ? 2147483000
+      : block.type === "bookmark"
+        ? -1
+        : itemStyle.zIndex,
+
+  transition:
+    activeLiveAnimation?.blockId === block.id
+      ? "transform 350ms ease, box-shadow 350ms ease"
+      : undefined,
+
   overflow: isScrollableBlock ? "hidden" : "visible",
-pointerEvents:
-  block.type === "bookmark"
-    ? "none"
-    : liveJoinGateActive &&
-        block.type === "live_join"
+
+  pointerEvents:
+    block.type === "bookmark"
       ? "none"
-      : previewMode
-        ? "auto"
-        : isInteractiveBlock
+      : liveJoinGateActive &&
+          block.type === "live_join"
+        ? "none"
+        : previewMode
           ? "auto"
-          : "none",
+          : isInteractiveBlock
+            ? "auto"
+            : "none",
+
   isolation: "isolate",
 }}
     >
