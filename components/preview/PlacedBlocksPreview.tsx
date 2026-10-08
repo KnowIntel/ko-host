@@ -1430,7 +1430,7 @@ const calculateOffset = () => {
   const viewportWidth = window.innerWidth;
   const viewportHeight = window.innerHeight;
 
-  const margin = 16;
+  const margin = 8;
 
   const availableWidth = viewportWidth - margin * 2;
   const availableHeight = viewportHeight - margin * 2;
