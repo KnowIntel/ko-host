@@ -4266,7 +4266,6 @@ onClick={() => {
  */
 
 if (isReveal && revealCollapsed) {
-  const collapsedSize = 100;
 
   return (
     <div className="relative h-full w-full overflow-visible">
@@ -4281,8 +4280,8 @@ onClick={() => {
   className="absolute bottom-0 right-0 flex cursor-pointer items-center justify-center overflow-hidden"
   style={{
     ...appearance,
-    width: collapsedSize,
-    height: collapsedSize,
+    width: "100%",
+    height: "100%",
     padding: 0,
     background:
       buttonMediaType === "icon"
