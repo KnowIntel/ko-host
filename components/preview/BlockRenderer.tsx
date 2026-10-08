@@ -3288,6 +3288,11 @@ const [
   setRevealCollapsed,
 ] = useState(false);
 
+console.log("REVEAL STATE", {
+  blockId: block.id,
+  revealCollapsed,
+});
+
   const appearance =
     getAppearanceStyle(
       block,
