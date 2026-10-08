@@ -4239,7 +4239,15 @@ style={{
 style={{
   transform: `scale(${Number((block.data as any).revealImageZoom ?? 100) / 100}) rotate(${Number((block.data as any).revealImageRotation ?? 0)}deg)`,
   objectPosition: `${Number((block.data as any).revealImagePositionX ?? 50)}% ${Number((block.data as any).revealImagePositionY ?? 50)}%`,
-  transformOrigin: `${100 - Number((block.data as any).revealImagePositionX ?? 50)}% ${100 - Number((block.data as any).revealImagePositionY ?? 50)}%`,
+  transformOrigin: `${
+  Number((block.data as any).revealImageZoom ?? 100) < 100
+    ? Number((block.data as any).revealImagePositionX ?? 50)
+    : 100 - Number((block.data as any).revealImagePositionX ?? 50)
+}% ${
+  Number((block.data as any).revealImageZoom ?? 100) < 100
+    ? Number((block.data as any).revealImagePositionY ?? 50)
+    : 100 - Number((block.data as any).revealImagePositionY ?? 50)
+}%`,
   opacity: Number((block.data as any).revealImageOpacity ?? 100) / 100,
 }}
   />
