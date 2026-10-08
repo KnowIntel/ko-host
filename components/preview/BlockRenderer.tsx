@@ -4382,6 +4382,15 @@ style={{
  */
 
 if (isReveal && revealCollapsed) {
+  console.log("REVEAL FOCUS DIAGNOSTIC", {
+  blockId: block.id,
+  revealCollapsed,
+  isRevealZoomFocus,
+  revealFocusReady,
+  revealFocusWidth,
+  revealFocusHeight,
+  storedRect: revealFocusRects.get(block.id),
+});
     if (revealFocusReady) {
     return (
       <div className="relative h-full w-full">
