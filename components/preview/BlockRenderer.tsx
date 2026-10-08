@@ -4279,6 +4279,20 @@ onClick={() => {
  */
 
 if (isReveal && revealCollapsed) {
+  const iconSize = Math.max(
+    8,
+    Number((block.data as any).buttonImageSize ?? 20),
+  );
+
+  const iconPaddingX = Math.max(
+    0,
+    Number((block.data as any).buttonPaddingX ?? 20),
+  );
+
+  const iconPaddingY = Math.max(
+    0,
+    Number((block.data as any).buttonPaddingY ?? 8),
+  );
 
   return (
     <div className="relative h-full w-full overflow-visible">
@@ -4294,7 +4308,10 @@ onClick={() => {
     ...appearance,
     width: "100%",
     height: "100%",
-    padding: 0,
+    padding:
+      buttonMediaType === "icon"
+        ? `${iconPaddingY}px ${iconPaddingX}px`
+        : 0,
     background:
       buttonMediaType === "icon"
         ? "transparent"
@@ -4314,7 +4331,13 @@ onClick={() => {
               <svg
                 viewBox="0 0 122.88 122.88"
                 aria-hidden="true"
-                className="block h-full w-full"
+                className="block flex-none"
+style={{
+  width: iconSize,
+  height: iconSize,
+  maxWidth: "100%",
+  maxHeight: "100%",
+}}
               >
                 <circle
                   cx="61.44"
@@ -4340,16 +4363,21 @@ onClick={() => {
                   {numberedCircleValue}
                 </text>
               </svg>
-            ) : (
-              <span
-                aria-hidden="true"
-                className="block h-full w-full"
-                style={{
-                  backgroundColor:
-                    buttonIconColor,
+) : (
+  <span
+    aria-hidden="true"
+    className="block flex-none"
+    style={{
+      width: iconSize,
+      height: iconSize,
+      maxWidth: "100%",
+      maxHeight: "100%",
 
-                  WebkitMaskImage:
-                    `url("${buttonMediaUrl}")`,
+      backgroundColor:
+        buttonIconColor,
+
+      WebkitMaskImage:
+        `url("${buttonMediaUrl}")`,
 
                   maskImage:
                     `url("${buttonMediaUrl}")`,
