@@ -589,6 +589,7 @@ const [activeLiveAnimation, setActiveLiveAnimation] = useState<{
 const [liveFocusOffset, setLiveFocusOffset] = useState<{
   x: number;
   y: number;
+  scale: number;
 } | null>(null);
 
 const handleLiveAnimationClick = useCallback(
@@ -1423,27 +1424,42 @@ const scaledContentWidthPercent =
 
   if (!block) return;
 
-  const calculateOffset = () => {
-    const rect = block.getBoundingClientRect();
+const calculateOffset = () => {
+  const rect = block.getBoundingClientRect();
 
-    const currentX = liveFocusOffset?.x ?? 0;
-    const currentY = liveFocusOffset?.y ?? 0;
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
 
-    const scale = Math.max(0.01, previewScale);
+  const margin = 16;
 
-    setLiveFocusOffset({
-      x:
-        currentX +
-        (window.innerWidth / 2 -
-          (rect.left + rect.width / 2)) /
-          scale,
-      y:
-        currentY +
-        (window.innerHeight / 2 -
-          (rect.top + rect.height / 2)) /
-          scale,
-    });
-  };
+  const availableWidth = viewportWidth - margin * 2;
+  const availableHeight = viewportHeight - margin * 2;
+
+  const zoomScale = Math.min(
+    availableWidth / Math.max(rect.width, 1),
+    availableHeight / Math.max(rect.height, 1),
+    3,
+  );
+
+  const scale = Math.max(0.01, previewScale);
+
+  const currentX = liveFocusOffset?.x ?? 0;
+  const currentY = liveFocusOffset?.y ?? 0;
+
+  setLiveFocusOffset({
+    x:
+      currentX +
+      (viewportWidth / 2 -
+        (rect.left + rect.width / 2)) /
+        scale,
+    y:
+      currentY +
+      (viewportHeight / 2 -
+        (rect.top + rect.height / 2)) /
+        scale,
+    scale: zoomScale,
+  });
+};
 
   const frame = window.requestAnimationFrame(calculateOffset);
 
@@ -1849,12 +1865,14 @@ pdf.save(`${frameBlock.data.frameName?.trim() || "frame-capture"}.pdf`);
 style={{
   ...itemStyle,
 
-  transform:
-    activeLiveAnimation?.blockId === block.id &&
-    activeLiveAnimation.animation === "focus" &&
-    liveFocusOffset
-      ? `translate(${liveFocusOffset.x}px, ${liveFocusOffset.y}px)`
-      : undefined,
+transform:
+  activeLiveAnimation?.blockId === block.id &&
+  activeLiveAnimation.animation === "focus" &&
+  liveFocusOffset
+    ? `translate(${liveFocusOffset.x}px, ${liveFocusOffset.y}px) scale(${liveFocusOffset.scale})`
+    : undefined,
+
+transformOrigin: "center center",
 
   zIndex:
     activeLiveAnimation?.blockId === block.id
