@@ -3286,6 +3286,7 @@ function renderCta(
   ) => void,
   revealCollapsed = false,
 ) {
+const revealFocusRects = new Map<string, DOMRect>();  
 function CtaButtonLive() {
   const [submitted, setSubmitted] =
     useState(false);
@@ -3305,6 +3306,7 @@ const captureRevealFocusRect = (
 ) => {
   const rect = element.getBoundingClientRect();
 
+  revealFocusRects.set(block.id, rect);
   setRevealFocusRect(rect);
 };
 
@@ -4236,11 +4238,14 @@ const revealTitle =
       "",
   ).trim();
 
+const activeRevealFocusRect =
+  revealFocusRect ?? revealFocusRects.get(block.id) ?? null;
+
 const revealFocusWidth =
-  revealFocusRect?.width ?? 0;
+  activeRevealFocusRect?.width ?? 0;
 
 const revealFocusHeight =
-  revealFocusRect?.height ?? 0;
+  activeRevealFocusRect?.height ?? 0;
 
 const revealFocusReady =
   isRevealZoomFocus &&
