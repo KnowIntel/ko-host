@@ -4223,15 +4223,13 @@ onClick={() => {
   setRevealCollapsed(true);
 }}
   className="relative block cursor-pointer overflow-hidden"
-  style={{
-    ...appearance,
-    width: "100%",
-    aspectRatio: "1 / 1",
-    height: "auto",
-    maxHeight: "100%",
-    padding: 0,
-    transform: `translate(${posX - 50}%, ${posY - 50}%)`,
-  }}
+style={{
+  ...appearance,
+  width: "100%",
+  height: "100%",
+  padding: 0,
+  transform: `translate(${posX - 50}%, ${posY - 50}%)`,
+}}
 >
 {revealImageUrl ? (
   <img
