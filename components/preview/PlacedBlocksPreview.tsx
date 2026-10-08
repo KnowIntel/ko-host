@@ -565,11 +565,14 @@ useEffect(() => {
 
   if (!target) return;
 
-  target.scrollIntoView({
-    behavior: "smooth",
-    block: "center",
-    inline: "center",
-  });
+const targetHeight = target.getBoundingClientRect().height;
+const viewportHeight = window.innerHeight;
+
+target.scrollIntoView({
+  behavior: "smooth",
+  block: targetHeight > viewportHeight - 32 ? "start" : "center",
+  inline: "center",
+});
 }, [revealFocusRequest]);
 
 const [containerWidth, setContainerWidth] = useState<number>(0);
