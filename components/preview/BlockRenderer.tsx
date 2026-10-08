@@ -4233,12 +4233,12 @@ onClick={() => {
     transform: `translate(${posX - 50}%, ${posY - 50}%)`,
   }}
 >
-        {revealImageUrl ? (
-          <img
-            src={revealImageUrl}
-            alt=""
-            className="absolute inset-0 h-full w-full object-cover"
-          />
+{revealImageUrl ? (
+  <img
+    src={revealImageUrl}
+    alt=""
+    className="absolute inset-0 h-full w-full object-contain"
+  />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center bg-neutral-100 text-xs text-neutral-400">
             Add Reveal Image
