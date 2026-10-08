@@ -551,6 +551,26 @@ export default function PlacedBlocksPreview({
   const metadata = getMetadata(templateKey, designKey);
 const containerRef = useRef<HTMLDivElement | null>(null);
 const revealFocusTargetRef = useRef<string | null>(null);
+const [revealFocusRequest, setRevealFocusRequest] = useState<{
+  targetId: string;
+  collapsed: boolean;
+} | null>(null);
+
+useEffect(() => {
+  if (!revealFocusRequest?.collapsed) return;
+
+  const target = document.getElementById(
+    `block-${revealFocusRequest.targetId}`,
+  );
+
+  if (!target) return;
+
+  target.scrollIntoView({
+    behavior: "smooth",
+    block: "center",
+    inline: "center",
+  });
+}, [revealFocusRequest]);
 
 const [containerWidth, setContainerWidth] = useState<number>(0);
 const [collapsedRevealIds, setCollapsedRevealIds] =
@@ -585,7 +605,6 @@ const handleRevealCollapsedChange = useCallback(
     });
 
 if (shouldZoomFocus) {
-  revealFocusTargetRef.current = collapsed ? blockId : null;
 
   const revealGrid = revealBlock?.grid;
 
@@ -614,12 +633,24 @@ if (shouldZoomFocus) {
         )[0]
     : undefined;
 
-  console.log("REVEAL LIVE FOCUS TARGET", {
-    revealBlockId: blockId,
-    collapsed,
-    liveBlockId: underlyingLiveBlock?.id ?? null,
-    liveBlockType: underlyingLiveBlock?.type ?? null,
-  });
+revealFocusTargetRef.current =
+  collapsed ? (underlyingLiveBlock?.id ?? null) : null;
+
+setRevealFocusRequest(
+  collapsed && underlyingLiveBlock
+    ? {
+        targetId: underlyingLiveBlock.id,
+        collapsed: true,
+      }
+    : null,
+);
+
+console.log("REVEAL LIVE FOCUS TARGET", {
+  revealBlockId: blockId,
+  collapsed,
+  liveBlockId: revealFocusTargetRef.current,
+  liveBlockType: underlyingLiveBlock?.type ?? null,
+});
 }
   },
   [draft.blocks],
