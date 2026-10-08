@@ -4257,7 +4257,7 @@ style={{
           </div>
         )}
 
-        {revealTitle ? (
+        {revealTitle && (block.data as any).revealShowPressTitle !== false ? (
           <div
             className="absolute left-0 right-0 top-0 z-10 px-3 py-2"
             style={{

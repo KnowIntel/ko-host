@@ -462,6 +462,21 @@ e.target.value as
             </div>
           </div>
 
+                        {/* PRESS TO REVEAL TITLE VISIBILITY */}
+              <label className="mt-4 flex items-center gap-2 text-sm text-neutral-700">
+                <input
+                  type="checkbox"
+                  checked={data.revealShowPressTitle ?? true}
+                  onChange={(e) =>
+                    patchButtonData({
+                      revealShowPressTitle: e.target.checked,
+                    })
+                  }
+                  className="h-4 w-4 rounded border-neutral-300"
+                />
+                Show "Press to Reveal" Title
+              </label>
+
           {/* ======================================================== */}
           {/* REVEAL IMAGE */}
           {/* ======================================================== */}
