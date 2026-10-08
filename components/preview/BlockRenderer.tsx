@@ -28,7 +28,7 @@ import {
   type EnrollmentBoardProfileEventDetail,
 } from "@/components/blocks/enrollmentBoardEvents";
 import { getFontFamily } from "@/lib/fonts";
-const revealFocusRects = new Map<string, DOMRect>();  
+
 
 type SpeedDatingParticipant = {
   id: string;
@@ -3295,25 +3295,8 @@ function CtaButtonLive() {
   const [submitting, setSubmitting] =
     useState(false);
 
-const [revealFocusRect, setRevealFocusRect] =
-  useState<DOMRect | null>(null);
-
 const setRevealCollapsed = (collapsed: boolean) => {
   onRevealCollapsedChange?.(block.id, collapsed);
-};
-
-const captureRevealFocusRect = (
-  element: HTMLElement,
-) => {
-  const rect = element.getBoundingClientRect();
-
-  revealFocusRects.set(block.id, rect);
-  setRevealFocusRect(rect);
-};
-
-const closeRevealFocus = () => {
-  setRevealFocusRect(null);
-  setRevealCollapsed(false);
 };
 
 console.log("REVEAL STATE", {
@@ -4239,54 +4222,6 @@ const revealTitle =
       "",
   ).trim();
 
-const activeRevealFocusRect =
-  revealFocusRect ?? revealFocusRects.get(block.id) ?? null;
-
-const revealFocusWidth =
-  activeRevealFocusRect?.width ?? 0;
-
-const revealFocusHeight =
-  activeRevealFocusRect?.height ?? 0;
-
-const revealFocusReady =
-  isRevealZoomFocus &&
-  revealCollapsed &&
-  revealFocusWidth > 0 &&
-  revealFocusHeight > 0;
-
-const revealFocusMargin = 16;
-
-const revealFocusScale =
-  revealFocusReady && typeof window !== "undefined"
-    ? Math.min(
-        (window.innerWidth - revealFocusMargin * 2) /
-          revealFocusWidth,
-        (window.innerHeight - revealFocusMargin * 2) /
-          revealFocusHeight,
-      )
-    : 1;
-
-const revealFocusDisplayWidth =
-  revealFocusWidth * revealFocusScale;
-
-const revealFocusDisplayHeight =
-  revealFocusHeight * revealFocusScale;
-
-const revealFocusImageStyle: React.CSSProperties = {
-  transform: `scale(${Number((block.data as any).revealImageZoom ?? 100) / 100}) rotate(${Number((block.data as any).revealImageRotation ?? 0)}deg)`,
-  objectPosition: `${Number((block.data as any).revealImagePositionX ?? 50)}% ${Number((block.data as any).revealImagePositionY ?? 50)}%`,
-  transformOrigin: `${
-    Number((block.data as any).revealImageZoom ?? 100) < 100
-      ? Number((block.data as any).revealImagePositionX ?? 50)
-      : 100 - Number((block.data as any).revealImagePositionX ?? 50)
-  }% ${
-    Number((block.data as any).revealImageZoom ?? 100) < 100
-      ? Number((block.data as any).revealImagePositionY ?? 50)
-      : 100 - Number((block.data as any).revealImagePositionY ?? 50)
-  }%`,
-  opacity:
-    Number((block.data as any).revealImageOpacity ?? 100) / 100,
-};
 
 /*
  * ================================================================
@@ -4300,18 +4235,7 @@ if (isReveal && !revealCollapsed) {
 <button
   type="button"
   aria-expanded="true"
-onClick={(e) => {
-  console.log("REVEAL CLICK", {
-    blockId: block.id,
-    isRevealZoomFocus,
-    revealAction,
-    revealCollapsed,
-  });
-
-  if (isRevealZoomFocus) {
-    captureRevealFocusRect(e.currentTarget);
-  }
-
+onClick={() => {
   setRevealCollapsed(true);
 }}
   className="relative block cursor-pointer overflow-hidden"
@@ -4383,72 +4307,6 @@ style={{
  */
 
 if (isReveal && revealCollapsed) {
-  console.log("REVEAL FOCUS DIAGNOSTIC", {
-  blockId: block.id,
-  revealCollapsed,
-  isRevealZoomFocus,
-  revealFocusReady,
-  revealFocusWidth,
-  revealFocusHeight,
-  storedRect: revealFocusRects.get(block.id),
-});
-    if (revealFocusReady) {
-    return (
-      <div className="relative h-full w-full">
-        {createPortal(
-          <div
-            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/75"
-            onClick={closeRevealFocus}
-          >
-            <button
-              type="button"
-              aria-label="Close focused reveal"
-              onClick={(e) => {
-                e.stopPropagation();
-                closeRevealFocus();
-              }}
-              className="relative block overflow-hidden"
-              style={{
-                ...appearance,
-                width: revealFocusDisplayWidth,
-                height: revealFocusDisplayHeight,
-                padding: 0,
-              }}
-            >
-              {revealImageUrl ? (
-                <img
-                  src={revealImageUrl}
-                  alt=""
-                  className="absolute inset-0 h-full w-full object-cover"
-                  style={revealFocusImageStyle}
-                />
-              ) : (
-                <div className="absolute inset-0 flex items-center justify-center bg-neutral-100 text-xs text-neutral-400">
-                  Add Reveal Image
-                </div>
-              )}
-
-              {revealTitle &&
-              (block.data as any).revealShowPressTitle !== false ? (
-                <div
-                  className="absolute left-0 right-0 top-0 z-10 px-3 py-2"
-                  style={{
-                    ...style,
-                    background: "rgba(0, 0, 0, 0.45)",
-                    color: style.color || "#ffffff",
-                    textAlign: block.data.style?.align ?? "center",
-                  }}
-                >
-                  {revealTitle}
-                </div>
-              ) : null}
-            </button>
-          </div>,
-          document.body,
-        )}
-      </div>
-    );
-  }
   const iconSize = Math.max(
     8,
     Number((block.data as any).buttonImageSize ?? 20),

@@ -549,13 +549,24 @@ export default function PlacedBlocksPreview({
   const typedDraft = draft as DraftWithExtras;
   const templateKey = typedDraft.templateName || "";
   const metadata = getMetadata(templateKey, designKey);
-  const containerRef = useRef<HTMLDivElement | null>(null);
+const containerRef = useRef<HTMLDivElement | null>(null);
+const revealFocusTargetRef = useRef<string | null>(null);
+
 const [containerWidth, setContainerWidth] = useState<number>(0);
 const [collapsedRevealIds, setCollapsedRevealIds] =
   useState<Set<string>>(() => new Set());
 
 const handleRevealCollapsedChange = useCallback(
   (blockId: string, collapsed: boolean) => {
+    const revealBlock = (draft.blocks ?? []).find(
+      (block) => block.id === blockId,
+    );
+
+    const shouldZoomFocus =
+      revealBlock?.type === "cta" &&
+      revealBlock.data.styleType === "reveal" &&
+      (revealBlock.data as any).revealAction === "zoom_focus";
+
     setCollapsedRevealIds((previous) => {
       const next = new Set(previous);
 
@@ -567,8 +578,46 @@ const handleRevealCollapsedChange = useCallback(
 
       return next;
     });
+
+if (shouldZoomFocus) {
+  revealFocusTargetRef.current = collapsed ? blockId : null;
+
+  const revealGrid = revealBlock?.grid;
+
+  const underlyingLiveBlock = collapsed && revealGrid
+    ? (draft.blocks ?? [])
+        .filter((candidate) => {
+          if (!candidate.type.startsWith("live_")) return false;
+          if (candidate.id === blockId) return false;
+
+          const grid = candidate.grid;
+          if (!grid) return false;
+
+          const overlapsHorizontally =
+            grid.colStart < revealGrid.colStart + revealGrid.colSpan &&
+            grid.colStart + grid.colSpan > revealGrid.colStart;
+
+          const overlapsVertically =
+            grid.rowStart < revealGrid.rowStart + revealGrid.rowSpan &&
+            grid.rowStart + grid.rowSpan > revealGrid.rowStart;
+
+          return overlapsHorizontally && overlapsVertically;
+        })
+        .sort(
+          (a, b) =>
+            (b.grid?.zIndex ?? 0) - (a.grid?.zIndex ?? 0),
+        )[0]
+    : undefined;
+
+  console.log("REVEAL LIVE FOCUS TARGET", {
+    revealBlockId: blockId,
+    collapsed,
+    liveBlockId: underlyingLiveBlock?.id ?? null,
+    liveBlockType: underlyingLiveBlock?.type ?? null,
+  });
+}
   },
-  [],
+  [draft.blocks],
 );
 
 const [activeBookmarkSlug, setActiveBookmarkSlug] =
