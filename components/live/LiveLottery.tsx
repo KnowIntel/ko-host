@@ -92,49 +92,42 @@ const {
   const [error, setError] =
     useState("");
 
-  if (!authenticated) {
+  if (
+    !authenticated ||
+    loading ||
+    loadError ||
+    !data?.activity
+  ) {
+    const statusText = !authenticated
+      ? joinRequiredText
+      : loading
+        ? "Loading Lottery..."
+        : loadError
+          ? loadError
+          : "No active Lottery is available.";
+
+    const statusStyle = !authenticated
+      ? joinRequiredTextStyle
+      : helperTextStyle;
+
     return (
-      <div
-        className="p-4 text-center"
-        style={joinRequiredTextStyle}
-      >
-        {joinRequiredText}
+      <div className="h-full w-full overflow-auto p-4 text-center">
+        <div
+          className="text-xl font-semibold"
+          style={headingStyle}
+        >
+          {heading}
+        </div>
+
+        <div
+          className="mt-2"
+          style={statusStyle}
+        >
+          {statusText}
+        </div>
       </div>
     );
   }
-
-if (loading) {
-  return (
-    <div
-      className="p-4 text-center"
-      style={helperTextStyle}
-    >
-      Loading Lottery...
-    </div>
-  );
-}
-
-if (loadError) {
-  return (
-    <div
-      className="p-4 text-center"
-      style={helperTextStyle}
-    >
-      {loadError}
-    </div>
-  );
-}
-
-if (!data?.activity) {
-  return (
-    <div
-      className="p-4 text-center"
-      style={helperTextStyle}
-    >
-      No active Lottery is available.
-    </div>
-  );
-}
   const entryCount =
     data.participantState
       ?.entryCount ??

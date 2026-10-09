@@ -84,7 +84,7 @@ export default function LiveLeaderboard({
       {!loading &&
       players.length === 0 ? (
         <div
-          className="mt-4"
+          className="mt-2"
           style={emptyTextStyle}
         >
           {emptyText}

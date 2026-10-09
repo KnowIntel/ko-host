@@ -99,7 +99,7 @@ export default function LiveSchedule({
       {!loading &&
       entries.length === 0 ? (
         <div
-          className="mt-4"
+          className="mt-2"
           style={emptyTextStyle}
         >
           {emptyText}

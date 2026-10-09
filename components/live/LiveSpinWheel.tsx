@@ -526,28 +526,28 @@ const desiredNormalized =
     }
   }
 
-  if (!authenticated) {
+  if (!authenticated || !data?.activity) {
     return (
-      <div
-        className="p-4 text-center"
-        style={
-          joinRequiredTextStyle
-        }
-      >
-        {joinRequiredText}
-      </div>
-    );
-  }
+      <div className="h-full w-full overflow-auto p-4 text-center">
+        <div
+          className="text-xl font-semibold"
+          style={headingStyle}
+        >
+          {heading}
+        </div>
 
-  if (!data?.activity) {
-    return (
-      <div
-        className="p-4 text-center"
-        style={
-          waitingTextStyle
-        }
-      >
-        {waitingText}
+        <div
+          className="mt-2"
+          style={
+            !authenticated
+              ? joinRequiredTextStyle
+              : waitingTextStyle
+          }
+        >
+          {!authenticated
+            ? joinRequiredText
+            : waitingText}
+        </div>
       </div>
     );
   }

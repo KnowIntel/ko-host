@@ -365,7 +365,7 @@ useEffect(() => {
           </div>
 
           <div
-            className="mt-4"
+            className="mt-2"
             style={waitingTextStyle}
           >
             Loading...
@@ -390,7 +390,7 @@ useEffect(() => {
           </div>
 
           <div
-            className="mt-4"
+            className="mt-2"
             style={waitingTextStyle}
           >
             {waitingText}
@@ -415,7 +415,7 @@ useEffect(() => {
           </div>
 
           <div
-            className="mt-4"
+            className="mt-2"
             style={joinRequiredTextStyle}
           >
             {joinRequiredText}
@@ -439,7 +439,7 @@ useEffect(() => {
           </div>
 
           <div
-            className="mt-4"
+            className="mt-2"
             style={waitingTextStyle}
           >
             {getLifecycleMessage()}
@@ -466,7 +466,7 @@ useEffect(() => {
           </div>
 
           <div
-            className="mt-4"
+            className="mt-2"
             style={waitingTextStyle}
           >
             {loading

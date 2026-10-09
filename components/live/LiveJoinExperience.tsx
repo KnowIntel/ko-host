@@ -234,13 +234,39 @@ async function handleSubmit(
 }
 
   if (!experience) {
-    return null;
+    return (
+      <div className="h-full w-full overflow-auto p-4">
+        <div
+          className="text-xl font-semibold"
+          style={headingStyle}
+        >
+          {heading}
+        </div>
+
+        <div
+          className="mt-2"
+          style={helperTextStyle}
+        >
+          Live experience unavailable.
+        </div>
+      </div>
+    );
   }
 
   if (sessionLoading) {
     return (
-      <div className="flex h-full w-full items-center justify-center p-4">
-        <div className="text-center text-sm opacity-70">
+      <div className="h-full w-full overflow-auto p-4">
+        <div
+          className="text-xl font-semibold"
+          style={headingStyle}
+        >
+          {heading}
+        </div>
+
+        <div
+          className="mt-2 text-sm opacity-70"
+          style={helperTextStyle}
+        >
           Loading Live experience...
         </div>
       </div>
@@ -249,7 +275,14 @@ async function handleSubmit(
 
 if (authenticated && participant) {
   return (
-    <div className="flex h-full w-full flex-col items-center justify-center gap-3 text-center">
+    <div className="flex h-full w-full flex-col items-center justify-start gap-3 overflow-auto p-4 text-center">
+      <div
+        className="w-full text-xl font-semibold"
+        style={headingStyle}
+      >
+        {heading}
+      </div>
+
       <div>
         <div
           className="text-xs font-medium uppercase tracking-wide opacity-60"
@@ -305,7 +338,7 @@ if (authenticated && participant) {
 }
 
 return (
-  <div className="flex h-full w-full flex-col items-center justify-center">
+  <div className="flex h-full w-full flex-col items-center justify-start overflow-auto p-4">
     <form
       onSubmit={handleSubmit}
       className="w-full max-w-sm"

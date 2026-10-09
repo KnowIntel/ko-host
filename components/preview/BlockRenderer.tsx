@@ -42819,7 +42819,7 @@ case "live_song_request": {
         <button
           type="button"
           disabled
-          className="mt-2 rounded-lg bg-black px-4 py-2 text-white"
+          className="mt-2 mx-auto block rounded-lg bg-black px-4 py-2 text-white"
           style={data.submitButtonStyle ?? {}}
         >
           {data.submitButtonLabel ||
@@ -43167,7 +43167,7 @@ case "live_lottery": {
         <button
           type="button"
           disabled
-          className="mt-4 rounded-lg bg-black px-4 py-2 text-white"
+          className="mt-4 mx-auto block rounded-lg bg-black px-4 py-2 text-white"
           style={{
             ...(data.enterButtonStyle ?? {}),
             ...getContainerTextStyle(

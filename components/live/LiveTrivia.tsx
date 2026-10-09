@@ -350,12 +350,21 @@ useEffect(() => {
 
   if (sessionLoading) {
     return (
-      <div className="flex h-full w-full items-center justify-center p-4">
-        <div
-          className="text-center text-sm opacity-70"
-          style={waitingTextStyle}
-        >
-          Loading Live experience...
+      <div className="h-full w-full overflow-auto p-4">
+        <div className="mx-auto w-full max-w-xl">
+          <div
+            className="text-xl font-semibold"
+            style={headingStyle}
+          >
+            {heading || "Live Trivia"}
+          </div>
+
+          <div
+            className="mt-2 text-center text-sm opacity-70"
+            style={waitingTextStyle}
+          >
+            Loading Live experience...
+          </div>
         </div>
       </div>
     );
@@ -363,13 +372,22 @@ useEffect(() => {
 
   if (!experience) {
     return (
-      <div className="flex h-full w-full items-center justify-center p-4">
-        <div
-          className="text-center text-sm opacity-70"
-          style={waitingTextStyle}
-        >
-          {waitingText ||
-            "Waiting for the next question..."}
+      <div className="h-full w-full overflow-auto p-4">
+        <div className="mx-auto w-full max-w-xl">
+          <div
+            className="text-xl font-semibold"
+            style={headingStyle}
+          >
+            {heading || "Live Trivia"}
+          </div>
+
+          <div
+            className="mt-2 text-center text-sm opacity-70"
+            style={waitingTextStyle}
+          >
+            {waitingText ||
+              "Waiting for the next question..."}
+          </div>
         </div>
       </div>
     );
@@ -377,7 +395,7 @@ useEffect(() => {
 
   if (!authenticated || !participant) {
     return (
-      <div className="flex h-full w-full flex-col items-center justify-center p-4">
+      <div className="flex h-full w-full flex-col items-center justify-start overflow-auto p-4">
         <div
           className="text-xl font-semibold"
           style={headingStyle}
@@ -406,7 +424,7 @@ useEffect(() => {
 
   if (experience.status === "before") {
     return (
-      <div className="flex h-full w-full flex-col items-center justify-center p-4">
+      <div className="flex h-full w-full flex-col items-center justify-start overflow-auto p-4">
         <div
           className="text-xl font-semibold"
           style={headingStyle}
@@ -426,7 +444,7 @@ useEffect(() => {
 
   if (experience.status === "paused") {
     return (
-      <div className="flex h-full w-full flex-col items-center justify-center p-4">
+      <div className="flex h-full w-full flex-col items-center justify-start overflow-auto p-4">
         <div
           className="text-xl font-semibold"
           style={headingStyle}
@@ -446,7 +464,7 @@ useEffect(() => {
 
   if (experience.status === "ended") {
     return (
-      <div className="flex h-full w-full flex-col items-center justify-center p-4">
+      <div className="flex h-full w-full flex-col items-center justify-start overflow-auto p-4">
         <div
           className="text-xl font-semibold"
           style={headingStyle}
@@ -466,7 +484,7 @@ useEffect(() => {
 
   if (experience.status === "after") {
     return (
-      <div className="flex h-full w-full flex-col items-center justify-center p-4">
+      <div className="flex h-full w-full flex-col items-center justify-start overflow-auto p-4">
         <div
           className="text-xl font-semibold"
           style={headingStyle}
@@ -486,7 +504,7 @@ useEffect(() => {
 
   if (loading && !runtimeData) {
     return (
-      <div className="flex h-full w-full flex-col items-center justify-center p-4">
+      <div className="flex h-full w-full flex-col items-center justify-start overflow-auto p-4">
         <div
           className="text-xl font-semibold"
           style={headingStyle}
@@ -509,7 +527,7 @@ useEffect(() => {
     !question
   ) {
     return (
-      <div className="flex h-full w-full flex-col items-center justify-center p-4">
+      <div className="flex h-full w-full flex-col items-center justify-start overflow-auto p-4">
         <div
           className="text-xl font-semibold"
           style={headingStyle}

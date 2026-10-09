@@ -152,11 +152,20 @@ export default function LiveSongRequest({
 
   if (!authenticated) {
     return (
-      <div
-        className="p-4 text-center"
-        style={joinRequiredTextStyle}
-      >
-        {joinRequiredText}
+      <div className="h-full w-full overflow-auto p-4">
+        <div
+          className="text-xl font-semibold"
+          style={headingStyle}
+        >
+          {heading}
+        </div>
+
+        <div
+          className="mt-2 text-center"
+          style={joinRequiredTextStyle}
+        >
+          {joinRequiredText}
+        </div>
       </div>
     );
   }

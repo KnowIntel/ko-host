@@ -62,27 +62,44 @@ export default function LivePlayerCard({
     "player-card",
   );
 
-  if (!authenticated) {
+  const participant = data?.participant;
+
+  if (
+    !authenticated ||
+    (loading && !data) ||
+    !participant
+  ) {
     return (
-      <div
-        className="p-4 text-center"
-        style={joinRequiredTextStyle}
-      >
-        {joinRequiredText}
+      <div className="h-full w-full overflow-auto p-4">
+        <div
+          className="mx-auto w-full max-w-md p-4"
+          style={cardStyle}
+        >
+          <div
+            className="text-xl font-semibold"
+            style={headingStyle}
+          >
+            {heading}
+          </div>
+
+          <div
+            className="mt-2 text-center"
+            style={
+              !authenticated
+                ? joinRequiredTextStyle
+                : detailStyle
+            }
+          >
+            {!authenticated
+              ? joinRequiredText
+              : loading && !data
+                ? "Loading..."
+                : "Player information is unavailable."}
+          </div>
+        </div>
       </div>
     );
   }
-
-  if (loading && !data) {
-    return (
-      <div className="p-4 text-center">
-        Loading...
-      </div>
-    );
-  }
-
-  const participant =
-    data?.participant;
 
   if (!participant) {
     return null;
