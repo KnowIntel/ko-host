@@ -2133,9 +2133,25 @@ data.activity.activityType ===
             ) : null}
           </div>
 
-          <Leaderboard
-            entries={data.leaderboard}
-          />
+<Leaderboard
+  entries={data.leaderboard}
+  removingParticipant={changingHostAction === "remove_participant"}
+  onRemoveParticipant={(entry) => {
+    if (
+      !window.confirm(
+        `Remove ${entry.displayName} from this Live Experience?`,
+      )
+    ) {
+      return;
+    }
+
+    void runHostAction(
+      "remove_participant",
+      { participantId: entry.participantId },
+      `${entry.displayName} was removed from the Live Experience.`,
+    );
+  }}
+/>
         </div>
       ) : !currentQuestion ? (
         <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
@@ -2370,11 +2386,27 @@ data.activity.activityType ===
                   </div>
                 </div>
 
-                <Leaderboard
-                  entries={
-                    data.leaderboard
-                  }
-                />
+<Leaderboard
+  entries={data.leaderboard}
+  removingParticipant={
+    changingHostAction === "remove_participant"
+  }
+  onRemoveParticipant={(entry) => {
+    if (
+      !window.confirm(
+        `Remove ${entry.displayName} from this Live Experience?`,
+      )
+    ) {
+      return;
+    }
+
+    void runHostAction(
+      "remove_participant",
+      { participantId: entry.participantId },
+      `${entry.displayName} was removed from the Live Experience.`,
+    );
+  }}
+/>
               </div>
 
               <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
@@ -2815,8 +2847,12 @@ function MetricCard({
 
 function Leaderboard({
   entries,
+  removingParticipant,
+  onRemoveParticipant,
 }: {
   entries: LeaderboardEntry[];
+  removingParticipant: boolean;
+  onRemoveParticipant: (entry: LeaderboardEntry) => void;
 }) {
   return (
     <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
@@ -2849,9 +2885,22 @@ function Leaderboard({
                 </div>
               </div>
 
-              <div className="text-sm font-semibold">
-                {entry.score} pts
-              </div>
+<div className="flex shrink-0 items-center gap-3">
+  <div className="text-sm font-semibold">
+    {entry.score} pts
+  </div>
+
+  <button
+    type="button"
+    title={`Remove ${entry.displayName}`}
+    aria-label={`Remove ${entry.displayName}`}
+    disabled={removingParticipant}
+    onClick={() => onRemoveParticipant(entry)}
+    className="flex h-8 w-8 items-center justify-center rounded-lg text-xl font-black text-red-600 transition-colors hover:bg-red-50 hover:text-red-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600 disabled:cursor-not-allowed disabled:opacity-40"
+  >
+    ×
+  </button>
+</div>
             </div>
           ))
         )}

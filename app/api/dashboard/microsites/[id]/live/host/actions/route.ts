@@ -220,6 +220,102 @@ export async function POST(
       );
     }
 
+        /*
+     * REMOVE PARTICIPANT
+     *
+     * Mark the participant as removed without
+     * deleting their scores or activity history.
+     */
+    if (action === "remove_participant") {
+      const participantId = cleanText(
+        body.participantId,
+        100,
+      );
+
+      if (!UUID_PATTERN.test(participantId)) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error: "Invalid participant ID.",
+          },
+          { status: 400 },
+        );
+      }
+
+      const {
+        data: participant,
+        error: participantError,
+      } = await sb
+        .from("live_participants")
+        .select("id, status")
+        .eq("id", participantId)
+        .eq("experience_id", experience.id)
+        .maybeSingle();
+
+      if (participantError) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error: "Unable to verify participant.",
+          },
+          { status: 500 },
+        );
+      }
+
+      if (!participant || participant.status !== "active") {
+        return NextResponse.json(
+          {
+            ok: false,
+            error: "Participant is no longer active.",
+          },
+          { status: 409 },
+        );
+      }
+
+      const { data: removedParticipant, error: removeError } =
+        await sb
+          .from("live_participants")
+          .update({
+            status: "removed",
+          })
+          .eq("id", participantId)
+          .eq("experience_id", experience.id)
+          .eq("status", "active")
+          .select("id")
+          .maybeSingle();
+
+      if (removeError) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error: "Unable to remove participant.",
+          },
+          { status: 500 },
+        );
+      }
+
+      if (!removedParticipant) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error: "Participant is no longer active.",
+          },
+          { status: 409 },
+        );
+      }
+
+      await broadcastChange(
+        sb,
+        experience.id,
+      );
+
+      return NextResponse.json({
+        ok: true,
+        action,
+        participantId,
+      });
+    }
+
     /*
      * Current shared state.
      */

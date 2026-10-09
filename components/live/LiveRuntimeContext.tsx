@@ -523,6 +523,7 @@ body: JSON.stringify({
         );
 
         void refreshSharedState();
+        void refreshSession();
       },
     );
 
@@ -536,6 +537,7 @@ body: JSON.stringify({
   }, [
     liveExperience?.id,
     refreshSharedState,
+    refreshSession,
   ]);
 
   const value =
