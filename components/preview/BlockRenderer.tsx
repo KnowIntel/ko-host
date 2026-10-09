@@ -856,6 +856,9 @@ style={{
         transform: `rotate(${Number((block.data as any).rotation ?? 0)}deg)`,
         transformOrigin: "center center",
         opacity: Number((block.data as any).opacity ?? 100) / 100,
+        ...getImageFadeMaskStyle({
+          fade: (block.data as any).fade,
+        }),
       }
     : {}),
 }}

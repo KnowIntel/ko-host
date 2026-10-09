@@ -19182,6 +19182,79 @@ updateSelectedBlock((block) =>
     className="w-full"
   />
 </div>
+
+{/* FADE EDGES */}
+<div className="mt-5">
+  <div className={inspectorLabelClass()}>Fade Edges</div>
+
+  <div className="mt-3 grid grid-cols-2 gap-3">
+    {(["top", "bottom", "left", "right"] as const).map((edge) => (
+      <label
+        key={edge}
+        className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800"
+      >
+        <input
+          type="checkbox"
+          checked={Boolean((selectedBlock.data as any).fade?.[edge])}
+          onChange={(e) => {
+            const checked = e.target.checked;
+
+            updateSelectedBlock(
+              (block) =>
+                ({
+                  ...block,
+                  data: {
+                    ...block.data,
+                    fade: {
+                      ...((block.data as any).fade ?? {}),
+                      [edge]: checked,
+                    },
+                  },
+                }) as MicrositeBlock,
+            );
+          }}
+        />
+
+        {edge.charAt(0).toUpperCase() + edge.slice(1)}
+      </label>
+    ))}
+  </div>
+
+  <div className="mt-4">
+    <div className="flex items-center justify-between">
+      <div className={inspectorLabelClass()}>Fade Size</div>
+      <span className="text-xs text-neutral-500">
+        {Number((selectedBlock.data as any).fade?.size ?? 15)}%
+      </span>
+    </div>
+
+    <input
+      type="range"
+      min={0}
+      max={50}
+      step={1}
+      value={Number((selectedBlock.data as any).fade?.size ?? 15)}
+      onChange={(e) => {
+        const size = Number(e.target.value);
+
+        updateSelectedBlock(
+          (block) =>
+            ({
+              ...block,
+              data: {
+                ...block.data,
+                fade: {
+                  ...((block.data as any).fade ?? {}),
+                  size,
+                },
+              },
+            }) as MicrositeBlock,
+        );
+      }}
+      className="mt-2 w-full"
+    />
+  </div>
+</div>
     </div>
   ) : null}
 
