@@ -13,13 +13,19 @@ export type LiveJoinTextTarget =
   | "connectedLabel"
   | "participantName"
   | "connectedMessage"
-  | "leaveButton";
+  | "leaveButton"
+  | "avatarButton"
+  | "replaceButton"
+  | "removeButton";
 
 export type LiveJoinStyleTarget =
   | "block"
   | "input"
   | "joinButton"
-  | "leaveButton";
+  | "leaveButton"
+  | "avatarButton"
+  | "replaceButton"
+  | "removeButton";
 
 function isLiveJoinBlock(
   block: MicrositeBlock,
@@ -54,6 +60,15 @@ function getTextStyleKey(
 
     case "leaveButton":
       return "leaveButtonTextStyle";
+
+    case "avatarButton":
+      return "avatarButtonTextStyle";
+
+    case "replaceButton":
+      return "replaceButtonTextStyle";
+
+    case "removeButton":
+      return "removeButtonTextStyle";
   }
 }
 
@@ -69,6 +84,15 @@ function getStyleKey(
 
     case "leaveButton":
       return "leaveButtonStyle";
+
+    case "avatarButton":
+      return "avatarButtonStyle";
+
+    case "replaceButton":
+      return "replaceButtonStyle";
+
+    case "removeButton":
+      return "removeButtonStyle";
 
     case "block":
       return "style";

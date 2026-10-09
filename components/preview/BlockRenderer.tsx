@@ -42033,10 +42033,25 @@ return (
         data.leaveButtonTextStyle ?? data.style,
         designKey,
       )}
+      avatarButtonTextStyle={getContainerTextStyle(
+        data.avatarButtonTextStyle ?? data.style,
+        designKey,
+      )}
+      replaceButtonTextStyle={getContainerTextStyle(
+        data.replaceButtonTextStyle ?? data.style,
+        designKey,
+      )}
+      removeButtonTextStyle={getContainerTextStyle(
+        data.removeButtonTextStyle ?? data.style,
+        designKey,
+      )}
 
       inputStyle={data.inputStyle ?? {}}
       joinButtonStyle={data.joinButtonStyle ?? {}}
       leaveButtonStyle={data.leaveButtonStyle ?? {}}
+      avatarButtonStyle={data.avatarButtonStyle ?? {}}
+      replaceButtonStyle={data.replaceButtonStyle ?? {}}
+      removeButtonStyle={data.removeButtonStyle ?? {}}
     />
   </Surface>
 );}
@@ -43153,7 +43168,13 @@ case "live_lottery": {
           type="button"
           disabled
           className="mt-4 rounded-lg bg-black px-4 py-2 text-white"
-          style={data.enterButtonStyle ?? {}}
+          style={{
+            ...(data.enterButtonStyle ?? {}),
+            ...getContainerTextStyle(
+              data.enterButtonTextStyle ?? data.style,
+              designKey,
+            ),
+          }}
         >
           {data.enterButtonLabel ||
             "Enter Drawing"}

@@ -77,6 +77,9 @@ export function LiveJoinInspector({
       <option value="participantName">Participant Name</option>
       <option value="connectedMessage">Connected Message</option>
       <option value="leaveButton">Leave Button</option>
+      <option value="avatarButton">Avatar Button</option>
+      <option value="replaceButton">Replace Button</option>
+      <option value="removeButton">Remove Button</option>
     </select>
   </div>
 
@@ -98,6 +101,9 @@ export function LiveJoinInspector({
       <option value="input">Name Input</option>
       <option value="joinButton">Join Button</option>
       <option value="leaveButton">Leave Button</option>
+      <option value="avatarButton">Avatar Button</option>
+      <option value="replaceButton">Replace Button</option>
+      <option value="removeButton">Remove Button</option>
     </select>
   </div>
 

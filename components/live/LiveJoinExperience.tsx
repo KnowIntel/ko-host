@@ -34,6 +34,14 @@ type LiveJoinExperienceProps = {
   inputStyle?: CSSProperties;
   joinButtonStyle?: CSSProperties;
   leaveButtonStyle?: CSSProperties;
+
+  avatarButtonTextStyle?: CSSProperties;
+  replaceButtonTextStyle?: CSSProperties;
+  removeButtonTextStyle?: CSSProperties;
+
+  avatarButtonStyle?: CSSProperties;
+  replaceButtonStyle?: CSSProperties;
+  removeButtonStyle?: CSSProperties;
 };
 
 export default function LiveJoinExperience({
@@ -51,9 +59,17 @@ connectedLabelStyle,
 participantNameStyle,
 connectedMessageStyle,
 leaveButtonTextStyle,
-inputStyle,
-joinButtonStyle,
-leaveButtonStyle,
+  inputStyle,
+  joinButtonStyle,
+  leaveButtonStyle,
+
+  avatarButtonTextStyle,
+  replaceButtonTextStyle,
+  removeButtonTextStyle,
+
+  avatarButtonStyle,
+  replaceButtonStyle,
+  removeButtonStyle,
 }: LiveJoinExperienceProps) {
 const {
   experience,
@@ -310,6 +326,7 @@ return (
         </div>
       </div>
 
+
       <input
         type="text"
         value={displayName}
@@ -344,8 +361,14 @@ return (
             />
 
             <div className="flex flex-wrap gap-2">
-              <label className="cursor-pointer rounded-lg border border-current/20 px-3 py-2 text-sm">
-                Replace
+<label
+  className="cursor-pointer rounded-lg border border-current/20 px-3 py-2 text-sm"
+  style={{
+    ...(replaceButtonStyle ?? {}),
+    ...(replaceButtonTextStyle ?? {}),
+  }}
+>
+  Replace
 
                 <input
                   type="file"
@@ -365,16 +388,26 @@ return (
                   joining ||
                   avatarUploading
                 }
-                onClick={handleRemoveAvatar}
-                className="rounded-lg border border-current/20 px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+onClick={handleRemoveAvatar}
+className="rounded-lg border border-current/20 px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+style={{
+  ...(removeButtonStyle ?? {}),
+  ...(removeButtonTextStyle ?? {}),
+}}
               >
                 Remove
               </button>
             </div>
           </div>
         ) : (
-          <label className="inline-flex cursor-pointer items-center rounded-lg border border-current/20 px-3 py-2 text-sm">
-            Upload avatar
+<label
+  className="inline-flex cursor-pointer items-center rounded-lg border border-current/20 px-3 py-2 text-sm"
+  style={{
+    ...(avatarButtonStyle ?? {}),
+    ...(avatarButtonTextStyle ?? {}),
+  }}
+>
+  Upload avatar
 
             <input
               type="file"

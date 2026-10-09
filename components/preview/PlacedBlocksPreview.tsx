@@ -526,6 +526,25 @@ if (
     leaveButtonStyle={
       data.leaveButtonStyle ?? {}
     }
+    avatarButtonTextStyle={
+  data.avatarButtonTextStyle ?? data.style
+}
+replaceButtonTextStyle={
+  data.replaceButtonTextStyle ?? data.style
+}
+removeButtonTextStyle={
+  data.removeButtonTextStyle ?? data.style
+}
+
+avatarButtonStyle={
+  data.avatarButtonStyle ?? {}
+}
+replaceButtonStyle={
+  data.replaceButtonStyle ?? {}
+}
+removeButtonStyle={
+  data.removeButtonStyle ?? {}
+}
   />
 )}
       </div>
