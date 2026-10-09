@@ -42823,7 +42823,13 @@ case "live_song_request": {
           type="button"
           disabled
           className="mt-2 mx-auto block rounded-lg bg-black px-4 py-2 text-white"
-          style={data.submitButtonStyle ?? {}}
+          style={{
+  ...(data.submitButtonStyle ?? {}),
+  ...getContainerTextStyle(
+    data.submitButtonTextStyle ?? data.style,
+    designKey,
+  ),
+}}
         >
           {data.submitButtonLabel ||
             "Request Song"}
