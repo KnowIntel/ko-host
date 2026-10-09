@@ -296,6 +296,11 @@ export default function HostControl({
     setShowEndConfirm,
   ] = useState(false);
 
+    const [
+    participantToRemove,
+    setParticipantToRemove,
+  ] = useState<LeaderboardEntry | null>(null);
+
 const [
   changingLifecycle,
   setChangingLifecycle,
@@ -2136,21 +2141,10 @@ data.activity.activityType ===
 <Leaderboard
   entries={data.leaderboard}
   removingParticipant={changingHostAction === "remove_participant"}
-  onRemoveParticipant={(entry) => {
-    if (
-      !window.confirm(
-        `Remove ${entry.displayName} from this Live Experience?`,
-      )
-    ) {
-      return;
-    }
+onRemoveParticipant={(entry) => {
+  setParticipantToRemove(entry);
+}}
 
-    void runHostAction(
-      "remove_participant",
-      { participantId: entry.participantId },
-      `${entry.displayName} was removed from the Live Experience.`,
-    );
-  }}
 />
         </div>
       ) : !currentQuestion ? (
@@ -2391,21 +2385,9 @@ data.activity.activityType ===
   removingParticipant={
     changingHostAction === "remove_participant"
   }
-  onRemoveParticipant={(entry) => {
-    if (
-      !window.confirm(
-        `Remove ${entry.displayName} from this Live Experience?`,
-      )
-    ) {
-      return;
-    }
-
-    void runHostAction(
-      "remove_participant",
-      { participantId: entry.participantId },
-      `${entry.displayName} was removed from the Live Experience.`,
-    );
-  }}
+onRemoveParticipant={(entry) => {
+  setParticipantToRemove(entry);
+}}
 />
               </div>
 
@@ -2736,6 +2718,122 @@ data.activity.activityType ===
           </div>
         </>
       )}
+
+            {participantToRemove ? (
+        <div
+          className="fixed inset-0 z-[210] flex items-center justify-center bg-black/50 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="remove-participant-title"
+          aria-describedby="remove-participant-description"
+          onMouseDown={(event) => {
+            if (
+              event.target === event.currentTarget &&
+              changingHostAction !== "remove_participant"
+            ) {
+              setParticipantToRemove(null);
+            }
+          }}
+          onKeyDown={(event) => {
+            if (
+              event.key === "Escape" &&
+              changingHostAction !== "remove_participant"
+            ) {
+              setParticipantToRemove(null);
+            }
+          }}
+        >
+          <div className="w-full max-w-md rounded-2xl border border-neutral-200 bg-white p-6 shadow-2xl">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <div className="text-xs font-bold uppercase tracking-wider text-red-600">
+                  Participant Management
+                </div>
+
+                <h2
+                  id="remove-participant-title"
+                  className="mt-2 text-xl font-semibold text-neutral-900"
+                >
+                  Remove participant?
+                </h2>
+              </div>
+
+              <button
+                type="button"
+                aria-label="Close dialog"
+                disabled={
+                  changingHostAction === "remove_participant"
+                }
+                onClick={() => setParticipantToRemove(null)}
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xl text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900 disabled:opacity-40"
+              >
+                ×
+              </button>
+            </div>
+
+            <p
+              id="remove-participant-description"
+              className="mt-4 text-sm leading-6 text-neutral-600"
+            >
+              Are you sure you want to remove{" "}
+              <span className="font-semibold text-neutral-900">
+                {participantToRemove.displayName}
+              </span>{" "}
+              from this Live Experience?
+            </p>
+
+            <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+              <p className="text-sm leading-6 text-neutral-600">
+                This participant will be disconnected
+                from the Live Experience and will need
+                to join again to participate.
+                Their previous activity history and
+                points will be preserved.
+              </p>
+            </div>
+
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                disabled={
+                  changingHostAction === "remove_participant"
+                }
+                onClick={() => setParticipantToRemove(null)}
+                className="rounded-xl border border-neutral-300 px-4 py-2.5 text-sm font-medium text-neutral-900 transition-colors hover:bg-neutral-50 disabled:opacity-40"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                disabled={
+                  changingHostAction === "remove_participant"
+                }
+                onClick={async () => {
+                  const entry = participantToRemove;
+
+                  const result = await runHostAction(
+                    "remove_participant",
+                    {
+                      participantId: entry.participantId,
+                    },
+                    `${entry.displayName} was removed from the Live Experience.`,
+                  );
+
+                  if (result?.ok) {
+                    setParticipantToRemove(null);
+                  }
+                }}
+                className="rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {changingHostAction === "remove_participant"
+                  ? "Removing..."
+                  : "Remove Participant"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {showEndConfirm ? (
         <div
