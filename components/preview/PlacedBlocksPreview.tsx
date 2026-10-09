@@ -621,16 +621,9 @@ const handleLiveAnimationClick = useCallback(
       return;
     }
 
-    if (activeLiveAnimation) {
-  if (activeLiveAnimation.blockId === blockId) {
-    setActiveLiveAnimation(null);
-  }
-  return;
-}
+const target = event.target;
 
-    const target = event.target;
-
-    if (!(target instanceof Element)) return;
+if (!(target instanceof Element)) return;
 
     // Preserve normal operation of interactive elements.
     if (
@@ -663,10 +656,17 @@ const handleLiveAnimationClick = useCallback(
       return;
     }
 
-    setActiveLiveAnimation({
-      blockId,
-      animation,
-    });
+if (activeLiveAnimation) {
+  if (activeLiveAnimation.blockId === blockId) {
+    setActiveLiveAnimation(null);
+  }
+  return;
+}
+
+setActiveLiveAnimation({
+  blockId,
+  animation,
+});
   },
   [activeLiveAnimation],
 );
