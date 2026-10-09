@@ -42951,7 +42951,13 @@ case "live_spin_wheel": {
             type="button"
             disabled
             className="mt-4 rounded-lg bg-black px-4 py-2 text-white"
-            style={data.spinButtonStyle ?? {}}
+            style={{
+  ...(data.spinButtonStyle ?? {}),
+  ...getContainerTextStyle(
+    data.spinButtonTextStyle ?? data.style,
+    designKey,
+  ),
+}}
           >
             {data.spinButtonLabel || "Spin"}
           </button>
