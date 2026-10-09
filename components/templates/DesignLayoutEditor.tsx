@@ -19253,10 +19253,39 @@ updateSelectedBlock((block) =>
       }}
       className="mt-2 w-full"
     />
-  </div>
-</div>
+      </div>
     </div>
-  ) : null}
+
+    {/* INACTIVE DIM */}
+    <div className="mt-5 border-t border-neutral-200 pt-4">
+      <label className="flex items-center gap-3 text-sm text-neutral-800">
+        <input
+          type="checkbox"
+          checked={(selectedBlock.data as any).inactiveDim !== false}
+          onChange={(e) => {
+            const checked = e.target.checked;
+
+updateSelectedBlock((block) => {
+  return {
+    ...block,
+    data: {
+      ...block.data,
+      inactiveDim: checked,
+    },
+  } as unknown as MicrositeBlock;
+});
+          }}
+        />
+
+        <span>Inactive Dim</span>
+      </label>
+
+      <p className="mt-2 text-xs text-neutral-500">
+        Dim this block when it is not current in Live Manager.
+      </p>
+    </div>
+        </div>
+      ) : null}
 
 
 {!isMultiSelection && selectedBlock?.type === "live_join" ? (

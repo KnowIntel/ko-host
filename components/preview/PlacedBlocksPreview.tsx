@@ -552,6 +552,68 @@ removeButtonStyle={
   );
 }
 
+const LIVE_ACTIVITY_TYPES: Record<string, string> = {
+  live_trivia: "trivia",
+  live_poll: "poll",
+  live_spin_wheel: "spin_wheel",
+  live_scavenger_hunt: "scavenger_hunt",
+  live_lottery: "lottery",
+  live_mystery_drop: "mystery_drop",
+};
+
+function LiveInactiveDim({
+  blockType,
+  inactiveDim,
+  activityId,
+  previewMode,
+}: {
+  blockType: string;
+  inactiveDim: boolean;
+  activityId?: string | null;
+  previewMode: boolean;
+}) {
+  const { sharedState, stateLoading } = useLiveRuntime();
+
+  if (
+    previewMode ||
+    !blockType.startsWith("live_") ||
+    !inactiveDim ||
+    stateLoading ||
+    !sharedState
+  ) {
+    return null;
+  }
+
+  const activityType = LIVE_ACTIVITY_TYPES[blockType];
+
+  // Only activity types controlled by Live Manager
+  // can be evaluated against Make Current.
+  if (!activityType) {
+    return null;
+  }
+
+  const isCurrent =
+    sharedState.currentActivityType === activityType &&
+    (!activityId ||
+      sharedState.currentActivityId === activityId);
+
+  return (
+    <div
+      aria-hidden="true"
+      style={{
+        position: "absolute",
+        inset: 0,
+        backgroundColor: "rgba(0, 0, 0, 0.45)",
+        opacity: isCurrent ? 0 : 1,
+        transition: "opacity 300ms ease",
+        pointerEvents: "none",
+        zIndex: 10,
+        borderRadius: "inherit",
+      }}
+    />
+  );
+}
+
 export default function PlacedBlocksPreview({
   draft,
   designKey,
@@ -2093,7 +2155,9 @@ return (
     id={`block-${previewBlock.id}`}
     data-public-block-id={previewBlock.id}
     className="h-full w-full"
+
     style={{
+      position: "relative",
       scrollMarginTop: "24px",
     }}
   >
@@ -2132,8 +2196,18 @@ return (
         }));
       }}
     />
+
+    <LiveInactiveDim
+      blockType={previewBlock.type}
+      inactiveDim={(previewBlock.data as any).inactiveDim !== false}
+      activityId={(previewBlock.data as any).activityId ?? null}
+      previewMode={previewMode}
+    />
+
   </div>
+
 );
+
 })()}
     </div>
     </div>
