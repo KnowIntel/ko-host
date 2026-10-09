@@ -1370,66 +1370,18 @@ INFOGRAPHICS: [
 ],
 
 LIVE: [
-  {
-    kind: "block",
-    label: "Join Experience",
-    type: "live_join",
-  },
-  {
-    kind: "block",
-    label: "Trivia",
-    type: "live_trivia",
-  },
-  {
-    kind: "block",
-    label: "Live Poll",
-    type: "live_poll",
-  },
-  {
-    kind: "block",
-    label: "Player Card",
-    type: "live_player_card",
-  },
-  {
-    kind: "block",
-    label: "Schedule",
-    type: "live_schedule",
-  },
-  {
-    kind: "block",
-    label: "Song Request",
-    type: "live_song_request",
-  },
-{
-  kind: "block",
-  label: "Live Spin Wheel",
-  type: "live_spin_wheel",
-},
-  {
-    kind: "block",
-    label: "Scavenger Hunt",
-    type: "live_scavenger_hunt",
-  },
-  {
-    kind: "block",
-    label: "Lottery",
-    type: "live_lottery",
-  },
-  {
-    kind: "block",
-    label: "Leaderboard",
-    type: "live_leaderboard",
-  },
-  {
-    kind: "block",
-    label: "Mystery Drop",
-    type: "live_mystery_drop",
-  },
-  {
-    kind: "block",
-    label: "Announcement",
-    type: "live_announcement",
-  },
+  { kind: "block", label: "Live Join Experience", type: "live_join" },
+  { kind: "block", label: "Live Trivia", type: "live_trivia" },
+  { kind: "block", label: "Live Poll", type: "live_poll" },
+  { kind: "block", label: "Live Player Card", type: "live_player_card" },
+  { kind: "block", label: "Live Schedule", type: "live_schedule" },
+  { kind: "block", label: "Live Song Request", type: "live_song_request" },
+  { kind: "block", label: "Live Spin Wheel", type: "live_spin_wheel" },
+  { kind: "block", label: "Live Scavenger Hunt", type: "live_scavenger_hunt" },
+  { kind: "block", label: "Live Lottery", type: "live_lottery" },
+  { kind: "block", label: "Live Leaderboard", type: "live_leaderboard" },
+  { kind: "block", label: "Live Mystery Drop", type: "live_mystery_drop" },
+  { kind: "block", label: "Live Announcement", type: "live_announcement" },
 ],
 
 PREMIUM: [
@@ -1489,19 +1441,37 @@ const TOOL_DESCRIPTIONS: Record<string, string> = {
   "Schedule / Agenda": "Timed event schedule list",
   "Map / Location": "Location details with map info",
 
-  "Join Experience":
+"Live Join Experience":
   "Let visitors join the shared Live experience",
-  "Player Card": "Display each participant's live profile, score, team, and badges.",
-  Schedule: "Show the live event schedule and current activity.",
-  "Song Request": "Let participants request songs and view the request queue.",
-  "Live Spin Wheel": "Let participants interact with a live randomized spin wheel.",
-  "Scavenger Hunt": "Show live hunt challenges, progress, points, and completed items.",
-  Lottery: "Let participants enter a live drawing and view the selected winner.",
-  Leaderboard: "Display live participant rankings and scores.",
-  "Mystery Drop": "Reveal surprise content to participants during the live experience.",
-  Announcement: "Display live announcements and updates from the host.",
 
-Trivia:
+"Live Player Card":
+  "Display each participant's live profile, score, team, and badges.",
+
+"Live Schedule":
+  "Show the live event schedule and current activity.",
+
+"Live Song Request":
+  "Let participants request songs and view the request queue.",
+
+"Live Spin Wheel":
+  "Let participants interact with a live randomized spin wheel.",
+
+"Live Scavenger Hunt":
+  "Show live hunt challenges, progress, points, and completed items.",
+
+"Live Lottery":
+  "Let participants enter a live drawing and view the selected winner.",
+
+"Live Leaderboard":
+  "Display live participant rankings and scores.",
+
+"Live Mystery Drop":
+  "Reveal surprise content to participants during the live experience.",
+
+"Live Announcement":
+  "Display live announcements and updates from the host.",
+
+"Live Trivia":
   "Run interactive live trivia for participants",
 
 "Live Poll":
@@ -2471,18 +2441,18 @@ function getToolIconPath(tool: (typeof CATEGORY_BUTTONS)[BottomCategory][number]
   if (tool.label === "Interactive Hotspots") return "/menu-icons/block-interactive-hot-spots.svg";
   if (tool.label === "Formula Board") return "/menu-icons/block-formula-board.svg";
 
-if (tool.label === "Join Experience") return "/menu-icons/block-live-join-experience.svg";
-if (tool.label === "Trivia") return "/menu-icons/block-live-trivia.svg";
+if (tool.label === "Live Join Experience") return "/menu-icons/block-live-join-experience.svg";
+if (tool.label === "Live Trivia") return "/menu-icons/block-live-trivia.svg";
 if (tool.label === "Live Poll") return "/menu-icons/block-live-poll.svg";
-if (tool.label === "Player Card") return "/menu-icons/block-live-player-card.svg";
-if (tool.label === "Schedule") return "/menu-icons/block-live-schedule.svg";
-if (tool.label === "Song Request") return "/menu-icons/block-live-song-request.svg";
+if (tool.label === "Live Player Card") return "/menu-icons/block-live-player-card.svg";
+if (tool.label === "Live Schedule") return "/menu-icons/block-live-schedule.svg";
+if (tool.label === "Live Song Request") return "/menu-icons/block-live-song-request.svg";
 if (tool.label === "Live Spin Wheel") return "/menu-icons/block-spin-wheel.svg";
-if (tool.label === "Scavenger Hunt") return "/menu-icons/block-live-scavenger-hunt.svg";
-if (tool.label === "Lottery") return "/menu-icons/block-live-lottery.svg";
-if (tool.label === "Leaderboard") return "/menu-icons/block-live-leaderboard.svg";
-if (tool.label === "Mystery Drop") return "/menu-icons/block-live-mystery-drop.svg";
-if (tool.label === "Announcement") return "/menu-icons/block-live-announcement.svg";
+if (tool.label === "Live Scavenger Hunt") return "/menu-icons/block-live-scavenger-hunt.svg";
+if (tool.label === "Live Lottery") return "/menu-icons/block-live-lottery.svg";
+if (tool.label === "Live Leaderboard") return "/menu-icons/block-live-leaderboard.svg";
+if (tool.label === "Live Mystery Drop") return "/menu-icons/block-live-mystery-drop.svg";
+if (tool.label === "Live Announcement") return "/menu-icons/block-live-announcement.svg";
 
   if (tool.label === "Registry") return "/menu-icons/block-registry.svg";
   if (tool.label === "Puzzle") return "/menu-icons/block-puzzle.svg";
