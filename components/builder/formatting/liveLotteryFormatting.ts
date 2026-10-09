@@ -1,3 +1,5 @@
+// components\builder\formatting\liveLotteryFormatting.ts
+
 import type {
   MicrositeBlock,
 } from "@/lib/templates/builder";

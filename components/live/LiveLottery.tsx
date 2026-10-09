@@ -1,3 +1,5 @@
+// components\live\LiveLottery.tsx
+
 "use client";
 
 import {
