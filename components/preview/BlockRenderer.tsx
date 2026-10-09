@@ -43170,7 +43170,7 @@ case "live_lottery": {
         <button
           type="button"
           disabled
-          className="mt-4 mx-auto block rounded-lg bg-black px-4 py-2 text-white"
+          className="mt-4 mx-auto block w-4/5 rounded-lg bg-black px-4 py-2 text-white"
           style={{
             ...(data.enterButtonStyle ?? {}),
             ...getContainerTextStyle(

@@ -205,7 +205,7 @@ const {
           type="button"
           disabled={entering}
           onClick={() => void enter()}
-          className="mt-4 w-full px-4 py-3 disabled:opacity-50"
+          className="mt-4 mx-auto block w-4/5 px-4 py-3 disabled:opacity-50"
           style={{
             ...enterButtonStyle,
             ...enterButtonTextStyle,
