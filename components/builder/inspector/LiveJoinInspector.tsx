@@ -130,15 +130,35 @@ export function LiveJoinInspector({
 
       <div className="mt-4">
         <div className={inspectorLabelClass()}>
-          Heading
+          Heading (Before Joining)
         </div>
 
         <input
           type="text"
-          value={selectedBlock.data.heading ?? ""}
+          value={selectedBlock.data.heading ?? "Join Live Experience"}
           onChange={(e) =>
             updateLiveJoinData({
               heading: e.target.value,
+            })
+          }
+          className={inspectorInputClass()}
+        />
+      </div>
+
+      <div className="mt-4">
+        <div className={inspectorLabelClass()}>
+          Heading (After Joining)
+        </div>
+
+        <input
+          type="text"
+          value={
+            selectedBlock.data.headingAfterJoining ??
+            "Leave Live Experience"
+          }
+          onChange={(e) =>
+            updateLiveJoinData({
+              headingAfterJoining: e.target.value,
             })
           }
           className={inspectorInputClass()}

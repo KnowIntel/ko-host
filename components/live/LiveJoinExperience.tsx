@@ -16,6 +16,7 @@ import { useLiveRuntime } from "@/components/live/LiveRuntimeContext";
 
 type LiveJoinExperienceProps = {
   heading?: string;
+  headingAfterJoining?: string;
   helperText?: string;
   namePlaceholder?: string;
   joinButtonLabel?: string;
@@ -46,6 +47,7 @@ type LiveJoinExperienceProps = {
 
 export default function LiveJoinExperience({
   heading = "Join Live Experience",
+  headingAfterJoining = "Leave Live Experience",
   helperText = "Enter a display name to participate.",
   namePlaceholder = "Display name",
   joinButtonLabel = "Join Experience",
@@ -280,7 +282,7 @@ if (authenticated && participant) {
         className="w-full text-xl font-semibold"
         style={headingStyle}
       >
-        {heading}
+        {headingAfterJoining}
       </div>
 
       <div>

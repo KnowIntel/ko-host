@@ -41998,6 +41998,10 @@ return (
   <Surface block={block}>
     <LiveJoinExperience
       heading={liveJoinData.heading}
+      headingAfterJoining={
+        (liveJoinData as any).headingAfterJoining ??
+        "Leave Live Experience"
+      }
       helperText={liveJoinData.helperText}
       namePlaceholder={liveJoinData.namePlaceholder}
       joinButtonLabel={liveJoinData.joinButtonLabel}
