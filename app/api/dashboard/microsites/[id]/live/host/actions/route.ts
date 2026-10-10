@@ -315,6 +315,113 @@ export async function POST(
         participantId,
       });
     }
+    
+        /*
+     * DELETE PARTICIPANT
+     *
+     * Permanently delete a participant and
+     * their associated records through
+     * database ON DELETE CASCADE rules.
+     */
+    if (action === "delete_participant") {
+      const participantId = cleanText(
+        body.participantId,
+        100,
+      );
+
+      if (!UUID_PATTERN.test(participantId)) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error: "Invalid participant ID.",
+          },
+          { status: 400 },
+        );
+      }
+
+      // Verify that the participant belongs
+      // to this owner's Live experience.
+      const {
+        data: participant,
+        error: participantError,
+      } = await sb
+        .from("live_participants")
+        .select("id, display_name, status")
+        .eq("id", participantId)
+        .eq("experience_id", experience.id)
+        .maybeSingle();
+
+      if (participantError) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error: "Unable to verify participant.",
+          },
+          { status: 500 },
+        );
+      }
+
+      if (!participant) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error: "Participant record not found.",
+          },
+          { status: 404 },
+        );
+      }
+
+      // Delete only the verified participant
+      // belonging to this experience.
+      const {
+        data: deletedParticipant,
+        error: deleteError,
+      } = await sb
+        .from("live_participants")
+        .delete()
+        .eq("id", participantId)
+        .eq("experience_id", experience.id)
+        .select("id")
+        .maybeSingle();
+
+      if (deleteError) {
+        console.error(
+          "Permanent participant deletion failed:",
+          deleteError,
+        );
+
+        return NextResponse.json(
+          {
+            ok: false,
+            error: "Unable to delete participant.",
+          },
+          { status: 500 },
+        );
+      }
+
+      if (!deletedParticipant) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error: "Participant record no longer exists.",
+          },
+          { status: 409 },
+        );
+      }
+
+      // Notify connected participants and
+      // Host Control that state has changed.
+      await broadcastChange(
+        sb,
+        experience.id,
+      );
+
+      return NextResponse.json({
+        ok: true,
+        action,
+        participantId,
+      });
+    }
 
     /*
      * Current shared state.

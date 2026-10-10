@@ -81,6 +81,16 @@ type LeaderboardEntry = {
   rank: number;
 };
 
+type ParticipantRecord = {
+  participantId: string;
+  displayName: string;
+  avatarUrl: string | null;
+  status: string;
+  score: number;
+  joinedAt: string;
+  lastSeenAt: string | null;
+};
+
 type HostActivityRuntimeParticipant = {
   participantId: string;
   displayName: string;
@@ -183,6 +193,8 @@ type HostPayload = {
   participantCount: number;
 
   leaderboard: LeaderboardEntry[];
+
+  participantRecords?: ParticipantRecord[];
 
   activity: {
     id: string;
@@ -300,6 +312,28 @@ export default function HostControl({
     participantToRemove,
     setParticipantToRemove,
   ] = useState<LeaderboardEntry | null>(null);
+
+  const [
+    participantRecordsExpanded,
+    setParticipantRecordsExpanded,
+  ] = useState(false);
+
+  const [
+    participantRecordsSearch,
+    setParticipantRecordsSearch,
+  ] = useState("");
+
+  const [
+    participantRecordsFilter,
+    setParticipantRecordsFilter,
+  ] = useState<"all" | "active" | "removed">(
+    "all",
+  );
+
+  const [
+    participantToDelete,
+    setParticipantToDelete,
+  ] = useState<ParticipantRecord | null>(null);
 
 const [
   changingLifecycle,
@@ -427,6 +461,31 @@ const [error, setError] =
   }, [
     experienceId,
     loadHostState,
+  ]);
+
+    const filteredParticipantRecords = useMemo(() => {
+    const search = participantRecordsSearch
+      .trim()
+      .toLowerCase();
+
+    return (data?.participantRecords ?? []).filter(
+      (participant) => {
+        const matchesSearch =
+          participant.displayName
+            .toLowerCase()
+            .includes(search);
+
+        const matchesStatus =
+          participantRecordsFilter === "all" ||
+          participant.status === participantRecordsFilter;
+
+        return matchesSearch && matchesStatus;
+      },
+    );
+  }, [
+    data?.participantRecords,
+    participantRecordsSearch,
+    participantRecordsFilter,
   ]);
 
   const activityType =
@@ -1136,6 +1195,128 @@ const [error, setError] =
           {message}
         </div>
       ) : null}
+
+            {/* PARTICIPANT RECORDS */}
+      <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+        <button
+          type="button"
+          onClick={() =>
+            setParticipantRecordsExpanded(
+              !participantRecordsExpanded,
+            )
+          }
+          aria-expanded={participantRecordsExpanded}
+          className="flex w-full items-center justify-between gap-4 text-left"
+        >
+          <div>
+            <h2 className="text-lg font-semibold">
+              Participant Records
+            </h2>
+            <p className="mt-1 text-sm text-neutral-600">
+              View and manage all participant records,
+              including previously removed participants.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold">
+              {data.participantRecords?.length ?? 0}
+            </span>
+            <span className="text-xl text-neutral-500">
+              {participantRecordsExpanded ? "−" : "+"}
+            </span>
+          </div>
+        </button>
+
+        {participantRecordsExpanded && (
+          <div className="mt-5 space-y-4">
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <input
+                type="search"
+                value={participantRecordsSearch}
+                onChange={(event) =>
+                  setParticipantRecordsSearch(
+                    event.target.value,
+                  )
+                }
+                placeholder="Search participants..."
+                className="min-w-0 flex-1 rounded-lg border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-500"
+              />
+
+              <select
+                value={participantRecordsFilter}
+                onChange={(event) =>
+                  setParticipantRecordsFilter(
+                    event.target.value as
+                      | "all"
+                      | "active"
+                      | "removed",
+                  )
+                }
+                className="rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm"
+              >
+                <option value="all">All Participants</option>
+                <option value="active">Active</option>
+                <option value="removed">Removed</option>
+              </select>
+            </div>
+
+            <div className="overflow-hidden rounded-xl border border-neutral-200">
+              {filteredParticipantRecords.length === 0 ? (
+                <div className="p-4 text-sm text-neutral-500">
+                  No matching participant records.
+                </div>
+              ) : (
+                filteredParticipantRecords.map(
+                  (participant) => (
+                    <div
+                      key={participant.participantId}
+                      className="flex flex-wrap items-center justify-between gap-4 border-b border-neutral-100 p-4 last:border-b-0"
+                    >
+                      <div className="min-w-0">
+                        <div className="font-semibold text-neutral-900">
+                          {participant.displayName}
+                        </div>
+
+                        <div className="mt-1 text-xs text-neutral-500">
+                          Joined:{" "}
+                          {new Date(
+                            participant.joinedAt,
+                          ).toLocaleString()}
+                        </div>
+
+                        <div className="mt-1 text-xs text-neutral-500">
+                          Points: {participant.score}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <span
+                          className={
+                            participant.status === "active"
+                              ? "rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-800"
+                              : "rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold text-neutral-600"
+                          }
+                        >
+                          {participant.status}
+                        </span>
+
+<button
+  type="button"
+  onClick={() => setParticipantToDelete(participant)}
+  className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50"
+>
+  Delete
+</button>
+                      </div>
+                    </div>
+                  ),
+                )
+              )}
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* HOST OPERATIONS */}
       <div className="grid gap-6 xl:grid-cols-2">
@@ -2718,6 +2899,68 @@ onRemoveParticipant={(entry) => {
           </div>
         </>
       )}
+
+      {participantToDelete && (
+  <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 p-4">
+    <div
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="delete-participant-title"
+      aria-describedby="delete-participant-description"
+      className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"
+    >
+      <h2
+        id="delete-participant-title"
+        className="text-xl font-bold text-red-700"
+      >
+        Permanently Delete Participant?
+      </h2>
+
+      <p
+        id="delete-participant-description"
+        className="mt-3 text-sm text-neutral-700"
+      >
+        You are about to permanently delete{" "}
+        <strong>{participantToDelete.displayName}</strong>.
+        This will also delete their points, activity
+        progress, votes, song requests, and session records.
+      </p>
+
+      <p className="mt-3 text-sm font-semibold text-red-700">
+        This action cannot be undone.
+      </p>
+
+      <div className="mt-6 flex justify-end gap-3">
+        <button
+          type="button"
+          onClick={() => setParticipantToDelete(null)}
+          className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-semibold"
+        >
+          Cancel
+        </button>
+
+        <button
+          type="button"
+          onClick={async () => {
+            const participantId =
+              participantToDelete.participantId;
+
+            setParticipantToDelete(null);
+
+            await runHostAction(
+              "delete_participant",
+              { participantId },
+              "Participant permanently deleted.",
+            );
+          }}
+          className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
+        >
+          Permanently Delete
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
             {participantToRemove ? (
         <div

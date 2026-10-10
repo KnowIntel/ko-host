@@ -389,13 +389,13 @@ export async function GET(
         display_name,
         avatar_url,
         status,
+        created_at,
         last_seen_at
       `)
       .eq(
         "experience_id",
         experience.id,
-      )
-      .eq("status", "active");
+      );
 
     if (participantsError) {
       console.error(
@@ -412,6 +412,13 @@ export async function GET(
         { status: 500 },
       );
     }
+
+const activeParticipants = (
+  participants ?? []
+).filter(
+  (participant) =>
+    participant.status === "active",
+);
 
     /*
      * Score comes from the immutable
@@ -467,9 +474,28 @@ export async function GET(
           Number(row.amount || 0),
       );
     }
+    
+        const participantRecords = (
+      participants ?? []
+    )
+      .map((participant) => ({
+        participantId: participant.id,
+        displayName: participant.display_name,
+        avatarUrl: participant.avatar_url ?? null,
+        status: participant.status,
+        score:
+          scoreByParticipant.get(participant.id) ?? 0,
+        joinedAt: participant.created_at,
+        lastSeenAt: participant.last_seen_at ?? null,
+      }))
+      .sort(
+        (a, b) =>
+          new Date(b.joinedAt).getTime() -
+          new Date(a.joinedAt).getTime(),
+      );
 
     const leaderboard = (
-      participants ?? []
+      activeParticipants
     )
       .map((participant) => ({
         participantId:
@@ -634,7 +660,7 @@ if (announcementResult.error) {
 
 const participantById =
   new Map(
-    (participants ?? []).map(
+    (activeParticipants).map(
       (participant) => [
         String(participant.id),
 
@@ -811,9 +837,10 @@ const operations = {
         },
 
         participantCount:
-          participants?.length ?? 0,
+          activeParticipants.length,
 
         leaderboard,
+        participantRecords,
 
 activity: null,
 
@@ -963,7 +990,7 @@ if (
       ),
 
     participantCount:
-      participants?.length ?? 0,
+      activeParticipants.length,
 
     participantStates:
       (
@@ -1141,7 +1168,7 @@ if (
       let correctCount = 0;
 
       const participantResults = (
-        participants ?? []
+        activeParticipants
       ).map((participant) => {
         const participantState =
           stateByParticipant.get(
@@ -1242,7 +1269,7 @@ if (
       });
 
       const participantCount =
-        participants?.length ?? 0;
+        activeParticipants.length;
 
       const unansweredCount =
         Math.max(
@@ -1517,7 +1544,7 @@ if (
       }
 
       const participantCount =
-        participants?.length ?? 0;
+        activeParticipants.length;
 
       const votedCount =
         voteByParticipant.size;
@@ -1561,7 +1588,7 @@ if (
           : [];
 
       const participantResults = (
-        participants ?? []
+        activeParticipants
       ).map((participant) => {
         const vote =
           voteByParticipant.get(
@@ -1649,9 +1676,10 @@ if (
       },
 
       participantCount:
-        participants?.length ?? 0,
+        activeParticipants.length,
 
       leaderboard,
+        participantRecords,
 
       activity: {
         id: activity.id,
