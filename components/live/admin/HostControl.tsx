@@ -1198,35 +1198,37 @@ const [error, setError] =
 
             {/* PARTICIPANT RECORDS */}
       <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-        <button
-          type="button"
-          onClick={() =>
-            setParticipantRecordsExpanded(
-              !participantRecordsExpanded,
-            )
-          }
-          aria-expanded={participantRecordsExpanded}
-          className="flex w-full items-center justify-between gap-4 text-left"
-        >
-          <div>
-            <h2 className="text-lg font-semibold">
-              Participant Records
-            </h2>
-            <p className="mt-1 text-sm text-neutral-600">
-              View and manage all participant records,
-              including previously removed participants.
-            </p>
-          </div>
+<button
+  type="button"
+  onClick={() =>
+    setParticipantRecordsExpanded(
+      (current) => !current,
+    )
+  }
+  className="flex w-full items-center justify-between gap-4 rounded-xl border border-neutral-200 bg-white px-4 py-3 text-left transition hover:border-neutral-300"
+  aria-expanded={participantRecordsExpanded}
+>
+<div>
+  <h2 className="text-lg font-semibold">
+    Participant Records
+  </h2>
 
-          <div className="flex items-center gap-3">
-            <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold">
-              {data.participantRecords?.length ?? 0}
-            </span>
-            <span className="text-xl text-neutral-500">
-              {participantRecordsExpanded ? "−" : "+"}
-            </span>
-          </div>
-        </button>
+  <p className="mt-1 text-sm text-neutral-600">
+    View and manage all participant records,
+    including previously removed participants.
+  </p>
+</div>
+
+  <span
+    className={[
+      "flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-sm text-neutral-600 transition-transform duration-200",
+      participantRecordsExpanded ? "rotate-180" : "",
+    ].join(" ")}
+    aria-hidden="true"
+  >
+    ▼
+  </span>
+</button>
 
         {participantRecordsExpanded && (
           <div className="mt-5 space-y-4">
