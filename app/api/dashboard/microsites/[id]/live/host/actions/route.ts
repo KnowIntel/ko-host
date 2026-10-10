@@ -1251,6 +1251,118 @@ if (
   });
 }
 
+/*
+ * ================================================================
+ * SCHEDULE — EDIT ENTRY
+ * ================================================================
+ */
+if (action === "edit_schedule_entry") {
+  const entryId = cleanText(body.entryId, 100);
+  const title = cleanText(body.title, 200);
+  const description = cleanText(body.description, 1000);
+  const startsAtRaw = cleanText(body.startsAt, 100);
+  const endsAtRaw = cleanText(body.endsAt, 100);
+
+  if (!UUID_PATTERN.test(entryId) || !title) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "Valid Schedule entry and title are required.",
+      },
+      { status: 400 },
+    );
+  }
+
+  const parseOptionalDate = (value: string) => {
+    if (!value) return null;
+
+    const date = new Date(value);
+
+    return Number.isNaN(date.getTime())
+      ? undefined
+      : date.toISOString();
+  };
+
+  const startsAt = parseOptionalDate(startsAtRaw);
+  const endsAt = parseOptionalDate(endsAtRaw);
+
+  if (startsAt === undefined || endsAt === undefined) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "Invalid Schedule date or time.",
+      },
+      { status: 400 },
+    );
+  }
+
+  if (
+    startsAt &&
+    endsAt &&
+    new Date(endsAt).getTime() <
+      new Date(startsAt).getTime()
+  ) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "Schedule end time cannot be before the start time.",
+      },
+      { status: 400 },
+    );
+  }
+
+  const { data: entry, error: entryError } = await sb
+    .from("live_schedule_entries")
+    .update({
+      title,
+      description,
+      starts_at: startsAt,
+      ends_at: endsAt,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", entryId)
+    .eq("experience_id", experience.id)
+    .neq("status", "current")
+    .select(
+      "id, title, description, starts_at, ends_at, status, sort_order",
+    )
+    .maybeSingle();
+
+  if (entryError) {
+    console.error("Schedule edit failed:", entryError);
+
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "Unable to save Schedule changes.",
+      },
+      { status: 500 },
+    );
+  }
+
+  if (!entry) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "Schedule entry not found or currently active.",
+      },
+      { status: 409 },
+    );
+  }
+
+  await broadcastChange(
+    sb,
+    experience.id,
+    currentActivityId,
+  );
+
+  return NextResponse.json({
+    ok: true,
+    action,
+    entry,
+  });
+}
+
     /*
      * ================================================================
      * SCHEDULE — CHANGE STATUS

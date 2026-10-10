@@ -313,6 +313,9 @@ export default function HostControl({
     setParticipantToRemove,
   ] = useState<LeaderboardEntry | null>(null);
 
+  const [editingScheduleEntryId, setEditingScheduleEntryId] =
+  useState<string | null>(null);
+
   const [
     participantRecordsExpanded,
     setParticipantRecordsExpanded,
@@ -1463,24 +1466,37 @@ const [error, setError] =
         return;
       }
 
+      const isEditing = Boolean(editingScheduleEntryId);
+
       void runHostAction(
-        "create_schedule_entry",
+        isEditing
+          ? "edit_schedule_entry"
+          : "create_schedule_entry",
         {
+          ...(editingScheduleEntryId
+            ? { entryId: editingScheduleEntryId }
+            : {}),
           title,
           description,
           startsAt,
           endsAt,
         },
-        "Schedule entry created.",
-      ).then(() => {
-        form.reset();
+        isEditing
+          ? "Schedule entry updated."
+          : "Schedule entry created.",
+      ).then((result) => {
+        if (result) {
+          form.reset();
+          setEditingScheduleEntryId(null);
+        }
       });
     }}
   >
-    <div className="text-sm font-semibold">
-      Add Schedule Entry
-    </div>
-
+<div className="text-sm font-semibold">
+  {editingScheduleEntryId
+    ? "Edit Schedule Entry"
+    : "Add Schedule Entry"}
+</div>
     <div className="mt-3 grid gap-3">
       <input
         name="scheduleTitle"
@@ -1525,19 +1541,35 @@ const [error, setError] =
         </label>
       </div>
 
-      <div>
-        <button
-          type="submit"
-          disabled={
-            changingHostAction !== null
-          }
-          className="rounded-lg bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          {changingHostAction ===
-          "create_schedule_entry"
-            ? "Adding..."
-            : "Add Entry"}
-        </button>
+      <div className="flex flex-wrap items-center gap-2">
+<button
+  type="submit"
+  disabled={
+    changingHostAction !== null
+  }
+  className="rounded-lg bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-40"
+>
+  {changingHostAction === "create_schedule_entry"
+    ? "Adding..."
+    : changingHostAction === "edit_schedule_entry"
+      ? "Saving..."
+      : editingScheduleEntryId
+        ? "Save Changes"
+        : "Add Entry"}
+</button>
+{editingScheduleEntryId && (
+  <button
+    type="button"
+    disabled={changingHostAction !== null}
+    onClick={(event) => {
+      event.currentTarget.form?.reset();
+      setEditingScheduleEntryId(null);
+    }}
+    className="rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm font-semibold text-neutral-700 hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-40"
+  >
+    Cancel Editing
+  </button>
+)}
       </div>
     </div>
   </form>
@@ -1589,7 +1621,7 @@ const [error, setError] =
             </div>
           </div>
 
-          <div className="mt-3 flex flex-wrap gap-2">
+          <div className="mt-3 flex flex-wrap items-center gap-2">
             {[
               "upcoming",
               "current",
@@ -1629,6 +1661,61 @@ const [error, setError] =
                       : "Upcoming"}
               </button>
             ))}
+
+            {entry.status !== "current" && (
+              <button
+                type="button"
+                disabled={changingHostAction !== null}
+                onClick={() => {
+                  setEditingScheduleEntryId(entry.id);
+
+                  const form = document.querySelector<HTMLFormElement>(
+                    'input[name="scheduleTitle"]',
+                  )?.form;
+
+                  if (!form) return;
+
+                  const titleInput =
+                    form.elements.namedItem("scheduleTitle") as HTMLInputElement | null;
+
+                  const descriptionInput =
+                    form.elements.namedItem("scheduleDescription") as HTMLTextAreaElement | null;
+
+                  const startInput =
+                    form.elements.namedItem("scheduleStartsAt") as HTMLInputElement | null;
+
+                  const endInput =
+                    form.elements.namedItem("scheduleEndsAt") as HTMLInputElement | null;
+
+                  if (titleInput) titleInput.value = entry.title;
+                  if (descriptionInput) descriptionInput.value = entry.description ?? "";
+
+                  const toLocalDateTime = (value: string | null) => {
+                    if (!value) return "";
+
+                    const date = new Date(value);
+                    if (Number.isNaN(date.getTime())) return "";
+
+                    const localDate = new Date(
+                      date.getTime() - date.getTimezoneOffset() * 60000,
+                    );
+
+                    return localDate.toISOString().slice(0, 16);
+                  };
+
+                  if (startInput) startInput.value = toLocalDateTime(entry.startsAt);
+                  if (endInput) endInput.value = toLocalDateTime(entry.endsAt);
+
+                  form.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start",
+                  });
+                }}
+                className="ml-auto rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-xs font-semibold hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                Edit
+              </button>
+            )}
           </div>
         </div>
       ))
