@@ -269,6 +269,11 @@ export default function LiveManager({
   const [deleting, setDeleting] =
     useState(false);
 
+  const [
+    activityToDelete,
+    setActivityToDelete,
+  ] = useState<Activity | null>(null);
+
   const [activating, setActivating] =
     useState(false);
 
@@ -1097,13 +1102,6 @@ currentActivityType:
       return;
     }
 
-    if (
-      !window.confirm(
-        `Delete "${selectedActivity.name}"?`,
-      )
-    ) {
-      return;
-    }
 
     setDeleting(true);
     setError(null);
@@ -1179,6 +1177,68 @@ currentActivityType:
 
   return (
     <>
+      {activityToDelete ? (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 p-4">
+          <div
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="delete-activity-title"
+            aria-describedby="delete-activity-description"
+            className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"
+          >
+            <h2
+              id="delete-activity-title"
+              className="text-xl font-bold text-red-700"
+            >
+              Delete Live Activity?
+            </h2>
+
+            <p
+              id="delete-activity-description"
+              className="mt-3 text-sm text-neutral-700"
+            >
+              Are you sure you want to delete{" "}
+              <strong>{activityToDelete.name}</strong>?
+              This activity will be permanently removed.
+            </p>
+
+            <p className="mt-3 text-sm font-semibold text-red-700">
+              This action cannot be undone.
+            </p>
+
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                disabled={deleting}
+                onClick={() => setActivityToDelete(null)}
+                className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-semibold hover:bg-neutral-50 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                disabled={deleting}
+                onClick={async () => {
+                  if (
+                    !selectedActivity ||
+                    selectedActivity.id !== activityToDelete.id
+                  ) {
+                    return;
+                  }
+
+                  await deleteActivity();
+                  setActivityToDelete(null);
+                }}
+                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50"
+              >
+                {deleting ? "Deleting..." : "Delete Activity"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+      
     <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
   <div className="flex items-center gap-2">
     <span className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">
@@ -1525,9 +1585,11 @@ currentActivityType:
                         sharedState.currentActivityId ===
                           selectedActivity.id
                       }
-                      onClick={() => {
-                        void deleteActivity();
-                      }}
+onClick={() => {
+  if (selectedActivity) {
+    setActivityToDelete(selectedActivity);
+  }
+}}
                       className="rounded-xl border border-red-200 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       {deleting
