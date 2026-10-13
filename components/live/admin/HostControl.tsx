@@ -6,6 +6,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 
@@ -190,6 +191,16 @@ type HostPayload = {
     updatedAt: string | null;
   };
 
+  allowMultipleActiveActivities?: boolean;
+
+  activeActivityIds?: string[];
+
+  activeActivities?: Array<{
+    id: string;
+    activityType: string;
+    name: string;
+  }>;
+
   participantCount: number;
 
   leaderboard: LeaderboardEntry[];
@@ -294,6 +305,17 @@ export default function HostControl({
     useState(true);
 
   const [
+    selectedHostActivityId,
+    setSelectedHostActivityId,
+  ] = useState<string | null>(null);
+
+  const selectedHostActivityIdRef =
+    useRef<string | null>(null);
+
+  const hostRequestSequenceRef =
+    useRef(0);
+
+  const [
     changingQuestion,
     setChangingQuestion,
   ] = useState(false);
@@ -359,61 +381,141 @@ const [error, setError] =
   const [message, setMessage] =
     useState<string | null>(null);
 
-  const loadHostState =
-    useCallback(
-      async ({
-        showLoading = false,
-      }: {
-        showLoading?: boolean;
-      } = {}) => {
-        if (showLoading) {
-          setLoading(true);
+  const loadHostState = useCallback(
+    async ({
+      showLoading = false,
+    }: {
+      showLoading?: boolean;
+    } = {}) => {
+      const requestSequence =
+        ++hostRequestSequenceRef.current;
+
+      const requestedActivityId =
+        selectedHostActivityIdRef.current;
+
+      if (showLoading) {
+        setLoading(true);
+      }
+
+      try {
+        const query = requestedActivityId
+          ? `?activityId=${encodeURIComponent(
+              requestedActivityId,
+            )}`
+          : "";
+
+        const response = await fetch(
+          `/api/dashboard/microsites/${micrositeId}/live/host${query}`,
+          {
+            method: "GET",
+            cache: "no-store",
+          },
+        );
+
+        const payload: HostPayload =
+          await response.json();
+
+        if (!response.ok || !payload?.ok) {
+          throw new Error(
+            payload?.error ||
+              "Unable to load Host Control.",
+          );
         }
 
-        try {
-          const response = await fetch(
-            `/api/dashboard/microsites/${micrositeId}/live/host`,
-            {
-              method: "GET",
-              cache: "no-store",
-            },
-          );
+        if (
+          requestSequence !==
+          hostRequestSequenceRef.current
+        ) {
+          return;
+        }
 
-          const payload =
-            await response.json();
+        if (!payload.allowMultipleActiveActivities) {
+          selectedHostActivityIdRef.current = null;
+          setSelectedHostActivityId(null);
+        } else {
+          const availableIds =
+            payload.activeActivityIds ??
+            payload.activeActivities?.map(
+              (activity) => activity.id,
+            ) ??
+            [];
 
           if (
-            !response.ok ||
-            !payload?.ok
+            requestedActivityId &&
+            !availableIds.includes(requestedActivityId)
           ) {
-            throw new Error(
-              payload?.error ||
-                "Unable to load Host Control.",
-            );
-          }
+            selectedHostActivityIdRef.current = null;
+            setSelectedHostActivityId(null);
 
-          setData(payload);
-          setError(null);
-        } catch (loadError) {
-          setError(
-            loadError instanceof Error
-              ? loadError.message
-              : "Unable to load Host Control.",
-          );
-        } finally {
-          if (showLoading) {
-            setLoading(false);
+            setData(null);
+            setLoading(true);
+
+            void loadHostState({
+              showLoading: true,
+            });
+
+            return;
           }
         }
-      },
-      [micrositeId],
-    );
+
+        setData(payload);
+        setError(null);
+      } catch (loadError) {
+        if (
+          requestSequence !==
+          hostRequestSequenceRef.current
+        ) {
+          return;
+        }
+
+        setError(
+          loadError instanceof Error
+            ? loadError.message
+            : "Unable to load Host Control.",
+        );
+      } finally {
+        if (
+          showLoading &&
+          requestSequence ===
+            hostRequestSequenceRef.current
+        ) {
+          setLoading(false);
+        }
+      }
+    },
+    [micrositeId],
+  );
 
   useEffect(() => {
     void loadHostState({
       showLoading: true,
     });
   }, [loadHostState]);
+
+  function selectHostActivity(activityId: string) {
+    if (
+      activityId ===
+      selectedHostActivityIdRef.current
+    ) {
+      return;
+    }
+
+    selectedHostActivityIdRef.current =
+      activityId;
+
+    setSelectedHostActivityId(activityId);
+
+    // Hide the previous activity's controls
+    // while the new activity is loading.
+    setData(null);
+    setError(null);
+    setMessage(null);
+    setLoading(true);
+
+    void loadHostState({
+      showLoading: true,
+    });
+  }
 
   useEffect(() => {
   if (!data?.experience.name) {
@@ -739,6 +841,9 @@ const [error, setError] =
     const type =
       data.activity.activityType;
 
+    const activityId =
+      data.activity.id;
+
     if (
       type !== "trivia" &&
       type !== "poll"
@@ -761,20 +866,14 @@ const [error, setError] =
               "application/json",
           },
 
-          body: JSON.stringify({
-            currentActivityType:
-              type,
+            body: JSON.stringify({
+              currentActivityType: type,
+              currentActivityId: activityId,
 
-            currentActivityId:
-              data.activity.id,
-
-            state: {
-              ...data.sharedState.state,
-
-              currentQuestionId:
-                questionId,
-            },
-          }),
+              state: {
+                currentQuestionId: questionId,
+              },
+            }),
         },
       );
 
@@ -923,13 +1022,32 @@ const [error, setError] =
 
         <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
           <div className="text-xs text-neutral-600">
-            Current activity
+            {data.allowMultipleActiveActivities
+              ? "Selected Live activities"
+              : "Current activity"}
           </div>
 
           <div className="mt-1 font-semibold">
-            {data.activity?.name ??
-              "None"}
+            {data.allowMultipleActiveActivities
+              ? `${
+                  data.activeActivities?.length ?? 0
+                } selected`
+              : data.activity?.name ?? "None"}
           </div>
+
+          {data.allowMultipleActiveActivities &&
+          data.activeActivities?.length ? (
+            <div className="mt-2 space-y-1">
+              {data.activeActivities.map((activity) => (
+                <div
+                  key={activity.id}
+                  className="text-xs text-neutral-600"
+                >
+                  {activity.name}
+                </div>
+              ))}
+            </div>
+          ) : null}
         </div>
 
         <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
@@ -942,6 +1060,81 @@ const [error, setError] =
           </div>
         </div>
       </div>
+
+      {data.allowMultipleActiveActivities ? (
+        <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <h2 className="text-base font-semibold text-neutral-900">
+                Activity Host Controls
+              </h2>
+
+              <p className="mt-1 text-sm text-neutral-600">
+                Choose which active activity to manage.
+                Each activity has its own controls and results.
+              </p>
+            </div>
+
+            <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold text-neutral-700">
+              {data.activeActivities?.length ?? 0} active
+            </span>
+          </div>
+
+          {(data.activeActivities?.length ?? 0) > 0 ? (
+            <label className="mt-4 block">
+              <span className="mb-2 block text-sm font-semibold text-neutral-800">
+                Manage Activity
+              </span>
+
+              <select
+                value={
+                  data.activeActivities?.some(
+                    (activity) =>
+                      activity.id ===
+                      selectedHostActivityId,
+                  )
+                    ? selectedHostActivityId ?? ""
+                    : data.activity?.id ?? ""
+                }
+                onChange={(event) => {
+                  selectHostActivity(
+                    event.target.value,
+                  );
+                }}
+                disabled={
+                  changingQuestion ||
+                  changingHostAction !== null
+                }
+                className="w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 text-sm font-medium text-neutral-900 outline-none focus:border-neutral-500 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {data.activeActivities?.map(
+                  (activity) => (
+                    <option
+                      key={activity.id}
+                      value={activity.id}
+                    >
+                      {activity.name} — {activity.activityType}
+                    </option>
+                  ),
+                )}
+              </select>
+            </label>
+          ) : (
+            <p className="mt-4 text-sm text-neutral-500">
+              No active activities are currently selected.
+            </p>
+          )}
+
+          {data.activity ? (
+            <p className="mt-3 text-xs text-neutral-500">
+              Currently managing:{" "}
+              <span className="font-semibold text-neutral-700">
+                {data.activity.name}
+              </span>
+            </p>
+          ) : null}
+        </div>
+      ) : null}
 
       <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
         <div className="flex flex-wrap items-start justify-between gap-4">
@@ -2085,7 +2278,9 @@ const [error, setError] =
             onClick={() => {
               void runHostAction(
                 "draw_lottery_winner",
-                {},
+                {
+                  activityId: data.activity!.id,
+                },
                 "Lottery winner selected.",
               );
             }}
@@ -2154,7 +2349,10 @@ const [error, setError] =
                         onClick={() => {
                           void runHostAction(
                             "set_mystery_drop",
-                            { dropId },
+                            {
+                              activityId: data.activity!.id,
+                              dropId,
+                            },
                             "Mystery Drop released.",
                           );
                         }}

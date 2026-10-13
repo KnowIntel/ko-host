@@ -1,3 +1,4 @@
+
 import { NextResponse } from "next/server";
 
 import {
@@ -9,6 +10,14 @@ import {
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+type AtomicCompletionResult = {
+  item_id: string;
+  awarded_points: number;
+  completed_count: number;
+  total_items: number;
+  all_completed: boolean;
+};
 
 export async function POST(
   request: Request,
@@ -23,10 +32,19 @@ export async function POST(
   try {
     const { experienceId } = await params;
 
+    const body =
+      await request.json().catch(() => ({}));
+
+    const activityId =
+      typeof body?.activityId === "string"
+        ? body.activityId
+        : undefined;
+
     const context =
       await getParticipantActivityRuntime(
         experienceId,
         "scavenger_hunt",
+        activityId,
       );
 
     if (!context.ok) {
@@ -39,18 +57,18 @@ export async function POST(
       );
     }
 
-    const body =
-      await request.json().catch(() => ({}));
+    /*
+     * Preserve existing participant input handling.
+     */
+    const input = asLiveRecord(body);
 
-    const itemId = cleanLiveId(
-      asLiveRecord(body).itemId,
-    );
+    const itemId = cleanLiveId(input.itemId);
 
     const responseText = String(
-  asLiveRecord(body).responseText ?? "",
-)
-  .trim()
-  .slice(0, 1000);
+      input.responseText ?? "",
+    )
+      .trim()
+      .slice(0, 1000);
 
     if (!itemId) {
       return NextResponse.json(
@@ -63,74 +81,37 @@ export async function POST(
       );
     }
 
-    const configuration = asLiveRecord(
-      context.activity.configuration,
-    );
-
-    const items = Array.isArray(
-      configuration.items,
-    )
-      ? configuration.items.map(
-          asLiveRecord,
-        )
-      : [];
-
-    const item = items.find(
-      (candidate) =>
-        cleanLiveId(candidate.id) ===
-        itemId,
-    );
-
-    if (!item) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error:
-            "Invalid Scavenger Hunt item.",
-        },
-        { status: 400 },
-      );
-    }
-
-    const rawPoints =
-      typeof item.points === "number"
-        ? item.points
-        : Number(item.points);
-
-    const awardedPoints =
-      Number.isFinite(rawPoints)
-        ? Math.max(
-            0,
-            Math.min(
-              Math.trunc(rawPoints),
-              100000,
-            ),
-          )
-        : 0;
-
-    const sourceId =
-      `${context.activity.id}:${itemId}`;
-
+    /*
+     * The database function atomically handles:
+     *
+     * - Experience and participant validation
+     * - Activity status and selection validation
+     * - Configured item validation
+     * - Duplicate completion prevention
+     * - Point transaction insertion
+     * - Completion history merging
+     * - Completion count calculation
+     * - Final completion timestamp
+     */
     const {
-      error: pointError,
-    } = await context.supabase
-      .from("live_point_transactions")
-      .insert({
-        experience_id:
+      data,
+      error,
+    } = await context.supabase.rpc(
+      "complete_live_scavenger_hunt_item_atomic",
+      {
+        p_experience_id:
           context.safeExperienceId,
-        participant_id:
+        p_participant_id:
           context.participant.participantId,
-        amount: awardedPoints,
-        source_type:
-          "scavenger_hunt_item",
-        source_id: sourceId,
-        reason: `Scavenger Hunt: ${String(
-          item.title || "Item",
-        )}`,
-      });
+        p_activity_id:
+          context.activity.id,
+        p_item_id: itemId,
+        p_response_text: responseText,
+      },
+    );
 
-    if (pointError) {
-      if (pointError.code === "23505") {
+    if (error) {
+      if (error.code === "23505") {
         return NextResponse.json(
           {
             ok: false,
@@ -142,109 +123,91 @@ export async function POST(
         );
       }
 
-      throw pointError;
-    }
+      const message = error.message || "";
 
-    const {
-      data: existingRow,
-    } = await context.supabase
-      .from(
-        "live_participant_activity_state",
-      )
-      .select("state")
-      .eq(
-        "experience_id",
-        context.safeExperienceId,
-      )
-      .eq(
-        "participant_id",
-        context.participant.participantId,
-      )
-      .eq(
-        "activity_id",
-        context.activity.id,
-      )
-      .maybeSingle();
-
-    const existingState =
-      asLiveRecord(existingRow?.state);
-
-    const completedItems =
-      asLiveRecord(
-        existingState.completedItems,
-      );
-
-    const now = new Date().toISOString();
-
-const nextCompletedItems = {
-  ...completedItems,
-  [itemId]: {
-    completedAt: now,
-    awardedPoints,
-    responseText,
-  },
-};
-
-    const completedCount =
-      Object.keys(
-        nextCompletedItems,
-      ).length;
-
-    const allCompleted =
-      items.length > 0 &&
-      completedCount >= items.length;
-
-    const {
-      error: stateError,
-    } = await context.supabase
-      .from(
-        "live_participant_activity_state",
-      )
-      .upsert(
-        {
-          experience_id:
-            context.safeExperienceId,
-          participant_id:
-            context.participant.participantId,
-          activity_id:
-            context.activity.id,
-          state: {
-            ...existingState,
-            completedItems:
-              nextCompletedItems,
-            completedCount,
+      if (
+        message ===
+        "You already completed this item"
+      ) {
+        return NextResponse.json(
+          {
+            ok: false,
+            duplicate: true,
+            error:
+              "You already completed this item.",
           },
-          completed_at: allCompleted
-            ? now
-            : null,
-          updated_at: now,
-        },
-        {
-          onConflict:
-            "participant_id,activity_id",
-        },
-      );
+          { status: 409 },
+        );
+      }
 
-    if (stateError) {
-      console.error(
-        "Scavenger Hunt state update failed:",
-        stateError,
+      const invalidInputErrors = [
+        "Scavenger Hunt item is required",
+        "Invalid Scavenger Hunt item",
+      ];
+
+      if (invalidInputErrors.includes(message)) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error: message,
+          },
+          { status: 400 },
+        );
+      }
+
+      const activityConflicts = [
+        "Live experience is not available",
+        "Live participant is not active",
+        "Scavenger Hunt activity is not active",
+        "Scavenger Hunt activity is not selected",
+        "Scavenger Hunt activity is not current",
+        "Live experience state not found",
+      ];
+
+      if (activityConflicts.includes(message)) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error: message,
+          },
+          { status: 409 },
+        );
+      }
+
+      throw error;
+    }
+
+    const result = (
+      Array.isArray(data) ? data[0] : data
+    ) as AtomicCompletionResult | null;
+
+    if (!result) {
+      throw new Error(
+        "Atomic Scavenger Hunt completion returned no result.",
       );
     }
 
+    /*
+     * Notify connected clients after the
+     * database transaction succeeds.
+     */
     await broadcastLiveActivityChange(
       context.supabase,
       context.safeExperienceId,
       context.activity.id,
     );
 
+    /*
+     * Preserve the response structure expected
+     * by the existing Scavenger Hunt component.
+     */
     return NextResponse.json({
       ok: true,
-      itemId,
-      awardedPoints,
-      completedCount,
-      totalItems: items.length,
-      allCompleted,
+      itemId: result.item_id,
+      awardedPoints: result.awarded_points,
+      completedCount: result.completed_count,
+      totalItems: result.total_items,
+      allCompleted: result.all_completed,
     });
   } catch (error) {
     console.error(

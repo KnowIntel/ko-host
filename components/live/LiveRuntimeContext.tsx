@@ -47,6 +47,12 @@ export type LiveSharedState = {
   updatedAt: string | null;
 };
 
+export type LiveActiveActivity = {
+  id: string;
+  activityType: string;
+  name: string;
+};
+
 type LiveRuntimeValue = {
   experience: LiveExperienceContext | null;
 
@@ -54,6 +60,13 @@ type LiveRuntimeValue = {
   authenticated: boolean;
 
   sharedState: LiveSharedState | null;
+
+  allowMultipleActiveActivities: boolean;
+  activeActivityIds: string[];
+  activeActivities: LiveActiveActivity[];
+
+  selectedActivityId: string | null;
+  selectActivity: (activityId: string) => void;
 
   /*
    * Increments whenever the runtime receives a
@@ -134,6 +147,43 @@ export function LiveRuntimeProvider({
 
   const [sharedState, setSharedState] =
     useState<LiveSharedState | null>(null);
+
+  const [
+    allowMultipleActiveActivities,
+    setAllowMultipleActiveActivities,
+  ] = useState(false);
+
+  const [
+    activeActivities,
+    setActiveActivities,
+  ] = useState<LiveActiveActivity[]>([]);
+
+  const [
+    selectedActivityId,
+    setSelectedActivityId,
+  ] = useState<string | null>(null);
+
+  const activeActivityIds = useMemo(
+    () => activeActivities.map((activity) => activity.id),
+    [activeActivities],
+  );
+
+  const selectActivity = useCallback(
+    (activityId: string) => {
+      if (
+        !allowMultipleActiveActivities ||
+        !activeActivityIds.includes(activityId)
+      ) {
+        return;
+      }
+
+      setSelectedActivityId(activityId);
+    },
+    [
+      allowMultipleActiveActivities,
+      activeActivityIds,
+    ],
+  );
 
   /*
    * Changes for every realtime Broadcast,
@@ -235,6 +285,9 @@ export function LiveRuntimeProvider({
       if (!liveExperience?.id) {
         setRuntimeExperience(null);
         setSharedState(null);
+        setAllowMultipleActiveActivities(false);
+        setActiveActivities([]);
+        setSelectedActivityId(null);
         setStateLoading(false);
         return;
       }
@@ -310,8 +363,79 @@ export function LiveRuntimeProvider({
           } else {
             setSharedState(null);
           }
+
+          const multipleMode =
+            payload.allowMultipleActiveActivities === true;
+
+          const nextActiveActivities: LiveActiveActivity[] =
+            Array.isArray(payload.activeActivities)
+              ? payload.activeActivities.filter(
+                  (
+                    activity: unknown,
+                  ): activity is LiveActiveActivity => {
+                    if (
+                      !activity ||
+                      typeof activity !== "object"
+                    ) {
+                      return false;
+                    }
+
+                    const candidate = activity as Record<
+                      string,
+                      unknown
+                    >;
+
+                    return (
+                      typeof candidate.id === "string" &&
+                      typeof candidate.activityType ===
+                        "string" &&
+                      typeof candidate.name === "string"
+                    );
+                  },
+                )
+              : [];
+
+          setAllowMultipleActiveActivities(multipleMode);
+          setActiveActivities(nextActiveActivities);
+
+          const nextActiveIds = new Set(
+            nextActiveActivities.map(
+              (activity) => activity.id,
+            ),
+          );
+
+          setSelectedActivityId((currentId) => {
+            if (!multipleMode) {
+              return (
+                payload.sharedState?.currentActivityId ??
+                null
+              );
+            }
+
+            if (
+              currentId &&
+              nextActiveIds.has(currentId)
+            ) {
+              return currentId;
+            }
+
+            const legacyCurrentId =
+              payload.sharedState?.currentActivityId;
+
+            if (
+              legacyCurrentId &&
+              nextActiveIds.has(legacyCurrentId)
+            ) {
+              return legacyCurrentId;
+            }
+
+            return nextActiveActivities[0]?.id ?? null;
+          });
         } else {
           setSharedState(null);
+          setAllowMultipleActiveActivities(false);
+          setActiveActivities([]);
+          setSelectedActivityId(null);
         }
       } catch (error) {
         console.error(
@@ -320,6 +444,9 @@ export function LiveRuntimeProvider({
         );
 
         setSharedState(null);
+        setAllowMultipleActiveActivities(false);
+        setActiveActivities([]);
+        setSelectedActivityId(null);
       } finally {
         setStateLoading(false);
       }
@@ -552,6 +679,12 @@ body: JSON.stringify({
         sharedState,
         realtimeRevision,
 
+        allowMultipleActiveActivities,
+        activeActivityIds,
+        activeActivities,
+        selectedActivityId,
+        selectActivity,
+
         loading:
           sessionLoading ||
           stateLoading,
@@ -575,6 +708,11 @@ body: JSON.stringify({
         authenticated,
         sharedState,
         realtimeRevision,
+        allowMultipleActiveActivities,
+        activeActivityIds,
+        activeActivities,
+        selectedActivityId,
+        selectActivity,
         sessionLoading,
         stateLoading,
         joining,
@@ -591,6 +729,47 @@ body: JSON.stringify({
     <LiveRuntimeContext.Provider
       value={value}
     >
+      {allowMultipleActiveActivities &&
+      activeActivities.length > 1 &&
+      authenticated ? (
+        <nav
+          aria-label="Live activity selection"
+          className="fixed bottom-4 left-1/2 z-[100] w-[min(92vw,520px)] -translate-x-1/2 rounded-2xl border border-neutral-200 bg-white/95 p-3 text-neutral-900 shadow-xl backdrop-blur"
+        >
+          <div className="mb-2 text-center text-xs font-semibold uppercase tracking-wide text-neutral-500">
+            Live Activities
+          </div>
+
+          <div className="flex max-h-32 flex-wrap justify-center gap-2 overflow-y-auto">
+            {activeActivities.map((activity) => {
+              const selected =
+                activity.id === selectedActivityId;
+
+              return (
+                <button
+                  key={activity.id}
+                  type="button"
+                  aria-pressed={selected}
+                  onClick={() =>
+                    selectActivity(activity.id)
+                  }
+                  className={[
+                    "max-w-full rounded-xl px-3 py-2 text-sm font-medium transition-colors",
+                    selected
+                      ? "bg-neutral-900 text-white"
+                      : "bg-neutral-100 text-neutral-700 hover:bg-neutral-200",
+                  ].join(" ")}
+                >
+                  <span className="block truncate">
+                    {activity.name}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </nav>
+      ) : null}
+
       {children}
     </LiveRuntimeContext.Provider>
   );

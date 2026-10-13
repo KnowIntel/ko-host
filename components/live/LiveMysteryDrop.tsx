@@ -1,6 +1,9 @@
+
 "use client";
 
 import {
+  useEffect,
+  useRef,
   useState,
   type CSSProperties,
 } from "react";
@@ -22,6 +25,12 @@ type RevealedDrop = {
 
 type Response = {
   ok: boolean;
+
+  activity?: {
+    id: string;
+    name: string;
+  };
+
   activeDrop?: Drop | null;
 
   participantState?: {
@@ -76,21 +85,144 @@ export default function LiveMysteryDrop({
     data,
     authenticated,
     experienceId,
-  } =
-    useLiveEndpoint<Response>(
-      "mystery-drop",
-    );
+    activityId,
+    loading,
+    error: loadError,
+  } = useLiveEndpoint<Response>("mystery-drop");
 
   const [revealing, setRevealing] =
     useState(false);
 
   const [revealed, setRevealed] =
-    useState<RevealedDrop | null>(
-      null,
-    );
+    useState<RevealedDrop | null>(null);
 
   const [error, setError] =
     useState("");
+
+  const requestGeneration = useRef(0);
+
+  const displayedActivityId =
+    data?.activity?.id ?? null;
+
+  useEffect(() => {
+    requestGeneration.current += 1;
+
+    setRevealing(false);
+    setRevealed(null);
+    setError("");
+
+    return () => {
+      requestGeneration.current += 1;
+    };
+  }, [activityId, experienceId]);
+
+  const activityMatchesSelection =
+    Boolean(displayedActivityId) &&
+    (activityId === null ||
+      displayedActivityId === activityId);
+
+  const activeDrop =
+    activityMatchesSelection
+      ? data?.activeDrop ?? null
+      : null;
+
+  async function reveal() {
+    if (
+      !experienceId ||
+      !authenticated ||
+      revealing ||
+      !activeDrop ||
+      !displayedActivityId ||
+      !activityMatchesSelection
+    ) {
+      return;
+    }
+
+    const generation =
+      ++requestGeneration.current;
+
+    const requestActivityId =
+      activityId ?? displayedActivityId;
+
+    const requestedDropId = activeDrop.id;
+
+    setRevealing(true);
+    setError("");
+
+    try {
+      const response = await fetch(
+        `/api/live/${encodeURIComponent(
+          experienceId,
+        )}/mystery-drop/reveal`,
+        {
+          method: "POST",
+          credentials: "include",
+          cache: "no-store",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            activityId: requestActivityId,
+          }),
+        },
+      );
+
+      const payload = await response
+        .json()
+        .catch(() => null);
+
+      if (
+        generation !== requestGeneration.current
+      ) {
+        return;
+      }
+
+      if (
+        !response.ok ||
+        payload?.ok !== true ||
+        !payload?.drop
+      ) {
+        setError(
+          typeof payload?.error === "string"
+            ? payload.error
+            : "Unable to reveal the Mystery Drop.",
+        );
+        return;
+      }
+
+      const result = payload.drop as RevealedDrop;
+
+      if (result.id !== requestedDropId) {
+        setError(
+          "The active Mystery Drop changed. Please try again.",
+        );
+        return;
+      }
+
+      setRevealed(result);
+    } catch (revealError) {
+      if (
+        generation !== requestGeneration.current
+      ) {
+        return;
+      }
+
+      console.error(
+        "Mystery Drop reveal failed:",
+        revealError,
+      );
+
+      setError(
+        "Unable to reveal the Mystery Drop.",
+      );
+    } finally {
+      if (
+        generation === requestGeneration.current
+      ) {
+        setRevealing(false);
+      }
+    }
+  }
 
   if (!authenticated) {
     return (
@@ -112,54 +244,6 @@ export default function LiveMysteryDrop({
     );
   }
 
-  const activeDrop =
-    data?.activeDrop ?? null;
-
-  async function reveal() {
-    if (!experienceId || revealing) {
-      return;
-    }
-
-    setRevealing(true);
-    setError("");
-
-    try {
-      const response = await fetch(
-        `/api/live/${encodeURIComponent(
-          experienceId,
-        )}/mystery-drop/reveal`,
-        {
-          method: "POST",
-          credentials: "include",
-          cache: "no-store",
-        },
-      );
-
-      const payload =
-        await response
-          .json()
-          .catch(() => null);
-
-      if (
-        !response.ok ||
-        payload?.ok !== true ||
-        !payload?.drop
-      ) {
-        setError(
-          payload?.error ||
-            "Unable to reveal the Mystery Drop.",
-        );
-        return;
-      }
-
-      setRevealed(
-        payload.drop as RevealedDrop,
-      );
-    } finally {
-      setRevealing(false);
-    }
-  }
-
   return (
     <div className="h-full w-full overflow-auto p-4">
       <div
@@ -169,7 +253,21 @@ export default function LiveMysteryDrop({
         {heading}
       </div>
 
-      {!activeDrop ? (
+      {loading ? (
+        <div
+          className="mt-2"
+          style={waitingTextStyle}
+        >
+          Loading Mystery Drop...
+        </div>
+      ) : loadError ? (
+        <div
+          className="mt-2"
+          style={waitingTextStyle}
+        >
+          {loadError}
+        </div>
+      ) : !activeDrop ? (
         <div
           className="mt-2"
           style={waitingTextStyle}
@@ -191,14 +289,11 @@ export default function LiveMysteryDrop({
             {activeDrop.title}
           </div>
 
-          {revealed?.id ===
-          activeDrop.id ? (
+          {revealed?.id === activeDrop.id ? (
             <>
               <div
                 className="mt-3"
-                style={
-                  revealedLabelStyle
-                }
+                style={revealedLabelStyle}
               >
                 {revealedLabel}
               </div>
@@ -210,14 +305,9 @@ export default function LiveMysteryDrop({
                 {revealed.content}
               </div>
 
-              {revealed.awardedPoints >
-              0 ? (
+              {revealed.awardedPoints > 0 ? (
                 <div className="mt-2 text-sm">
-                  +
-                  {
-                    revealed.awardedPoints
-                  }{" "}
-                  points
+                  +{revealed.awardedPoints} points
                 </div>
               ) : null}
             </>
@@ -225,9 +315,7 @@ export default function LiveMysteryDrop({
             <button
               type="button"
               disabled={revealing}
-              onClick={() =>
-                void reveal()
-              }
+              onClick={() => void reveal()}
               className="mt-3 w-full px-4 py-3 disabled:opacity-50"
               style={{
                 ...revealButtonStyle,

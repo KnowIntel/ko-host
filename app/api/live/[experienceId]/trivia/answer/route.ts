@@ -4,9 +4,24 @@ import { NextResponse } from "next/server";
 
 import { authenticateLiveParticipant } from "@/lib/live/authenticateParticipant";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
+import {
+  isLiveActivitySelected,
+  readLiveActivitySelection,
+} from "@/lib/live/activitySelection";
+
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+type AtomicTriviaAnswerResult = {
+  question_id: string;
+  choice_id: string;
+  correct: boolean;
+  awarded_points: number;
+  participant_score: number;
+  answered_at: string;
+};
+
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -87,6 +102,24 @@ export async function POST(
     }
 
     const input = asRecord(body);
+
+    const requestedActivityId =
+      typeof input.activityId === "string"
+        ? input.activityId.trim().toLowerCase()
+        : "";
+
+    if (
+      requestedActivityId &&
+      !UUID_PATTERN.test(requestedActivityId)
+    ) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "Invalid Trivia activity.",
+        },
+        { status: 400 },
+      );
+    }
 
     const questionId =
       typeof input.questionId === "string"
@@ -232,11 +265,38 @@ export async function POST(
       );
     }
 
+    const selection =
+      readLiveActivitySelection(
+        sharedState?.state,
+      );
+
+    const currentActivityId =
+      sharedState?.current_activity_id
+        ? String(
+            sharedState.current_activity_id,
+          )
+        : null;
+
+    const activityId =
+      selection.allowMultipleActiveActivities
+        ? requestedActivityId
+        : currentActivityId;
+
+    const isSelected =
+      Boolean(activityId) &&
+      isLiveActivitySelected(
+        activityId ?? "",
+        currentActivityId,
+        selection,
+      );
+
     if (
       !sharedState ||
-      sharedState.current_activity_type !==
-        "trivia" ||
-      !sharedState.current_activity_id
+      !activityId ||
+      !isSelected ||
+      (!selection.allowMultipleActiveActivities &&
+        sharedState.current_activity_type !==
+          "trivia")
     ) {
       return NextResponse.json(
         {
@@ -247,10 +307,6 @@ export async function POST(
         { status: 409 },
       );
     }
-
-    const activityId = String(
-      sharedState.current_activity_id,
-    );
 
     const {
       data: activity,
@@ -311,14 +367,31 @@ export async function POST(
       ? configuration.questions
       : [];
 
-    const runtimeState =
-      asRecord(sharedState.state);
+      const runtimeState =
+        asRecord(sharedState.state);
 
-    const currentQuestionId =
-      typeof runtimeState.currentQuestionId ===
-      "string"
-        ? runtimeState.currentQuestionId.trim()
-        : "";
+      const activityRuntime =
+        asRecord(runtimeState.activityRuntime);
+
+      const currentActivityRuntime =
+        asRecord(activityRuntime[activity.id]);
+
+      /*
+       * Single Activity Mode uses the legacy
+       * shared currentQuestionId.
+       *
+       * Multiple Activity Mode uses the
+       * question selected for this Trivia activity.
+       */
+      const questionIdSource =
+        selection.allowMultipleActiveActivities
+          ? currentActivityRuntime.currentQuestionId
+          : runtimeState.currentQuestionId;
+
+      const currentQuestionId =
+        typeof questionIdSource === "string"
+          ? questionIdSource.trim()
+          : "";
 
     /*
      * Match the read endpoint:
@@ -401,226 +474,119 @@ export async function POST(
       );
     }
 
-    const correct =
-      choiceId === correctChoiceId;
-
-    const rawPoints =
-      typeof questionData.points === "number" &&
-      Number.isFinite(questionData.points)
-        ? Math.trunc(questionData.points)
-        : 100;
-
-    const possiblePoints = Math.max(
-      0,
-      Math.min(rawPoints, 100000),
-    );
-
-    const awardedPoints = correct
-      ? possiblePoints
-      : 0;
 
     /*
-     * This source ID is also the idempotency
-     * key enforced by the database index.
-     */
-    const sourceId = `${activity.id}:${authoritativeQuestionId}`;
-
-    /*
-     * Insert the point transaction first.
+     * Atomically validate the current Trivia question,
+     * determine correctness, award points, update
+     * participant history, and calculate the score.
      *
-     * Correct answers insert the configured
-     * score. Incorrect answers insert 0.
-     *
-     * The 0-point transaction is intentional:
-     * it makes every submitted question
-     * participate in the same database-level
-     * duplicate protection.
+     * All database operations execute in one
+     * transaction under authoritative row locks.
      */
-    const {
-      error: pointInsertError,
-    } = await supabase
-      .from("live_point_transactions")
-      .insert({
-        experience_id:
-          safeExperienceId,
-        participant_id:
-          participant.participantId,
-        amount: awardedPoints,
-        source_type:
-          "trivia_question",
-        source_id: sourceId,
-        reason: correct
-          ? "Correct Trivia answer"
-          : "Incorrect Trivia answer",
-      });
+    const { data: answerData, error: answerError } =
+      await supabase.rpc(
+        "submit_live_trivia_answer_atomic",
+        {
+          p_experience_id: safeExperienceId,
+          p_participant_id: participant.participantId,
+          p_activity_id: activity.id,
+          p_question_id: questionId,
+          p_choice_id: choiceId,
+        },
+      );
 
-    if (pointInsertError) {
-      if (
-        pointInsertError.code === "23505"
-      ) {
+    if (answerError) {
+      if (answerError.code === "23505") {
         return NextResponse.json(
           {
             ok: false,
             duplicate: true,
-            error:
-              "You already answered this question.",
+            error: "You already answered this question.",
           },
           { status: 409 },
         );
       }
 
+      const message = answerError.message || "";
+
+      if (
+        [
+          "Invalid Trivia answer",
+          "Invalid Trivia question",
+        ].includes(message)
+      ) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error: message,
+          },
+          { status: 400 },
+        );
+      }
+
+      if (
+        [
+          "Live experience is not available",
+          "Live participant is not active",
+          "Trivia activity is not active",
+          "Trivia activity is not selected",
+          "Trivia activity is not current",
+          "Live experience state not found",
+          "That Trivia question is no longer active",
+        ].includes(message)
+      ) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error: message,
+          },
+          { status: 409 },
+        );
+      }
+
+      if (
+        message === "Trivia question is not configured correctly"
+      ) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error: "This Trivia question is not configured correctly.",
+          },
+          { status: 500 },
+        );
+      }
+
       console.error(
-        "Trivia point transaction failed:",
-        pointInsertError,
+        "Atomic Trivia answer failed:",
+        answerError,
       );
 
       return NextResponse.json(
         {
           ok: false,
-          error:
-            "Unable to record Trivia answer.",
+          error: "Unable to record Trivia answer.",
         },
         { status: 500 },
       );
     }
 
-    const now =
-      new Date().toISOString();
+    const answerResult = (
+      Array.isArray(answerData)
+        ? answerData[0]
+        : answerData
+    ) as AtomicTriviaAnswerResult | null;
 
-    /*
-     * Participant state is presentation/
-     * progress state. The point ledger above
-     * remains the scoring source of truth.
-     */
-    const {
-      data: existingStateRow,
-      error: existingStateError,
-    } = await supabase
-      .from(
-        "live_participant_activity_state",
-      )
-      .select(`
-        state
-      `)
-      .eq(
-        "experience_id",
-        safeExperienceId,
-      )
-      .eq(
-        "participant_id",
-        participant.participantId,
-      )
-      .eq(
-        "activity_id",
-        activity.id,
-      )
-      .maybeSingle();
-
-    if (existingStateError) {
-      console.error(
-        "Trivia existing participant-state lookup failed:",
-        existingStateError,
+    if (!answerResult) {
+      throw new Error(
+        "Atomic Trivia answer returned no result.",
       );
     }
 
-    const existingState =
-      asRecord(
-        existingStateRow?.state,
-      );
+    const now = answerResult.answered_at;
+    const correct = answerResult.correct;
+    const awardedPoints = answerResult.awarded_points;
+    const score = answerResult.participant_score;
 
-    const existingAnswers =
-      asRecord(existingState.answers);
-
-    const nextAnswers = {
-      ...existingAnswers,
-
-      [authoritativeQuestionId]: {
-        choiceId,
-        correct,
-        awardedPoints,
-        answeredAt: now,
-      },
-    };
-
-    const nextParticipantState = {
-      ...existingState,
-      answers: nextAnswers,
-      lastAnsweredQuestionId:
-        authoritativeQuestionId,
-    };
-
-    const {
-      error: stateUpsertError,
-    } = await supabase
-      .from(
-        "live_participant_activity_state",
-      )
-      .upsert(
-        {
-          experience_id:
-            safeExperienceId,
-          participant_id:
-            participant.participantId,
-          activity_id:
-            activity.id,
-          state:
-            nextParticipantState,
-          updated_at: now,
-        },
-        {
-          onConflict:
-            "participant_id,activity_id",
-        },
-      );
-
-    if (stateUpsertError) {
-      /*
-       * The ledger write already succeeded.
-       * Never award again just because the
-       * convenience state write failed.
-       */
-      console.error(
-        "Trivia participant-state update failed:",
-        stateUpsertError,
-      );
-    }
-
-    /*
-     * Calculate the participant's authoritative
-     * total directly from the ledger.
-     */
-    const {
-      data: participantPoints,
-      error: participantPointsError,
-    } = await supabase
-      .from(
-        "live_point_transactions",
-      )
-      .select("amount")
-      .eq(
-        "experience_id",
-        safeExperienceId,
-      )
-      .eq(
-        "participant_id",
-        participant.participantId,
-      );
-
-    if (participantPointsError) {
-      console.error(
-        "Trivia participant score lookup failed:",
-        participantPointsError,
-      );
-    }
-
-    const score = (
-      participantPoints ?? []
-    ).reduce(
-      (total, row) =>
-        total +
-        Number(row.amount || 0),
-      0,
-    );
 
     /*
      * Realtime notification only.
@@ -658,13 +624,14 @@ export async function POST(
     return NextResponse.json({
       ok: true,
 
-      result: {
-        questionId:
-          authoritativeQuestionId,
-        choiceId,
-        correct,
-        awardedPoints,
-      },
+
+        result: {
+          questionId: answerResult.question_id,
+          choiceId: answerResult.choice_id,
+          correct,
+          awardedPoints,
+        },
+
 
       participant: {
         id:

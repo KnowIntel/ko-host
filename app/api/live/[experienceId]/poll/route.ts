@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 
 import { authenticateLiveParticipant } from "@/lib/live/authenticateParticipant";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
+import {
+  isLiveActivitySelected,
+  readLiveActivitySelection,
+} from "@/lib/live/activitySelection";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -104,7 +108,7 @@ function parsePollQuestion(
 }
 
 export async function GET(
-  _request: Request,
+  request: Request,
   {
     params,
   }: {
@@ -161,6 +165,28 @@ export async function GET(
     const participant =
       authentication.participant;
 
+    const requestedActivityId = new URL(
+      request.url,
+    ).searchParams.get("activityId");
+
+    const safeRequestedActivityId =
+      typeof requestedActivityId === "string"
+        ? requestedActivityId.trim().toLowerCase()
+        : "";
+
+    if (
+      safeRequestedActivityId &&
+      !UUID_PATTERN.test(safeRequestedActivityId)
+    ) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "Invalid Poll activity.",
+        },
+        { status: 400 },
+      );
+    }
+
     const supabase =
       getSupabaseAdmin();
 
@@ -201,11 +227,38 @@ export async function GET(
       );
     }
 
+    const selection =
+      readLiveActivitySelection(
+        sharedState?.state,
+      );
+
+    const currentActivityId =
+      sharedState?.current_activity_id
+        ? String(
+            sharedState.current_activity_id,
+          )
+        : null;
+
+    const activityId =
+      selection.allowMultipleActiveActivities
+        ? safeRequestedActivityId
+        : currentActivityId;
+
+    const isSelected =
+      Boolean(activityId) &&
+      isLiveActivitySelected(
+        activityId ?? "",
+        currentActivityId,
+        selection,
+      );
+
     if (
       !sharedState ||
-      sharedState.current_activity_type !==
-        "poll" ||
-      !sharedState.current_activity_id
+      !activityId ||
+      !isSelected ||
+      (!selection.allowMultipleActiveActivities &&
+        sharedState.current_activity_type !==
+          "poll")
     ) {
       return NextResponse.json({
         ok: true,
@@ -216,10 +269,6 @@ export async function GET(
         results: null,
       });
     }
-
-    const activityId = String(
-      sharedState.current_activity_id,
-    );
 
     const {
       data: activity,
@@ -290,14 +339,31 @@ export async function GET(
         ? configuration.questions
         : [];
 
-    const runtimeState =
-      asRecord(sharedState.state);
+      const runtimeState =
+        asRecord(sharedState.state);
 
-    const requestedQuestionId =
-      typeof runtimeState.currentQuestionId ===
-      "string"
-        ? runtimeState.currentQuestionId.trim()
-        : "";
+      const activityRuntime =
+        asRecord(runtimeState.activityRuntime);
+
+      const currentActivityRuntime =
+        asRecord(activityRuntime[activity.id]);
+
+      /*
+       * Single Activity Mode uses the legacy
+       * shared currentQuestionId.
+       *
+       * Multiple Activity Mode uses the
+       * question assigned to this activity.
+       */
+      const questionIdSource =
+        selection.allowMultipleActiveActivities
+          ? currentActivityRuntime.currentQuestionId
+          : runtimeState.currentQuestionId;
+
+      const requestedQuestionId =
+        typeof questionIdSource === "string"
+          ? questionIdSource.trim()
+          : "";
 
     let questionSource:
       | unknown

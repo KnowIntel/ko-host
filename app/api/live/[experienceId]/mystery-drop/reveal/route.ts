@@ -1,17 +1,24 @@
+
 import { NextResponse } from "next/server";
 
 import {
-  asLiveRecord,
   broadcastLiveActivityChange,
-  cleanLiveId,
   getParticipantActivityRuntime,
 } from "@/lib/live/participantActivityRuntime";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+type AtomicRevealRow = {
+  drop_id: string;
+  drop_title: string;
+  drop_content: string;
+  awarded_points: number;
+  revealed_at: string;
+};
+
 export async function POST(
-  _request: Request,
+  request: Request,
   {
     params,
   }: {
@@ -23,10 +30,29 @@ export async function POST(
   try {
     const { experienceId } = await params;
 
+    /*
+     * Resolve the requested activity.
+     *
+     * Single Activity Mode:
+     * Uses the current activity.
+     *
+     * Multiple Activity Mode:
+     * Uses the explicitly selected activity.
+     */
+    const body = await request
+      .json()
+      .catch(() => ({}));
+
+    const activityId =
+      typeof body?.activityId === "string"
+        ? body.activityId
+        : undefined;
+
     const context =
       await getParticipantActivityRuntime(
         experienceId,
         "mystery_drop",
+        activityId,
       );
 
     if (!context.ok) {
@@ -39,92 +65,44 @@ export async function POST(
       );
     }
 
-    const runtimeState = asLiveRecord(
-      context.sharedState.state,
-    );
-
-    const currentDropId = cleanLiveId(
-      runtimeState.currentDropId,
-    );
-
-    if (!currentDropId) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error:
-            "There is no Mystery Drop available right now.",
-        },
-        { status: 409 },
-      );
-    }
-
-    const configuration = asLiveRecord(
-      context.activity.configuration,
-    );
-
-    const drops = Array.isArray(
-      configuration.drops,
-    )
-      ? configuration.drops.map(
-          asLiveRecord,
-        )
-      : [];
-
-    const drop = drops.find(
-      (candidate) =>
-        cleanLiveId(candidate.id) ===
-        currentDropId,
-    );
-
-    if (!drop) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error:
-            "The current Mystery Drop is unavailable.",
-        },
-        { status: 409 },
-      );
-    }
-
-    const rawPoints =
-      typeof drop.points === "number"
-        ? drop.points
-        : Number(drop.points);
-
-    const awardedPoints =
-      Number.isFinite(rawPoints)
-        ? Math.max(
-            0,
-            Math.min(
-              Math.trunc(rawPoints),
-              100000,
-            ),
-          )
-        : 0;
-
-    const sourceId =
-      `${context.activity.id}:${currentDropId}`;
-
+    /*
+     * Perform the complete reveal in one
+     * database transaction.
+     *
+     * The function:
+     * - Revalidates activity selection.
+     * - Reads the current drop.
+     * - Calculates awarded points.
+     * - Inserts the point transaction.
+     * - Merges participant reveal history.
+     *
+     * If either write fails, the entire
+     * operation is rolled back.
+     */
     const {
-      error: pointError,
-    } = await context.supabase
-      .from("live_point_transactions")
-      .insert({
-        experience_id:
+      data,
+      error,
+    } = await context.supabase.rpc(
+      "reveal_live_mystery_drop_atomic",
+      {
+        p_experience_id:
           context.safeExperienceId,
-        participant_id:
-          context.participant.participantId,
-        amount: awardedPoints,
-        source_type: "mystery_drop",
-        source_id: sourceId,
-        reason: `Mystery Drop: ${String(
-          drop.title || "Drop",
-        )}`,
-      });
 
-    if (pointError) {
-      if (pointError.code === "23505") {
+        p_participant_id:
+          context.participant.participantId,
+
+        p_activity_id:
+          context.activity.id,
+      },
+    );
+
+    if (error) {
+      /*
+       * Existing unique index prevents
+       * duplicate rewards for the same
+       * participant, activity, and drop.
+       */
+      if (error.code === "23505") {
         return NextResponse.json(
           {
             ok: false,
@@ -136,100 +114,90 @@ export async function POST(
         );
       }
 
-      throw pointError;
+      /*
+       * Expected validation failures
+       * from the atomic database function.
+       */
+      const message = error.message || "";
+
+      if (
+        message ===
+          "There is no Mystery Drop available right now" ||
+        message ===
+          "The current Mystery Drop is unavailable" ||
+        message ===
+          "Mystery Drop activity is not selected" ||
+        message ===
+          "Mystery Drop activity is not current" ||
+        message ===
+          "Mystery Drop activity is not active" ||
+        message ===
+          "Live participant is not active"
+      ) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error: message,
+          },
+          { status: 409 },
+        );
+      }
+
+      throw error;
     }
 
-    const {
-      data: existingRow,
-    } = await context.supabase
-      .from(
-        "live_participant_activity_state",
-      )
-      .select("state")
-      .eq(
-        "experience_id",
+    /*
+     * The SQL function returns one row
+     * containing the authoritative result.
+     */
+    const result = (
+      Array.isArray(data)
+        ? data[0]
+        : data
+    ) as AtomicRevealRow | null;
+
+    if (!result) {
+      throw new Error(
+        "Atomic Mystery Drop reveal returned no result.",
+      );
+    }
+
+    /*
+     * Notify connected clients after the
+     * database transaction succeeds.
+     *
+     * Notification failures should not
+     * incorrectly report that the reward
+     * transaction itself failed.
+     */
+    try {
+      await broadcastLiveActivityChange(
+        context.supabase,
         context.safeExperienceId,
-      )
-      .eq(
-        "participant_id",
-        context.participant.participantId,
-      )
-      .eq(
-        "activity_id",
         context.activity.id,
-      )
-      .maybeSingle();
-
-    const existingState =
-      asLiveRecord(existingRow?.state);
-
-    const revealedDrops =
-      asLiveRecord(
-        existingState.revealedDrops,
       );
-
-    const now = new Date().toISOString();
-
-    const nextState = {
-      ...existingState,
-      revealedDrops: {
-        ...revealedDrops,
-        [currentDropId]: {
-          revealedAt: now,
-          awardedPoints,
-        },
-      },
-    };
-
-    const {
-      error: stateError,
-    } = await context.supabase
-      .from(
-        "live_participant_activity_state",
-      )
-      .upsert(
-        {
-          experience_id:
-            context.safeExperienceId,
-          participant_id:
-            context.participant.participantId,
-          activity_id:
-            context.activity.id,
-          state: nextState,
-          updated_at: now,
-        },
-        {
-          onConflict:
-            "participant_id,activity_id",
-        },
-      );
-
-    if (stateError) {
+    } catch (broadcastError) {
       console.error(
-        "Mystery Drop state update failed:",
-        stateError,
+        "Mystery Drop broadcast failed:",
+        broadcastError,
       );
     }
-
-    await broadcastLiveActivityChange(
-      context.supabase,
-      context.safeExperienceId,
-      context.activity.id,
-    );
 
     return NextResponse.json({
       ok: true,
 
       drop: {
-        id: currentDropId,
-        title: String(
-          drop.title || "",
-        ),
-        content: String(
-          drop.content || "",
-        ),
-        awardedPoints,
-        revealedAt: now,
+        id: result.drop_id,
+
+        title: result.drop_title,
+
+        content: result.drop_content,
+
+        awardedPoints:
+          result.awarded_points,
+
+        revealedAt:
+          result.revealed_at,
       },
     });
   } catch (error) {

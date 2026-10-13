@@ -1,7 +1,9 @@
 "use client";
 
 import {
+  useEffect,
   useMemo,
+  useRef,
   useState,
   type CSSProperties,
 } from "react";
@@ -95,6 +97,7 @@ export default function LiveSpinWheel({
     authenticated,
     experienceId,
     refresh,
+    activityId,
   } = useLiveEndpoint<Response>(
     "spin-wheel",
   );
@@ -114,6 +117,36 @@ export default function LiveSpinWheel({
 
   const [error, setError] =
     useState("");
+
+  const spinGeneration = useRef(0);
+
+const spinTimeout = useRef<number | null>(null);
+
+  const displayedActivityId =
+    data?.activity?.id ?? null;
+
+  useEffect(() => {
+    spinGeneration.current += 1;
+
+    if (spinTimeout.current !== null) {
+      clearTimeout(spinTimeout.current);
+      spinTimeout.current = null;
+    }
+
+    setSpinning(false);
+    setVisibleResult(null);
+    setRotation(0);
+    setError("");
+
+    return () => {
+      spinGeneration.current += 1;
+
+      if (spinTimeout.current !== null) {
+        clearTimeout(spinTimeout.current);
+        spinTimeout.current = null;
+      }
+    };
+  }, [activityId, experienceId]);
 
   const lastSpin =
     visibleResult ??
@@ -268,10 +301,18 @@ export default function LiveSpinWheel({
     if (
       !experienceId ||
       spinning ||
-      options.length === 0
+      options.length === 0 ||
+      !displayedActivityId ||
+      (activityId !== null &&
+        displayedActivityId !== activityId)
     ) {
       return;
     }
+
+    const generation = ++spinGeneration.current;
+
+    const requestActivityId =
+      activityId ?? displayedActivityId;
 
     setSpinning(true);
     setVisibleResult(null);
@@ -293,6 +334,12 @@ export default function LiveSpinWheel({
             credentials:
               "include",
             cache: "no-store",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              activityId: requestActivityId,
+            }),
           },
         );
 
@@ -302,6 +349,10 @@ export default function LiveSpinWheel({
           .catch(
             () => null,
           );
+
+      if (generation !== spinGeneration.current) {
+        return;
+      }
 
       if (
         !response.ok ||
@@ -444,11 +495,17 @@ const desiredNormalized =
        * Let the wheel finish visually before revealing the result.
        */
 
-      window.setTimeout(
-        () => {
-          if (
-            resultSource
-          ) {
+        spinTimeout.current = window.setTimeout(
+          () => {
+            if (generation !== spinGeneration.current) {
+              return;
+            }
+
+            spinTimeout.current = null;
+
+            if (
+              resultSource
+            ) {
             setVisibleResult(
               {
                 optionId:
@@ -488,12 +545,18 @@ const desiredNormalized =
                   experienceId,
                 )}/spin-wheel/refresh`,
                 {
-                  method:
-                    "POST",
-                  credentials:
-                    "include",
-                  cache:
-                    "no-store",
+                    method:
+                      "POST",
+                    credentials:
+                      "include",
+                    cache:
+                      "no-store",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                      activityId: requestActivityId,
+                    }),
                 },
               );
             } catch (
@@ -513,6 +576,10 @@ const desiredNormalized =
         3200,
       );
     } catch (spinError) {
+      if (generation !== spinGeneration.current) {
+        return;
+      }
+
       console.error(
         "Spin Wheel request failed:",
         spinError,
@@ -557,9 +624,12 @@ const desiredNormalized =
       ?.spins ?? [];
 
   const canSpin =
-    data.activity
-      .allowMultipleSpins ||
-    spins.length === 0;
+    Boolean(displayedActivityId) &&
+    (activityId === null ||
+      displayedActivityId === activityId) &&
+    options.length > 0 &&
+    (data.activity.allowMultipleSpins ||
+      spins.length === 0);
 
   return (
     <div className="h-full w-full overflow-auto p-4 text-center">

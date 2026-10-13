@@ -6,6 +6,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type CSSProperties,
 } from "react";
@@ -135,7 +136,30 @@ const {
   sharedState,
   realtimeRevision,
   sessionLoading,
+  allowMultipleActiveActivities,
+  activeActivities,
+  selectedActivityId,
 } = useLiveRuntime();
+
+const triviaActivityId = useMemo(() => {
+  if (!allowMultipleActiveActivities) {
+    return null;
+  }
+
+  const selectedTrivia = activeActivities.find(
+    (activity) =>
+      activity.id === selectedActivityId &&
+      activity.activityType === "trivia",
+  );
+
+  return selectedTrivia?.id ?? null;
+}, [
+  allowMultipleActiveActivities,
+  activeActivities,
+  selectedActivityId,
+]);
+
+const triviaRequestSequence = useRef(0);
 
   const [runtimeData, setRuntimeData] =
     useState<TriviaRuntimeData | null>(null);
@@ -152,48 +176,86 @@ const {
   const [error, setError] =
     useState<string | null>(null);
 
-  const loadTrivia = useCallback(async () => {
-    if (!experience?.id || !authenticated) {
-      setRuntimeData(null);
+const loadTrivia = useCallback(async () => {
+  const requestSequence =
+    ++triviaRequestSequence.current;
+
+  if (
+    !experience?.id ||
+    !authenticated ||
+    (allowMultipleActiveActivities && !triviaActivityId)
+  ) {
+    setRuntimeData(null);
+    setError(null);
+    setLoading(false);
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    const params = new URLSearchParams();
+
+    if (allowMultipleActiveActivities && triviaActivityId) {
+      params.set("activityId", triviaActivityId);
+    }
+
+    const query = params.toString();
+
+    const response = await fetch(
+      `/api/live/${encodeURIComponent(
+        experience.id,
+      )}/trivia${query ? `?${query}` : ""}`,
+      {
+        method: "GET",
+        credentials: "include",
+        cache: "no-store",
+      },
+    );
+
+    const payload =
+      (await response.json()) as TriviaRuntimeData;
+
+    if (
+      requestSequence !== triviaRequestSequence.current
+    ) {
       return;
     }
 
-    setLoading(true);
-
-    try {
-      const response = await fetch(
-        `/api/live/${experience.id}/trivia`,
-        {
-          method: "GET",
-          cache: "no-store",
-        },
+    if (!response.ok || !payload.ok) {
+      throw new Error(
+        payload.error || "Unable to load Live Trivia.",
       );
+    }
 
-      const payload =
-        (await response.json()) as TriviaRuntimeData;
+    setRuntimeData(payload);
+    setError(null);
+  } catch (loadError) {
+    if (
+      requestSequence !== triviaRequestSequence.current
+    ) {
+      return;
+    }
 
-      if (!response.ok || !payload.ok) {
-        throw new Error(
-          payload.error ||
-            "Unable to load Live Trivia.",
-        );
-      }
-
-      setRuntimeData(payload);
-      setError(null);
-    } catch (loadError) {
-      setError(
-        loadError instanceof Error
-          ? loadError.message
-          : "Unable to load Live Trivia.",
-      );
-    } finally {
+    setRuntimeData(null);
+    setError(
+      loadError instanceof Error
+        ? loadError.message
+        : "Unable to load Live Trivia.",
+    );
+  } finally {
+    if (
+      requestSequence === triviaRequestSequence.current
+    ) {
       setLoading(false);
     }
-  }, [
-    experience?.id,
-    authenticated,
-  ]);
+  }
+}, [
+  experience?.id,
+  authenticated,
+  allowMultipleActiveActivities,
+  triviaActivityId,
+]);
 
   /*
    * Initial load and every authoritative
@@ -205,7 +267,15 @@ const {
    * needs to react to that state changing.
    */
 useEffect(() => {
+  setRuntimeData(null);
+  setSelectedChoiceId("");
+  setError(null);
+
   void loadTrivia();
+
+  return () => {
+    triviaRequestSequence.current += 1;
+  };
 }, [
   loadTrivia,
   realtimeRevision,
@@ -254,6 +324,8 @@ useEffect(() => {
 
   const canSubmit =
     experience?.status === "live" &&
+    (!allowMultipleActiveActivities ||
+      Boolean(triviaActivityId)) &&
     Boolean(question) &&
     Boolean(selectedChoiceId) &&
     !submittedAnswer &&
@@ -286,7 +358,9 @@ useEffect(() => {
       !question ||
       !selectedChoiceId ||
       submittedAnswer ||
-      submitting
+      submitting ||
+      (allowMultipleActiveActivities &&
+        !triviaActivityId)
     ) {
       return;
     }
@@ -305,6 +379,10 @@ useEffect(() => {
           },
 
           body: JSON.stringify({
+            ...(allowMultipleActiveActivities &&
+            triviaActivityId
+              ? { activityId: triviaActivityId }
+              : {}),
             questionId: question.id,
             choiceId: selectedChoiceId,
           }),
@@ -523,6 +601,8 @@ useEffect(() => {
   }
 
   if (
+    (allowMultipleActiveActivities &&
+      !triviaActivityId) ||
     !runtimeData?.active ||
     !question
   ) {

@@ -2,9 +2,21 @@ import { NextResponse } from "next/server";
 
 import { authenticateLiveParticipant } from "@/lib/live/authenticateParticipant";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
+import {
+  isLiveActivitySelected,
+  readLiveActivitySelection,
+} from "@/lib/live/activitySelection";
+
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+type AtomicPollVoteResult = {
+  question_id: string;
+  choice_id: string;
+  voted_at: string;
+};
+
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -104,6 +116,24 @@ export async function POST(
 
     const input =
       asRecord(body);
+
+    const requestedActivityId =
+      typeof input.activityId === "string"
+        ? input.activityId.trim().toLowerCase()
+        : "";
+
+    if (
+      requestedActivityId &&
+      !UUID_PATTERN.test(requestedActivityId)
+    ) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "Invalid Poll activity.",
+        },
+        { status: 400 },
+      );
+    }
 
     const questionId =
       typeof input.questionId ===
@@ -238,11 +268,38 @@ export async function POST(
       );
     }
 
+    const selection =
+      readLiveActivitySelection(
+        sharedState?.state,
+      );
+
+    const currentActivityId =
+      sharedState?.current_activity_id
+        ? String(
+            sharedState.current_activity_id,
+          )
+        : null;
+
+    const activityId =
+      selection.allowMultipleActiveActivities
+        ? requestedActivityId
+        : currentActivityId;
+
+    const isSelected =
+      Boolean(activityId) &&
+      isLiveActivitySelected(
+        activityId ?? "",
+        currentActivityId,
+        selection,
+      );
+
     if (
       !sharedState ||
-      sharedState.current_activity_type !==
-        "poll" ||
-      !sharedState.current_activity_id
+      !activityId ||
+      !isSelected ||
+      (!selection.allowMultipleActiveActivities &&
+        sharedState.current_activity_type !==
+          "poll")
     ) {
       return NextResponse.json(
         {
@@ -253,10 +310,6 @@ export async function POST(
         { status: 409 },
       );
     }
-
-    const activityId = String(
-      sharedState.current_activity_id,
-    );
 
     const {
       data: activity,
@@ -323,14 +376,31 @@ export async function POST(
         ? configuration.questions
         : [];
 
-    const runtimeState =
-      asRecord(sharedState.state);
+      const runtimeState =
+        asRecord(sharedState.state);
 
-    const currentQuestionId =
-      typeof runtimeState.currentQuestionId ===
-      "string"
-        ? runtimeState.currentQuestionId.trim()
-        : "";
+      const activityRuntime =
+        asRecord(runtimeState.activityRuntime);
+
+      const currentActivityRuntime =
+        asRecord(activityRuntime[activity.id]);
+
+      /*
+       * Single Activity Mode uses the legacy
+       * shared currentQuestionId.
+       *
+       * Multiple Activity Mode uses the
+       * question selected for this Poll.
+       */
+      const questionIdSource =
+        selection.allowMultipleActiveActivities
+          ? currentActivityRuntime.currentQuestionId
+          : runtimeState.currentQuestionId;
+
+      const currentQuestionId =
+        typeof questionIdSource === "string"
+          ? questionIdSource.trim()
+          : "";
 
     /*
      * Same behavior as Poll GET and
@@ -401,51 +471,109 @@ export async function POST(
       );
     }
 
-/*
- * Database-enforced one-vote-per-question protection.
- */
-const now = new Date().toISOString();
 
-const { error: voteInsertError } =
-  await supabase
-    .from("live_poll_votes")
-    .insert({
-      experience_id: safeExperienceId,
-      participant_id:
-        participant.participantId,
-      activity_id: activity.id,
-      question_id:
-        authoritativeQuestionId,
-      choice_id: choiceId,
-      created_at: now,
-    });
+    /*
+     * Atomically validate the current activity,
+     * current question, selected choice, and
+     * duplicate-vote constraint before recording
+     * the participant's vote.
+     *
+     * The database function repeats authoritative
+     * validation under row locks, preventing
+     * changes between validation and insertion.
+     */
+    const { data: voteData, error: voteError } =
+      await supabase.rpc(
+        "submit_live_poll_vote_atomic",
+        {
+          p_experience_id: safeExperienceId,
+          p_participant_id:
+            participant.participantId,
+          p_activity_id: activity.id,
+          p_question_id: questionId,
+          p_choice_id: choiceId,
+        },
+      );
 
-if (voteInsertError) {
-  if (voteInsertError.code === "23505") {
-    return NextResponse.json(
-      {
-        ok: false,
-        duplicate: true,
-        error:
-          "You already voted on this question.",
-      },
-      { status: 409 },
-    );
-  }
+    if (voteError) {
+      if (voteError.code === "23505") {
+        return NextResponse.json(
+          {
+            ok: false,
+            duplicate: true,
+            error:
+              "You already voted on this question.",
+          },
+          { status: 409 },
+        );
+      }
 
-  console.error(
-    "Poll vote insert failed:",
-    voteInsertError,
-  );
+      const message = voteError.message || "";
 
-  return NextResponse.json(
-    {
-      ok: false,
-      error: "Unable to record Poll vote.",
-    },
-    { status: 500 },
-  );
-}
+      const invalidVoteErrors = [
+        "Invalid Poll vote",
+        "Invalid Poll question",
+        "Invalid Poll choice",
+      ];
+
+      if (invalidVoteErrors.includes(message)) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error: message,
+          },
+          { status: 400 },
+        );
+      }
+
+      const conflictErrors = [
+        "Live experience is not available",
+        "Live participant is not active",
+        "Poll activity is not active",
+        "Poll activity is not selected",
+        "Poll activity is not current",
+        "Live experience state not found",
+        "That Poll question is no longer active",
+      ];
+
+      if (conflictErrors.includes(message)) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error: message,
+          },
+          { status: 409 },
+        );
+      }
+
+      console.error(
+        "Atomic Poll vote failed:",
+        voteError,
+      );
+
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "Unable to record Poll vote.",
+        },
+        { status: 500 },
+      );
+    }
+
+    const voteResult = (
+      Array.isArray(voteData)
+        ? voteData[0]
+        : voteData
+    ) as AtomicPollVoteResult | null;
+
+    if (!voteResult) {
+      throw new Error(
+        "Atomic Poll vote returned no result.",
+      );
+    }
+
+    const now = voteResult.voted_at;
+
 
     /*
      * Notify connected runtimes and Host
@@ -491,14 +619,13 @@ if (voteInsertError) {
     return NextResponse.json({
       ok: true,
 
-      vote: {
-        questionId:
-          authoritativeQuestionId,
 
-        choiceId,
+        vote: {
+          questionId: voteResult.question_id,
+          choiceId: voteResult.choice_id,
+          votedAt: now,
+        },
 
-        votedAt: now,
-      },
     });
   } catch (error) {
     console.error(

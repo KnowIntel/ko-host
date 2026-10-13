@@ -1,16 +1,22 @@
+
 import { NextResponse } from "next/server";
-import { randomInt } from "crypto";
 
 import {
-  asLiveRecord,
   getParticipantActivityRuntime,
 } from "@/lib/live/participantActivityRuntime";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+type AtomicSpinResult = {
+  option_id: string;
+  option_label: string;
+  awarded_points: number;
+  spun_at: string;
+};
+
 export async function POST(
-  _request: Request,
+  request: Request,
   {
     params,
   }: {
@@ -22,10 +28,18 @@ export async function POST(
   try {
     const { experienceId } = await params;
 
+    const body = await request.json().catch(() => ({}));
+
+    const activityId =
+      typeof body?.activityId === "string"
+        ? body.activityId
+        : undefined;
+
     const context =
       await getParticipantActivityRuntime(
         experienceId,
         "spin_wheel",
+        activityId,
       );
 
     if (!context.ok) {
@@ -38,127 +52,36 @@ export async function POST(
       );
     }
 
-    const configuration = asLiveRecord(
-      context.activity.configuration,
+    /*
+     * The database function handles:
+     *
+     * - Experience and participant validation
+     * - Activity selection and status validation
+     * - Random winner selection
+     * - Multiple-spin eligibility
+     * - Sequential spin numbering
+     * - Point transaction insertion
+     * - Participant history updates
+     *
+     * All operations occur atomically.
+     */
+    const {
+      data,
+      error,
+    } = await context.supabase.rpc(
+      "spin_live_wheel_atomic",
+      {
+        p_experience_id:
+          context.safeExperienceId,
+        p_participant_id:
+          context.participant.participantId,
+        p_activity_id:
+          context.activity.id,
+      },
     );
 
-    const options = Array.isArray(
-      configuration.options,
-    )
-      ? configuration.options
-          .map(asLiveRecord)
-          .filter(
-            (option) =>
-              typeof option.id === "string" &&
-              typeof option.label ===
-                "string",
-          )
-      : [];
-
-    if (!options.length) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error:
-            "This Spin Wheel has no options.",
-        },
-        { status: 409 },
-      );
-    }
-
-    const {
-      data: existingRow,
-      error: existingError,
-    } = await context.supabase
-      .from(
-        "live_participant_activity_state",
-      )
-      .select("state")
-      .eq(
-        "experience_id",
-        context.safeExperienceId,
-      )
-      .eq(
-        "participant_id",
-        context.participant.participantId,
-      )
-      .eq(
-        "activity_id",
-        context.activity.id,
-      )
-      .maybeSingle();
-
-    if (existingError) {
-      throw existingError;
-    }
-
-    const existingState =
-      asLiveRecord(existingRow?.state);
-
-    const previousSpins = Array.isArray(
-      existingState.spins,
-    )
-      ? existingState.spins
-      : [];
-
-    if (
-      previousSpins.length > 0 &&
-      configuration.allowMultipleSpins !==
-        true
-    ) {
-      return NextResponse.json(
-        {
-          ok: false,
-          duplicate: true,
-          error:
-            "You already spun this wheel.",
-        },
-        { status: 409 },
-      );
-    }
-
-    const winner =
-      options[randomInt(options.length)];
-
-    const rawPoints =
-      typeof winner.points === "number"
-        ? winner.points
-        : Number(winner.points);
-
-    const awardedPoints =
-      Number.isFinite(rawPoints)
-        ? Math.max(
-            0,
-            Math.min(
-              Math.trunc(rawPoints),
-              100000,
-            ),
-          )
-        : 0;
-
-    const spinNumber =
-      previousSpins.length + 1;
-
-    const sourceId =
-      `${context.activity.id}:spin:${spinNumber}`;
-
-    const {
-      error: pointError,
-    } = await context.supabase
-      .from("live_point_transactions")
-      .insert({
-        experience_id:
-          context.safeExperienceId,
-        participant_id:
-          context.participant.participantId,
-        amount: awardedPoints,
-        source_type: "spin_wheel",
-        source_id: sourceId,
-        reason: `Spin Wheel: ${winner.label}`,
-      });
-
-    if (pointError) {
-      if (pointError.code === "23505") {
+    if (error) {
+      if (error.code === "23505") {
         return NextResponse.json(
           {
             ok: false,
@@ -170,60 +93,65 @@ export async function POST(
         );
       }
 
-      throw pointError;
+      const message = error.message || "";
+
+      if (message === "You already spun this wheel") {
+        return NextResponse.json(
+          {
+            ok: false,
+            duplicate: true,
+            error:
+              "You already spun this wheel.",
+          },
+          { status: 409 },
+        );
+      }
+
+      const expectedConflicts = [
+        "Live experience is not available",
+        "Live participant is not active",
+        "Spin Wheel activity is not active",
+        "Spin Wheel activity is not selected",
+        "Spin Wheel activity is not current",
+        "Live experience state not found",
+        "This Spin Wheel has no options",
+      ];
+
+      if (expectedConflicts.includes(message)) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error: message,
+          },
+          { status: 409 },
+        );
+      }
+
+      throw error;
     }
 
-    const now = new Date().toISOString();
+    const result = (
+      Array.isArray(data) ? data[0] : data
+    ) as AtomicSpinResult | null;
 
-    const result = {
-      optionId: String(winner.id),
-      label: String(winner.label),
-      awardedPoints,
-      spunAt: now,
-    };
-
-    const nextState = {
-      ...existingState,
-      spins: [
-        ...previousSpins,
-        result,
-      ],
-      lastSpin: result,
-    };
-
-    const {
-      error: stateError,
-    } = await context.supabase
-      .from(
-        "live_participant_activity_state",
-      )
-      .upsert(
-        {
-          experience_id:
-            context.safeExperienceId,
-          participant_id:
-            context.participant.participantId,
-          activity_id:
-            context.activity.id,
-          state: nextState,
-          updated_at: now,
-        },
-        {
-          onConflict:
-            "participant_id,activity_id",
-        },
-      );
-
-    if (stateError) {
-      console.error(
-        "Spin Wheel state update failed:",
-        stateError,
+    if (!result) {
+      throw new Error(
+        "Atomic Spin Wheel operation returned no result.",
       );
     }
 
+    /*
+     * Preserve the response structure expected
+     * by the existing Spin Wheel component.
+     */
     return NextResponse.json({
       ok: true,
-      result,
+      result: {
+        optionId: result.option_id,
+        label: result.option_label,
+        awardedPoints: result.awarded_points,
+        spunAt: result.spun_at,
+      },
     });
   } catch (error) {
     console.error(

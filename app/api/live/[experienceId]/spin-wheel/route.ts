@@ -9,7 +9,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   {
     params,
   }: {
@@ -20,10 +20,15 @@ export async function GET(
 ) {
   const { experienceId } = await params;
 
+  const activityId = new URL(
+    request.url,
+  ).searchParams.get("activityId");
+
   const context =
     await getParticipantActivityRuntime(
       experienceId,
       "spin_wheel",
+      activityId ?? undefined,
     );
 
   if (!context.ok) {

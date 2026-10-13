@@ -95,10 +95,17 @@ type SharedState = {
 
   state: {
     currentQuestionId?: string;
+    activityRuntime?: Record<
+      string,
+      Record<string, unknown>
+    >;
     [key: string]: unknown;
   };
 
   updatedAt: string | null;
+
+  allowMultipleActiveActivities?: boolean;
+  activeActivityIds?: string[];
 };
 
 type Props = {
@@ -277,6 +284,9 @@ export default function LiveManager({
   const [activating, setActivating] =
     useState(false);
 
+  const [updatingSelection, setUpdatingSelection] =
+    useState(false);
+
   const [message, setMessage] =
     useState<string | null>(null);
 
@@ -317,6 +327,66 @@ export default function LiveManager({
         sharedState.currentActivityId,
       ],
     );
+
+  const multipleMode =
+    sharedState.allowMultipleActiveActivities === true ||
+    sharedState.state
+      .allowMultipleActiveActivities === true;
+
+  const activeActivityIds = useMemo(() => {
+    if (multipleMode) {
+      const ids =
+        sharedState.activeActivityIds ??
+        sharedState.state.activeActivityIds;
+
+      return Array.isArray(ids)
+        ? ids.filter(
+            (id): id is string =>
+              typeof id === "string",
+          )
+        : [];
+    }
+
+    return sharedState.currentActivityId
+      ? [sharedState.currentActivityId]
+      : [];
+  }, [
+    multipleMode,
+    sharedState.activeActivityIds,
+    sharedState.currentActivityId,
+    sharedState.state.activeActivityIds,
+  ]);
+
+  const activeActivityIdSet = useMemo(
+    () => new Set(activeActivityIds),
+    [activeActivityIds],
+  );
+
+  const selectedActivityIsLive =
+    selectedActivity !== null &&
+    activeActivityIdSet.has(selectedActivity.id);
+
+  const selectedActivityRuntime = useMemo(() => {
+    if (!selectedActivity || !multipleMode) {
+      return {};
+    }
+
+    const runtime =
+      sharedState.state.activityRuntime;
+
+    const value =
+      runtime?.[selectedActivity.id];
+
+    return value &&
+      typeof value === "object" &&
+      !Array.isArray(value)
+      ? value
+      : {};
+  }, [
+    selectedActivity,
+    multipleMode,
+    sharedState.state.activityRuntime,
+  ]);
 
   const loadActivities =
     useCallback(async () => {
@@ -788,8 +858,167 @@ async function createActivity(
     }
   }
 
+  async function markActivityReady(
+    activity: Activity,
+  ) {
+    if (
+      (activity.activityType === "trivia" ||
+        activity.activityType === "poll") &&
+      normalizeQuestions(activity).length === 0
+    ) {
+      setError(
+        "Add at least one question before marking this activity ready.",
+      );
+      return;
+    }
+
+    if (
+      activity.activityType === "spin_wheel" &&
+      normalizeSpinWheelOptions(activity).length === 0
+    ) {
+      setError(
+        "Add at least one wheel option before marking this activity ready.",
+      );
+      return;
+    }
+
+    setSaving(true);
+    setError(null);
+    setMessage(null);
+
+    try {
+      const response = await fetch(
+        `/api/dashboard/microsites/${micrositeId}/live/activities`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            activityId: activity.id,
+            name: activity.name,
+            configuration: activity.configuration,
+            status: "active",
+          }),
+        },
+      );
+
+      const payload = await response.json();
+
+      if (!response.ok || !payload?.ok) {
+        throw new Error(
+          payload?.error ||
+            "Unable to prepare activity.",
+        );
+      }
+
+      setActivities((current) =>
+        current.map((item) =>
+          item.id === payload.activity.id
+            ? payload.activity
+            : item,
+        ),
+      );
+
+      setMessage(
+        `${payload.activity.name} is ready for selection.`,
+      );
+    } catch (readyError) {
+      setError(
+        readyError instanceof Error
+          ? readyError.message
+          : "Unable to prepare activity.",
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function toggleActivitySelection(
+    activity: Activity,
+  ) {
+    if (!multipleMode || updatingSelection) {
+      return;
+    }
+
+    if (
+      activity.status !== "active" &&
+      !activeActivityIdSet.has(activity.id)
+    ) {
+      setError(
+        "Mark this activity ready before selecting it.",
+      );
+      return;
+    }
+
+    const nextIds = activeActivityIdSet.has(activity.id)
+      ? activeActivityIds.filter(
+          (id) => id !== activity.id,
+        )
+      : [...activeActivityIds, activity.id];
+
+    await updateActivitySelection(true, nextIds);
+  }
+
+  async function updateActivitySelection(
+    allowMultiple: boolean,
+    activityIds: string[],
+  ) {
+    if (updatingSelection) return;
+
+    setUpdatingSelection(true);
+    setError(null);
+    setMessage(null);
+
+    try {
+      const response = await fetch(
+        `/api/dashboard/microsites/${micrositeId}/live/selection`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            allowMultipleActiveActivities: allowMultiple,
+            activeActivityIds: activityIds,
+          }),
+        },
+      );
+
+      const payload = await response.json();
+
+      if (!response.ok || !payload?.ok) {
+        throw new Error(
+          payload?.error ||
+            "Unable to update activity selection.",
+        );
+      }
+
+      setSharedState(payload.sharedState);
+      setMessage("Activity selection updated.");
+    } catch (selectionError) {
+      setError(
+        selectionError instanceof Error
+          ? selectionError.message
+          : "Unable to update activity selection.",
+      );
+    } finally {
+      setUpdatingSelection(false);
+    }
+  }
+
 async function activateActivity() {
   if (!selectedActivity) {
+    return;
+  }
+
+  if (multipleMode) {
+    setError(
+      "Multiple Activity Mode is active. " +
+        "Use the multiple-activity controls to " +
+        "manage the live selection. Legacy " +
+        "Make Current is unavailable.",
+    );
     return;
   }
 
@@ -1028,6 +1257,14 @@ if (
       return;
     }
 
+    if (multipleMode) {
+      setError(
+        "Question controls for Multiple Activity Mode " +
+          "are not yet available.",
+      );
+      return;
+    }
+
     setActivating(true);
     setError(null);
     setMessage(null);
@@ -1057,10 +1294,7 @@ currentActivityType:
               selectedActivity.id,
 
             state: {
-              ...sharedState.state,
-
-              currentQuestionId:
-                questionId,
+              currentQuestionId: questionId,
             },
           }),
         },
@@ -1380,14 +1614,100 @@ currentActivityType:
 
         <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
           <div className="text-xs text-neutral-600">
-            Current activity
+            {multipleMode
+              ? "Selected Live activities"
+              : "Current activity"}
           </div>
 
           <div className="mt-1 font-semibold">
-            {currentActivity?.name ??
-              "None"}
+            {multipleMode
+              ? `${activeActivityIds.length} selected`
+              : currentActivity?.name ?? "None"}
           </div>
+
+          {multipleMode &&
+          activeActivityIds.length > 0 ? (
+            <div className="mt-2 space-y-1">
+              {activeActivityIds.map((id) => {
+                const activity = activities.find(
+                  (item) => item.id === id,
+                );
+
+                return (
+                  <div
+                    key={id}
+                    className="text-xs text-neutral-600"
+                  >
+                    {activity?.name ??
+                      "Unavailable activity"}
+                  </div>
+                );
+              })}
+            </div>
+          ) : null}
         </div>
+      </div>
+
+      <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div className="text-sm font-semibold text-neutral-900">
+              Activity Selection Mode
+            </div>
+
+            <p className="mt-1 text-xs text-neutral-600">
+              {multipleMode
+                ? "Multiple activities are selected for this Live experience."
+                : "One activity is presented at a time."}
+            </p>
+          </div>
+
+          <span className="rounded-full border border-neutral-300 bg-neutral-100 px-3 py-1 text-xs font-semibold text-neutral-800">
+            {multipleMode
+              ? "Multiple Activities"
+              : "Single Activity"}
+          </span>
+        </div>
+
+        <div className="mt-4 flex flex-wrap gap-2">
+          <button
+            type="button"
+            disabled={updatingSelection || !multipleMode}
+            onClick={() => {
+              void updateActivitySelection(
+                false,
+                activeActivityIds.slice(0, 1),
+              );
+            }}
+            className={`rounded-lg border px-4 py-2 text-sm font-medium disabled:opacity-50 ${
+              !multipleMode
+                ? "border-neutral-900 bg-neutral-900 text-white"
+                : "border-neutral-300 bg-white text-neutral-800"
+            }`}
+          >
+            Single Activity
+          </button>
+
+          <button
+            type="button"
+            disabled
+            title="Available after final integration testing"
+            onClick={() => {
+              void updateActivitySelection(
+                true,
+                activeActivityIds,
+              );
+            }}
+            className="rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-neutral-800 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Multiple Activities
+          </button>
+        </div>
+
+        <p className="mt-3 text-xs text-neutral-500">
+          Multiple Activity Mode will be enabled after
+          participant-interface integration and testing.
+        </p>
       </div>
 
       {error ? (
@@ -1466,8 +1786,7 @@ currentActivityType:
                     selectedActivityId;
 
                   const current =
-                    activity.id ===
-                    sharedState.currentActivityId;
+                    activeActivityIdSet.has(activity.id);
 
                   return (
                     <button
@@ -1493,7 +1812,9 @@ currentActivityType:
 
                         {current ? (
                           <span className="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-semibold text-green-800">
-                            CURRENT
+                            {multipleMode
+                              ? "LIVE"
+                              : "CURRENT"}
                           </span>
                         ) : null}
                       </div>
@@ -1559,31 +1880,68 @@ currentActivityType:
                         : "Save"}
                     </button>
 
+                    {multipleMode && selectedActivity.status === "active" ? (
+                      <label className="flex items-center gap-2 rounded-xl border border-neutral-300 px-3 py-2 text-sm font-medium text-neutral-800">
+                        <input
+                          type="checkbox"
+                          checked={activeActivityIdSet.has(
+                            selectedActivity.id,
+                          )}
+                          disabled={updatingSelection}
+                          onChange={() => {
+                            void toggleActivitySelection(
+                              selectedActivity,
+                            );
+                          }}
+                          className="h-4 w-4 accent-neutral-900"
+                        />
+                        {updatingSelection
+                          ? "Updating..."
+                          : "Show to Participants"}
+                      </label>
+                    ) : null}
+
+                    {selectedActivity.status !== "active" &&
+                    selectedActivity.status !== "completed" &&
+                    selectedActivity.status !== "cancelled" ? (
+                      <button
+                        type="button"
+                        disabled={saving || activating}
+                        onClick={() => {
+                          void markActivityReady(selectedActivity);
+                        }}
+                        className="rounded-xl border border-green-300 bg-green-50 px-3 py-2 text-sm font-medium text-green-800 hover:bg-green-100 disabled:opacity-50"
+                      >
+                        Mark Ready
+                      </button>
+                    ) : null}
+
                     <button
                       type="button"
                       disabled={
                         saving ||
-                        activating
+                        activating ||
+                        multipleMode
                       }
                       onClick={() => {
                         void activateActivity();
                       }}
                       className="rounded-xl bg-neutral-900 px-3 py-2 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50"
                     >
-                      {activating
-                        ? "Updating..."
-                        : sharedState.currentActivityId ===
-                            selectedActivity.id
-                          ? "Update Live"
-                          : "Make Current"}
+                      {multipleMode
+                        ? "Managed in Multiple Mode"
+                        : activating
+                          ? "Updating..."
+                          : selectedActivityIsLive
+                            ? "Update Live"
+                            : "Make Current"}
                     </button>
 
                     <button
                       type="button"
                       disabled={
                         deleting ||
-                        sharedState.currentActivityId ===
-                          selectedActivity.id
+                        selectedActivityIsLive
                       }
 onClick={() => {
   if (selectedActivity) {
@@ -1678,13 +2036,14 @@ onClick={() => {
                           questionIndex,
                         ) => {
                           const isCurrentQuestion =
-                            sharedState
-                              .currentActivityId ===
-                              selectedActivity.id &&
-                            sharedState
-                              .state
-                              ?.currentQuestionId ===
-                              question.id;
+                            selectedActivityIsLive &&
+                            (multipleMode
+                              ? selectedActivityRuntime
+                                  .currentQuestionId ===
+                                question.id
+                              : sharedState.state
+                                  .currentQuestionId ===
+                                question.id);
 
                           return (
                             <div
@@ -1709,9 +2068,9 @@ onClick={() => {
                                 </div>
 
                                 <div className="flex items-center gap-2">
-                                  {sharedState.currentActivityId ===
-                                    selectedActivity.id &&
-                                  !isCurrentQuestion ? (
+{selectedActivityIsLive &&
+!multipleMode &&
+!isCurrentQuestion ? (
                                     <button
                                       type="button"
                                       disabled={

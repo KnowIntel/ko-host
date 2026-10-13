@@ -7,6 +7,10 @@ import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
+import {
+  isLiveActivitySelected,
+  readLiveActivitySelection,
+} from "@/lib/live/activitySelection";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -469,10 +473,14 @@ export async function POST(
           )
         : null;
 
-    const runtimeState =
-      asRecord(
-        sharedState?.state,
-      );
+      const runtimeState =
+        asRecord(
+          sharedState?.state,
+        );
+
+      const selection =
+        readLiveActivitySelection(runtimeState);
+
 
     /*
      * ================================================================
@@ -483,10 +491,41 @@ export async function POST(
       action ===
       "draw_lottery_winner"
     ) {
+      const requestedActivityId =
+        cleanText(body.activityId, 100)
+          .toLowerCase();
+
       if (
-        !currentActivityId ||
-        currentActivityType !==
-          "lottery"
+        requestedActivityId &&
+        !UUID_PATTERN.test(requestedActivityId)
+      ) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error: "Invalid Lottery activity.",
+          },
+          { status: 400 },
+        );
+      }
+
+      const lotteryActivityId =
+        selection.allowMultipleActiveActivities
+          ? requestedActivityId
+          : currentActivityId;
+
+      const isSelected =
+        Boolean(lotteryActivityId) &&
+        isLiveActivitySelected(
+          lotteryActivityId ?? "",
+          currentActivityId,
+          selection,
+        );
+
+      if (
+        !lotteryActivityId ||
+        !isSelected ||
+        (!selection.allowMultipleActiveActivities &&
+          currentActivityType !== "lottery")
       ) {
         return NextResponse.json(
           {
@@ -508,7 +547,7 @@ export async function POST(
         )
         .eq(
           "id",
-          currentActivityId,
+          lotteryActivityId,
         )
         .eq(
           "experience_id",
@@ -554,7 +593,7 @@ export async function POST(
         )
         .eq(
           "activity_id",
-          currentActivityId,
+          lotteryActivityId,
         );
 
       if (stateError) {
@@ -665,26 +704,42 @@ export async function POST(
           new Date().toISOString(),
       };
 
-      const nextState = {
-        ...runtimeState,
-        lotteryWinner,
-      };
-
-      const {
-        error: updateError,
-      } = await sb
-        .from(
-          "live_experience_state",
-        )
-        .update({
-          state: nextState,
-          updated_at:
-            new Date().toISOString(),
-        })
-        .eq(
-          "experience_id",
-          experience.id,
-        );
+      /*
+       * Single Activity Mode:
+       * Store the winner in the legacy
+       * shared lotteryWinner property.
+       *
+       * Multiple Activity Mode:
+       * Store the winner independently
+       * for the selected Lottery activity.
+       */
+/*
+ * Save the Lottery winner atomically.
+ *
+ * Single Activity Mode:
+ * Updates the legacy lotteryWinner field.
+ *
+ * Multiple Activity Mode:
+ * Updates only this Lottery activity's
+ * activityRuntime entry.
+ *
+ * PostgreSQL revalidates activity selection
+ * while holding the experience lock.
+ */
+const {
+  error: updateError,
+} = await sb.rpc(
+  "update_live_experience_state_atomic",
+  {
+    p_experience_id: experience.id,
+    p_state_patch: {},
+    p_activity_id: lotteryActivityId,
+    p_activity_type: "lottery",
+    p_update_current_activity: false,
+    p_host_runtime_key: "lotteryWinner",
+    p_host_runtime_value: lotteryWinner,
+  },
+);
 
       if (updateError) {
         return NextResponse.json(
@@ -700,7 +755,7 @@ export async function POST(
       await broadcastChange(
         sb,
         experience.id,
-        currentActivityId,
+        lotteryActivityId,
       );
 
       return NextResponse.json({
@@ -710,19 +765,56 @@ export async function POST(
       });
     }
 
+
+
     /*
      * ================================================================
      * MYSTERY DROP — SET CURRENT DROP
      * ================================================================
      */
-    if (
-      action ===
-      "set_mystery_drop"
-    ) {
+    if (action === "set_mystery_drop") {
+      const requestedActivityId =
+        cleanText(body.activityId, 100)
+          .toLowerCase();
+
       if (
-        !currentActivityId ||
-        currentActivityType !==
-          "mystery_drop"
+        requestedActivityId &&
+        !UUID_PATTERN.test(requestedActivityId)
+      ) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error: "Invalid Mystery Drop activity.",
+          },
+          { status: 400 },
+        );
+      }
+
+      /*
+       * Single Activity Mode uses the legacy
+       * current activity.
+       *
+       * Multiple Activity Mode requires an
+       * explicitly selected activity ID.
+       */
+      const mysteryDropActivityId =
+        selection.allowMultipleActiveActivities
+          ? requestedActivityId
+          : currentActivityId;
+
+      const isSelected =
+        Boolean(mysteryDropActivityId) &&
+        isLiveActivitySelected(
+          mysteryDropActivityId ?? "",
+          currentActivityId,
+          selection,
+        );
+
+      if (
+        !mysteryDropActivityId ||
+        !isSelected ||
+        (!selection.allowMultipleActiveActivities &&
+          currentActivityType !== "mystery_drop")
       ) {
         return NextResponse.json(
           {
@@ -743,13 +835,17 @@ export async function POST(
         return NextResponse.json(
           {
             ok: false,
-            error:
-              "Drop ID is required.",
+            error: "Drop ID is required.",
           },
           { status: 400 },
         );
       }
 
+      /*
+       * Verify the selected Mystery Drop
+       * belongs to this Live experience
+       * and is currently active.
+       */
       const {
         data: activity,
         error: activityError,
@@ -760,7 +856,7 @@ export async function POST(
         )
         .eq(
           "id",
-          currentActivityId,
+          mysteryDropActivityId,
         )
         .eq(
           "experience_id",
@@ -771,10 +867,8 @@ export async function POST(
       if (
         activityError ||
         !activity ||
-        activity.activity_type !==
-          "mystery_drop" ||
-        activity.status !==
-          "active"
+        activity.activity_type !== "mystery_drop" ||
+        activity.status !== "active"
       ) {
         return NextResponse.json(
           {
@@ -786,30 +880,28 @@ export async function POST(
         );
       }
 
+      /*
+       * Confirm the requested drop exists
+       * in this activity's configuration.
+       */
       const configuration =
-        asRecord(
-          activity.configuration,
-        );
+        asRecord(activity.configuration);
 
       const drops =
-        Array.isArray(
-          configuration.drops,
-        )
+        Array.isArray(configuration.drops)
           ? configuration.drops
           : [];
 
-      const dropExists =
-        drops.some((value) => {
-          const drop =
-            asRecord(value);
+      const dropExists = drops.some(
+        (value) => {
+          const drop = asRecord(value);
 
           return (
-            cleanText(
-              drop.id,
-              200,
-            ) === dropId
+            cleanText(drop.id, 200) ===
+            dropId
           );
-        });
+        },
+      );
 
       if (!dropExists) {
         return NextResponse.json(
@@ -822,28 +914,42 @@ export async function POST(
         );
       }
 
-      const nextState = {
-        ...runtimeState,
-
-        currentDropId:
-          dropId,
-      };
-
-      const {
-        error: updateError,
-      } = await sb
-        .from(
-          "live_experience_state",
-        )
-        .update({
-          state: nextState,
-          updated_at:
-            new Date().toISOString(),
-        })
-        .eq(
-          "experience_id",
-          experience.id,
-        );
+      /*
+       * Single Activity Mode:
+       * Preserve the legacy shared
+       * currentDropId property.
+       *
+       * Multiple Activity Mode:
+       * Store the selected drop under
+       * this activity's own runtime state.
+       */
+/*
+ * Release the Mystery Drop atomically.
+ *
+ * Single Activity Mode:
+ * Updates the legacy currentDropId field.
+ *
+ * Multiple Activity Mode:
+ * Updates only this Mystery Drop activity's
+ * activityRuntime entry.
+ *
+ * PostgreSQL revalidates activity selection
+ * while holding the experience lock.
+ */
+const {
+  error: updateError,
+} = await sb.rpc(
+  "update_live_experience_state_atomic",
+  {
+    p_experience_id: experience.id,
+    p_state_patch: {},
+    p_activity_id: mysteryDropActivityId,
+    p_activity_type: "mystery_drop",
+    p_update_current_activity: false,
+    p_host_runtime_key: "currentDropId",
+    p_host_runtime_value: dropId,
+  },
+);
 
       if (updateError) {
         return NextResponse.json(
@@ -856,19 +962,23 @@ export async function POST(
         );
       }
 
+      /*
+       * Notify connected clients using
+       * the activity that was updated.
+       */
       await broadcastChange(
         sb,
         experience.id,
-        currentActivityId,
+        mysteryDropActivityId,
       );
 
       return NextResponse.json({
         ok: true,
         action,
-        currentDropId:
-          dropId,
+        currentDropId: dropId,
       });
     }
+
 
     /*
      * ================================================================
@@ -912,87 +1022,58 @@ export async function POST(
         );
       }
 
+
       /*
-       * Only one request should be
-       * marked playing at a time.
+       * Atomically update the Song Request status.
+       *
+       * PostgreSQL locks the Live experience,
+       * validates the request, and ensures that
+       * only one song is playing at a time.
        */
-      if (
-        status === "playing"
-      ) {
-        const {
-          error: resetError,
-        } = await sb
-          .from(
-            "live_song_requests",
-          )
-          .update({
-            status: "queued",
-            updated_at:
-              new Date().toISOString(),
-          })
-          .eq(
-            "experience_id",
-            experience.id,
-          )
-          .eq(
-            "status",
-            "playing",
-          )
-          .neq(
-            "id",
-            requestId,
-          );
-
-        if (resetError) {
-          return NextResponse.json(
-            {
-              ok: false,
-              error:
-                "Unable to update Song Request queue.",
-            },
-            { status: 500 },
-          );
-        }
-      }
-
       const {
-        data: songRequest,
+        data: songData,
         error: songError,
-      } = await sb
-        .from(
-          "live_song_requests",
-        )
-        .update({
-          status,
-          updated_at:
-            new Date().toISOString(),
-        })
-        .eq(
-          "id",
-          requestId,
-        )
-        .eq(
-          "experience_id",
-          experience.id,
-        )
-        .select(
-          "id, song_title, artist_name, status, sort_order, requested_at",
-        )
-        .maybeSingle();
+      } = await sb.rpc(
+        "update_live_song_request_status_atomic",
+        {
+          p_experience_id: experience.id,
+          p_request_id: requestId,
+          p_status: status,
+        },
+      );
 
-      if (
-        songError ||
-        !songRequest
-      ) {
+      if (songError) {
+        console.error(
+          "Atomic Song Request update failed:",
+          songError,
+        );
+
         return NextResponse.json(
           {
             ok: false,
             error:
               "Song Request could not be updated.",
           },
+          { status: 500 },
+        );
+      }
+
+      const songRequest = Array.isArray(songData)
+        ? songData[0]
+        : songData;
+
+      if (!songRequest) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error:
+              "Song Request could not be found.",
+          },
           { status: 404 },
         );
       }
+
+
 
       await broadcastChange(
         sb,
@@ -1119,86 +1200,31 @@ if (
     );
   }
 
+
   /*
-   * Place new entries after the
-   * existing schedule.
+   * Atomically create the Schedule entry.
+   *
+   * PostgreSQL locks the Live experience,
+   * calculates the next sort position,
+   * and inserts the entry in one transaction.
    */
   const {
-    data: lastEntry,
-    error: orderError,
-  } = await sb
-    .from("live_schedule_entries")
-    .select("sort_order")
-    .eq(
-      "experience_id",
-      experience.id,
-    )
-    .order("sort_order", {
-      ascending: false,
-    })
-    .limit(1)
-    .maybeSingle();
-
-  if (orderError) {
-    return NextResponse.json(
-      {
-        ok: false,
-        error:
-          "Unable to prepare Schedule entry.",
-      },
-      { status: 500 },
-    );
-  }
-
-  const sortOrder =
-    Number(
-      lastEntry?.sort_order ?? -1,
-    ) + 1;
-
-  const now =
-    new Date().toISOString();
-
-  const {
-    data: entry,
+    data: entryData,
     error: entryError,
-  } = await sb
-    .from("live_schedule_entries")
-    .insert({
-      experience_id:
-        experience.id,
+  } = await sb.rpc(
+    "create_live_schedule_entry_atomic",
+    {
+      p_experience_id: experience.id,
+      p_title: title,
+      p_description: description,
+      p_starts_at: startsAt,
+      p_ends_at: endsAt,
+    },
+  );
 
-      title,
-
-      description,
-
-      starts_at:
-        startsAt,
-
-      ends_at:
-        endsAt,
-
-      status: "upcoming",
-
-      sort_order:
-        sortOrder,
-
-      created_at:
-        now,
-
-      updated_at:
-        now,
-    })
-    .select(
-      "id, title, description, starts_at, ends_at, status, sort_order, created_at, updated_at",
-    )
-    .single();
-
-  if (
-    entryError ||
-    !entry
-  ) {
+  if (entryError) {
     console.error(
-      "Schedule entry creation failed:",
+      "Atomic Schedule creation failed:",
       entryError,
     );
 
@@ -1211,6 +1237,23 @@ if (
       { status: 500 },
     );
   }
+
+  const entry = Array.isArray(entryData)
+    ? entryData[0]
+    : entryData;
+
+  if (!entry) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          "Schedule entry could not be created.",
+      },
+      { status: 500 },
+    );
+  }
+
+
 
   await broadcastChange(
     sb,
@@ -1405,85 +1448,58 @@ if (action === "edit_schedule_entry") {
         );
       }
 
+
       /*
-       * Keep one current schedule
-       * entry at a time.
+       * Atomically update the Schedule status.
+       *
+       * PostgreSQL locks the Live experience,
+       * validates the selected entry, and
+       * ensures only one entry is current.
        */
-      if (status === "current") {
-        const {
-          error: resetError,
-        } = await sb
-          .from(
-            "live_schedule_entries",
-          )
-          .update({
-            status: "upcoming",
-            updated_at:
-              new Date().toISOString(),
-          })
-          .eq(
-            "experience_id",
-            experience.id,
-          )
-          .eq(
-            "status",
-            "current",
-          )
-          .neq(
-            "id",
-            entryId,
-          );
-
-        if (resetError) {
-          return NextResponse.json(
-            {
-              ok: false,
-              error:
-                "Unable to update Schedule.",
-            },
-            { status: 500 },
-          );
-        }
-      }
-
       const {
-        data: entry,
+        data: entryData,
         error: entryError,
-      } = await sb
-        .from(
-          "live_schedule_entries",
-        )
-        .update({
-          status,
-          updated_at:
-            new Date().toISOString(),
-        })
-        .eq(
-          "id",
-          entryId,
-        )
-        .eq(
-          "experience_id",
-          experience.id,
-        )
-        .select(
-          "id, title, description, starts_at, ends_at, status, sort_order",
-        )
-        .maybeSingle();
+      } = await sb.rpc(
+        "update_live_schedule_entry_status_atomic",
+        {
+          p_experience_id: experience.id,
+          p_entry_id: entryId,
+          p_status: status,
+        },
+      );
 
-      if (
-        entryError ||
-        !entry
-      ) {
+      if (entryError) {
+        console.error(
+          "Atomic Schedule status update failed:",
+          entryError,
+        );
+
         return NextResponse.json(
           {
             ok: false,
             error:
               "Schedule entry could not be updated.",
           },
+          { status: 500 },
+        );
+      }
+
+      const entry = Array.isArray(entryData)
+        ? entryData[0]
+        : entryData;
+
+      if (!entry) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error:
+              "Schedule entry could not be found.",
+          },
           { status: 404 },
         );
       }
+
+
 
       await broadcastChange(
         sb,

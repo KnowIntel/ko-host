@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
+import { readLiveActivitySelection } from "@/lib/live/activitySelection";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -216,7 +217,7 @@ function parsePollQuestion(
 }
 
 export async function GET(
-  _request: Request,
+  request: Request,
   ctx: {
     params: Promise<{
       id: string;
@@ -225,6 +226,25 @@ export async function GET(
 ) {
   try {
     const { id } = await ctx.params;
+
+    const requestedActivityId =
+      new URL(request.url).searchParams
+        .get("activityId")
+        ?.trim()
+        .toLowerCase() ?? null;
+
+    if (
+      requestedActivityId &&
+      !UUID_PATTERN.test(requestedActivityId)
+    ) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "Invalid activity ID.",
+        },
+        { status: 400 },
+      );
+    }
 
     const micrositeId = String(id || "")
       .trim()
@@ -787,12 +807,141 @@ const operations = {
   announcements,
 };
 
-    const currentActivityId =
+    const legacyCurrentActivityId =
       sharedState?.current_activity_id
-        ? String(
-            sharedState.current_activity_id,
-          )
+        ? String(sharedState.current_activity_id)
         : null;
+
+    const runtimeState = asRecord(
+      sharedState?.state,
+    );
+
+    const selection =
+      readLiveActivitySelection(runtimeState);
+
+    const allowMultipleActiveActivities =
+      selection.allowMultipleActiveActivities;
+
+    const selectedActivityIds =
+      allowMultipleActiveActivities
+        ? selection.activeActivityIds
+        : legacyCurrentActivityId &&
+            UUID_PATTERN.test(
+              legacyCurrentActivityId,
+            )
+          ? [legacyCurrentActivityId]
+          : [];
+
+    if (
+      requestedActivityId &&
+      !selectedActivityIds.includes(
+        requestedActivityId,
+      )
+    ) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error:
+            "The requested activity is not selected for this Live experience.",
+        },
+        { status: 409 },
+      );
+    }
+
+    const {
+      data: selectedActivityRows,
+      error: selectedActivitiesError,
+    } = selectedActivityIds.length
+      ? await sb
+          .from("live_activities")
+          .select(
+            "id, activity_type, name, status",
+          )
+          .eq(
+            "experience_id",
+            experience.id,
+          )
+          .eq("status", "active")
+          .in("id", selectedActivityIds)
+      : {
+          data: [],
+          error: null,
+        };
+
+    if (selectedActivitiesError) {
+      console.error(
+        "Host Control selected activities lookup failed:",
+        selectedActivitiesError,
+      );
+
+      return NextResponse.json(
+        {
+          ok: false,
+          error:
+            "Unable to load selected Live activities.",
+        },
+        { status: 500 },
+      );
+    }
+
+    const selectedActivityById = new Map(
+      (selectedActivityRows ?? []).map(
+        (activity) => [
+          activity.id,
+          activity,
+        ],
+      ),
+    );
+
+    const activeActivities =
+      selectedActivityIds
+        .map((id) =>
+          selectedActivityById.get(id),
+        )
+        .filter(
+          (
+            activity,
+          ): activity is NonNullable<
+            typeof activity
+          > => activity != null,
+        )
+        .map((activity) => ({
+          id: activity.id,
+          activityType:
+            activity.activity_type,
+          name: activity.name,
+        }));
+
+    const activeActivityIds =
+      activeActivities.map(
+        (activity) => activity.id,
+      );
+
+    if (
+      requestedActivityId &&
+      !activeActivityIds.includes(
+        requestedActivityId,
+      )
+    ) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error:
+            "The requested Live activity is not active.",
+        },
+        { status: 409 },
+      );
+    }
+
+    const currentActivityId =
+      requestedActivityId ??
+      (allowMultipleActiveActivities
+        ? activeActivityIds.includes(
+            legacyCurrentActivityId ?? "",
+          )
+          ? legacyCurrentActivityId
+          : activeActivityIds[0] ?? null
+        : legacyCurrentActivityId);
 
     /*
      * There may be no current activity.
@@ -835,6 +984,10 @@ const operations = {
             sharedState?.updated_at ??
             null,
         },
+
+        allowMultipleActiveActivities,
+        activeActivityIds,
+        activeActivities,
 
         participantCount:
           activeParticipants.length,
@@ -1074,15 +1227,28 @@ if (
             question !== null,
         );
 
-      const runtimeState = asRecord(
-        sharedState?.state,
-      );
+        const runtimeState = asRecord(
+          sharedState?.state,
+        );
 
-      const requestedQuestionId =
-        typeof runtimeState.currentQuestionId ===
-        "string"
-          ? runtimeState.currentQuestionId.trim()
-          : "";
+        const selection =
+          readLiveActivitySelection(runtimeState);
+
+        const activityRuntime =
+          asRecord(runtimeState.activityRuntime);
+
+        const currentActivityRuntime =
+          asRecord(activityRuntime[activity.id]);
+
+        const questionIdSource =
+          selection.allowMultipleActiveActivities
+            ? currentActivityRuntime.currentQuestionId
+            : runtimeState.currentQuestionId;
+
+        const requestedQuestionId =
+          typeof questionIdSource === "string"
+            ? questionIdSource.trim()
+            : "";
 
       const currentQuestion =
         questions.find(
@@ -1417,16 +1583,29 @@ if (
           }),
         );
 
-      const runtimeState =
-        asRecord(
-          sharedState?.state,
-        );
+        const runtimeState =
+          asRecord(
+            sharedState?.state,
+          );
 
-      const requestedQuestionId =
-        typeof runtimeState.currentQuestionId ===
-        "string"
-          ? runtimeState.currentQuestionId.trim()
-          : "";
+        const selection =
+          readLiveActivitySelection(runtimeState);
+
+        const activityRuntime =
+          asRecord(runtimeState.activityRuntime);
+
+        const currentActivityRuntime =
+          asRecord(activityRuntime[activity.id]);
+
+        const questionIdSource =
+          selection.allowMultipleActiveActivities
+            ? currentActivityRuntime.currentQuestionId
+            : runtimeState.currentQuestionId;
+
+        const requestedQuestionId =
+          typeof questionIdSource === "string"
+            ? questionIdSource.trim()
+            : "";
 
       const currentQuestion =
         questions.find(
@@ -1675,11 +1854,15 @@ if (
           null,
       },
 
+      allowMultipleActiveActivities,
+      activeActivityIds,
+      activeActivities,  
+
       participantCount:
         activeParticipants.length,
 
       leaderboard,
-        participantRecords,
+      participantRecords,
 
       activity: {
         id: activity.id,

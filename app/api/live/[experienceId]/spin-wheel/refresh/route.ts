@@ -9,7 +9,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(
-  _request: Request,
+  request: Request,
   {
     params,
   }: {
@@ -21,10 +21,18 @@ export async function POST(
   try {
     const { experienceId } = await params;
 
+    const body = await request.json().catch(() => ({}));
+
+    const activityId =
+      typeof body?.activityId === "string"
+        ? body.activityId
+        : undefined;
+
     const context =
       await getParticipantActivityRuntime(
         experienceId,
         "spin_wheel",
+        activityId,
       );
 
     if (!context.ok) {

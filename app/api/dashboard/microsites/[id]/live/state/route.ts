@@ -193,34 +193,127 @@ export async function PATCH(
   }
 }
 
-    const now = new Date().toISOString();
 
-    const {
-      data: sharedState,
-      error: stateError,
-    } = await sb
-      .from("live_experience_state")
-      .upsert(
-        {
-          experience_id: experience.id,
-          current_activity_type: currentActivityType,
-          current_activity_id:
-            requestedActivityId || null,
-          state: rawState,
-          updated_at: now,
-        },
-        {
-          onConflict: "experience_id",
-        },
-      )
-      .select(`
-        experience_id,
-        current_activity_type,
-        current_activity_id,
-        state,
-        updated_at
-      `)
-      .single();
+/*
+ * Validate the Multiple Activity Mode setting.
+ *
+ * The feature remains disabled until the remaining
+ * participant and backend integration is complete.
+ */
+const requestedMultipleMode =
+  body?.allowMultipleActiveActivities;
+
+if (
+  requestedMultipleMode !== undefined &&
+  typeof requestedMultipleMode !== "boolean"
+) {
+  return NextResponse.json(
+    {
+      ok: false,
+      error: "Invalid multiple-activity setting.",
+    },
+    { status: 400 },
+  );
+}
+
+/*
+ * Read the current mode for API-level validation.
+ *
+ * This read is not used to merge or write state.
+ * The PostgreSQL function performs the actual
+ * update under a database lock.
+ */
+const {
+  data: existingSharedState,
+  error: existingStateError,
+} = await sb
+  .from("live_experience_state")
+  .select("state")
+  .eq("experience_id", experience.id)
+  .maybeSingle();
+
+if (existingStateError) {
+  console.error(
+    "Live shared-state lookup failed:",
+    existingStateError,
+  );
+
+  return NextResponse.json(
+    {
+      ok: false,
+      error: "Unable to load existing Live state.",
+    },
+    { status: 500 },
+  );
+}
+
+const existingState =
+  existingSharedState?.state &&
+  typeof existingSharedState.state === "object" &&
+  !Array.isArray(existingSharedState.state)
+    ? (existingSharedState.state as Record<string, unknown>)
+    : {};
+
+const existingMultipleMode =
+  existingState.allowMultipleActiveActivities === true;
+
+if (
+  requestedMultipleMode === true &&
+  !existingMultipleMode
+) {
+  return NextResponse.json(
+    {
+      ok: false,
+      error:
+        "Multiple Active Activities is not available until participant support is enabled.",
+    },
+    { status: 409 },
+  );
+}
+
+/*
+ * Normalize the question ID before sending the
+ * patch to the database.
+ *
+ * In Multiple Activity Mode, the database function
+ * stores this question under the selected activity.
+ */
+const statePatch: Record<string, unknown> = {
+  ...rawState,
+};
+
+if (
+  typeof statePatch.currentQuestionId === "string"
+) {
+  statePatch.currentQuestionId =
+    statePatch.currentQuestionId.trim();
+}
+
+/*
+ * Atomic PostgreSQL update:
+ *
+ * - Serializes updates for this experience.
+ * - Preserves server-managed selection fields.
+ * - Preserves unrelated activity runtime records.
+ * - Updates the legacy current activity pointer
+ *   only in Single Activity Mode.
+ */
+const {
+  data: sharedState,
+  error: stateError,
+} = await sb.rpc(
+  "update_live_experience_state_atomic",
+  {
+    p_experience_id: experience.id,
+    p_state_patch: statePatch,
+    p_activity_id: requestedActivityId || null,
+    p_activity_type: currentActivityType,
+    p_update_current_activity: true,
+    p_host_runtime_key: null,
+    p_host_runtime_value: null,
+  },
+);
+
 
 if (stateError || !sharedState) {
   console.error(

@@ -1,8 +1,11 @@
-// components\live\LiveLottery.tsx
+
+// components/live/LiveLottery.tsx
 
 "use client";
 
 import {
+  useEffect,
+  useRef,
   useState,
   type CSSProperties,
 } from "react";
@@ -74,17 +77,15 @@ export default function LiveLottery({
   enterButtonStyle,
   winnerStyle,
 }: Props) {
-const {
-  data,
-  loading,
-  error: loadError,
-  authenticated,
-  experienceId,
-  refresh,
-} =
-  useLiveEndpoint<Response>(
-    "lottery",
-  );
+  const {
+    data,
+    loading,
+    error: loadError,
+    authenticated,
+    experienceId,
+    refresh,
+    activityId,
+  } = useLiveEndpoint<Response>("lottery");
 
   const [entering, setEntering] =
     useState(false);
@@ -92,11 +93,126 @@ const {
   const [error, setError] =
     useState("");
 
+  const requestGeneration = useRef(0);
+
+  const displayedActivityId =
+    data?.activity?.id ?? null;
+
+  useEffect(() => {
+    requestGeneration.current += 1;
+    setEntering(false);
+    setError("");
+
+    return () => {
+      requestGeneration.current += 1;
+    };
+  }, [activityId, experienceId]);
+
+  const activityMatchesSelection =
+    Boolean(displayedActivityId) &&
+    (activityId === null ||
+      displayedActivityId === activityId);
+
+  const entryCount =
+    data?.participantState?.entryCount ??
+    data?.participantState?.entries?.length ??
+    0;
+
+  const maxEntries =
+    data?.activity?.maxEntriesPerParticipant ?? 0;
+
+  const canEnter =
+    activityMatchesSelection &&
+    entryCount < maxEntries;
+
+  async function enter() {
+    if (
+      !experienceId ||
+      entering ||
+      !canEnter ||
+      !displayedActivityId
+    ) {
+      return;
+    }
+
+    const generation =
+      ++requestGeneration.current;
+
+    const requestActivityId =
+      activityId ?? displayedActivityId;
+
+    setEntering(true);
+    setError("");
+
+    try {
+      const response = await fetch(
+        `/api/live/${encodeURIComponent(
+          experienceId,
+        )}/lottery/enter`,
+        {
+          method: "POST",
+          credentials: "include",
+          cache: "no-store",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            activityId: requestActivityId,
+          }),
+        },
+      );
+
+      const payload = await response
+        .json()
+        .catch(() => null);
+
+      if (
+        generation !== requestGeneration.current
+      ) {
+        return;
+      }
+
+      if (
+        !response.ok ||
+        payload?.ok !== true
+      ) {
+        setError(
+          typeof payload?.error === "string"
+            ? payload.error
+            : "Unable to enter.",
+        );
+        return;
+      }
+
+      await refresh();
+    } catch (entryError) {
+      if (
+        generation !== requestGeneration.current
+      ) {
+        return;
+      }
+
+      console.error(
+        "Live Lottery entry failed:",
+        entryError,
+      );
+
+      setError("Unable to enter.");
+    } finally {
+      if (
+        generation === requestGeneration.current
+      ) {
+        setEntering(false);
+      }
+    }
+  }
+
   if (
     !authenticated ||
     loading ||
     loadError ||
-    !data?.activity
+    !data?.activity ||
+    !activityMatchesSelection
   ) {
     const statusText = !authenticated
       ? joinRequiredText
@@ -127,61 +243,6 @@ const {
         </div>
       </div>
     );
-  }
-  const entryCount =
-    data.participantState
-      ?.entryCount ??
-    data.participantState?.entries
-      ?.length ??
-    0;
-
-  const maxEntries =
-    data.activity
-      .maxEntriesPerParticipant;
-
-  const canEnter =
-    entryCount < maxEntries;
-
-  async function enter() {
-    if (!experienceId || entering) {
-      return;
-    }
-
-    setEntering(true);
-    setError("");
-
-    try {
-      const response = await fetch(
-        `/api/live/${encodeURIComponent(
-          experienceId,
-        )}/lottery/enter`,
-        {
-          method: "POST",
-          credentials: "include",
-          cache: "no-store",
-        },
-      );
-
-      const payload =
-        await response
-          .json()
-          .catch(() => null);
-
-      if (
-        !response.ok ||
-        payload?.ok !== true
-      ) {
-        setError(
-          payload?.error ||
-            "Unable to enter.",
-        );
-        return;
-      }
-
-      await refresh();
-    } finally {
-      setEntering(false);
-    }
   }
 
   return (
@@ -224,8 +285,7 @@ const {
         </div>
       )}
 
-      {maxEntries > 1 &&
-      entryCount > 0 ? (
+      {maxEntries > 1 && entryCount > 0 ? (
         <div className="mt-2 text-sm">
           {entryCount}/{maxEntries} entries
         </div>
@@ -243,18 +303,14 @@ const {
             {winnerHeading}
           </div>
 
-          <div
-            style={winnerTextStyle}
-          >
+          <div style={winnerTextStyle}>
             {data.winner.displayName}
           </div>
         </div>
       ) : (
         <div
           className="mt-5"
-          style={
-            waitingForDrawTextStyle
-          }
+          style={waitingForDrawTextStyle}
         >
           {waitingForDrawText}
         </div>

@@ -1,8 +1,9 @@
-// components\live\LiveScavengerHunt.tsx
 
 "use client";
 
 import {
+  useEffect,
+  useRef,
   useState,
   type CSSProperties,
 } from "react";
@@ -26,14 +27,14 @@ type Response = {
   };
 
   participantState?: {
-completedItems?: Record<
-  string,
-  {
-    completedAt: string;
-    awardedPoints: number;
-    responseText: string;
-  }
->;
+    completedItems?: Record<
+      string,
+      {
+        completedAt: string;
+        awardedPoints: number;
+        responseText: string;
+      }
+    >;
   };
 };
 
@@ -80,25 +81,153 @@ export default function LiveScavengerHunt({
 }: Props) {
   const {
     data,
+    loading,
+    error: loadError,
     authenticated,
     experienceId,
     refresh,
-  } =
-    useLiveEndpoint<Response>(
-      "scavenger-hunt",
-    );
+    activityId,
+  } = useLiveEndpoint<Response>("scavenger-hunt");
 
   const [submittingId, setSubmittingId] =
     useState("");
 
-const [editingId, setEditingId] =
-  useState("");
+  const [editingId, setEditingId] =
+    useState("");
 
-const [responses, setResponses] =
-  useState<Record<string, string>>({});
+  const [responses, setResponses] =
+    useState<Record<string, string>>({});
 
   const [error, setError] =
     useState("");
+
+  const requestGeneration = useRef(0);
+
+  const displayedActivityId =
+    data?.activity?.id ?? null;
+
+  useEffect(() => {
+    requestGeneration.current += 1;
+
+    setSubmittingId("");
+    setEditingId("");
+    setResponses({});
+    setError("");
+
+    return () => {
+      requestGeneration.current += 1;
+    };
+  }, [activityId, experienceId]);
+
+  const activityMatchesSelection =
+    Boolean(displayedActivityId) &&
+    (activityId === null ||
+      displayedActivityId === activityId);
+
+  const items =
+    activityMatchesSelection
+      ? data?.activity?.items ?? []
+      : [];
+
+  const completed =
+    activityMatchesSelection
+      ? data?.participantState?.completedItems ?? {}
+      : {};
+
+  async function complete(
+    itemId: string,
+    responseText: string,
+  ) {
+    if (
+      !experienceId ||
+      !authenticated ||
+      submittingId ||
+      !activityMatchesSelection ||
+      !displayedActivityId ||
+      !items.some((item) => item.id === itemId)
+    ) {
+      return;
+    }
+
+    const generation =
+      ++requestGeneration.current;
+
+    const requestActivityId =
+      activityId ?? displayedActivityId;
+
+    setSubmittingId(itemId);
+    setError("");
+
+    try {
+      const response = await fetch(
+        `/api/live/${encodeURIComponent(
+          experienceId,
+        )}/scavenger-hunt/complete`,
+        {
+          method: "POST",
+          credentials: "include",
+          cache: "no-store",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            activityId: requestActivityId,
+            itemId,
+            responseText,
+          }),
+        },
+      );
+
+      const payload = await response
+        .json()
+        .catch(() => null);
+
+      if (
+        generation !== requestGeneration.current
+      ) {
+        return;
+      }
+
+      if (
+        !response.ok ||
+        payload?.ok !== true
+      ) {
+        setError(
+          typeof payload?.error === "string"
+            ? payload.error
+            : "Unable to complete item.",
+        );
+        return;
+      }
+
+      await refresh();
+
+      if (
+        generation === requestGeneration.current
+      ) {
+        setEditingId("");
+      }
+    } catch (completionError) {
+      if (
+        generation !== requestGeneration.current
+      ) {
+        return;
+      }
+
+      console.error(
+        "Scavenger Hunt completion failed:",
+        completionError,
+      );
+
+      setError("Unable to complete item.");
+    } finally {
+      if (
+        generation === requestGeneration.current
+      ) {
+        setSubmittingId("");
+      }
+    }
+  }
 
   if (!authenticated) {
     return (
@@ -120,71 +249,18 @@ const [responses, setResponses] =
     );
   }
 
-  const items =
-    data?.activity?.items ?? [];
+  if (
+    loading ||
+    loadError ||
+    !data?.activity ||
+    !activityMatchesSelection
+  ) {
+    const statusText = loading
+      ? "Loading Scavenger Hunt..."
+      : loadError
+        ? loadError
+        : waitingText;
 
-  const completed =
-    data?.participantState
-      ?.completedItems ?? {};
-
-async function complete(
-  itemId: string,
-  responseText: string,
-) {
-    if (
-      !experienceId ||
-      submittingId
-    ) {
-      return;
-    }
-
-    setSubmittingId(itemId);
-    setError("");
-
-    try {
-      const response = await fetch(
-        `/api/live/${encodeURIComponent(
-          experienceId,
-        )}/scavenger-hunt/complete`,
-        {
-          method: "POST",
-          credentials: "include",
-          cache: "no-store",
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
-body: JSON.stringify({
-  itemId,
-  responseText,
-}),
-        },
-      );
-
-      const payload =
-        await response
-          .json()
-          .catch(() => null);
-
-      if (
-        !response.ok ||
-        payload?.ok !== true
-      ) {
-        setError(
-          payload?.error ||
-            "Unable to complete item.",
-        );
-        return;
-      }
-
-      await refresh();
-      setEditingId("");
-    } finally {
-      setSubmittingId("");
-    }
-  }
-
-  if (!data?.activity) {
     return (
       <div className="h-full w-full overflow-auto p-4">
         <div
@@ -198,11 +274,12 @@ body: JSON.stringify({
           className="mt-2 text-center"
           style={waitingTextStyle}
         >
-          {waitingText}
+          {statusText}
         </div>
       </div>
     );
   }
+
   return (
     <div className="h-full w-full overflow-auto p-4">
       <div
@@ -218,136 +295,128 @@ body: JSON.stringify({
           style={progressStyle}
         >
           {progressLabel}:{" "}
-          {Object.keys(completed).length}
-          /{items.length}
+          {Object.keys(completed).length}/{items.length}
         </div>
       ) : null}
 
       <div className="mt-4 space-y-3">
-{items.map((item) => {
-  const completion =
-    completed[item.id];
+        {items.map((item) => {
+          const completion =
+            completed[item.id];
 
-  const isCompleted =
-    Boolean(completion);
+          const isCompleted =
+            Boolean(completion);
 
-  const isEditing =
-    editingId === item.id;
+          const isEditing =
+            editingId === item.id;
 
-  const responseValue =
-    responses[item.id] ??
-    completion?.responseText ??
-    "";
+          const responseValue =
+            responses[item.id] ??
+            completion?.responseText ??
+            "";
 
-  return (
-    <div
-      key={item.id}
-      className="w-full p-3 text-left"
-      style={{
-        ...itemStyle,
-        ...(isCompleted
-          ? completedItemStyle
-          : {}),
-      }}
-    >
-      <button
-        type="button"
-        disabled={Boolean(submittingId)}
-        onClick={() => {
-          setResponses((current) => ({
-            ...current,
-            [item.id]:
-              current[item.id] ??
-              completion?.responseText ??
-              "",
-          }));
+          return (
+            <div
+              key={item.id}
+              className="w-full p-3 text-left"
+              style={{
+                ...itemStyle,
+                ...(isCompleted
+                  ? completedItemStyle
+                  : {}),
+              }}
+            >
+              <button
+                type="button"
+                disabled={Boolean(submittingId)}
+                onClick={() => {
+                  setResponses((current) => ({
+                    ...current,
+                    [item.id]:
+                      current[item.id] ??
+                      completion?.responseText ??
+                      "",
+                  }));
 
-          setEditingId(
-            isEditing ? "" : item.id,
+                  setEditingId(
+                    isEditing ? "" : item.id,
+                  );
+
+                  setError("");
+                }}
+                className="block w-full text-left disabled:cursor-default"
+              >
+                <div
+                  className="font-semibold"
+                  style={itemTitleStyle}
+                >
+                  {item.title}
+
+                  {showPoints ? (
+                    <span>
+                      {" "}
+                      ({item.points} pts)
+                    </span>
+                  ) : null}
+                </div>
+
+                {item.description ? (
+                  <div
+                    className="mt-1"
+                    style={itemDescriptionStyle}
+                  >
+                    {item.description}
+                  </div>
+                ) : null}
+
+                {isCompleted && !isEditing ? (
+                  <div
+                    className="mt-2 text-sm"
+                    style={completedLabelStyle}
+                  >
+                    {completedLabel}
+                  </div>
+                ) : null}
+              </button>
+
+              {isEditing ? (
+                <div className="mt-3">
+                  <input
+                    type="text"
+                    value={responseValue}
+                    placeholder={responsePlaceholder}
+                    disabled={Boolean(submittingId)}
+                    onChange={(event) =>
+                      setResponses((current) => ({
+                        ...current,
+                        [item.id]: event.target.value,
+                      }))
+                    }
+                    className="w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-900 disabled:opacity-50"
+                  />
+
+                  <button
+                    type="button"
+                    disabled={Boolean(submittingId)}
+                    onClick={() =>
+                      void complete(
+                        item.id,
+                        responseValue,
+                      )
+                    }
+                    className="mt-2 rounded-xl bg-neutral-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+                  >
+                    {submittingId === item.id
+                      ? "Saving..."
+                      : isCompleted
+                        ? "Update"
+                        : "Complete"}
+                  </button>
+                </div>
+              ) : null}
+            </div>
           );
-
-          setError("");
-        }}
-        className="block w-full text-left disabled:cursor-default"
-      >
-        <div
-          className="font-semibold"
-          style={itemTitleStyle}
-        >
-          {item.title}
-
-          {showPoints ? (
-            <span>
-              {" "}
-              ({item.points} pts)
-            </span>
-          ) : null}
-        </div>
-
-        {item.description ? (
-          <div
-            className="mt-1"
-            style={itemDescriptionStyle}
-          >
-            {item.description}
-          </div>
-        ) : null}
-
-        {isCompleted && !isEditing ? (
-          <div
-            className="mt-2 text-sm"
-            style={completedLabelStyle}
-          >
-            {completedLabel}
-          </div>
-        ) : null}
-      </button>
-
-      {isEditing ? (
-        <div className="mt-3">
-          <input
-            type="text"
-            value={responseValue}
-            placeholder={responsePlaceholder}
-            disabled={
-              submittingId === item.id
-            }
-            onChange={(event) =>
-              setResponses(
-                (current) => ({
-                  ...current,
-                  [item.id]:
-                    event.target.value,
-                }),
-              )
-            }
-            className="w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-900 disabled:opacity-50"
-          />
-
-          <button
-            type="button"
-            disabled={
-              submittingId === item.id
-            }
-            onClick={() =>
-              void complete(
-                item.id,
-                responseValue,
-              )
-            }
-            className="mt-2 rounded-xl bg-neutral-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-          >
-            {submittingId === item.id
-              ? "Saving..."
-              : isCompleted
-                ? "Update"
-                : "Complete"}
-          </button>
-        </div>
-      ) : null}
-    </div>
-  );
-})}
+        })}
       </div>
 
       {error ? (

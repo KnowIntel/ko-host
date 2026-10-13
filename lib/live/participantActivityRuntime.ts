@@ -1,5 +1,9 @@
 import { authenticateLiveParticipant } from "@/lib/live/authenticateParticipant";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
+import {
+  isLiveActivitySelected,
+  readLiveActivitySelection,
+} from "@/lib/live/activitySelection";
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -30,6 +34,7 @@ export function cleanLiveId(
 export async function getParticipantActivityRuntime(
   experienceId: string,
   activityType: string,
+  requestedActivityId?: string,
 ) {
   const safeExperienceId = String(
     experienceId || "",
@@ -37,6 +42,22 @@ export async function getParticipantActivityRuntime(
     .trim()
     .toLowerCase();
 
+  const safeRequestedActivityId =
+    typeof requestedActivityId === "string"
+      ? requestedActivityId.trim().toLowerCase()
+      : "";
+
+  if (
+    safeRequestedActivityId &&
+    !UUID_PATTERN.test(safeRequestedActivityId)
+  ) {
+    return {
+      ok: false as const,
+      status: 400,
+      error: "Invalid Live activity.",
+    };
+  }
+    
   if (!UUID_PATTERN.test(safeExperienceId)) {
     return {
       ok: false as const,
@@ -143,11 +164,35 @@ export async function getParticipantActivityRuntime(
     };
   }
 
+  const selection = readLiveActivitySelection(
+    sharedState?.state,
+  );
+
+  const currentActivityId =
+    sharedState?.current_activity_id
+      ? String(sharedState.current_activity_id)
+      : null;
+
+  const activityId =
+    selection.allowMultipleActiveActivities
+      ? safeRequestedActivityId
+      : currentActivityId;
+
+  const isSelected =
+    Boolean(activityId) &&
+    isLiveActivitySelected(
+      activityId ?? "",
+      currentActivityId,
+      selection,
+    );
+
   if (
     !sharedState ||
-    sharedState.current_activity_type !==
-      activityType ||
-    !sharedState.current_activity_id
+    !activityId ||
+    !isSelected ||
+    (!selection.allowMultipleActiveActivities &&
+      sharedState.current_activity_type !==
+        activityType)
   ) {
     return {
       ok: false as const,
@@ -156,10 +201,6 @@ export async function getParticipantActivityRuntime(
         "This Live activity is not currently active.",
     };
   }
-
-  const activityId = String(
-    sharedState.current_activity_id,
-  );
 
   const {
     data: activity,

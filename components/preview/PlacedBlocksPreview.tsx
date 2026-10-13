@@ -561,6 +561,7 @@ const LIVE_ACTIVITY_TYPES: Record<string, string> = {
   live_mystery_drop: "mystery_drop",
 };
 
+
 function LiveInactiveDim({
   blockType,
   inactiveDim,
@@ -572,7 +573,52 @@ function LiveInactiveDim({
   activityId?: string | null;
   previewMode: boolean;
 }) {
-  const { sharedState, stateLoading } = useLiveRuntime();
+  const {
+    sharedState,
+    stateLoading,
+    allowMultipleActiveActivities,
+    activeActivities,
+    selectedActivityId,
+  } = useLiveRuntime();
+
+  const blockRef = useRef<HTMLDivElement | null>(null);
+
+  const activityType = LIVE_ACTIVITY_TYPES[blockType];
+
+  const shouldProtect =
+    !previewMode &&
+    blockType.startsWith("live_") &&
+    inactiveDim &&
+    !stateLoading &&
+    Boolean(sharedState) &&
+    Boolean(activityType);
+
+  const selectedActivity = activeActivities.find(
+    (activity) => activity.id === selectedActivityId,
+  );
+
+  const isCurrent = allowMultipleActiveActivities
+    ? Boolean(selectedActivity) &&
+      selectedActivity?.activityType === activityType &&
+      (!activityId || activityId === selectedActivityId)
+    : sharedState?.currentActivityType === activityType &&
+      (!activityId || sharedState?.currentActivityId === activityId);
+
+  useEffect(() => {
+    const block = blockRef.current?.parentElement;
+
+    if (!block) return;
+
+    if (shouldProtect && !isCurrent) {
+      block.setAttribute("inert", "");
+    } else {
+      block.removeAttribute("inert");
+    }
+
+    return () => {
+      block.removeAttribute("inert");
+    };
+  }, [shouldProtect, isCurrent]);
 
   if (
     previewMode ||
@@ -584,21 +630,15 @@ function LiveInactiveDim({
     return null;
   }
 
-  const activityType = LIVE_ACTIVITY_TYPES[blockType];
-
-  // Only activity types controlled by Live Manager
-  // can be evaluated against Make Current.
+  // Experience-wide Live blocks are not governed
+  // by individual activity selection.
   if (!activityType) {
     return null;
   }
 
-  const isCurrent =
-    sharedState.currentActivityType === activityType &&
-    (!activityId ||
-      sharedState.currentActivityId === activityId);
-
   return (
     <div
+      ref={blockRef}
       aria-hidden="true"
       style={{
         position: "absolute",
@@ -606,13 +646,14 @@ function LiveInactiveDim({
         backgroundColor: "rgba(0, 0, 0, 0.45)",
         opacity: isCurrent ? 0 : 1,
         transition: "opacity 300ms ease",
-        pointerEvents: "none",
+        pointerEvents: isCurrent ? "none" : "auto",
         zIndex: 10,
         borderRadius: "inherit",
       }}
     />
   );
 }
+
 
 export default function PlacedBlocksPreview({
   draft,

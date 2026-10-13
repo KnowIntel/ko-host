@@ -4,6 +4,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type CSSProperties,
 } from "react";
@@ -117,7 +118,30 @@ const {
   sharedState,
   realtimeRevision,
   sessionLoading,
+  allowMultipleActiveActivities,
+  activeActivities,
+  selectedActivityId,
 } = useLiveRuntime();
+
+const pollActivityId = useMemo(() => {
+  if (!allowMultipleActiveActivities) {
+    return null;
+  }
+
+  const selectedPoll = activeActivities.find(
+    (activity) =>
+      activity.id === selectedActivityId &&
+      activity.activityType === "poll",
+  );
+
+  return selectedPoll?.id ?? null;
+}, [
+  allowMultipleActiveActivities,
+  activeActivities,
+  selectedActivityId,
+]);
+
+const pollRequestSequence = useRef(0);
 
   const [runtimeData, setRuntimeData] =
     useState<PollRuntimeData | null>(null);
@@ -146,58 +170,137 @@ const {
   const currentActivityId =
     sharedState?.currentActivityId ?? null;
 
-  const currentQuestionId =
-    typeof sharedState?.state?.currentQuestionId ===
-    "string"
-      ? sharedState.state.currentQuestionId
-      : null;
+  const currentQuestionId = useMemo(() => {
+    if (!allowMultipleActiveActivities) {
+      return typeof sharedState?.state?.currentQuestionId ===
+        "string"
+        ? sharedState.state.currentQuestionId
+        : null;
+    }
 
-  const refreshPoll =
-    useCallback(async () => {
+    if (!pollActivityId) {
+      return null;
+    }
+
+    const activityRuntime =
+      sharedState?.state?.activityRuntime;
+
+    if (
+      !activityRuntime ||
+      typeof activityRuntime !== "object" ||
+      Array.isArray(activityRuntime)
+    ) {
+      return null;
+    }
+
+    const pollRuntime = (
+      activityRuntime as Record<string, unknown>
+    )[pollActivityId];
+
+    if (
+      !pollRuntime ||
+      typeof pollRuntime !== "object" ||
+      Array.isArray(pollRuntime)
+    ) {
+      return null;
+    }
+
+    const questionId = (
+      pollRuntime as Record<string, unknown>
+    ).currentQuestionId;
+
+    return typeof questionId === "string"
+      ? questionId
+      : null;
+  }, [
+    allowMultipleActiveActivities,
+    pollActivityId,
+    sharedState?.state,
+  ]);
+
+  const refreshPoll = useCallback(async () => {
+    const requestSequence =
+      ++pollRequestSequence.current;
+
+    if (
+      !experienceId ||
+      !authenticated ||
+      (allowMultipleActiveActivities && !pollActivityId)
+    ) {
+      setRuntimeData(null);
+      setError("");
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const params = new URLSearchParams();
+
       if (
-        !experienceId ||
-        !authenticated
+        allowMultipleActiveActivities &&
+        pollActivityId
       ) {
-        setRuntimeData(null);
+        params.set("activityId", pollActivityId);
+      }
+
+      const query = params.toString();
+
+      const response = await fetch(
+        `/api/live/${encodeURIComponent(
+          experienceId,
+        )}/poll${query ? `?${query}` : ""}`,
+        {
+          method: "GET",
+          credentials: "include",
+          cache: "no-store",
+        },
+      );
+
+      const payload =
+        (await response.json()) as PollRuntimeData;
+
+      if (
+        requestSequence !== pollRequestSequence.current
+      ) {
         return;
       }
 
-      setLoading(true);
-
-      try {
-        const response = await fetch(
-          `/api/live/${experienceId}/poll`,
-          {
-            method: "GET",
-            cache: "no-store",
-          },
+      if (!response.ok || !payload.ok) {
+        throw new Error(
+          payload.error || "Unable to load Poll.",
         );
+      }
 
-        const payload =
-          (await response.json()) as PollRuntimeData;
+      setRuntimeData(payload);
+      setError("");
+    } catch (refreshError) {
+      if (
+        requestSequence !== pollRequestSequence.current
+      ) {
+        return;
+      }
 
-        if (!response.ok || !payload.ok) {
-          throw new Error(
-            payload.error ||
-              "Unable to load Poll.",
-          );
-        }
-
-        setRuntimeData(payload);
-        setError("");
-      } catch (refreshError) {
-        setError(
-          refreshError instanceof Error
-            ? refreshError.message
-            : "Unable to load Poll.",
-        );
-      } finally {
+      setRuntimeData(null);
+      setError(
+        refreshError instanceof Error
+          ? refreshError.message
+          : "Unable to load Poll.",
+      );
+    } finally {
+      if (
+        requestSequence === pollRequestSequence.current
+      ) {
         setLoading(false);
       }
-    }, [
-      experienceId,
-      authenticated,
-    ]);
+    }
+  }, [
+    experienceId,
+    authenticated,
+    allowMultipleActiveActivities,
+    pollActivityId,
+  ]);
 
   /*
    * Refetch whenever the authoritative
@@ -207,7 +310,15 @@ const {
    * to the shared-state Broadcast.
    */
 useEffect(() => {
+  setRuntimeData(null);
+  setSelectedChoiceId("");
+  setError("");
+
   void refreshPoll();
+
+  return () => {
+    pollRequestSequence.current += 1;
+  };
 }, [
   refreshPoll,
   realtimeRevision,
@@ -266,6 +377,8 @@ useEffect(() => {
         authenticated &&
         participant &&
         experienceStatus === "live" &&
+        (!allowMultipleActiveActivities ||
+          pollActivityId) &&
         runtimeData?.active &&
         question &&
         selectedChoiceId &&
@@ -279,7 +392,9 @@ useEffect(() => {
       !question ||
       !selectedChoiceId ||
       submittedChoiceId ||
-      submitting
+      submitting ||
+      (allowMultipleActiveActivities &&
+        !pollActivityId)
     ) {
       return;
     }
@@ -298,11 +413,14 @@ useEffect(() => {
               "application/json",
           },
 
-          body: JSON.stringify({
-            questionId: question.id,
-            choiceId:
-              selectedChoiceId,
-          }),
+            body: JSON.stringify({
+              ...(allowMultipleActiveActivities &&
+              pollActivityId
+                ? { activityId: pollActivityId }
+                : {}),
+              questionId: question.id,
+              choiceId: selectedChoiceId,
+            }),
         },
       );
 
@@ -450,8 +568,10 @@ useEffect(() => {
   }
 
   if (
-    currentActivityType !== "poll" ||
-    !currentActivityId ||
+    (allowMultipleActiveActivities
+      ? !pollActivityId
+      : currentActivityType !== "poll" ||
+        !currentActivityId) ||
     !runtimeData?.active ||
     !question
   ) {

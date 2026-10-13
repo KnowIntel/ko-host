@@ -1,7 +1,14 @@
+// app\api\dashboard\microsites\[id]\live\activities\route.ts
+
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
+
+import {
+  isLiveActivitySelected,
+  readLiveActivitySelection,
+} from "@/lib/live/activitySelection";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -977,6 +984,17 @@ export async function GET(
       );
     }
 
+    const selection = readLiveActivitySelection(
+      sharedState?.state,
+    );
+
+    const activeActivityIds =
+      selection.allowMultipleActiveActivities
+        ? selection.activeActivityIds
+        : sharedState?.current_activity_id
+          ? [sharedState.current_activity_id]
+          : [];
+
     return NextResponse.json({
       ok: true,
 
@@ -1009,6 +1027,11 @@ export async function GET(
 
         updatedAt:
           sharedState?.updated_at ?? null,
+
+        allowMultipleActiveActivities:
+          selection.allowMultipleActiveActivities,
+
+        activeActivityIds,
       },
     });
   } catch (error) {
@@ -1541,6 +1564,69 @@ export async function PATCH(
       const nextStatus =
         requestedStatus as ActivityStatus;
 
+      /*
+       * Prevent a selected activity from
+       * becoming unavailable.
+       *
+       * This applies to both Single and
+       * Multiple Activity Mode.
+       */
+      if (
+        nextStatus !== "active" &&
+        existingActivity.status === "active"
+      ) {
+        const {
+          data: selectionState,
+          error: selectionError,
+        } = await context.sb
+          .from("live_experience_state")
+          .select("current_activity_id, state")
+          .eq(
+            "experience_id",
+            context.experience.id,
+          )
+          .maybeSingle();
+
+        if (selectionError) {
+          console.error(
+            "Live selection lookup failed:",
+            selectionError,
+          );
+
+          return NextResponse.json(
+            {
+              ok: false,
+              error:
+                "Unable to verify Live activity selection.",
+            },
+            { status: 500 },
+          );
+        }
+
+        const selection =
+          readLiveActivitySelection(
+            selectionState?.state,
+          );
+
+        if (
+          isLiveActivitySelected(
+            activityId,
+            selectionState?.current_activity_id ??
+              null,
+            selection,
+          )
+        ) {
+          return NextResponse.json(
+            {
+              ok: false,
+              error:
+                "This activity is currently selected for Live. Remove it from the active selection before changing its status.",
+            },
+            { status: 409 },
+          );
+        }
+      }
+
       updatePayload.status =
         nextStatus;
 
@@ -1758,7 +1844,7 @@ export async function DELETE(
       error: stateError,
     } = await context.sb
       .from("live_experience_state")
-      .select("current_activity_id")
+            .select("current_activity_id, state")
       .eq(
         "experience_id",
         context.experience.id,
@@ -1781,15 +1867,29 @@ export async function DELETE(
       );
     }
 
+    /*
+     * Prevent deletion of any currently
+     * selected activity, including those
+     * selected in Multiple Activity Mode.
+     */
+    const selection =
+      readLiveActivitySelection(
+        sharedState?.state,
+      );
+
     if (
-      sharedState?.current_activity_id ===
-      activityId
+      isLiveActivitySelected(
+        activityId,
+        sharedState?.current_activity_id ??
+          null,
+        selection,
+      )
     ) {
       return NextResponse.json(
         {
           ok: false,
           error:
-            "The current Live activity cannot be deleted. Activate another activity or clear the current activity first.",
+            "This activity is currently selected for Live. Remove it from the active selection before deleting it.",
         },
         { status: 409 },
       );
