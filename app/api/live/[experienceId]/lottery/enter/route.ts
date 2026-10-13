@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 
 import {
-  asLiveRecord,
   broadcastLiveActivityChange,
   getParticipantActivityRuntime,
 } from "@/lib/live/participantActivityRuntime";
@@ -46,116 +45,83 @@ export async function POST(
       );
     }
 
-    const configuration = asLiveRecord(
-      context.activity.configuration,
-    );
 
-    const rawMax =
-      Number(
-        configuration.maxEntriesPerParticipant,
-      );
-
-    const maxEntries =
-      Number.isFinite(rawMax)
-        ? Math.max(
-            1,
-            Math.min(
-              Math.trunc(rawMax),
-              100,
-            ),
-          )
-        : 1;
-
-    const {
-      data: existingRow,
-      error: existingError,
-    } = await context.supabase
-      .from(
-        "live_participant_activity_state",
-      )
-      .select("state")
-      .eq(
-        "experience_id",
+const { data, error: entryError } =
+  await context.supabase.rpc(
+    "enter_live_lottery_atomic",
+    {
+      p_experience_id:
         context.safeExperienceId,
-      )
-      .eq(
-        "participant_id",
+      p_participant_id:
         context.participant.participantId,
-      )
-      .eq(
-        "activity_id",
+      p_activity_id:
         context.activity.id,
-      )
-      .maybeSingle();
+    },
+  );
 
-    if (existingError) {
-      throw existingError;
-    }
+if (entryError) {
+  const message = entryError.message || "";
 
-    const existingState =
-      asLiveRecord(existingRow?.state);
+  if (
+    message ===
+    "You have already reached the maximum number of entries"
+  ) {
+    return NextResponse.json(
+      {
+        ok: false,
+        duplicate: true,
+        error:
+          "You have already reached the maximum number of entries.",
+      },
+      { status: 409 },
+    );
+  }
 
-    const entries = Array.isArray(
-      existingState.entries,
-    )
-      ? existingState.entries
-      : [];
+  const expectedConflicts = [
+    "Live experience is not available",
+    "Live participant is not active",
+    "Lottery activity is not active",
+    "Lottery activity is not selected",
+    "Lottery activity is not current",
+    "Live experience state not found",
+  ];
 
-    if (entries.length >= maxEntries) {
-      return NextResponse.json(
-        {
-          ok: false,
-          duplicate: true,
-          error:
-            "You have already reached the maximum number of entries.",
-        },
-        { status: 409 },
-      );
-    }
+  if (expectedConflicts.includes(message)) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: message,
+      },
+      { status: 409 },
+    );
+  }
 
-    const now = new Date().toISOString();
+  throw entryError;
+}
 
-    const entry = {
-      entryNumber: entries.length + 1,
-      enteredAt: now,
-    };
+const result = (
+  Array.isArray(data) ? data[0] : data
+) as {
+  entry_number: number;
+  entered_at: string;
+  entry_count: number;
+  max_entries: number;
+} | null;
 
-    const nextEntries = [
-      ...entries,
-      entry,
-    ];
+if (!result) {
+  throw new Error(
+    "Atomic Lottery entry returned no result.",
+  );
+}
 
-    const {
-      error: stateError,
-    } = await context.supabase
-      .from(
-        "live_participant_activity_state",
-      )
-      .upsert(
-        {
-          experience_id:
-            context.safeExperienceId,
-          participant_id:
-            context.participant.participantId,
-          activity_id:
-            context.activity.id,
-          state: {
-            ...existingState,
-            entries: nextEntries,
-            entryCount:
-              nextEntries.length,
-          },
-          updated_at: now,
-        },
-        {
-          onConflict:
-            "participant_id,activity_id",
-        },
-      );
+const entry = {
+  entryNumber: result.entry_number,
+  enteredAt: result.entered_at,
+};
 
-    if (stateError) {
-      throw stateError;
-    }
+const entryCount = result.entry_count;
+const maxEntries = result.max_entries;
+
 
     await broadcastLiveActivityChange(
       context.supabase,
@@ -166,7 +132,7 @@ export async function POST(
     return NextResponse.json({
       ok: true,
       entry,
-      entryCount: nextEntries.length,
+      entryCount,
       maxEntries,
     });
   } catch (error) {
