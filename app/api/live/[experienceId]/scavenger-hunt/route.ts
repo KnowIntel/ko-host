@@ -45,9 +45,10 @@ export async function GET(
     context.activity.configuration,
   );
 
-  const {
-    data: participantState,
-  } = await context.supabase
+const {
+  data: participantState,
+  error: participantStateError,
+} = await context.supabase
     .from(
       "live_participant_activity_state",
     )
@@ -65,6 +66,22 @@ export async function GET(
       context.activity.id,
     )
     .maybeSingle();
+
+if (participantStateError) {
+  console.error(
+    "Scavenger Hunt participant state lookup failed:",
+    participantStateError,
+  );
+
+  return NextResponse.json(
+    {
+      ok: false,
+      error:
+        "Unable to load Scavenger Hunt progress.",
+    },
+    { status: 500 },
+  );
+}
 
   return NextResponse.json({
     ok: true,

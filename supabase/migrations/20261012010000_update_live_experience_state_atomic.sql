@@ -113,11 +113,17 @@ BEGIN
   END IF;
 
   -- Preserve server-managed selection and runtime properties.
+  -- In Multiple Activity Mode, question selection belongs
+  -- only to the targeted activity.
   v_state := v_state || (
     v_patch
       - 'allowMultipleActiveActivities'
       - 'activeActivityIds'
       - 'activityRuntime'
+      - CASE
+          WHEN v_multi THEN 'currentQuestionId'
+          ELSE ''
+        END
   );
 
   -- Maintain independent Poll/Trivia question pointers.
@@ -126,6 +132,30 @@ BEGIN
     AND p_activity_type IN ('poll', 'trivia')
     AND v_patch ? 'currentQuestionId'
   THEN
+      -- Validate the target activity.
+    PERFORM 1
+    FROM public.live_activities
+    WHERE id = p_activity_id
+      AND experience_id = p_experience_id
+      AND activity_type = p_activity_type
+      AND status = 'active';
+
+    IF NOT FOUND THEN
+      RAISE EXCEPTION 'Question activity is not active';
+    END IF;
+
+    -- Multiple Mode must target a selected activity.
+    IF v_multi AND NOT (
+      (
+        CASE
+          WHEN jsonb_typeof(v_state->'activeActivityIds') = 'array'
+            THEN v_state->'activeActivityIds'
+          ELSE '[]'::jsonb
+        END
+      ) @> jsonb_build_array(p_activity_id::text)
+    ) THEN
+      RAISE EXCEPTION 'Question activity is not selected';
+    END IF;
     v_runtime := CASE
       WHEN jsonb_typeof(v_state->'activityRuntime') = 'object'
         THEN v_state->'activityRuntime'

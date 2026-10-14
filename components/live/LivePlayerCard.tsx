@@ -1,3 +1,5 @@
+// components\live\LivePlayerCard.tsx
+
 "use client";
 
 import type { CSSProperties } from "react";

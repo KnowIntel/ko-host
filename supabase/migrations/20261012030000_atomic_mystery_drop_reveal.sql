@@ -38,10 +38,12 @@ BEGIN
   PERFORM 1
   FROM public.live_experiences
   WHERE id = p_experience_id
+    AND is_enabled = true
+    AND status = 'live'
   FOR UPDATE;
 
   IF NOT FOUND THEN
-    RAISE EXCEPTION 'Live experience not found';
+    RAISE EXCEPTION 'Live experience is not available';
   END IF;
 
   /*

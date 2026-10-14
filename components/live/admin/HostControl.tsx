@@ -2315,10 +2315,37 @@ const [error, setError] =
                     drop.id ?? "",
                   );
 
-                  const current =
-                    data.activityRuntime
-                      ?.sharedState
-                      .currentDropId === dropId;
+const sharedState =
+  data.activityRuntime?.sharedState ?? {};
+
+const activityRuntime =
+  sharedState.activityRuntime;
+
+const activityState =
+  activityRuntime &&
+  typeof activityRuntime === "object" &&
+  !Array.isArray(activityRuntime)
+    ? (
+        activityRuntime as Record<
+          string,
+          unknown
+        >
+      )[data.activity!.id]
+    : null;
+
+const selectedActivityState =
+  activityState &&
+  typeof activityState === "object" &&
+  !Array.isArray(activityState)
+    ? (activityState as Record<string, unknown>)
+    : {};
+
+const currentDropId =
+  data.allowMultipleActiveActivities
+    ? selectedActivityState.currentDropId
+    : sharedState.currentDropId;
+
+const current = currentDropId === dropId;
 
                   return (
                     <div

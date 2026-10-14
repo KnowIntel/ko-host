@@ -1,3 +1,5 @@
+// lib\live\activitySelection.ts
+
 export type LiveActivitySelection = {
   allowMultipleActiveActivities: boolean;
   activeActivityIds: string[];

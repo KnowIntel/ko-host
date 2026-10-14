@@ -593,14 +593,12 @@ function LiveInactiveDim({
     Boolean(sharedState) &&
     Boolean(activityType);
 
-  const selectedActivity = activeActivities.find(
-    (activity) => activity.id === selectedActivityId,
-  );
-
   const isCurrent = allowMultipleActiveActivities
-    ? Boolean(selectedActivity) &&
-      selectedActivity?.activityType === activityType &&
-      (!activityId || activityId === selectedActivityId)
+    ? activeActivities.some(
+        (activity) =>
+          activity.activityType === activityType &&
+          (!activityId || activity.id === activityId),
+      )
     : sharedState?.currentActivityType === activityType &&
       (!activityId || sharedState?.currentActivityId === activityId);
 

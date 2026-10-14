@@ -397,20 +397,20 @@ export default function LiveScavengerHunt({
 
                   <button
                     type="button"
-                    disabled={Boolean(submittingId)}
-                    onClick={() =>
-                      void complete(
-                        item.id,
-                        responseValue,
-                      )
-                    }
+disabled={Boolean(submittingId) || isCompleted}
+onClick={() =>
+  void complete(
+    item.id,
+    responseValue,
+  )
+}
                     className="mt-2 rounded-xl bg-neutral-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
                   >
                     {submittingId === item.id
                       ? "Saving..."
-                      : isCompleted
-                        ? "Update"
-                        : "Complete"}
+: isCompleted
+  ? "Completed"
+  : "Complete"}
                   </button>
                 </div>
               ) : null}

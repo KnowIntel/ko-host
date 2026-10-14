@@ -1,3 +1,5 @@
+// lib\live\participantActivityRuntime.ts
+
 import { authenticateLiveParticipant } from "@/lib/live/authenticateParticipant";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import {
