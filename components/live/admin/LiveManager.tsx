@@ -1257,14 +1257,6 @@ if (
       return;
     }
 
-    if (multipleMode) {
-      setError(
-        "Question controls for Multiple Activity Mode " +
-          "are not yet available.",
-      );
-      return;
-    }
-
     setActivating(true);
     setError(null);
     setMessage(null);
@@ -1286,17 +1278,17 @@ if (
               "application/json",
           },
 
-          body: JSON.stringify({
-currentActivityType:
-  selectedActivity.activityType,
+body: JSON.stringify({
+  currentActivityType:
+    selectedActivity.activityType,
 
-            currentActivityId:
-              selectedActivity.id,
+  currentActivityId:
+    selectedActivity.id,
 
-            state: {
-              currentQuestionId: questionId,
-            },
-          }),
+state: {
+  currentQuestionId: questionId,
+},
+}),
         },
       );
 
@@ -1673,12 +1665,20 @@ currentActivityType:
           <button
             type="button"
             disabled={updatingSelection || !multipleMode}
-            onClick={() => {
-              void updateActivitySelection(
-                false,
-                activeActivityIds.slice(0, 1),
-              );
-            }}
+onClick={() => {
+  const confirmed = window.confirm(
+    "Enable Multiple Activity Mode? " +
+    "This will allow multiple Live activities " +
+    "to appear simultaneously to participants.",
+  );
+
+  if (!confirmed) return;
+
+  void updateActivitySelection(
+    true,
+    activeActivityIds,
+  );
+}}
             className={`rounded-lg border px-4 py-2 text-sm font-medium disabled:opacity-50 ${
               !multipleMode
                 ? "border-neutral-900 bg-neutral-900 text-white"
@@ -1688,10 +1688,10 @@ currentActivityType:
             Single Activity
           </button>
 
-          <button
-            type="button"
-            disabled
-            title="Available after final integration testing"
+<button
+  type="button"
+  disabled={updatingSelection}
+  title="Enable Multiple Activity Mode"
             onClick={() => {
               void updateActivitySelection(
                 true,
@@ -2069,7 +2069,6 @@ onClick={() => {
 
                                 <div className="flex items-center gap-2">
 {selectedActivityIsLive &&
-!multipleMode &&
 !isCurrentQuestion ? (
                                     <button
                                       type="button"

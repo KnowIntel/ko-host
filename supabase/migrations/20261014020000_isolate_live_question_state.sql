@@ -60,8 +60,10 @@ BEGIN
     ELSE '{}'::jsonb
   END;
 
-  v_multi :=
-    v_state->>'allowMultipleActiveActivities' = 'true';
+  v_multi := COALESCE(
+    v_state->>'allowMultipleActiveActivities' = 'true',
+    false
+  );
 
   -- Validate activity-specific Host runtime updates.
   IF p_host_runtime_key IS NOT NULL THEN
