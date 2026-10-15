@@ -70,3 +70,4 @@ export { LiveLotteryInspector } from "./LiveLotteryInspector";
 export { LiveLeaderboardInspector } from "./LiveLeaderboardInspector";
 export { LiveMysteryDropInspector } from "./LiveMysteryDropInspector";
 export { LiveAnnouncementInspector } from "./LiveAnnouncementInspector";
+export { ProgressTrackerInspector } from "./ProgressTrackerInspector";

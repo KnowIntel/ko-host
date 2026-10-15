@@ -80,6 +80,7 @@ import {
   FormulaBoardInspector,
   StoryCardsInspector,
   InteractiveHotspotsInspector,
+  ProgressTrackerInspector,
 } from "@/components/builder/inspector";
 
 /* ------------------------------------ INSPECTOR BLOCK FILES - END ------------------------------------ */
@@ -2423,6 +2424,8 @@ function getToolIconPath(tool: (typeof CATEGORY_BUTTONS)[BottomCategory][number]
   if (tool.label === "Summary") return "/menu-icons/block-summary.svg";
   if (tool.label === "Visitor Counter") return "/menu-icons/block-visitor-counter.svg";
   if (tool.label === "Progress Meter") return "/menu-icons/block-progress-meter.svg";
+  if (tool.label === "Progress Tracker") return "/menu-icons/block-progress-tracker.svg";
+  
 
   if (tool.label === "Countdown") return "/menu-icons/block-countdown.svg";
   if (tool.label === "Story Timeline") return "/menu-icons/block-story-timeline.svg";
@@ -5983,6 +5986,7 @@ if (selectedBlock?.type === "donation") {
   pushRecentColor(value);
   return;
 }
+
 
   if (selectedBlock?.type === "progress_bar") {
     updateSelectedBlock((block) => {
@@ -15485,6 +15489,13 @@ const idsToExpand =
 
 {null}
 
+
+{selectedBlock?.type === "progress_tracker" && (
+  <ProgressTrackerInspector
+    block={selectedBlock}
+    updateSelectedBlock={updateSelectedBlock}
+  />
+)}
 
 {selectedBlock?.type === "frame" ? (
   <FrameInspector
