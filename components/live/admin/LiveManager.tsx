@@ -281,6 +281,11 @@ export default function LiveManager({
     setActivityToDelete,
   ] = useState<Activity | null>(null);
 
+  const [
+  showMultipleModeConfirmation,
+  setShowMultipleModeConfirmation,
+] = useState(false);
+
   const [activating, setActivating] =
     useState(false);
 
@@ -1403,6 +1408,67 @@ state: {
 
   return (
     <>
+    {showMultipleModeConfirmation ? (
+  <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 p-4">
+    <div
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="multiple-mode-title"
+      aria-describedby="multiple-mode-description"
+      className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"
+    >
+      <h2
+        id="multiple-mode-title"
+        className="text-xl font-bold text-neutral-900"
+      >
+        Enable Multiple Activity Mode?
+      </h2>
+
+      <p
+        id="multiple-mode-description"
+        className="mt-3 text-sm leading-6 text-neutral-700"
+      >
+        Multiple Activity Mode allows you to make several
+        Live activities available to participants at the
+        same time.
+      </p>
+
+      <p className="mt-3 text-sm text-neutral-600">
+        You can return to Single Activity Mode at any time.
+      </p>
+
+      <div className="mt-6 flex justify-end gap-3">
+        <button
+          type="button"
+          disabled={updatingSelection}
+          onClick={() =>
+            setShowMultipleModeConfirmation(false)
+          }
+          className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-semibold text-neutral-800 hover:bg-neutral-50 disabled:opacity-50"
+        >
+          Cancel
+        </button>
+
+        <button
+          type="button"
+          disabled={updatingSelection}
+          onClick={async () => {
+            await updateActivitySelection(
+              true,
+              activeActivityIds,
+            );
+            setShowMultipleModeConfirmation(false);
+          }}
+          className="rounded-lg bg-neutral-900 px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-800 disabled:opacity-50"
+        >
+          {updatingSelection
+            ? "Enabling..."
+            : "Enable Multiple Activities"}
+        </button>
+      </div>
+    </div>
+  </div>
+) : null}
       {activityToDelete ? (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 p-4">
           <div
@@ -1666,17 +1732,9 @@ state: {
             type="button"
             disabled={updatingSelection || !multipleMode}
 onClick={() => {
-  const confirmed = window.confirm(
-    "Enable Multiple Activity Mode? " +
-    "This will allow multiple Live activities " +
-    "to appear simultaneously to participants.",
-  );
-
-  if (!confirmed) return;
-
   void updateActivitySelection(
-    true,
-    activeActivityIds,
+    false,
+    activeActivityIds.slice(0, 1),
   );
 }}
             className={`rounded-lg border px-4 py-2 text-sm font-medium disabled:opacity-50 ${
@@ -1692,12 +1750,9 @@ onClick={() => {
   type="button"
   disabled={updatingSelection}
   title="Enable Multiple Activity Mode"
-            onClick={() => {
-              void updateActivitySelection(
-                true,
-                activeActivityIds,
-              );
-            }}
+onClick={() => {
+  setShowMultipleModeConfirmation(true);
+}}
             className="rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-neutral-800 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Multiple Activities
