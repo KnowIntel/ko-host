@@ -1306,6 +1306,7 @@ UTILITIES: [
   { kind: "block", label: "Summary", type: "summary" },
   { kind: "block", label: "Visitor Counter", type: "visitor_counter" },
   { kind: "block", label: "Progress Meter", type: "progress_bar" },
+  { kind: "block", label: "Progress Tracker", type: "progress_tracker" },
 
     // Former Layout tools
   {

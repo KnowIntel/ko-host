@@ -22,6 +22,7 @@ import LiveLottery from "@/components/live/LiveLottery";
 import LiveLeaderboard from "@/components/live/LiveLeaderboard";
 import LiveMysteryDrop from "@/components/live/LiveMysteryDrop";
 import LiveAnnouncement from "@/components/live/LiveAnnouncement";
+import ProgressTrackerBlock from "@/components/blocks/ProgressTrackerBlock";
 import type { CSSProperties } from "react";
 import {
   ENROLLMENT_BOARD_PROFILE_EVENT,
@@ -41884,6 +41885,9 @@ case "content_panel":
 
     case "progress_bar":
       return renderProgressBar(block, designKey);
+case "progress_tracker":
+  return <ProgressTrackerBlock block={block} />;
+  
     case "donation":
       return renderDonation(block, designKey, micrositeId);
     case "link_hub":

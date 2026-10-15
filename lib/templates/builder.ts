@@ -105,7 +105,40 @@ export type PageBlockAppearance = Partial<
 /* =========================================
    Block Types
    ========================================= */
+export type ProgressTrackerMeasurement = {
+  id: string;
+  label: string;
+  unit?: string;
+  visible: boolean;
+  targetEnabled: boolean;
+  actualEnabled: boolean;
+  progression: {
+    mode: "none" | "increase" | "decrease";
+    step: number;
+    min?: number;
+    max?: number;
+  };
+};
 
+export type ProgressTrackerRow = {
+  id: string;
+  label: string;
+  targets: Record<string, number | null>;
+};
+
+export type ProgressTrackerBlock = BaseBlock & {
+  type: "progress_tracker";
+  data: {
+    title: string;
+    titleStyle?: TextStyle;
+    imageUrl?: string;
+    showImage: boolean;
+    showHistory: boolean;
+    measurements: ProgressTrackerMeasurement[];
+    rows: ProgressTrackerRow[];
+    progressionTrigger: "completion" | "manual";
+  };
+};
 export type BuilderBlockType =
   | "bookmark"
   | "puzzle"
@@ -144,6 +177,7 @@ export type BuilderBlockType =
   | "rich_text"
   | "video"
   | "progress_bar"
+  | "progress_tracker"
   | "visitor_counter"
   | "donation"
   | "link_hub"
@@ -5189,6 +5223,7 @@ export type MicrositeBlock = (
   | RichTextBlock
   | VideoBlock
   | ProgressBarBlock
+  | ProgressTrackerBlock
   | DonationBlock
   | LinkHubBlock
   | ChecklistBlock
@@ -6006,6 +6041,75 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
   const grid = createDefaultGrid();
 
   switch (type) {
+        case "progress_tracker":
+      return {
+        id: makeId("progress_tracker"),
+        type: "progress_tracker",
+        label: "Progress Tracker",
+        grid: {
+          ...grid,
+          colSpan: 6,
+          rowSpan: 5,
+        },
+        appearance: createDefaultBlockAppearance(),
+        data: {
+          title: "Progress Tracker",
+          titleStyle: createDefaultTextStyle(),
+          imageUrl: "",
+          showImage: false,
+          showHistory: true,
+          progressionTrigger: "completion",
+          measurements: [
+            {
+              id: "weight",
+              label: "Weight",
+              unit: "lbs",
+              visible: true,
+              targetEnabled: true,
+              actualEnabled: true,
+              progression: {
+                mode: "none",
+                step: 0,
+              },
+            },
+            {
+              id: "reps",
+              label: "Reps",
+              unit: "",
+              visible: true,
+              targetEnabled: true,
+              actualEnabled: true,
+              progression: {
+                mode: "none",
+                step: 0,
+              },
+            },
+          ],
+          rows: [
+            {
+              id: "set_1",
+              label: "Set 1",
+              targets: { weight: 50, reps: 12 },
+            },
+            {
+              id: "set_2",
+              label: "Set 2",
+              targets: { weight: 60, reps: 10 },
+            },
+            {
+              id: "set_3",
+              label: "Set 3",
+              targets: { weight: 70, reps: 8 },
+            },
+            {
+              id: "set_4",
+              label: "Set 4",
+              targets: { weight: 80, reps: 6 },
+            },
+          ],
+        },
+      };
+      
         case "bookmark":
       return {
         id: makeId("bookmark"),
