@@ -275,10 +275,6 @@ const loadTrivia = useCallback(async () => {
    * needs to react to that state changing.
    */
 useEffect(() => {
-  setRuntimeData(null);
-  setSelectedChoiceId("");
-  setError(null);
-
   void loadTrivia();
 
   return () => {
