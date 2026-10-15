@@ -93,6 +93,51 @@ export async function POST(
      * - Completion count calculation
      * - Final completion timestamp
      */
+    const isEdit = input.isEdit === true;
+
+    if (isEdit) {
+      const { data: updated, error: updateError } =
+        await context.supabase.rpc(
+          "update_live_scavenger_hunt_response_atomic",
+          {
+            p_experience_id: context.safeExperienceId,
+            p_participant_id: context.participant.participantId,
+            p_activity_id: context.activity.id,
+            p_item_id: itemId,
+            p_response_text: responseText,
+          },
+        );
+
+      if (updateError) {
+        const message = updateError.message || "";
+
+        if (
+          message === "Scavenger Hunt completion not found" ||
+          message === "Scavenger Hunt item is not completed"
+        ) {
+          return NextResponse.json(
+            { ok: false, error: message },
+            { status: 409 },
+          );
+        }
+
+        throw updateError;
+      }
+
+      await broadcastLiveActivityChange(
+        context.supabase,
+        context.safeExperienceId,
+        context.activity.id,
+      );
+
+      return NextResponse.json({
+        ok: true,
+        itemId,
+        updated: updated === true,
+        awardedPoints: 0,
+      });
+    }
+
     const {
       data,
       error,

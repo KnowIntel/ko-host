@@ -170,11 +170,12 @@ export default function LiveScavengerHunt({
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            activityId: requestActivityId,
-            itemId,
-            responseText,
-          }),
+body: JSON.stringify({
+  activityId: requestActivityId,
+  itemId,
+  responseText,
+  isEdit: Boolean(completed[itemId]),
+}),
         },
       );
 
@@ -397,7 +398,7 @@ export default function LiveScavengerHunt({
 
                   <button
                     type="button"
-disabled={Boolean(submittingId) || isCompleted}
+disabled={Boolean(submittingId)}
 onClick={() =>
   void complete(
     item.id,
@@ -406,11 +407,11 @@ onClick={() =>
 }
                     className="mt-2 rounded-xl bg-neutral-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
                   >
-                    {submittingId === item.id
-                      ? "Saving..."
-: isCompleted
-  ? "Completed"
-  : "Complete"}
+{submittingId === item.id
+  ? "Saving..."
+  : isCompleted
+    ? "Save Changes"
+    : "Complete"}
                   </button>
                 </div>
               ) : null}
