@@ -364,12 +364,12 @@ export function LiveRuntimeProvider({
             setSharedState(null);
           }
 
-          const multipleMode =
-            payload.allowMultipleActiveActivities === true;
+const multipleMode =
+  payload.sharedState?.allowMultipleActiveActivities === true;
 
-          const nextActiveActivities: LiveActiveActivity[] =
-            Array.isArray(payload.activeActivities)
-              ? payload.activeActivities.filter(
+const nextActiveActivities: LiveActiveActivity[] =
+  Array.isArray(payload.sharedState?.activeActivities)
+    ? payload.sharedState.activeActivities.filter(
                   (
                     activity: unknown,
                   ): activity is LiveActiveActivity => {
