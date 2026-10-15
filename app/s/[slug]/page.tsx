@@ -17,7 +17,7 @@ export const revalidate = 0;
 /* ================================================================= */
 /* SHARE / OPEN GRAPH METADATA */
 /* ================================================================= */
-
+ 
 export async function generateMetadata({
   params,
 }: {

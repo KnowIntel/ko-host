@@ -41885,9 +41885,17 @@ case "content_panel":
 
     case "progress_bar":
       return renderProgressBar(block, designKey);
+      
 case "progress_tracker":
-  return <ProgressTrackerBlock block={block} />;
-  
+  return (
+    <ProgressTrackerBlock
+      block={block}
+      micrositeId={micrositeId}
+      previewMode={previewMode}
+      isBuilder={isBuilder}
+    />
+  );
+
     case "donation":
       return renderDonation(block, designKey, micrositeId);
     case "link_hub":

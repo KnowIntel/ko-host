@@ -1881,6 +1881,7 @@ const isInteractiveBlock =
   block.type === "puzzle" ||
   block.type === "spin_wheel" ||
   block.type === "spreadsheet" ||
+  block.type === "progress_tracker" ||
   block.type === "audio" ||
   block.type === "video" ||
   block.type === "frame";
