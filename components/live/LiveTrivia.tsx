@@ -152,7 +152,15 @@ const triviaActivityId = useMemo(() => {
       activity.activityType === "trivia",
   );
 
-  return selectedTrivia?.id ?? null;
+  if (selectedTrivia) {
+    return selectedTrivia.id;
+  }
+
+  return (
+    activeActivities.find(
+      (activity) => activity.activityType === "trivia",
+    )?.id ?? null
+  );
 }, [
   allowMultipleActiveActivities,
   activeActivities,
