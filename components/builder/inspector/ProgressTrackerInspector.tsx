@@ -1,22 +1,54 @@
+
 "use client";
 
 import type {
-  ProgressTrackerBlock,
   MicrositeBlock,
+  ProgressTrackerBlock,
+  ProgressTrackerMeasurement,
+  ProgressTrackerRow,
+  TextStyle,
 } from "@/lib/templates/builder";
 
 type Props = {
   block: ProgressTrackerBlock;
   updateSelectedBlock: (
-  updater: (block: MicrositeBlock) => MicrositeBlock
-) => void;
+    updater: (block: MicrositeBlock) => MicrositeBlock
+  ) => void;
 };
+
+type TrackerData = ProgressTrackerBlock["data"];
+
+const inputClass =
+  "w-full min-w-0 rounded border px-3 py-2 text-sm";
+
+const buttonClass =
+  "rounded border px-3 py-2 text-sm hover:bg-gray-100";
+
+const labelClass = "block text-xs font-medium mb-1";
+
+const sectionClass = "space-y-3 rounded-lg border p-3";
+
+function makeId(prefix: string) {
+  return `${prefix}_${crypto.randomUUID()}`;
+}
+
+function optionalNumber(value: string): number | undefined {
+  if (value.trim() === "") return undefined;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+function targetNumber(value: string): number | null {
+  return optionalNumber(value) ?? null;
+}
 
 export function ProgressTrackerInspector({
   block,
   updateSelectedBlock,
 }: Props) {
-  const updateData = (patch: Partial<ProgressTrackerBlock["data"]>) => {
+  const data = block.data;
+
+  function updateData(patch: Partial<TrackerData>) {
     updateSelectedBlock((current) => {
       if (current.type !== "progress_tracker") return current;
 
@@ -28,32 +60,676 @@ export function ProgressTrackerInspector({
         },
       };
     });
-  };
+  }
+
+  function updateMeasurement(
+    id: string,
+    patch: Partial<ProgressTrackerMeasurement>
+  ) {
+    updateData({
+      measurements: data.measurements.map((measurement) =>
+        measurement.id === id
+          ? { ...measurement, ...patch }
+          : measurement
+      ),
+    });
+  }
+
+  function updateRow(id: string, patch: Partial<ProgressTrackerRow>) {
+    updateData({
+      rows: data.rows.map((row) =>
+        row.id === id ? { ...row, ...patch } : row
+      ),
+    });
+  }
+
+  function updateTarget(
+    rowId: string,
+    measurementId: string,
+    value: string
+  ) {
+    updateData({
+      rows: data.rows.map((row) =>
+        row.id === rowId
+          ? {
+              ...row,
+              targets: {
+                ...row.targets,
+                [measurementId]: targetNumber(value),
+              },
+            }
+          : row
+      ),
+    });
+  }
+
+  function updateTitleStyle(patch: Partial<TextStyle>) {
+    updateData({
+      titleStyle: {
+        ...(data.titleStyle ?? {}),
+        ...patch,
+      },
+    });
+  }
+
+  function addRow() {
+    updateData({
+      rows: [
+        ...data.rows,
+        {
+          id: makeId("row"),
+          label: `Row ${data.rows.length + 1}`,
+          targets: {},
+        },
+      ],
+    });
+  }
+
+  function removeRow(id: string) {
+    updateData({
+      rows: data.rows.filter((row) => row.id !== id),
+    });
+  }
+
+  function moveRow(index: number, direction: -1 | 1) {
+    const nextIndex = index + direction;
+
+    if (nextIndex < 0 || nextIndex >= data.rows.length) return;
+
+    const rows = [...data.rows];
+    [rows[index], rows[nextIndex]] = [
+      rows[nextIndex],
+      rows[index],
+    ];
+
+    updateData({ rows });
+  }
+
+  function addMeasurement() {
+    updateData({
+      measurements: [
+        ...data.measurements,
+        {
+          id: makeId("measurement"),
+          label: "New Measurement",
+          unit: "",
+          visible: true,
+          targetEnabled: true,
+          actualEnabled: true,
+          progression: {
+            mode: "none",
+            step: 0,
+          },
+        },
+      ],
+    });
+  }
+
+  function removeMeasurement(id: string) {
+    updateData({
+      measurements: data.measurements.filter(
+        (measurement) => measurement.id !== id
+      ),
+      rows: data.rows.map((row) => {
+        const targets = { ...row.targets };
+        delete targets[id];
+
+        return { ...row, targets };
+      }),
+    });
+  }
+
+  function moveMeasurement(index: number, direction: -1 | 1) {
+    const nextIndex = index + direction;
+
+    if (
+      nextIndex < 0 ||
+      nextIndex >= data.measurements.length
+    ) {
+      return;
+    }
+
+    const measurements = [...data.measurements];
+
+    [measurements[index], measurements[nextIndex]] = [
+      measurements[nextIndex],
+      measurements[index],
+    ];
+
+    updateData({ measurements });
+  }
+
+  function updateProgression(
+    measurement: ProgressTrackerMeasurement,
+    patch: Partial<ProgressTrackerMeasurement["progression"]>
+  ) {
+    updateMeasurement(measurement.id, {
+      progression: {
+        ...measurement.progression,
+        ...patch,
+      },
+    });
+  }
 
   return (
     <div className="space-y-4">
-      <div>
-        <label className="mb-1 block text-sm font-medium">
-          Tracker Title
-        </label>
-        <input
-          type="text"
-          value={block.data.title}
-          onChange={(e) => updateData({ title: e.target.value })}
-          className="w-full rounded border px-3 py-2 text-sm"
-        />
-      </div>
+      {/* GENERAL */}
+      <section className={sectionClass}>
+        <h3 className="text-sm font-semibold">General</h3>
 
-      <div>
-        <label className="mb-1 block text-sm font-medium">
+        <div>
+          <label className={labelClass}>Tracker Title</label>
+          <input
+            type="text"
+            className={inputClass}
+            value={data.title}
+            onChange={(e) =>
+              updateData({ title: e.target.value })
+            }
+          />
+        </div>
+
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={data.showHistory}
+            onChange={(e) =>
+              updateData({ showHistory: e.target.checked })
+            }
+          />
           Show History
         </label>
-        <input
-          type="checkbox"
-          checked={block.data.showHistory}
-          onChange={(e) => updateData({ showHistory: e.target.checked })}
-        />
-      </div>
+      </section>
+
+      {/* TITLE STYLE */}
+      <section className={sectionClass}>
+        <h3 className="text-sm font-semibold">Title Appearance</h3>
+
+        <div>
+          <label className={labelClass}>Font Family</label>
+          <input
+            type="text"
+            className={inputClass}
+            placeholder="Inherit"
+            value={data.titleStyle?.fontFamily ?? ""}
+            onChange={(e) =>
+              updateTitleStyle({ fontFamily: e.target.value })
+            }
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <label className={labelClass}>Font Size</label>
+            <input
+              type="number"
+              min={1}
+              className={inputClass}
+              value={data.titleStyle?.fontSize ?? ""}
+              onChange={(e) =>
+                updateTitleStyle({
+                  fontSize: optionalNumber(e.target.value),
+                })
+              }
+            />
+          </div>
+
+          <div>
+            <label className={labelClass}>Text Color</label>
+            <input
+              type="color"
+              className="h-10 w-full cursor-pointer rounded border"
+              value={data.titleStyle?.color || "#111827"}
+              onChange={(e) =>
+                updateTitleStyle({ color: e.target.value })
+              }
+            />
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-3">
+          {(
+            [
+              ["bold", "Bold"],
+              ["italic", "Italic"],
+              ["underline", "Underline"],
+            ] as const
+          ).map(([field, label]) => (
+            <label
+              key={field}
+              className="flex items-center gap-1 text-xs"
+            >
+              <input
+                type="checkbox"
+                checked={Boolean(data.titleStyle?.[field])}
+                onChange={(e) =>
+                  updateTitleStyle({
+                    [field]: e.target.checked,
+                  })
+                }
+              />
+              {label}
+            </label>
+          ))}
+        </div>
+
+        <div>
+          <label className={labelClass}>Alignment</label>
+          <select
+            className={inputClass}
+            value={data.titleStyle?.align ?? "left"}
+            onChange={(e) =>
+              updateTitleStyle({
+                align: e.target.value as
+                  | "left"
+                  | "center"
+                  | "right",
+              })
+            }
+          >
+            <option value="left">Left</option>
+            <option value="center">Center</option>
+            <option value="right">Right</option>
+          </select>
+        </div>
+      </section>
+
+      {/* IMAGE */}
+      <section className={sectionClass}>
+        <h3 className="text-sm font-semibold">Image</h3>
+
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={data.showImage}
+            onChange={(e) =>
+              updateData({ showImage: e.target.checked })
+            }
+          />
+          Show Image
+        </label>
+
+        {data.showImage && (
+          <div>
+            <label className={labelClass}>Image URL</label>
+            <input
+              type="url"
+              className={inputClass}
+              placeholder="https://..."
+              value={data.imageUrl ?? ""}
+              onChange={(e) =>
+                updateData({ imageUrl: e.target.value })
+              }
+            />
+          </div>
+        )}
+      </section>
+
+      {/* ROWS */}
+      <section className={sectionClass}>
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="text-sm font-semibold">Rows</h3>
+
+          <button
+            type="button"
+            className={buttonClass}
+            onClick={addRow}
+          >
+            + Add Row
+          </button>
+        </div>
+
+        {data.rows.length === 0 && (
+          <p className="text-xs text-gray-500">
+            No rows configured.
+          </p>
+        )}
+
+        {data.rows.map((row, index) => (
+          <div
+            key={row.id}
+            className="space-y-2 rounded border p-2"
+          >
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                className={inputClass}
+                value={row.label}
+                placeholder="Row label"
+                onChange={(e) =>
+                  updateRow(row.id, { label: e.target.value })
+                }
+              />
+
+              <button
+                type="button"
+                className={buttonClass}
+                disabled={index === 0}
+                onClick={() => moveRow(index, -1)}
+                title="Move up"
+              >
+                ↑
+              </button>
+
+              <button
+                type="button"
+                className={buttonClass}
+                disabled={index === data.rows.length - 1}
+                onClick={() => moveRow(index, 1)}
+                title="Move down"
+              >
+                ↓
+              </button>
+            </div>
+
+            <button
+              type="button"
+              className="text-xs text-red-600"
+              onClick={() => removeRow(row.id)}
+            >
+              Remove Row
+            </button>
+          </div>
+        ))}
+      </section>
+
+      {/* MEASUREMENTS */}
+      <section className={sectionClass}>
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="text-sm font-semibold">Measurements</h3>
+
+          <button
+            type="button"
+            className={buttonClass}
+            onClick={addMeasurement}
+          >
+            + Add
+          </button>
+        </div>
+
+        {data.measurements.length === 0 && (
+          <p className="text-xs text-gray-500">
+            Add a measurement to begin.
+          </p>
+        )}
+
+        {data.measurements.map((measurement, index) => (
+          <div
+            key={measurement.id}
+            className="space-y-3 rounded-lg border p-3"
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold">
+                Measurement {index + 1}
+              </span>
+
+              <div className="flex gap-1">
+                <button
+                  type="button"
+                  className={buttonClass}
+                  disabled={index === 0}
+                  onClick={() => moveMeasurement(index, -1)}
+                >
+                  ↑
+                </button>
+
+                <button
+                  type="button"
+                  className={buttonClass}
+                  disabled={
+                    index === data.measurements.length - 1
+                  }
+                  onClick={() => moveMeasurement(index, 1)}
+                >
+                  ↓
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label className={labelClass}>Name</label>
+              <input
+                type="text"
+                className={inputClass}
+                value={measurement.label}
+                onChange={(e) =>
+                  updateMeasurement(measurement.id, {
+                    label: e.target.value,
+                  })
+                }
+              />
+            </div>
+
+            <div>
+              <label className={labelClass}>Unit</label>
+              <input
+                type="text"
+                className={inputClass}
+                placeholder="Optional (lbs, km, min...)"
+                value={measurement.unit ?? ""}
+                onChange={(e) =>
+                  updateMeasurement(measurement.id, {
+                    unit: e.target.value,
+                  })
+                }
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={measurement.visible}
+                  onChange={(e) =>
+                    updateMeasurement(measurement.id, {
+                      visible: e.target.checked,
+                    })
+                  }
+                />
+                Visible
+              </label>
+
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={measurement.targetEnabled}
+                  onChange={(e) =>
+                    updateMeasurement(measurement.id, {
+                      targetEnabled: e.target.checked,
+                    })
+                  }
+                />
+                Enable Target Values
+              </label>
+
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={measurement.actualEnabled}
+                  onChange={(e) =>
+                    updateMeasurement(measurement.id, {
+                      actualEnabled: e.target.checked,
+                    })
+                  }
+                />
+                Enable Participant Actual Values
+              </label>
+            </div>
+
+            {/* TARGET VALUES */}
+            {measurement.targetEnabled && (
+              <div className="space-y-2 border-t pt-3">
+                <h4 className="text-xs font-semibold">
+                  Targets by Row
+                </h4>
+
+                {data.rows.map((row) => (
+                  <label
+                    key={row.id}
+                    className="flex items-center justify-between gap-2 text-sm"
+                  >
+                    <span className="min-w-0 truncate">
+                      {row.label}
+                    </span>
+
+                    <input
+                      type="number"
+                      step="any"
+                      className="w-24 rounded border px-2 py-1 text-sm"
+                      value={
+                        row.targets[measurement.id] ?? ""
+                      }
+                      onChange={(e) =>
+                        updateTarget(
+                          row.id,
+                          measurement.id,
+                          e.target.value
+                        )
+                      }
+                    />
+                  </label>
+                ))}
+              </div>
+            )}
+
+            {/* PROGRESSION */}
+            <div className="space-y-3 border-t pt-3">
+              <h4 className="text-xs font-semibold">
+                Automatic Progression
+              </h4>
+
+              <div>
+                <label className={labelClass}>
+                  Progression Mode
+                </label>
+                <select
+                  className={inputClass}
+                  value={measurement.progression.mode}
+                  onChange={(e) =>
+                    updateProgression(measurement, {
+                      mode: e.target.value as
+                        | "none"
+                        | "increase"
+                        | "decrease",
+                    })
+                  }
+                >
+                  <option value="none">None</option>
+                  <option value="increase">Increase</option>
+                  <option value="decrease">Decrease</option>
+                </select>
+              </div>
+
+              {measurement.progression.mode !== "none" && (
+                <>
+                  <div>
+                    <label className={labelClass}>
+                      Step Amount
+                    </label>
+                    <input
+                      type="number"
+                      min={0}
+                      step="any"
+                      className={inputClass}
+                      value={measurement.progression.step}
+                      onChange={(e) =>
+                        updateProgression(measurement, {
+                          step: Math.max(
+                            0,
+                            optionalNumber(e.target.value) ?? 0
+                          ),
+                        })
+                      }
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className={labelClass}>
+                        Minimum
+                      </label>
+                      <input
+                        type="number"
+                        step="any"
+                        className={inputClass}
+                        value={
+                          measurement.progression.min ?? ""
+                        }
+                        onChange={(e) =>
+                          updateProgression(measurement, {
+                            min: optionalNumber(e.target.value),
+                          })
+                        }
+                      />
+                    </div>
+
+                    <div>
+                      <label className={labelClass}>
+                        Maximum
+                      </label>
+                      <input
+                        type="number"
+                        step="any"
+                        className={inputClass}
+                        value={
+                          measurement.progression.max ?? ""
+                        }
+                        onChange={(e) =>
+                          updateProgression(measurement, {
+                            max: optionalNumber(e.target.value),
+                          })
+                        }
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+
+            <button
+              type="button"
+              className="text-sm text-red-600"
+              onClick={() =>
+                removeMeasurement(measurement.id)
+              }
+            >
+              Remove Measurement
+            </button>
+          </div>
+        ))}
+      </section>
+
+      {/* COMPLETION SETTINGS */}
+      <section className={sectionClass}>
+        <h3 className="text-sm font-semibold">
+          Completion & Progression
+        </h3>
+
+        <div>
+          <label className={labelClass}>
+            When to Apply Progression
+          </label>
+
+          <select
+            className={inputClass}
+            value={data.progressionTrigger}
+            onChange={(e) =>
+              updateData({
+                progressionTrigger: e.target.value as
+                  | "completion"
+                  | "manual",
+              })
+            }
+          >
+            <option value="completion">
+              After Overall Completion
+            </option>
+            <option value="manual">
+              Manual Only
+            </option>
+          </select>
+        </div>
+      </section>
     </div>
   );
 }

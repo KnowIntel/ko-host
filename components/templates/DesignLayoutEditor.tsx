@@ -19500,6 +19500,13 @@ selectedBlock?.type === "live_poll" ? (
   />
 ) : null}
 
+{!isMultiSelection && selectedBlock?.type === "progress_tracker" ? (
+  <ProgressTrackerInspector
+    block={selectedBlock}
+    updateSelectedBlock={updateSelectedBlock}
+  />
+) : null}
+
 {!isMultiSelection && selectedBlock?.type === "puzzle" ? (
   <PuzzleInspector
     selectedBlock={selectedBlock}
