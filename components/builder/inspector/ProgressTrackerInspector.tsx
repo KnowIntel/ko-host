@@ -256,15 +256,17 @@ progression: {
         )
       }
     >
-      <option value="title">Tracker Title</option>
-      <option value="rowLabel">Row Labels</option>
-      <option value="measurementLabel">Measurement Labels</option>
-      <option value="targetLabel">Target Labels</option>
-      <option value="actualLabel">Actual Labels</option>
-      <option value="sessionInfo">Session Information</option>
-      <option value="completionStatus">Completion Status</option>
-      <option value="buttonText">Button Text</option>
-      <option value="historyText">History Text</option>
+<option value="title">Tracker Title</option>
+<option value="rowLabel">Row Labels</option>
+<option value="measurementLabel">Measurement Labels</option>
+<option value="targetLabel">Target Labels</option>
+<option value="actualLabel">Actual Labels</option>
+<option value="targetValue">Target Values</option>
+<option value="actualValue">Actual Values</option>
+<option value="sessionInfo">Session Information</option>
+<option value="completionStatus">Completion Status</option>
+<option value="buttonText">Button Text</option>
+<option value="historyText">History Text</option>
     </select>
   </div>
 
@@ -299,33 +301,106 @@ progression: {
     to customize its text or appearance.
   </p>
 </section>
-      {/* GENERAL */}
-      <section className={sectionClass}>
-        <h3 className="text-sm font-semibold">General</h3>
 
-        <div>
-          <label className={labelClass}>Tracker Title</label>
-          <input
-            type="text"
-            className={inputClass}
-            value={data.title}
-            onChange={(e) =>
-              updateData({ title: e.target.value })
-            }
-          />
-        </div>
+{/* GENERAL */}
+<section className={sectionClass}>
+  <h3 className="text-sm font-semibold">General</h3>
 
-        <label className="flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={data.showHistory}
-            onChange={(e) =>
-              updateData({ showHistory: e.target.checked })
-            }
-          />
-          Show History
-        </label>
-      </section>
+  {/* TRACKER TITLE */}
+  <div>
+    <label className={labelClass}>
+      Tracker Title
+    </label>
+
+    <input
+      type="text"
+      className={inputClass}
+      value={data.title}
+      onChange={(e) =>
+        updateData({
+          title: e.target.value,
+        })
+      }
+    />
+  </div>
+
+  {/* SHOW HISTORY */}
+  <label className="flex items-center gap-2 text-sm">
+    <input
+      type="checkbox"
+      checked={data.showHistory}
+      onChange={(e) =>
+        updateData({
+          showHistory: e.target.checked,
+        })
+      }
+    />
+    Show History
+  </label>
+
+  {/* COMPLETION LABEL VERTICAL SPACING */}
+  <div className="space-y-2 border-t pt-3">
+    <div className="flex items-center justify-between gap-2">
+      <label className={labelClass}>
+        Completion Label Vertical Spacing
+      </label>
+
+      <span className="text-xs text-gray-500">
+        {data.completionLabelVerticalSpacing ?? 0}px
+      </span>
+    </div>
+
+    <input
+      type="range"
+      min={0}
+      max={100}
+      step={1}
+      value={
+        data.completionLabelVerticalSpacing ?? 0
+      }
+      onChange={(e) =>
+        updateData({
+          completionLabelVerticalSpacing: Number(
+            e.target.value
+          ),
+        })
+      }
+      className="w-full cursor-pointer"
+    />
+  </div>
+
+  {/* COMPLETION BUTTON VERTICAL SPACING */}
+  <div className="space-y-2">
+    <div className="flex items-center justify-between gap-2">
+      <label className={labelClass}>
+        Completion Button Vertical Spacing
+      </label>
+
+      <span className="text-xs text-gray-500">
+        {data.completionButtonVerticalSpacing ?? 0}px
+      </span>
+    </div>
+
+    <input
+      type="range"
+      min={0}
+      max={100}
+      step={1}
+      value={
+        data.completionButtonVerticalSpacing ?? 0
+      }
+      onChange={(e) =>
+        updateData({
+          completionButtonVerticalSpacing: Number(
+            e.target.value
+          ),
+        })
+      }
+      className="w-full cursor-pointer"
+    />
+  </div>
+</section>
+
 
 
 {/* IMAGE */}

@@ -415,17 +415,29 @@ export default function ProgressTrackerBlock({
     block.data.measurementLabelStyle
   );
 
-  const targetLabelCss = toTrackerTextCss(
-    block.data.targetLabelStyle
-  );
 
-  const actualLabelCss = toTrackerTextCss(
-    block.data.actualLabelStyle
-  );
+const targetLabelCss = toTrackerTextCss(
+  block.data.targetLabelStyle
+);
 
-  const sessionInfoCss = toTrackerTextCss(
-    block.data.sessionInfoStyle
-  );
+const actualLabelCss = toTrackerTextCss(
+  block.data.actualLabelStyle
+);
+
+// TARGET VALUES TEXT FORMATTING
+const targetValueCss = toTrackerTextCss(
+  block.data.targetValueStyle
+);
+
+// ACTUAL VALUES TEXT FORMATTING
+const actualValueCss = toTrackerTextCss(
+  block.data.actualValueStyle
+);
+
+const sessionInfoCss = toTrackerTextCss(
+  block.data.sessionInfoStyle
+);
+
 
   const completionStatusCss = toTrackerTextCss(
     block.data.completionStatusStyle
@@ -1122,10 +1134,10 @@ const actual =
                             {measurement.targetEnabled && (
                               <span
                                 className="text-xs opacity-70"
-                                style={{
-                                  ...targetFieldCss,
-                                  ...targetLabelCss,
-                                }}
+style={{
+  ...targetFieldCss,
+  ...targetValueCss,
+}}
                               >
                                 {target ?? "—"}
                               </span>
@@ -1139,11 +1151,14 @@ const actual =
                                 step="any"
                                 inputMode="decimal"
                                 aria-label={`${row.label} ${measurement.label} actual`}
-                                className="w-20 max-w-full rounded border px-2 py-1 text-center text-sm"
-                                style={{
-                                  ...actualFieldCss,
-                                  ...actualLabelCss,
-                                }}
+className="min-h-[34px] w-20 max-w-full rounded border px-2 py-1"
+style={{
+  ...actualFieldCss,
+  ...actualValueCss,
+  height: "auto",
+  minHeight: `max(34px, calc(${actualValueCss.fontSize ?? "14px"} * 1.5 + 12px))`,
+  boxSizing: "border-box",
+}}
                                 value={actual ?? ""}
                                 disabled={
                                   editingDisabled
@@ -1189,13 +1204,18 @@ const actual =
         </table>
       </div>
 
-      {/* COMPLETION PROGRESS */}
+{/* COMPLETION PROGRESS */}
 
-      <div className="space-y-3">
-        <div
-          className="flex items-center justify-between text-xs"
-          style={completionStatusCss}
-        >
+<div className="space-y-3">
+<div
+  className="flex items-center justify-between text-xs"
+  style={{
+    ...completionStatusCss,
+    marginTop: `${
+      block.data.completionLabelVerticalSpacing ?? 0
+    }px`,
+  }}
+>
           <span>
             {completedCount} of {rows.length} rows
             complete
@@ -1220,13 +1240,16 @@ const actual =
 
         {/* COMPLETE SESSION BUTTON */}
 
-        <button
-          type="button"
-          className="w-full rounded-lg bg-gray-900 px-4 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"
-          style={{
-            ...buttonCss,
-            ...buttonTextCss,
-          }}
+<button
+  type="button"
+  className="w-full rounded-lg bg-gray-900 px-4 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"
+  style={{
+    ...buttonCss,
+    ...buttonTextCss,
+    marginTop: `${
+      block.data.completionButtonVerticalSpacing ?? 0
+    }px`,
+  }}
           disabled={
             !allRowsChecked ||
             editingDisabled ||
@@ -1401,34 +1424,32 @@ const actual =
                                           measurementFieldCss
                                         }
                                       >
-                                        {measurement.targetEnabled && (
-                                          <span
-                                            className="opacity-60"
-                                            style={{
-                                              ...targetFieldCss,
-                                              ...targetLabelCss,
-                                            }}
-                                          >
-                                            {target ??
-                                              "—"}
-                                          </span>
-                                        )}
+{measurement.targetEnabled && (
+  <span
+    className="opacity-60"
+    style={{
+      ...targetFieldCss,
+      ...targetValueCss,
+    }}
+  >
+    {target ?? "—"}
+  </span>
+)}
 
                                         {measurement.targetEnabled &&
                                           measurement.actualEnabled &&
                                           " / "}
 
-                                        {measurement.actualEnabled && (
-                                          <span
-                                            style={{
-                                              ...actualFieldCss,
-                                              ...actualLabelCss,
-                                            }}
-                                          >
-                                            {actual ??
-                                              "—"}
-                                          </span>
-                                        )}
+{measurement.actualEnabled && (
+  <span
+    style={{
+      ...actualFieldCss,
+      ...actualValueCss,
+    }}
+  >
+    {actual ?? "—"}
+  </span>
+)}
                                       </td>
                                     );
                                   }

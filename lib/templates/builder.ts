@@ -128,6 +128,7 @@ export type ProgressTrackerRow = {
 };
 
 
+
 export type ProgressTrackerBlock = BaseBlock & {
   type: "progress_tracker";
   data: {
@@ -136,6 +137,10 @@ export type ProgressTrackerBlock = BaseBlock & {
     imageUrl?: string;
     showImage: boolean;
     showHistory: boolean;
+
+    // Completion Layout
+    completionLabelVerticalSpacing?: number;
+    completionButtonVerticalSpacing?: number;
 
     // Tracker Configuration
     rowColumnHeading?: string;
@@ -149,6 +154,11 @@ export type ProgressTrackerBlock = BaseBlock & {
     measurementLabelStyle?: TextStyle;
     targetLabelStyle?: TextStyle;
     actualLabelStyle?: TextStyle;
+
+    // Value Formatting Targets (NEW)
+    targetValueStyle?: TextStyle;
+    actualValueStyle?: TextStyle;
+
     sessionInfoStyle?: TextStyle;
     completionStatusStyle?: TextStyle;
     buttonTextStyle?: TextStyle;
@@ -165,6 +175,7 @@ export type ProgressTrackerBlock = BaseBlock & {
     historyContainerStyle?: Partial<BlockAppearance>;
   };
 };
+
 
 export type BuilderBlockType =
   | "bookmark"

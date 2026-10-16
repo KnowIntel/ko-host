@@ -16,6 +16,8 @@ export type ProgressTrackerTextTarget =
   | "measurementLabel"
   | "targetLabel"
   | "actualLabel"
+  | "targetValue"
+  | "actualValue"
   | "sessionInfo"
   | "completionStatus"
   | "buttonText"
@@ -44,20 +46,34 @@ function getTextStyleKey(
   switch (target) {
     case "title":
       return "titleStyle";
+
     case "rowLabel":
       return "rowLabelStyle";
+
     case "measurementLabel":
       return "measurementLabelStyle";
+
     case "targetLabel":
       return "targetLabelStyle";
+
     case "actualLabel":
       return "actualLabelStyle";
+
+    case "targetValue":
+      return "targetValueStyle";
+
+    case "actualValue":
+      return "actualValueStyle";
+
     case "sessionInfo":
       return "sessionInfoStyle";
+
     case "completionStatus":
       return "completionStatusStyle";
+
     case "buttonText":
       return "buttonTextStyle";
+
     case "historyText":
       return "historyTextStyle";
   }
@@ -69,18 +85,25 @@ function getAppearanceStyleKey(
   switch (target) {
     case "container":
       return "containerStyle";
+
     case "row":
       return "rowStyle";
+
     case "measurementField":
       return "measurementFieldStyle";
+
     case "targetField":
       return "targetFieldStyle";
+
     case "actualField":
       return "actualFieldStyle";
+
     case "progressIndicator":
       return "progressIndicatorStyle";
+
     case "button":
       return "buttonStyle";
+
     case "historyContainer":
       return "historyContainerStyle";
   }
@@ -117,7 +140,7 @@ export function applyProgressTrackerTextStylePatch<
     data: {
       ...block.data,
       [key]: {
-        ...(block.data[key] as TextStyle | undefined ?? {}),
+        ...((block.data[key] as TextStyle | undefined) ?? {}),
         ...patch,
       },
     },
@@ -169,7 +192,9 @@ export function applyProgressTrackerStylePatch<
     data: {
       ...block.data,
       [key]: {
-        ...(block.data[key] as Partial<BlockAppearance> | undefined ?? {}),
+        ...((block.data[key] as
+          | Partial<BlockAppearance>
+          | undefined) ?? {}),
         ...patch,
       },
     },
