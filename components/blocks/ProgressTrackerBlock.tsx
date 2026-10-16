@@ -1099,15 +1099,13 @@ export default function ProgressTrackerBlock({
                           measurement.id
                         ];
 
-                      const actual =
-                        savedActual !== undefined
-                          ? savedActual
-                          : measurement.presetValues !==
-                                false &&
-                              measurement.targetEnabled &&
-                              measurement.actualEnabled
-                            ? target
-                            : null;
+const actual =
+  savedActual !== undefined
+    ? savedActual
+    : measurement.presetValues !== false &&
+        measurement.actualEnabled
+      ? target
+      : null;
 
                       return (
                         <td
