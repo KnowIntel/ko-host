@@ -955,9 +955,11 @@ const sessionInfoCss = toTrackerTextCss(
     >
       {/* SESSION NUMBER */}
       {block.data.showSessionNumber !== false && (
-        <span>
-          Session {sessionNumber}
-        </span>
+
+<span>
+  {block.data.sessionLabel?.trim() || "Session"} {sessionNumber}
+</span>
+
       )}
 
       {/* SAVE STATUS */}
@@ -1299,12 +1301,12 @@ style={{
             }
             aria-expanded={historyExpanded}
           >
-            <span>
-              Session History
-              {persistenceEnabled
-                ? ` (${history.length})`
-                : ""}
-            </span>
+
+<span>
+  {block.data.sessionLabel?.trim() || "Session"} History
+  {persistenceEnabled ? ` (${history.length})` : ""}
+</span>
+
 
             <span aria-hidden="true">
               {historyExpanded
@@ -1329,10 +1331,12 @@ style={{
                     className="rounded-lg border p-3"
                   >
                     <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-semibold">
-                      <span>
-                        Session{" "}
-                        {entry.session_number}
-                      </span>
+
+<span>
+  {block.data.sessionLabel?.trim() || "Session"}{" "}
+  {entry.session_number}
+</span>
+
 
                       <span className="font-normal opacity-70">
                         {formatDate(
