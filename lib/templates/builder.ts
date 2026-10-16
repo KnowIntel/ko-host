@@ -112,6 +112,7 @@ export type ProgressTrackerMeasurement = {
   visible: boolean;
   targetEnabled: boolean;
   actualEnabled: boolean;
+  presetValues?: boolean;
   progression: {
     mode: "none" | "increase" | "decrease";
     step: number;
@@ -6065,9 +6066,10 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
               label: "Weight",
               unit: "lbs",
               visible: true,
-              targetEnabled: true,
-              actualEnabled: true,
-              progression: {
+targetEnabled: true,
+actualEnabled: true,
+presetValues: true,
+progression: {
                 mode: "none",
                 step: 0,
               },
@@ -6109,7 +6111,7 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
           ],
         },
       };
-      
+
         case "bookmark":
       return {
         id: makeId("bookmark"),

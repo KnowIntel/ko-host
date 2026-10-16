@@ -153,13 +153,14 @@ export function ProgressTrackerInspector({
           id: makeId("measurement"),
           label: "New Measurement",
           unit: "",
-          visible: true,
-          targetEnabled: true,
-          actualEnabled: true,
-          progression: {
-            mode: "none",
-            step: 0,
-          },
+visible: true,
+targetEnabled: true,
+actualEnabled: true,
+presetValues: true,
+progression: {
+  mode: "none",
+  step: 0,
+},
         },
       ],
     });
@@ -554,6 +555,22 @@ export function ProgressTrackerInspector({
                 />
                 Enable Participant Actual Values
               </label>
+              <label className="flex items-center gap-2 text-sm">
+  <input
+    type="checkbox"
+    checked={measurement.presetValues !== false}
+    disabled={
+      !measurement.targetEnabled ||
+      !measurement.actualEnabled
+    }
+    onChange={(e) =>
+      updateMeasurement(measurement.id, {
+        presetValues: e.target.checked,
+      })
+    }
+  />
+  Preset Values
+</label>
             </div>
 
             {/* TARGET VALUES */}

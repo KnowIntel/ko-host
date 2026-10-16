@@ -781,10 +781,17 @@ export default function ProgressTrackerBlock({
                       targets[row.id]?.[measurement.id] ??
                       row.targets[measurement.id];
 
-                    const actual =
-                      session.actuals[row.id]?.[
-                        measurement.id
-                      ];
+const savedActual =
+  session.actuals[row.id]?.[measurement.id];
+
+const actual =
+  savedActual !== undefined
+    ? savedActual
+    : measurement.presetValues !== false &&
+        measurement.targetEnabled &&
+        measurement.actualEnabled
+      ? target
+      : null;
 
                     return (
                       <td

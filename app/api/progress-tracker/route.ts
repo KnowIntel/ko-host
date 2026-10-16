@@ -177,6 +177,29 @@ export async function GET(request: NextRequest) {
       ])
     );
 
+    const initialActuals = Object.fromEntries(
+  auth.configuration.rows.map((row) => [
+    row.id,
+    Object.fromEntries(
+      auth.configuration.measurements
+        .filter(
+          (measurement) =>
+            measurement.presetValues !== false &&
+            measurement.targetEnabled &&
+            measurement.actualEnabled
+        )
+        .filter(
+          (measurement) =>
+            typeof row.targets[measurement.id] === "number"
+        )
+        .map((measurement) => [
+          measurement.id,
+          row.targets[measurement.id],
+        ])
+    ),
+  ])
+);
+
     const { error: initializeError } = await supabase
       .from("progress_tracker_states")
       .upsert(
@@ -185,7 +208,7 @@ export async function GET(request: NextRequest) {
           block_id: blockId,
           participant_id: auth.participantId,
           current_targets: initialTargets,
-          actuals: {},
+          actuals: initialActuals,
           completed_rows: {},
           session_number: 1,
         },
@@ -210,6 +233,20 @@ export async function GET(request: NextRequest) {
       return jsonError("Unable to load tracker state.", 500);
     }
 
+    const { data: reconciledState, error: reconcileError } =
+  await supabase.rpc("reconcile_progress_tracker_state", {
+    p_state_id: state.id,
+    p_configuration: {
+      rows: auth.configuration.rows,
+      measurements: auth.configuration.measurements,
+    },
+  });
+
+if (reconcileError || !reconciledState) {
+  console.error("Tracker reconciliation failed:", reconcileError);
+  return jsonError("Unable to reconcile tracker state.", 500);
+}
+
     const { data: history, error: historyError } =
       await getHistory(state.id);
 
@@ -217,13 +254,13 @@ export async function GET(request: NextRequest) {
       return jsonError("Unable to load tracker history.", 500);
     }
 
-    return NextResponse.json({
-      participantId: auth.participantId,
-      blockId,
-      configuration: auth.configuration,
-      state,
-      history: history ?? [],
-    });
+return NextResponse.json({
+  participantId: auth.participantId,
+  blockId,
+  configuration: auth.configuration,
+  state: reconciledState,
+  history: history ?? [],
+});
   } catch (error) {
     console.error("Tracker GET failed:", error);
     return jsonError("Unable to load tracker.", 500);
