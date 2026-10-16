@@ -325,99 +325,6 @@ progression: {
         </label>
       </section>
 
-      {/* TITLE STYLE */}
-      <section className={sectionClass}>
-        <h3 className="text-sm font-semibold">Title Appearance</h3>
-
-        <div>
-          <label className={labelClass}>Font Family</label>
-          <input
-            type="text"
-            className={inputClass}
-            placeholder="Inherit"
-            value={data.titleStyle?.fontFamily ?? ""}
-            onChange={(e) =>
-              updateTitleStyle({ fontFamily: e.target.value })
-            }
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-2">
-          <div>
-            <label className={labelClass}>Font Size</label>
-            <input
-              type="number"
-              min={1}
-              className={inputClass}
-              value={data.titleStyle?.fontSize ?? ""}
-              onChange={(e) =>
-                updateTitleStyle({
-                  fontSize: optionalNumber(e.target.value),
-                })
-              }
-            />
-          </div>
-
-          <div>
-            <label className={labelClass}>Text Color</label>
-            <input
-              type="color"
-              className="h-10 w-full cursor-pointer rounded border"
-              value={data.titleStyle?.color || "#111827"}
-              onChange={(e) =>
-                updateTitleStyle({ color: e.target.value })
-              }
-            />
-          </div>
-        </div>
-
-        <div className="flex flex-wrap gap-3">
-          {(
-            [
-              ["bold", "Bold"],
-              ["italic", "Italic"],
-              ["underline", "Underline"],
-            ] as const
-          ).map(([field, label]) => (
-            <label
-              key={field}
-              className="flex items-center gap-1 text-xs"
-            >
-              <input
-                type="checkbox"
-                checked={Boolean(data.titleStyle?.[field])}
-                onChange={(e) =>
-                  updateTitleStyle({
-                    [field]: e.target.checked,
-                  })
-                }
-              />
-              {label}
-            </label>
-          ))}
-        </div>
-
-        <div>
-          <label className={labelClass}>Alignment</label>
-          <select
-            className={inputClass}
-            value={data.titleStyle?.align ?? "left"}
-            onChange={(e) =>
-              updateTitleStyle({
-                align: e.target.value as
-                  | "left"
-                  | "center"
-                  | "right",
-              })
-            }
-          >
-            <option value="left">Left</option>
-            <option value="center">Center</option>
-            <option value="right">Right</option>
-          </select>
-        </div>
-      </section>
-
       {/* IMAGE */}
       <section className={sectionClass}>
         <h3 className="text-sm font-semibold">Image</h3>
@@ -449,73 +356,97 @@ progression: {
         )}
       </section>
 
-      {/* ROWS */}
-      <section className={sectionClass}>
-        <div className="flex items-center justify-between gap-2">
-          <h3 className="text-sm font-semibold">Rows</h3>
 
-          <button
-            type="button"
-            className={buttonClass}
-            onClick={addRow}
-          >
-            + Add Row
-          </button>
-        </div>
+{/* ROWS */}
+<section className={sectionClass}>
+  <div className="flex items-center justify-between gap-2">
+    <h3 className="text-sm font-semibold">Rows</h3>
 
-        {data.rows.length === 0 && (
-          <p className="text-xs text-gray-500">
-            No rows configured.
-          </p>
-        )}
+    <button
+      type="button"
+      className={buttonClass}
+      onClick={addRow}
+    >
+      + Add Row
+    </button>
+  </div>
 
-        {data.rows.map((row, index) => (
-          <div
-            key={row.id}
-            className="space-y-2 rounded border p-2"
-          >
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                className={inputClass}
-                value={row.label}
-                placeholder="Row label"
-                onChange={(e) =>
-                  updateRow(row.id, { label: e.target.value })
-                }
-              />
+  {/* CUSTOMIZABLE COLUMN HEADING */}
+  <div>
+    <label className={labelClass}>
+      Row Column Heading
+    </label>
 
-              <button
-                type="button"
-                className={buttonClass}
-                disabled={index === 0}
-                onClick={() => moveRow(index, -1)}
-                title="Move up"
-              >
-                ↑
-              </button>
+    <input
+      type="text"
+      className={inputClass}
+      placeholder="ROW"
+      value={data.rowColumnHeading ?? "ROW"}
+      onChange={(e) =>
+        updateData({
+          rowColumnHeading: e.target.value,
+        })
+      }
+    />
+  </div>
 
-              <button
-                type="button"
-                className={buttonClass}
-                disabled={index === data.rows.length - 1}
-                onClick={() => moveRow(index, 1)}
-                title="Move down"
-              >
-                ↓
-              </button>
-            </div>
+  {/* ROW MANAGEMENT */}
+  {data.rows.length === 0 && (
+    <p className="text-xs text-gray-500">
+      No rows configured.
+    </p>
+  )}
 
-            <button
-              type="button"
-              className="text-xs text-red-600"
-              onClick={() => removeRow(row.id)}
-            >
-              Remove Row
-            </button>
-          </div>
-        ))}
-      </section>
+  {data.rows.map((row, index) => (
+    <div
+      key={row.id}
+      className="space-y-2 rounded border p-2"
+    >
+      <div className="flex items-center gap-2">
+        <input
+          type="text"
+          className={inputClass}
+          value={row.label}
+          placeholder="Row label"
+          onChange={(e) =>
+            updateRow(row.id, {
+              label: e.target.value,
+            })
+          }
+        />
+
+        <button
+          type="button"
+          className={buttonClass}
+          disabled={index === 0}
+          onClick={() => moveRow(index, -1)}
+          title="Move up"
+        >
+          ↑
+        </button>
+
+        <button
+          type="button"
+          className={buttonClass}
+          disabled={index === data.rows.length - 1}
+          onClick={() => moveRow(index, 1)}
+          title="Move down"
+        >
+          ↓
+        </button>
+      </div>
+
+      <button
+        type="button"
+        className="text-xs text-red-600"
+        onClick={() => removeRow(row.id)}
+      >
+        Remove Row
+      </button>
+    </div>
+  ))}
+</section>
+
 
       {/* MEASUREMENTS */}
       <section className={sectionClass}>

@@ -127,6 +127,7 @@ export type ProgressTrackerRow = {
   targets: Record<string, number | null>;
 };
 
+
 export type ProgressTrackerBlock = BaseBlock & {
   type: "progress_tracker";
   data: {
@@ -137,6 +138,7 @@ export type ProgressTrackerBlock = BaseBlock & {
     showHistory: boolean;
 
     // Tracker Configuration
+    rowColumnHeading?: string;
     measurements: ProgressTrackerMeasurement[];
     rows: ProgressTrackerRow[];
     progressionTrigger: "completion" | "manual";
@@ -163,6 +165,7 @@ export type ProgressTrackerBlock = BaseBlock & {
     historyContainerStyle?: Partial<BlockAppearance>;
   };
 };
+
 export type BuilderBlockType =
   | "bookmark"
   | "puzzle"

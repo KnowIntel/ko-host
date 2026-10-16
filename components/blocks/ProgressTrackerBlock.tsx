@@ -1003,9 +1003,9 @@ export default function ProgressTrackerBlock({
         <table className="w-full border-collapse text-sm">
           <thead>
             <tr className="border-b">
-              <th className="p-2 text-left">
-                ROW
-              </th>
+<th className="p-2 text-left">
+  {block.data.rowColumnHeading ?? "ROW"}
+</th>
 
               {visibleMeasurements.map(
                 (measurement) => (
