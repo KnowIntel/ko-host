@@ -1164,20 +1164,23 @@ export default function ProgressTrackerBlock({
 
                   {/* COMPLETION CHECKBOX */}
 
-                  <td className="p-2 text-center">
-                    <input
-                      type="checkbox"
-                      aria-label={`Complete ${row.label}`}
-                      checked={checked}
-                      disabled={editingDisabled}
-                      onChange={(event) =>
-                        toggleRow(
-                          row.id,
-                          event.target.checked
-                        )
-                      }
-                    />
-                  </td>
+<td className="p-2 text-center align-bottom">
+  <div className="flex h-[34px] items-center justify-center">
+    <input
+      type="checkbox"
+      aria-label={`Complete ${row.label}`}
+      className="h-[30px] w-[30px] cursor-pointer accent-green-600"
+      checked={checked}
+      disabled={editingDisabled}
+      onChange={(event) =>
+        toggleRow(
+          row.id,
+          event.target.checked
+        )
+      }
+    />
+  </div>
+</td>
                 </tr>
               );
             })}
