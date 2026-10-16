@@ -9,10 +9,26 @@ import type {
   TextStyle,
 } from "@/lib/templates/builder";
 
+import type {
+  ProgressTrackerTextTarget,
+  ProgressTrackerStyleTarget,
+} from "@/components/builder/formatting/progressTrackerFormatting";
+
 type Props = {
   block: ProgressTrackerBlock;
+
   updateSelectedBlock: (
     updater: (block: MicrositeBlock) => MicrositeBlock
+  ) => void;
+
+  progressTrackerTextTarget: ProgressTrackerTextTarget;
+  setProgressTrackerTextTarget: (
+    target: ProgressTrackerTextTarget
+  ) => void;
+
+  progressTrackerStyleTarget: ProgressTrackerStyleTarget;
+  setProgressTrackerStyleTarget: (
+    target: ProgressTrackerStyleTarget
   ) => void;
 };
 
@@ -45,6 +61,10 @@ function targetNumber(value: string): number | null {
 export function ProgressTrackerInspector({
   block,
   updateSelectedBlock,
+  progressTrackerTextTarget,
+  setProgressTrackerTextTarget,
+  progressTrackerStyleTarget,
+  setProgressTrackerStyleTarget,
 }: Props) {
   const data = block.data;
 
@@ -214,6 +234,69 @@ progression: {
 
   return (
     <div className="space-y-4">
+        {/* FORMATTING TARGETS */}
+<section className={sectionClass}>
+  <h3 className="text-sm font-semibold">
+    Formatting Targets
+  </h3>
+
+  <div>
+    <label className={labelClass}>
+      Text Target
+    </label>
+
+    <select
+      className={inputClass}
+      value={progressTrackerTextTarget}
+      onChange={(e) =>
+        setProgressTrackerTextTarget(
+          e.target.value as ProgressTrackerTextTarget
+        )
+      }
+    >
+      <option value="title">Tracker Title</option>
+      <option value="rowLabel">Row Labels</option>
+      <option value="measurementLabel">Measurement Labels</option>
+      <option value="targetLabel">Target Labels</option>
+      <option value="actualLabel">Actual Labels</option>
+      <option value="sessionInfo">Session Information</option>
+      <option value="completionStatus">Completion Status</option>
+      <option value="buttonText">Button Text</option>
+      <option value="historyText">History Text</option>
+    </select>
+  </div>
+
+  <div>
+    <label className={labelClass}>
+      Appearance Target
+    </label>
+
+    <select
+      className={inputClass}
+      value={progressTrackerStyleTarget}
+      onChange={(e) =>
+        setProgressTrackerStyleTarget(
+          e.target.value as ProgressTrackerStyleTarget
+        )
+      }
+    >
+      <option value="block">Entire Block</option>
+      <option value="container">Tracker Container</option>
+      <option value="row">Tracker Rows</option>
+      <option value="measurementField">Measurement Fields</option>
+      <option value="targetField">Target Fields</option>
+      <option value="actualField">Actual Fields</option>
+      <option value="progressIndicator">Progress Indicator</option>
+      <option value="button">Action Buttons</option>
+      <option value="historyContainer">History Container</option>
+    </select>
+  </div>
+
+  <p className="text-xs text-gray-500">
+    Select an element above, then use the top toolbar
+    to customize its text or appearance.
+  </p>
+</section>
       {/* GENERAL */}
       <section className={sectionClass}>
         <h3 className="text-sm font-semibold">General</h3>

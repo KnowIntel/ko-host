@@ -130,14 +130,37 @@ export type ProgressTrackerRow = {
 export type ProgressTrackerBlock = BaseBlock & {
   type: "progress_tracker";
   data: {
+    // General
     title: string;
-    titleStyle?: TextStyle;
     imageUrl?: string;
     showImage: boolean;
     showHistory: boolean;
+
+    // Tracker Configuration
     measurements: ProgressTrackerMeasurement[];
     rows: ProgressTrackerRow[];
     progressionTrigger: "completion" | "manual";
+
+    // Text Formatting Targets
+    titleStyle?: TextStyle;
+    rowLabelStyle?: TextStyle;
+    measurementLabelStyle?: TextStyle;
+    targetLabelStyle?: TextStyle;
+    actualLabelStyle?: TextStyle;
+    sessionInfoStyle?: TextStyle;
+    completionStatusStyle?: TextStyle;
+    buttonTextStyle?: TextStyle;
+    historyTextStyle?: TextStyle;
+
+    // Appearance / Style Targets
+    containerStyle?: Partial<BlockAppearance>;
+    rowStyle?: Partial<BlockAppearance>;
+    measurementFieldStyle?: Partial<BlockAppearance>;
+    targetFieldStyle?: Partial<BlockAppearance>;
+    actualFieldStyle?: Partial<BlockAppearance>;
+    progressIndicatorStyle?: Partial<BlockAppearance>;
+    buttonStyle?: Partial<BlockAppearance>;
+    historyContainerStyle?: Partial<BlockAppearance>;
   };
 };
 export type BuilderBlockType =

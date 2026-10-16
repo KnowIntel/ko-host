@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -8,8 +9,12 @@ import {
   useState,
 } from "react";
 
+import type { CSSProperties } from "react";
+
 import type {
   ProgressTrackerBlock as ProgressTrackerBlockType,
+  TextStyle,
+  BlockAppearance,
 } from "@/lib/templates/builder";
 
 type Props = {
@@ -165,6 +170,133 @@ async function apiRequest(
   return result;
 }
 
+function toTrackerTextCss(
+  style?: TextStyle
+): CSSProperties {
+  return {
+    fontFamily: style?.fontFamily || undefined,
+    fontSize: style?.fontSize ?? undefined,
+    color: style?.color || undefined,
+    fontWeight: style?.bold ? 700 : undefined,
+    fontStyle: style?.italic ? "italic" : undefined,
+    textDecoration:
+      [
+        style?.underline ? "underline" : "",
+        style?.strike ? "line-through" : "",
+      ]
+        .filter(Boolean)
+        .join(" ") || undefined,
+    textAlign: style?.align || undefined,
+  };
+}
+
+/**
+ * Converts saved appearance properties into CSS.
+ *
+ * The appearance object is deliberately handled as a
+ * dictionary so optional properties can be supported
+ * without assuming every property exists in the type.
+ */
+function toTrackerAppearanceCss(
+  appearance?: Partial<BlockAppearance>
+): CSSProperties {
+  if (!appearance) return {};
+
+  const values = appearance as Record<string, unknown>;
+  const css: CSSProperties = {};
+
+  const stringValue = (key: string): string | undefined => {
+    const value = values[key];
+
+    return typeof value === "string" && value.trim()
+      ? value
+      : undefined;
+  };
+
+  const cssLength = (
+    key: string
+  ): string | number | undefined => {
+    const value = values[key];
+
+    if (typeof value === "number") return value;
+
+    if (typeof value === "string" && value.trim()) {
+      return value;
+    }
+
+    return undefined;
+  };
+
+  const background =
+    stringValue("backgroundColor") ??
+    stringValue("background");
+
+  if (background) {
+    css.backgroundColor = background;
+  }
+
+  const color = stringValue("color");
+
+  if (color) {
+    css.color = color;
+  }
+
+  const borderColor = stringValue("borderColor");
+
+  if (borderColor) {
+    css.borderColor = borderColor;
+    css.borderStyle = "solid";
+  }
+
+  const borderWidth = cssLength("borderWidth");
+
+  if (borderWidth !== undefined) {
+    css.borderWidth = borderWidth;
+    css.borderStyle = "solid";
+  }
+
+  const borderStyle = stringValue("borderStyle");
+
+  if (
+    borderStyle === "solid" ||
+    borderStyle === "dashed" ||
+    borderStyle === "dotted" ||
+    borderStyle === "double" ||
+    borderStyle === "none"
+  ) {
+    css.borderStyle = borderStyle;
+  }
+
+  const borderRadius = cssLength("borderRadius");
+
+  if (borderRadius !== undefined) {
+    css.borderRadius = borderRadius;
+  }
+
+  const padding = cssLength("padding");
+
+  if (padding !== undefined) {
+    css.padding = padding;
+  }
+
+  const opacity = values.opacity;
+
+  if (
+    typeof opacity === "number" &&
+    Number.isFinite(opacity)
+  ) {
+    css.opacity = opacity;
+  }
+
+  const boxShadow = stringValue("boxShadow");
+
+  if (boxShadow) {
+    css.boxShadow = boxShadow;
+  }
+
+  return css;
+}
+
 export default function ProgressTrackerBlock({
   block,
   micrositeId,
@@ -236,7 +368,10 @@ export default function ProgressTrackerBlock({
   });
 
   const visibleMeasurements = useMemo(
-    () => measurements.filter((measurement) => measurement.visible),
+    () =>
+      measurements.filter(
+        (measurement) => measurement.visible
+      ),
     [measurements]
   );
 
@@ -263,17 +398,86 @@ export default function ProgressTrackerBlock({
     ? Math.round((completedCount / rows.length) * 100)
     : 0;
 
-  const titleCss: React.CSSProperties = {
-    fontFamily: titleStyle?.fontFamily || undefined,
-    fontSize: titleStyle?.fontSize || undefined,
-    color: titleStyle?.color || undefined,
-    fontWeight: titleStyle?.bold ? 700 : undefined,
-    fontStyle: titleStyle?.italic ? "italic" : undefined,
-    textDecoration: titleStyle?.underline
-      ? "underline"
-      : undefined,
+  /*
+   * TEXT FORMATTING
+   */
+
+  const titleCss: CSSProperties = {
+    ...toTrackerTextCss(titleStyle),
     textAlign: titleStyle?.align || "left",
   };
+
+  const rowLabelCss = toTrackerTextCss(
+    block.data.rowLabelStyle
+  );
+
+  const measurementLabelCss = toTrackerTextCss(
+    block.data.measurementLabelStyle
+  );
+
+  const targetLabelCss = toTrackerTextCss(
+    block.data.targetLabelStyle
+  );
+
+  const actualLabelCss = toTrackerTextCss(
+    block.data.actualLabelStyle
+  );
+
+  const sessionInfoCss = toTrackerTextCss(
+    block.data.sessionInfoStyle
+  );
+
+  const completionStatusCss = toTrackerTextCss(
+    block.data.completionStatusStyle
+  );
+
+  const buttonTextCss = toTrackerTextCss(
+    block.data.buttonTextStyle
+  );
+
+  const historyTextCss = toTrackerTextCss(
+    block.data.historyTextStyle
+  );
+
+  /*
+   * APPEARANCE FORMATTING
+   */
+
+  const containerCss = toTrackerAppearanceCss(
+    block.data.containerStyle
+  );
+
+  const rowCss = toTrackerAppearanceCss(
+    block.data.rowStyle
+  );
+
+  const measurementFieldCss = toTrackerAppearanceCss(
+    block.data.measurementFieldStyle
+  );
+
+  const targetFieldCss = toTrackerAppearanceCss(
+    block.data.targetFieldStyle
+  );
+
+  const actualFieldCss = toTrackerAppearanceCss(
+    block.data.actualFieldStyle
+  );
+
+  const progressIndicatorCss = toTrackerAppearanceCss(
+    block.data.progressIndicatorStyle
+  );
+
+  const buttonCss = toTrackerAppearanceCss(
+    block.data.buttonStyle
+  );
+
+  const historyContainerCss = toTrackerAppearanceCss(
+    block.data.historyContainerStyle
+  );
+
+  /*
+   * PERSISTENCE
+   */
 
   const applyState = useCallback(
     (state: PersistedState) => {
@@ -318,7 +522,9 @@ export default function ProgressTrackerBlock({
       );
 
       if (!result.state) {
-        throw new Error("Tracker state was not returned.");
+        throw new Error(
+          "Tracker state was not returned."
+        );
       }
 
       if (signal?.aborted) return;
@@ -328,7 +534,12 @@ export default function ProgressTrackerBlock({
       setReady(true);
       completionKeyRef.current = null;
     },
-    [persistenceEnabled, micrositeId, block.id, applyState]
+    [
+      persistenceEnabled,
+      micrositeId,
+      block.id,
+      applyState,
+    ]
   );
 
   useEffect(() => {
@@ -443,7 +654,10 @@ export default function ProgressTrackerBlock({
     }));
   }
 
-  function toggleRow(rowId: string, checked: boolean) {
+  function toggleRow(
+    rowId: string,
+    checked: boolean
+  ) {
     updateSession((previous) => ({
       ...previous,
       completedRows: {
@@ -453,84 +667,103 @@ export default function ProgressTrackerBlock({
     }));
   }
 
-  const saveProgress = useCallback(async (): Promise<boolean> => {
-    if (
-      !persistenceEnabled ||
-      !micrositeId ||
-      !loadedRef.current
-    ) {
-      return true;
-    }
+  const saveProgress = useCallback(
+    async (): Promise<boolean> => {
+      if (
+        !persistenceEnabled ||
+        !micrositeId ||
+        !loadedRef.current
+      ) {
+        return true;
+      }
 
-    if (conflictRef.current) return false;
-    if (savingRef.current) return false;
-    if (!dirtyRef.current) return true;
+      if (conflictRef.current) return false;
+      if (savingRef.current) return false;
+      if (!dirtyRef.current) return true;
 
-    savingRef.current = true;
-    setStatus("saving");
+      savingRef.current = true;
+      setStatus("saving");
 
-    const snapshot = cloneSession(sessionRef.current);
-    const snapshotVersion = versionRef.current;
-    const revision = updatedAtRef.current;
-    const currentSessionNumber = sessionNumberRef.current;
+      const snapshot = cloneSession(
+        sessionRef.current
+      );
 
-    try {
-      const result = await apiRequest(
-        "PATCH",
-        micrositeId,
-        block.id,
-        {
+      const snapshotVersion = versionRef.current;
+      const revision = updatedAtRef.current;
+      const currentSessionNumber =
+        sessionNumberRef.current;
+
+      try {
+        const result = await apiRequest(
+          "PATCH",
           micrositeId,
-          blockId: block.id,
-          actuals: snapshot.actuals,
-          completedRows: snapshot.completedRows,
-          sessionNumber: currentSessionNumber,
-          expectedUpdatedAt: revision,
+          block.id,
+          {
+            micrositeId,
+            blockId: block.id,
+            actuals: snapshot.actuals,
+            completedRows: snapshot.completedRows,
+            sessionNumber: currentSessionNumber,
+            expectedUpdatedAt: revision,
+          }
+        );
+
+        if (!result.state) {
+          throw new Error(
+            "Saved state was not returned."
+          );
         }
-      );
 
-      if (!result.state) {
-        throw new Error("Saved state was not returned.");
+        if (!mountedRef.current) return false;
+
+        updatedAtRef.current =
+          result.state.updated_at;
+
+        setUpdatedAt(result.state.updated_at);
+
+        if (
+          versionRef.current === snapshotVersion
+        ) {
+          dirtyRef.current = false;
+          setStatus("saved");
+        } else {
+          dirtyRef.current = true;
+          setStatus("unsaved");
+        }
+
+        setErrorMessage("");
+        return true;
+      } catch (error) {
+        if (!mountedRef.current) return false;
+
+        const typedError = error as Error & {
+          status?: number;
+        };
+
+        if (typedError.status === 409) {
+          conflictRef.current = true;
+          setStatus("conflict");
+        } else {
+          setStatus("error");
+        }
+
+        setErrorMessage(
+          typedError.message ||
+            "Unable to save tracker progress."
+        );
+
+        return false;
+      } finally {
+        savingRef.current = false;
       }
+    },
+    [persistenceEnabled, micrositeId, block.id]
+  );
 
-      if (!mountedRef.current) return false;
+  /*
+   * AUTOMATIC SAVE
+   */
 
-      updatedAtRef.current = result.state.updated_at;
-      setUpdatedAt(result.state.updated_at);
-
-      if (versionRef.current === snapshotVersion) {
-        dirtyRef.current = false;
-        setStatus("saved");
-      } else {
-        dirtyRef.current = true;
-        setStatus("unsaved");
-      }
-
-      setErrorMessage("");
-      return true;
-    } catch (error) {
-      if (!mountedRef.current) return false;
-
-      const typedError = error as Error & { status?: number };
-
-      if (typedError.status === 409) {
-        conflictRef.current = true;
-        setStatus("conflict");
-      } else {
-        setStatus("error");
-      }
-
-      setErrorMessage(
-        typedError.message || "Unable to save tracker progress."
-      );
-
-      return false;
-    } finally {
-      savingRef.current = false;
-    }
-  }, [persistenceEnabled, micrositeId, block.id]);
-
-  // Automatically persist edits after a short idle period.
   useEffect(() => {
     if (
       !persistenceEnabled ||
@@ -556,6 +789,10 @@ export default function ProgressTrackerBlock({
     saveProgress,
   ]);
 
+  /*
+   * SESSION COMPLETION
+   */
+
   async function completeSession() {
     if (
       !ready ||
@@ -575,21 +812,18 @@ export default function ProgressTrackerBlock({
     setCompleting(true);
 
     try {
-      // Wait for any in-flight autosave to finish.
       while (savingRef.current) {
         await new Promise<void>((resolve) =>
           window.setTimeout(resolve, 50)
         );
       }
 
-      // Persist final values before creating the history snapshot.
       if (dirtyRef.current) {
         const saved = await saveProgress();
 
         if (!saved) return;
       }
 
-      // If edits occurred during the save, persist those too.
       while (dirtyRef.current) {
         const saved = await saveProgress();
 
@@ -597,7 +831,8 @@ export default function ProgressTrackerBlock({
       }
 
       if (!completionKeyRef.current) {
-        completionKeyRef.current = crypto.randomUUID();
+        completionKeyRef.current =
+          crypto.randomUUID();
       }
 
       const result = await apiRequest(
@@ -614,7 +849,9 @@ export default function ProgressTrackerBlock({
       );
 
       if (!result.state) {
-        throw new Error("Completed state was not returned.");
+        throw new Error(
+          "Completed state was not returned."
+        );
       }
 
       if (!mountedRef.current) return;
@@ -626,7 +863,9 @@ export default function ProgressTrackerBlock({
     } catch (error) {
       if (!mountedRef.current) return;
 
-      const typedError = error as Error & { status?: number };
+      const typedError = error as Error & {
+        status?: number;
+      };
 
       if (typedError.status === 409) {
         conflictRef.current = true;
@@ -636,7 +875,8 @@ export default function ProgressTrackerBlock({
       }
 
       setErrorMessage(
-        typedError.message || "Unable to complete session."
+        typedError.message ||
+          "Unable to complete session."
       );
     } finally {
       completingRef.current = false;
@@ -662,11 +902,25 @@ export default function ProgressTrackerBlock({
     conflict: "Progress changed elsewhere",
   };
 
+  /*
+   * RENDER
+   */
+
   return (
-    <div className="w-full space-y-4 rounded-xl p-4">
-      <h3 className="text-lg font-semibold" style={titleCss}>
+    <div
+      className="w-full space-y-4 rounded-xl p-4"
+      style={containerCss}
+    >
+      {/* TITLE */}
+
+      <h3
+        className="text-lg font-semibold"
+        style={titleCss}
+      >
         {title}
       </h3>
+
+      {/* IMAGE */}
 
       {showImage && imageUrl && (
         <img
@@ -676,16 +930,22 @@ export default function ProgressTrackerBlock({
         />
       )}
 
+      {/* SESSION INFORMATION */}
+
       {persistenceEnabled && (
         <div
           className="flex flex-wrap items-center justify-between gap-2 text-xs"
+          style={sessionInfoCss}
           aria-live="polite"
         >
-          <span>Session {sessionNumber}</span>
+          <span>
+            Session {sessionNumber}
+          </span>
 
           <span
             className={
-              status === "error" || status === "conflict"
+              status === "error" ||
+              status === "conflict"
                 ? "text-red-600"
                 : "opacity-70"
             }
@@ -694,6 +954,8 @@ export default function ProgressTrackerBlock({
           </span>
         </div>
       )}
+
+      {/* ERROR MESSAGE */}
 
       {errorMessage && (
         <div
@@ -706,13 +968,21 @@ export default function ProgressTrackerBlock({
             <button
               type="button"
               className="rounded border border-red-300 px-3 py-1 text-xs font-medium"
+              style={{
+                ...buttonCss,
+                ...buttonTextCss,
+              }}
               onClick={() => {
-                if (savingRef.current || completingRef.current) {
+                if (
+                  savingRef.current ||
+                  completingRef.current
+                ) {
                   return;
                 }
 
                 void reload().catch((error) => {
                   setStatus("error");
+
                   setErrorMessage(
                     error instanceof Error
                       ? error.message
@@ -727,35 +997,63 @@ export default function ProgressTrackerBlock({
         </div>
       )}
 
+      {/* TRACKER TABLE */}
+
       <div className="overflow-x-auto">
         <table className="w-full border-collapse text-sm">
           <thead>
             <tr className="border-b">
-              <th className="p-2 text-left">ROW</th>
+              <th className="p-2 text-left">
+                ROW
+              </th>
 
-              {visibleMeasurements.map((measurement) => (
-                <th
-                  key={measurement.id}
-                  className="p-2 text-center"
-                >
-                  <div>{measurement.label}</div>
-
-                  {measurement.unit && (
-                    <div className="text-xs font-normal opacity-70">
-                      {measurement.unit}
+              {visibleMeasurements.map(
+                (measurement) => (
+                  <th
+                    key={measurement.id}
+                    className="p-2 text-center"
+                    style={measurementFieldCss}
+                  >
+                    <div
+                      style={measurementLabelCss}
+                    >
+                      {measurement.label}
                     </div>
-                  )}
 
-                  {measurement.targetEnabled &&
-                    measurement.actualEnabled && (
-                      <div className="text-xs font-normal opacity-70">
-                        Target / Actual
+                    {measurement.unit && (
+                      <div
+                        className="text-xs font-normal opacity-70"
+                        style={measurementLabelCss}
+                      >
+                        {measurement.unit}
                       </div>
                     )}
-                </th>
-              ))}
 
-              <th className="p-2 text-center">✓</th>
+                    {measurement.targetEnabled &&
+                      measurement.actualEnabled && (
+                        <div className="text-xs font-normal opacity-70">
+                          <span
+                            style={targetLabelCss}
+                          >
+                            Target
+                          </span>
+
+                          {" / "}
+
+                          <span
+                            style={actualLabelCss}
+                          >
+                            Actual
+                          </span>
+                        </div>
+                      )}
+                  </th>
+                )
+              )}
+
+              <th className="p-2 text-center">
+                ✓
+              </th>
             </tr>
           </thead>
 
@@ -769,64 +1067,102 @@ export default function ProgressTrackerBlock({
                 <tr
                   key={row.id}
                   className={`border-b ${
-                    checked ? "bg-green-50/50" : ""
+                    checked
+                      ? "bg-green-50/50"
+                      : ""
                   }`}
+                  style={rowCss}
                 >
-                  <td className="p-2 font-medium">
+                  {/* ROW LABEL */}
+
+                  <td
+                    className="p-2 font-medium"
+                    style={rowLabelCss}
+                  >
                     {row.label}
                   </td>
 
-                  {visibleMeasurements.map((measurement) => {
-                    const target =
-                      targets[row.id]?.[measurement.id] ??
-                      row.targets[measurement.id];
+                  {/* MEASUREMENT CELLS */}
 
-const savedActual =
-  session.actuals[row.id]?.[measurement.id];
+                  {visibleMeasurements.map(
+                    (measurement) => {
+                      const target =
+                        targets[row.id]?.[
+                          measurement.id
+                        ] ??
+                        row.targets[
+                          measurement.id
+                        ];
 
-const actual =
-  savedActual !== undefined
-    ? savedActual
-    : measurement.presetValues !== false &&
-        measurement.targetEnabled &&
-        measurement.actualEnabled
-      ? target
-      : null;
+                      const savedActual =
+                        session.actuals[row.id]?.[
+                          measurement.id
+                        ];
 
-                    return (
-                      <td
-                        key={measurement.id}
-                        className="p-2 text-center"
-                      >
-                        <div className="flex flex-col items-center gap-1">
-                          {measurement.targetEnabled && (
-                            <span className="text-xs opacity-70">
-                              {target ?? "—"}
-                            </span>
-                          )}
+                      const actual =
+                        savedActual !== undefined
+                          ? savedActual
+                          : measurement.presetValues !==
+                                false &&
+                              measurement.targetEnabled &&
+                              measurement.actualEnabled
+                            ? target
+                            : null;
 
-                          {measurement.actualEnabled && (
-                            <input
-                              type="number"
-                              step="any"
-                              inputMode="decimal"
-                              aria-label={`${row.label} ${measurement.label} actual`}
-                              className="w-20 max-w-full rounded border px-2 py-1 text-center text-sm"
-                              value={actual ?? ""}
-                              disabled={editingDisabled}
-                              onChange={(event) =>
-                                updateActual(
-                                  row.id,
-                                  measurement.id,
-                                  event.target.value
-                                )
-                              }
-                            />
-                          )}
-                        </div>
-                      </td>
-                    );
-                  })}
+                      return (
+                        <td
+                          key={measurement.id}
+                          className="p-2 text-center"
+                          style={measurementFieldCss}
+                        >
+                          <div className="flex flex-col items-center gap-1">
+                            {/* TARGET VALUE */}
+
+                            {measurement.targetEnabled && (
+                              <span
+                                className="text-xs opacity-70"
+                                style={{
+                                  ...targetFieldCss,
+                                  ...targetLabelCss,
+                                }}
+                              >
+                                {target ?? "—"}
+                              </span>
+                            )}
+
+                            {/* ACTUAL INPUT */}
+
+                            {measurement.actualEnabled && (
+                              <input
+                                type="number"
+                                step="any"
+                                inputMode="decimal"
+                                aria-label={`${row.label} ${measurement.label} actual`}
+                                className="w-20 max-w-full rounded border px-2 py-1 text-center text-sm"
+                                style={{
+                                  ...actualFieldCss,
+                                  ...actualLabelCss,
+                                }}
+                                value={actual ?? ""}
+                                disabled={
+                                  editingDisabled
+                                }
+                                onChange={(event) =>
+                                  updateActual(
+                                    row.id,
+                                    measurement.id,
+                                    event.target.value
+                                  )
+                                }
+                              />
+                            )}
+                          </div>
+                        </td>
+                      );
+                    }
+                  )}
+
+                  {/* COMPLETION CHECKBOX */}
 
                   <td className="p-2 text-center">
                     <input
@@ -835,7 +1171,10 @@ const actual =
                       checked={checked}
                       disabled={editingDisabled}
                       onChange={(event) =>
-                        toggleRow(row.id, event.target.checked)
+                        toggleRow(
+                          row.id,
+                          event.target.checked
+                        )
                       }
                     />
                   </td>
@@ -846,16 +1185,27 @@ const actual =
         </table>
       </div>
 
+      {/* COMPLETION PROGRESS */}
+
       <div className="space-y-3">
-        <div className="flex items-center justify-between text-xs">
+        <div
+          className="flex items-center justify-between text-xs"
+          style={completionStatusCss}
+        >
           <span>
-            {completedCount} of {rows.length} rows complete
+            {completedCount} of {rows.length} rows
+            complete
           </span>
 
-          <span>{completionPercent}%</span>
+          <span>
+            {completionPercent}%
+          </span>
         </div>
 
-        <div className="h-2 overflow-hidden rounded-full bg-gray-200">
+        <div
+          className="h-2 overflow-hidden rounded-full bg-gray-200"
+          style={progressIndicatorCss}
+        >
           <div
             className="h-full bg-green-600 transition-all"
             style={{
@@ -864,16 +1214,25 @@ const actual =
           />
         </div>
 
+        {/* COMPLETE SESSION BUTTON */}
+
         <button
           type="button"
           className="w-full rounded-lg bg-gray-900 px-4 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"
+          style={{
+            ...buttonCss,
+            ...buttonTextCss,
+          }}
           disabled={
             !allRowsChecked ||
             editingDisabled ||
             completing ||
-            (persistenceEnabled && status === "loading")
+            (persistenceEnabled &&
+              status === "loading")
           }
-          onClick={() => void completeSession()}
+          onClick={() =>
+            void completeSession()
+          }
         >
           {completing
             ? "Completing session..."
@@ -883,13 +1242,21 @@ const actual =
         </button>
       </div>
 
+      {/* HISTORY */}
+
       {showHistory && (
-        <div className="border-t pt-3">
+        <div
+          className="border-t pt-3"
+          style={historyContainerCss}
+        >
           <button
             type="button"
             className="flex w-full items-center justify-between text-left text-sm font-semibold"
+            style={historyTextCss}
             onClick={() =>
-              setHistoryExpanded((previous) => !previous)
+              setHistoryExpanded(
+                (previous) => !previous
+              )
             }
             aria-expanded={historyExpanded}
           >
@@ -901,12 +1268,17 @@ const actual =
             </span>
 
             <span aria-hidden="true">
-              {historyExpanded ? "−" : "+"}
+              {historyExpanded
+                ? "−"
+                : "+"}
             </span>
           </button>
 
           {historyExpanded && (
-            <div className="mt-3 space-y-3">
+            <div
+              className="mt-3 space-y-3"
+              style={historyTextCss}
+            >
               {history.length === 0 ? (
                 <p className="text-xs opacity-60">
                   No completed sessions yet.
@@ -919,11 +1291,14 @@ const actual =
                   >
                     <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-semibold">
                       <span>
-                        Session {entry.session_number}
+                        Session{" "}
+                        {entry.session_number}
                       </span>
 
                       <span className="font-normal opacity-70">
-                        {formatDate(entry.completed_at)}
+                        {formatDate(
+                          entry.completed_at
+                        )}
                       </span>
                     </div>
 
@@ -931,43 +1306,62 @@ const actual =
                       <table className="w-full text-xs">
                         <thead>
                           <tr className="border-b">
-                            <th className="p-1 text-left">
+                            <th
+                              className="p-1 text-left"
+                              style={rowLabelCss}
+                            >
                               Row
                             </th>
 
                             {(
-                              entry.snapshot.measurements ?? []
+                              entry.snapshot
+                                .measurements ?? []
                             )
                               .filter(
                                 (measurement) =>
                                   measurement.targetEnabled ||
                                   measurement.actualEnabled
                               )
-                              .map((measurement) => (
-                                <th
-                                  key={measurement.id}
-                                  className="p-1 text-center"
-                                >
-                                  {measurement.label}
-                                </th>
-                              ))}
+                              .map(
+                                (measurement) => (
+                                  <th
+                                    key={
+                                      measurement.id
+                                    }
+                                    className="p-1 text-center"
+                                    style={
+                                      measurementLabelCss
+                                    }
+                                  >
+                                    {
+                                      measurement.label
+                                    }
+                                  </th>
+                                )
+                              )}
                           </tr>
                         </thead>
 
                         <tbody>
                           {(
-                            entry.snapshot.rows ?? []
+                            entry.snapshot.rows ??
+                            []
                           ).map((row) => (
                             <tr
                               key={row.id}
                               className="border-b"
+                              style={rowCss}
                             >
-                              <td className="p-1">
+                              <td
+                                className="p-1"
+                                style={rowLabelCss}
+                              >
                                 {row.label}
                               </td>
 
                               {(
-                                entry.snapshot.measurements ??
+                                entry.snapshot
+                                  .measurements ??
                                 []
                               )
                                 .filter(
@@ -975,40 +1369,66 @@ const actual =
                                     measurement.targetEnabled ||
                                     measurement.actualEnabled
                                 )
-                                .map((measurement) => {
-                                  const target =
-                                    entry.snapshot.targets?.[
-                                      row.id
-                                    ]?.[measurement.id];
+                                .map(
+                                  (measurement) => {
+                                    const target =
+                                      entry.snapshot
+                                        .targets?.[
+                                        row.id
+                                      ]?.[
+                                        measurement.id
+                                      ];
 
-                                  const actual =
-                                    entry.snapshot.actuals?.[
-                                      row.id
-                                    ]?.[measurement.id];
+                                    const actual =
+                                      entry.snapshot
+                                        .actuals?.[
+                                        row.id
+                                      ]?.[
+                                        measurement.id
+                                      ];
 
-                                  return (
-                                    <td
-                                      key={measurement.id}
-                                      className="p-1 text-center"
-                                    >
-                                      {measurement.targetEnabled && (
-                                        <span className="opacity-60">
-                                          {target ?? "—"}
-                                        </span>
-                                      )}
+                                    return (
+                                      <td
+                                        key={
+                                          measurement.id
+                                        }
+                                        className="p-1 text-center"
+                                        style={
+                                          measurementFieldCss
+                                        }
+                                      >
+                                        {measurement.targetEnabled && (
+                                          <span
+                                            className="opacity-60"
+                                            style={{
+                                              ...targetFieldCss,
+                                              ...targetLabelCss,
+                                            }}
+                                          >
+                                            {target ??
+                                              "—"}
+                                          </span>
+                                        )}
 
-                                      {measurement.targetEnabled &&
-                                        measurement.actualEnabled &&
-                                        " / "}
+                                        {measurement.targetEnabled &&
+                                          measurement.actualEnabled &&
+                                          " / "}
 
-                                      {measurement.actualEnabled && (
-                                        <span>
-                                          {actual ?? "—"}
-                                        </span>
-                                      )}
-                                    </td>
-                                  );
-                                })}
+                                        {measurement.actualEnabled && (
+                                          <span
+                                            style={{
+                                              ...actualFieldCss,
+                                              ...actualLabelCss,
+                                            }}
+                                          >
+                                            {actual ??
+                                              "—"}
+                                          </span>
+                                        )}
+                                      </td>
+                                    );
+                                  }
+                                )}
                             </tr>
                           ))}
                         </tbody>

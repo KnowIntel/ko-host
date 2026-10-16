@@ -117,6 +117,15 @@ import {
   getListingTextStyle,
 } from "@/components/builder/formatting/listingFormatting";
 
+import {
+  applyProgressTrackerStylePatch,
+  applyProgressTrackerTextStylePatch,
+  getProgressTrackerStyle,
+  getProgressTrackerTextStyle,
+  type ProgressTrackerStyleTarget,
+  type ProgressTrackerTextTarget,
+} from "@/components/builder/formatting/progressTrackerFormatting";
+
 import type {
   ListingStyleTarget,
   ListingTextTarget,
@@ -2962,6 +2971,12 @@ const [rsvpStyleTarget, setRsvpStyleTarget] =
 const [checklistTextTarget, setChecklistTextTarget] =
   useState<ChecklistTextTarget>("heading");
 
+const [progressTrackerTextTarget, setProgressTrackerTextTarget] =
+  useState<ProgressTrackerTextTarget>("title");
+
+const [progressTrackerStyleTarget, setProgressTrackerStyleTarget] =
+  useState<ProgressTrackerStyleTarget>("block");
+
 const [checklistStyleTarget, setChecklistStyleTarget] =
   useState<ChecklistStyleTarget>("row");
 
@@ -3895,6 +3910,12 @@ const selectedStyle =
       rsvpTextTarget,
     ) as TextStyle)
 
+: selectedBlockFromDraft?.type === "progress_tracker"
+  ? (getProgressTrackerTextStyle(
+      selectedBlockFromDraft,
+      progressTrackerTextTarget,
+    ) as TextStyle)
+
 : selectedBlockFromDraft?.type === "checklist"
   ? selectedBlockFromDraft.data.styleVariant === "professional"
     ? (getChecklistTextStyle(
@@ -3989,7 +4010,12 @@ const selectedStyle =
                       : getSelectionTextStyle(draft, selection);
 
 const selectedAppearance =
-  selectedBlockFromDraft?.type === "calendar_event"
+  selectedBlockFromDraft?.type === "progress_tracker"
+    ? getProgressTrackerStyle(
+        selectedBlockFromDraft,
+        progressTrackerStyleTarget,
+      )
+    : selectedBlockFromDraft?.type === "calendar_event"
     ? getCalendarEventStyle(
         selectedBlockFromDraft,
         calendarEventStyleTarget,
@@ -4378,6 +4404,7 @@ const showTextControls =
   selectedBlock?.type === "checkout" ||
   selectedBlock?.type === "listing" ||
   selectedBlock?.type === "tournament_display" ||
+  selectedBlock?.type === "progress_tracker" ||
   selectedBlock?.type === "image_carousel" ||
 selectedBlock?.type === "live_join" ||
 selectedBlock?.type === "live_trivia" ||
@@ -4443,6 +4470,7 @@ const showAppearanceControls =
   selectedBlock?.type === "timeline" ||
   selectedBlock?.type === "wave" ||
   selectedBlock?.type === "summary" ||
+  selectedBlock?.type === "progress_tracker" ||
 selectedBlock?.type === "live_join" ||
 selectedBlock?.type === "live_trivia" ||
 selectedBlock?.type === "live_poll" ||
@@ -4503,6 +4531,7 @@ const showBorderWidthRadiusControls =
   selectedBlock?.type === "timeline" ||
   selectedBlock?.type === "wave" ||
   selectedBlock?.type === "visitor_counter" ||
+  selectedBlock?.type === "progress_tracker" ||
 selectedBlock?.type === "live_join" ||
 selectedBlock?.type === "live_trivia" ||
 selectedBlock?.type === "live_poll" ||
@@ -6398,6 +6427,21 @@ const handleVideoUpload = async (
 function applyStylePatch(
   patch: Partial<TextStyle>,
 ) {
+
+  if (selectedBlock?.type === "progress_tracker") {
+  updateSelectedBlock((block) =>
+    block.type !== "progress_tracker"
+      ? block
+      : applyProgressTrackerTextStylePatch(
+          block,
+          progressTrackerTextTarget,
+          patch,
+        ),
+  );
+
+  return;
+}
+
   if (
     selectedBlock?.type ===
     "process_flow"
@@ -7384,6 +7428,20 @@ function clearSelectedBackground() {
 }
 
 function applyAppearancePatch(patch: AppearancePatch) {
+
+  if (selectedBlock?.type === "progress_tracker") {
+  updateSelectedBlock((block) =>
+    block.type !== "progress_tracker"
+      ? block
+      : applyProgressTrackerStylePatch(
+          block,
+          progressTrackerStyleTarget,
+          patch,
+        ),
+  );
+
+  return;
+}
 
 if (
   selectedBlock?.type ===
@@ -15489,14 +15547,6 @@ const idsToExpand =
 
 {null}
 
-
-{selectedBlock?.type === "progress_tracker" && (
-  <ProgressTrackerInspector
-    block={selectedBlock}
-    updateSelectedBlock={updateSelectedBlock}
-  />
-)}
-
 {selectedBlock?.type === "frame" ? (
   <FrameInspector
     selectedBlock={selectedBlock}
@@ -19500,12 +19550,16 @@ selectedBlock?.type === "live_poll" ? (
   />
 ) : null}
 
-{!isMultiSelection && selectedBlock?.type === "progress_tracker" ? (
+{selectedBlock?.type === "progress_tracker" && (
   <ProgressTrackerInspector
     block={selectedBlock}
     updateSelectedBlock={updateSelectedBlock}
+    progressTrackerTextTarget={progressTrackerTextTarget}
+    setProgressTrackerTextTarget={setProgressTrackerTextTarget}
+    progressTrackerStyleTarget={progressTrackerStyleTarget}
+    setProgressTrackerStyleTarget={setProgressTrackerStyleTarget}
   />
-) : null}
+)}
 
 {!isMultiSelection && selectedBlock?.type === "puzzle" ? (
   <PuzzleInspector
