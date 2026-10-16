@@ -1,6 +1,8 @@
 
 "use client";
 
+import ImageUploadDropzone from "@/components/builder/ImageUploadDropzone";
+
 import type {
   MicrositeBlock,
   ProgressTrackerBlock,
@@ -325,36 +327,76 @@ progression: {
         </label>
       </section>
 
-      {/* IMAGE */}
-      <section className={sectionClass}>
-        <h3 className="text-sm font-semibold">Image</h3>
 
-        <label className="flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={data.showImage}
-            onChange={(e) =>
-              updateData({ showImage: e.target.checked })
-            }
+{/* IMAGE */}
+<section className={sectionClass}>
+  <h3 className="text-sm font-semibold">Image</h3>
+
+  <label className="flex items-center gap-2 text-sm">
+    <input
+      type="checkbox"
+      checked={data.showImage}
+      onChange={(e) =>
+        updateData({
+          showImage: e.target.checked,
+        })
+      }
+    />
+    Show Image
+  </label>
+
+  {data.showImage && (
+    <div className="space-y-3">
+      {/* IMAGE PREVIEW */}
+      {data.imageUrl && (
+        <div className="overflow-hidden rounded-lg border border-gray-200 bg-gray-50 p-2">
+          <img
+            src={data.imageUrl}
+            alt="Progress Tracker preview"
+            className="mx-auto max-h-48 w-full rounded object-contain"
           />
-          Show Image
+        </div>
+      )}
+
+      {/* IMAGE UPLOAD */}
+      <div>
+        <label className={labelClass}>
+          {data.imageUrl ? "Replace Image" : "Upload Image"}
         </label>
 
-        {data.showImage && (
-          <div>
-            <label className={labelClass}>Image URL</label>
-            <input
-              type="url"
-              className={inputClass}
-              placeholder="https://..."
-              value={data.imageUrl ?? ""}
-              onChange={(e) =>
-                updateData({ imageUrl: e.target.value })
-              }
-            />
-          </div>
-        )}
-      </section>
+        <ImageUploadDropzone
+          label={
+            data.imageUrl
+              ? "Drag a new image here or click to replace"
+              : "Drag an image here or click to upload"
+          }
+          className="min-h-[100px]"
+          onUploaded={(url) =>
+            updateData({
+              imageUrl: url,
+            })
+          }
+        />
+      </div>
+
+      {/* REMOVE IMAGE */}
+      {data.imageUrl && (
+        <button
+          type="button"
+          className="text-xs font-medium text-red-600 hover:text-red-700"
+          onClick={() =>
+            updateData({
+              imageUrl: "",
+            })
+          }
+        >
+          Remove Image
+        </button>
+      )}
+    </div>
+  )}
+</section>
+
 
 
 {/* ROWS */}
