@@ -324,6 +324,29 @@ progression: {
     />
   </div>
 
+
+{/* COMPLETE SESSION BUTTON TEXT */}
+<div>
+  <label className={labelClass}>
+    Complete Session Button Text
+  </label>
+
+  <input
+    type="text"
+    className={inputClass}
+    placeholder="Complete Session"
+    value={
+      data.completeSessionButtonLabel ?? "Complete Session"
+    }
+    onChange={(e) =>
+      updateData({
+        completeSessionButtonLabel: e.target.value,
+      })
+    }
+  />
+</div>
+
+
   {/* SHOW HISTORY */}
   <label className="flex items-center gap-2 text-sm">
     <input

@@ -1261,11 +1261,13 @@ style={{
             void completeSession()
           }
         >
-          {completing
-            ? "Completing session..."
-            : previewCompleted
-              ? "Session Completed ✓"
-              : "Complete Session"}
+
+{completing
+  ? "Completing session..."
+  : previewCompleted
+    ? "Session Completed ✓"
+    : block.data.completeSessionButtonLabel ?? "Complete Session"}
+
         </button>
       </div>
 

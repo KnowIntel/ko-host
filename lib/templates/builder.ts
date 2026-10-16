@@ -137,6 +137,7 @@ export type ProgressTrackerBlock = BaseBlock & {
     imageUrl?: string;
     showImage: boolean;
     showHistory: boolean;
+    completeSessionButtonLabel?: string;
 
     // Completion Layout
     completionLabelVerticalSpacing?: number;
