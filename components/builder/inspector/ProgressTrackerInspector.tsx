@@ -361,6 +361,36 @@ progression: {
     Show History
   </label>
 
+  
+{/* SHOW SESSION NUMBER */}
+<label className="flex items-center gap-2 text-sm">
+  <input
+    type="checkbox"
+    checked={data.showSessionNumber !== false}
+    onChange={(e) =>
+      updateData({
+        showSessionNumber: e.target.checked,
+      })
+    }
+  />
+  Show Session Number
+</label>
+
+{/* SHOW SAVE STATUS */}
+<label className="flex items-center gap-2 text-sm">
+  <input
+    type="checkbox"
+    checked={data.showSaveStatus !== false}
+    onChange={(e) =>
+      updateData({
+        showSaveStatus: e.target.checked,
+      })
+    }
+  />
+  Show Save Status
+</label>
+
+
   {/* COMPLETION LABEL VERTICAL SPACING */}
   <div className="space-y-2 border-t pt-3">
     <div className="flex items-center justify-between gap-2">

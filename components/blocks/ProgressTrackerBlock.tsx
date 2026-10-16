@@ -942,30 +942,40 @@ const sessionInfoCss = toTrackerTextCss(
         />
       )}
 
-      {/* SESSION INFORMATION */}
 
-      {persistenceEnabled && (
-        <div
-          className="flex flex-wrap items-center justify-between gap-2 text-xs"
-          style={sessionInfoCss}
-          aria-live="polite"
-        >
-          <span>
-            Session {sessionNumber}
-          </span>
+{/* SESSION INFORMATION */}
 
-          <span
-            className={
-              status === "error" ||
-              status === "conflict"
-                ? "text-red-600"
-                : "opacity-70"
-            }
-          >
-            {statusLabel[status]}
-          </span>
-        </div>
+{persistenceEnabled &&
+  (block.data.showSessionNumber !== false ||
+    block.data.showSaveStatus !== false) && (
+    <div
+      className="flex flex-wrap items-center justify-between gap-2 text-xs"
+      style={sessionInfoCss}
+      aria-live="polite"
+    >
+      {/* SESSION NUMBER */}
+      {block.data.showSessionNumber !== false && (
+        <span>
+          Session {sessionNumber}
+        </span>
       )}
+
+      {/* SAVE STATUS */}
+      {block.data.showSaveStatus !== false && (
+        <span
+          className={
+            status === "error" ||
+            status === "conflict"
+              ? "text-red-600"
+              : "opacity-70"
+          }
+        >
+          {statusLabel[status]}
+        </span>
+      )}
+    </div>
+  )}
+
 
       {/* ERROR MESSAGE */}
 
