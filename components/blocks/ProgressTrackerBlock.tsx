@@ -1001,61 +1001,64 @@ export default function ProgressTrackerBlock({
 
       <div className="overflow-x-auto">
         <table className="w-full border-collapse text-sm">
-          <thead>
-            <tr className="border-b">
-<th className="p-2 text-left">
-  {block.data.rowColumnHeading ?? "ROW"}
-</th>
 
-              {visibleMeasurements.map(
-                (measurement) => (
-                  <th
-                    key={measurement.id}
-                    className="p-2 text-center"
-                    style={measurementFieldCss}
-                  >
-                    <div
-                      style={measurementLabelCss}
-                    >
-                      {measurement.label}
-                    </div>
+<thead>
+  <tr className="border-b">
+    {/* ROWS COLUMN HEADING */}
+    <th
+      className="p-2 text-left"
+      style={measurementLabelCss}
+    >
+      {block.data.rowColumnHeading ?? "ROW"}
+    </th>
 
-                    {measurement.unit && (
-                      <div
-                        className="text-xs font-normal opacity-70"
-                        style={measurementLabelCss}
-                      >
-                        {measurement.unit}
-                      </div>
-                    )}
+    {/* MEASUREMENT COLUMN HEADINGS */}
+    {visibleMeasurements.map((measurement) => (
+      <th
+        key={measurement.id}
+        className="p-2 text-center"
+        style={measurementFieldCss}
+      >
+        <div style={measurementLabelCss}>
+          {measurement.label}
+        </div>
 
-                    {measurement.targetEnabled &&
-                      measurement.actualEnabled && (
-                        <div className="text-xs font-normal opacity-70">
-                          <span
-                            style={targetLabelCss}
-                          >
-                            Target
-                          </span>
+        {measurement.unit && (
+          <div
+            className="text-xs font-normal opacity-70"
+            style={measurementLabelCss}
+          >
+            {measurement.unit}
+          </div>
+        )}
 
-                          {" / "}
+        {measurement.targetEnabled &&
+          measurement.actualEnabled && (
+            <div className="text-xs font-normal opacity-70">
+              <span style={targetLabelCss}>
+                Target
+              </span>
 
-                          <span
-                            style={actualLabelCss}
-                          >
-                            Actual
-                          </span>
-                        </div>
-                      )}
-                  </th>
-                )
-              )}
+              {" / "}
 
-              <th className="p-2 text-center">
-                ✓
-              </th>
-            </tr>
-          </thead>
+              <span style={actualLabelCss}>
+                Actual
+              </span>
+            </div>
+          )}
+      </th>
+    ))}
+
+    {/* COMPLETION COLUMN HEADING */}
+    <th
+      className="p-2 text-center"
+      style={measurementLabelCss}
+    >
+      ✓
+    </th>
+  </tr>
+</thead>
+
 
           <tbody>
             {rows.map((row) => {

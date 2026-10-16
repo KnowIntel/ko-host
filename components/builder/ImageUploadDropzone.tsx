@@ -102,45 +102,48 @@ onUploaded(uploaded.url);
     [processFile],
   );
 
-  return (
-    <>
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/png,image/jpeg,image/webp,image/jpg"
-        className="hidden"
-        onChange={handleFileChange}
-        disabled={disabled || isUploading}
-      />
+return (
+  <>
+    <input
+      ref={inputRef}
+      type="file"
+      accept="image/png,image/jpeg,image/webp,image/jpg"
+      className="hidden"
+      onChange={handleFileChange}
+      disabled={disabled || isUploading}
+    />
 
-      <button
-        type="button"
-        onClick={handleBrowseClick}
-        onDrop={handleDrop}
-        onDragOver={handleDragOver}
-        onDragEnter={handleDragEnter}
-        onDragLeave={handleDragLeave}
-        disabled={disabled || isUploading}
-        className={[
-          "flex h-full w-full items-center justify-center rounded-xl border-2 border-dashed px-4 text-center text-sm transition",
-          disabled || isUploading
-            ? "cursor-not-allowed border-neutral-200 bg-neutral-100 text-neutral-400"
-            : isDragging
-              ? "border-blue-500 bg-blue-50 text-blue-700"
-              : "border-neutral-300 bg-white text-neutral-500 hover:bg-neutral-50",
-          className,
-        ].join(" ")}
-      >
-        {isUploading ? "Uploading image..." : label}
-      </button>
-    </>
-  );
-  <AppModal
-  open={Boolean(uploadError)}
-  title="Upload Error"
-  cancelText="OK"
-  onCancel={() => setUploadError("")}
->
-  <p className="text-sm text-neutral-700">{uploadError}</p>
-</AppModal>
+    <button
+      type="button"
+      onClick={handleBrowseClick}
+      onDrop={handleDrop}
+      onDragOver={handleDragOver}
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
+      disabled={disabled || isUploading}
+      className={[
+        "flex h-full w-full items-center justify-center rounded-xl border-2 border-dashed px-4 text-center text-sm transition",
+        disabled || isUploading
+          ? "cursor-not-allowed border-neutral-200 bg-neutral-100 text-neutral-400"
+          : isDragging
+            ? "border-blue-500 bg-blue-50 text-blue-700"
+            : "border-neutral-300 bg-white text-neutral-500 hover:bg-neutral-50",
+        className,
+      ].join(" ")}
+    >
+      {isUploading ? "Uploading image..." : label}
+    </button>
+
+    <AppModal
+      open={Boolean(uploadError)}
+      title="Upload Error"
+      cancelText="OK"
+      onCancel={() => setUploadError("")}
+    >
+      <p className="text-sm text-neutral-700">
+        {uploadError}
+      </p>
+    </AppModal>
+  </>
+);
 }
