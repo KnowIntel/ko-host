@@ -182,12 +182,13 @@ export async function GET(request: NextRequest) {
     row.id,
     Object.fromEntries(
       auth.configuration.measurements
-        .filter(
-          (measurement) =>
-            measurement.presetValues !== false &&
-            measurement.targetEnabled &&
-            measurement.actualEnabled
-        )
+
+.filter(
+  (measurement) =>
+    measurement.presetValues !== false &&
+    measurement.actualEnabled
+)
+
         .filter(
           (measurement) =>
             typeof row.targets[measurement.id] === "number"

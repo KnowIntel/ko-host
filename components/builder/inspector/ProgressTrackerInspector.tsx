@@ -347,6 +347,31 @@ progression: {
 </div>
 
 
+{/* SESSION LABEL */}
+<div>
+  <label className={labelClass}>
+    Session Label
+  </label>
+
+  <input
+    type="text"
+    className={inputClass}
+    placeholder="Session"
+    value={data.sessionLabel ?? "Session"}
+    onChange={(e) =>
+      updateData({
+        sessionLabel: e.target.value,
+      })
+    }
+  />
+
+  <p className="mt-1 text-xs text-gray-500">
+    Examples: Session 1, Week 1, Day 1, Phase 1.
+    The number updates automatically.
+  </p>
+</div>
+
+
   {/* SHOW HISTORY */}
   <label className="flex items-center gap-2 text-sm">
     <input
