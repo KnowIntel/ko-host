@@ -31467,36 +31467,38 @@ if (isDataCard) {
             frameStyle.borderColor ??
             "#C9922E",
 
-          borderWidth:
-            `${
-              Math.max(
-                0,
-                Number(
-                  frameStyle.borderWidth ??
-                    1,
-                ),
-              )
-            }px`,
 
-          borderStyle:
-            Number(
-              frameStyle.borderWidth ??
-                1,
-            ) >
-            0
-              ? "solid"
-              : "none",
+borderWidth: `${
+  Math.max(
+    0,
+    Number(
+      frameStyle.borderWidth ??
+        block.appearance?.borderWidth ??
+        1,
+    ),
+  )
+}px`,
 
-          borderRadius:
-            `${
-              Math.max(
-                0,
-                Number(
-                  frameStyle.borderRadius ??
-                    14,
-                ),
-              )
-            }px`,
+borderStyle:
+  Number(
+    frameStyle.borderWidth ??
+      block.appearance?.borderWidth ??
+      1,
+  ) > 0
+    ? "solid"
+    : "none",
+
+borderRadius: `${
+  Math.max(
+    0,
+    Number(
+      frameStyle.borderRadius ??
+        block.appearance?.borderRadius ??
+        14,
+    ),
+  )
+}px`,
+
 
           padding:
             `${framePadding}px`,

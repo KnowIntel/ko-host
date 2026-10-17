@@ -17042,8 +17042,67 @@ title={
       />
     </button>
 
+
+{selectedBlock?.type === "highlight" ? (
+  <>
+    <div className={topBarSliderWrapClass()}>
+      <span>Border</span>
+
+      <input
+        type="range"
+        min={0}
+        max={30}
+        step={1}
+        value={Number(
+          highlightUnifiedStyleTarget === "block"
+            ? selectedBlock.appearance?.borderWidth ?? 0
+            : highlightUnifiedStyleTarget === "dataCardFrame"
+              ? (selectedBlock.data as any)
+                  .dataCardFrameStyle?.borderWidth ?? 1
+              : selectedAppearance.borderWidth ?? 0,
+        )}
+        onChange={(e) => {
+          applyAppearancePatch({
+            borderWidth: Number(e.target.value),
+          });
+        }}
+        className={topBarSliderClass()}
+        title="Highlight border width"
+      />
+    </div>
+
+    <div className={topBarSliderWrapClass()}>
+      <span>Radius</span>
+
+      <input
+        type="range"
+        min={0}
+        max={100}
+        step={1}
+        value={Number(
+          highlightUnifiedStyleTarget === "block"
+            ? selectedBlock.appearance?.borderRadius ?? 0
+            : highlightUnifiedStyleTarget === "dataCardFrame"
+              ? (selectedBlock.data as any)
+                  .dataCardFrameStyle?.borderRadius ?? 14
+              : selectedAppearance.borderRadius ?? 0,
+        )}
+        onChange={(e) => {
+          applyAppearancePatch({
+            borderRadius: Number(e.target.value),
+          });
+        }}
+        className={topBarSliderClass()}
+        title="Highlight corner radius"
+      />
+    </div>
+  </>
+) : null}
+
+
 {/* // RADIUS CONTROLS */}
-{showBorderWidthRadiusControls ? (
+{showBorderWidthRadiusControls &&
+selectedBlock?.type !== "highlight" ? (
   <>
     <div className={topBarSliderWrapClass()}>
       <span>Border</span>
