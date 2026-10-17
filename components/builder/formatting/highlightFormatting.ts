@@ -17,6 +17,7 @@ type HighlightBlock = Extract<
 export type HighlightTextTarget =
   | "heading"
   | "subtitle"
+  | "displayTitle"
   | "label"
   | "linearUnitLabel"
   | "value"
@@ -64,6 +65,10 @@ function getTextStyleKey(
   if (target === "subtitle") {
     return "subtitleStyle";
   }
+
+  if (target === "displayTitle") {
+  return "displayTitleStyle";
+}
 
   if (target === "label") {
     return "labelStyle";
@@ -188,6 +193,15 @@ export function getHighlightTextStyle(
       {}
     );
   }
+
+  if (target === "displayTitle") {
+  return (
+    data.displayTitleStyle ??
+    data.labelStyle ??
+    data.style ??
+    {}
+  );
+}
 
   return (
     data[styleKey] ??

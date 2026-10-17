@@ -30262,6 +30262,15 @@ const bodyTextStyle = getContainerTextStyle(
  * ================================================================
  */
 
+const displayTitleTextStyle = getContainerTextStyle(
+  data.displayTitleStyle ??
+    data.dataCardDataPointLabelStyle ??
+    data.labelStyle ??
+    data.style ??
+    {},
+  designKey,
+);
+
 const dataCardDataPointLabelTextStyle =
   getContainerTextStyle(
     data.dataCardDataPointLabelStyle ??
@@ -31595,13 +31604,10 @@ borderRadius: `${
 {/* DATA POINT TITLE */}
 {/* ========================================================== */}
 
-{data.showDataCardTitle !== false &&
-dataPointLabel ? (
+{data.showDataCardTitle !== false && dataPointLabel ? (
   <div
     className="mt-3 w-full"
-    style={
-      dataCardDataPointLabelTextStyle
-    }
+    style={displayTitleTextStyle}
   >
     {dataPointLabel}
   </div>

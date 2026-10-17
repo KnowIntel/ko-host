@@ -261,13 +261,17 @@ export function HighlightInspector({
                   inspectorInputClass()
                 }
               >
-                <option value="dataCardDataPointLabel">
-                  Data Point Label
-                </option>
+<option value="displayTitle">
+  Display Title
+</option>
 
-                <option value="dataCardValue">
-                  Total
-                </option>
+<option value="dataCardDataPointLabel">
+  Data Point Label
+</option>
+
+<option value="dataCardValue">
+  Total
+</option>
 
                 <option value="dataCardUnit">
                   Units
