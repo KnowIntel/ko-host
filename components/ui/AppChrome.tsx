@@ -14,7 +14,9 @@ export function AppChrome({
 const isPublicMicrosite =
   pathname === "/s" ||
   pathname.startsWith("/s/") ||
-  pathname.startsWith("/s");
+  (typeof window !== "undefined" &&
+    window.location.hostname.endsWith(".ko-host.com") &&
+    window.location.hostname !== "www.ko-host.com");
 
   const isPreviewPage = pathname.startsWith("/preview/");
 
