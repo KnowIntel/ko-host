@@ -1830,6 +1830,7 @@ export type HighlightCard = {
   fallbackValue?: string | number;
 };
 
+
 export type HighlightBlock = BaseBlock & {
   type: "highlight";
 
@@ -1887,16 +1888,25 @@ export type HighlightBlock = BaseBlock & {
      * ================================================================
      *
      * sourceBlockId
-     *   Linked source block, such as a Poll.
+     *   ID of the linked source block.
+     *
+     * Supported sources:
+     *   Poll
+     *   Progress Tracker
+     *   Existing legacy sources
      *
      * sourceDataPointId
-     *   Specific result/data point within the linked block.
+     *   Specific result or metric within the linked block.
      *
-     * For Poll:
-     *   sourceDataPointId = PollOption.id
+     * Poll:
+     *   PollOption.id
      *
-     * This allows multiple Highlight blocks to reference the same Poll
-     * while each card displays a different Poll option.
+     * Progress Tracker:
+     *   Selected metric identifier, including session counts,
+     *   completion percentages, and row/measurement values.
+     *
+     * Multiple Highlight blocks may reference the same source
+     * block while displaying different data points.
      * ================================================================
      */
 
@@ -1906,6 +1916,7 @@ export type HighlightBlock = BaseBlock & {
 
     sourceType?:
       | "poll"
+      | "progress_tracker"
       | "rsvp"
       | "donation"
       | "form"
@@ -1916,9 +1927,11 @@ export type HighlightBlock = BaseBlock & {
     /*
      * Optional saved label for editor/display fallback only.
      *
-     * The ID remains authoritative so renaming a Poll option does not
-     * break the Highlight relationship.
+     * The data point ID remains authoritative, so renaming
+     * a linked option, row, or measurement does not break
+     * the relationship.
      */
+
     sourceDataPointLabel?: string;
 
     /*
@@ -1941,16 +1954,17 @@ export type HighlightBlock = BaseBlock & {
      * ================================================================
      */
 
-unitLabel?: string;
+    unitLabel?: string;
 
-showDataCardTitle?: boolean;
+    showDataCardTitle?: boolean;
 
-showPercentage?: boolean;
+    showPercentage?: boolean;
 
     /*
-     * Optional owner-defined text shown before/after the calculated
-     * percentage if needed later.
+     * Optional owner-defined text shown before/after the
+     * calculated percentage.
      */
+
     percentagePrefix?: string;
 
     percentageSuffix?: string;
@@ -2092,6 +2106,7 @@ showPercentage?: boolean;
     cardBackgroundOpacity?: number;
   };
 };
+
 
 export type SummaryLinkedBlock = {
   id: string;

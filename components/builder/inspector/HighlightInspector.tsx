@@ -143,15 +143,26 @@ export function HighlightInspector({
         selectedBlock.data.sourceBlockId,
     );
 
-  const linkedPoll =
-    linkedSourceBlock?.type === "poll"
-      ? linkedSourceBlock
-      : null;
+  const linkedPoll = linkedSourceBlock?.type === "poll" ? linkedSourceBlock : null;
+  const linkedTracker = linkedSourceBlock?.type === "progress_tracker" ? linkedSourceBlock : null;
 
-  const availableDataPoints =
-    linkedPoll &&
-    Array.isArray(linkedPoll.data.options)
-      ? linkedPoll.data.options
+  const availableDataPoints: Array<{ id: string; text: string }> = linkedPoll
+    ? (Array.isArray(linkedPoll.data.options) ? linkedPoll.data.options : [])
+    : linkedTracker
+      ? [
+          { id: "session_number", text: "Current Session Number" },
+          { id: "completed_sessions", text: "Completed Sessions" },
+          { id: "completed_sessions_percentage", text: "Completed Sessions (% of Site Total)" },
+          ...(Array.isArray(linkedTracker.data.rows) ? linkedTracker.data.rows : []).map(
+            (row: any) => ({ id: `row_max:${row.id}`, text: `Highest Row Value — ${row.label || row.id}` }),
+          ),
+          ...(Array.isArray(linkedTracker.data.measurements) ? linkedTracker.data.measurements : [])
+            .filter((measurement: any) => measurement.actualEnabled !== false)
+            .map((measurement: any) => ({
+              id: `measurement_max:${measurement.id}`,
+              text: `Highest Measurement Value — ${measurement.label || measurement.id}`,
+            })),
+        ]
       : [];
 
   /*
@@ -351,11 +362,9 @@ export function HighlightInspector({
                 const nextBlockId =
                   e.target.value;
 
+                const nextSource = (draft.blocks ?? []).find((item: any) => item.id === nextBlockId);
                 updateHighlightData({
-                  sourceType:
-                    nextBlockId
-                      ? "poll"
-                      : "manual",
+                  sourceType: nextSource?.type === "progress_tracker" ? "progress_tracker" : nextSource?.type === "poll" ? "poll" : "manual",
 
                   sourceBlockId:
                     nextBlockId,
@@ -382,8 +391,7 @@ export function HighlightInspector({
               {(draft.blocks ?? [])
                 .filter(
                   (block: any) =>
-                    block.type ===
-                    "poll",
+                    block.type === "poll" || block.type === "progress_tracker",
                 )
                 .map(
                   (pollBlock: any) => (
@@ -395,10 +403,7 @@ export function HighlightInspector({
                         pollBlock.id
                       }
                     >
-                      {pollBlock.data
-                        ?.question ||
-                        pollBlock.label ||
-                        "Poll"}
+                      {pollBlock.data?.question || pollBlock.data?.title || pollBlock.label || (pollBlock.type === "progress_tracker" ? "Progress Tracker" : "Poll")}
                     </option>
                   ),
                 )}
@@ -427,7 +432,7 @@ export function HighlightInspector({
                 ""
               }
               disabled={
-                !linkedPoll
+                !linkedSourceBlock
               }
               onChange={(e) => {
                 const nextId =
@@ -454,7 +459,7 @@ export function HighlightInspector({
               }
             >
               <option value="">
-                {linkedPoll
+                {linkedSourceBlock
                   ? "Select a data point..."
                   : "Select a linked block first"}
               </option>

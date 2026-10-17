@@ -30481,6 +30481,23 @@ useEffect(() => {
       setDataCardLoading(true);
       setDataCardError("");
 
+       if (data.sourceType === "progress_tracker") {
+         if (!micrositeId) throw new Error("Microsite identity is unavailable");
+         const trackerParams = new URLSearchParams({
+           micrositeId: String(micrositeId),
+           blockId: sourceBlockId,
+           dataPointId: sourceDataPointId,
+         });
+         const response = await fetch(`/api/public/progress-tracker/highlight?${trackerParams}`, { cache: "no-store" });
+         const payload = await response.json().catch(() => null);
+         if (!response.ok) throw new Error(payload?.error || "Unable to load tracker metric");
+         if (!cancelled) {
+           setDataCardCount(Number(payload?.value ?? 0));
+           setDataCardTotal(Number(payload?.total ?? 0));
+         }
+         return;
+       }
+
       const params =
         new URLSearchParams({
           micrositeSlug:
@@ -31131,10 +31148,7 @@ if (isDataCard) {
     ).trim();
 
   const unitLabel =
-    String(
-      data.unitLabel ??
-        "VOTES",
-    );
+    String(data.unitLabel ?? (data.sourceType === "progress_tracker" ? "" : "VOTES"));
 
   /*
    * Percentage of all recorded results represented by this
@@ -41885,7 +41899,7 @@ case "content_panel":
 
     case "progress_bar":
       return renderProgressBar(block, designKey);
-      
+
 case "progress_tracker":
   return (
     <ProgressTrackerBlock
