@@ -216,7 +216,7 @@ function HistoryDetails({ record, tracker }: { record: HistoryRecord; tracker: T
   // Historical snapshots may use different field names; only interpret recognized structures.
   const targets = snapshot.current_targets ?? snapshot.targets;
   const actuals = snapshot.actuals;
-  const completed = snapshot.completed_rows;
+  const completed = snapshot.completed_rows ?? snapshot.completedRows;
   const hasStructured =
     targets !== undefined && actuals !== undefined && completed !== undefined;
 
@@ -251,6 +251,9 @@ export default function ProgressTrackerManagementPage() {
   const [error, setError] = useState("");
   const [selectedTrackerId, setSelectedTrackerId] = useState("");
   const [selectedStateId, setSelectedStateId] = useState("");
+  const [resetting, setResetting] = useState(false);
+  const [resetConfirmation, setResetConfirmation] = useState<{ stateId: string; historyId: string | null } | null>(null);
+  const [resetMessage, setResetMessage] = useState("");
 
   const load = useCallback(async (signal?: AbortSignal) => {
     if (!micrositeId) return;
@@ -301,6 +304,46 @@ export default function ProgressTrackerManagementPage() {
     () => history.filter((record) => record.state_id === selectedState?.id),
     [history, selectedState?.id],
   );
+  const deleteCompletedHistory = useCallback(async () => {
+    if (!resetConfirmation || !selectedState || !selectedTracker || resetting ||
+        resetConfirmation.stateId !== selectedState.id) return;
+    setResetting(true);
+    setResetMessage("");
+    setError("");
+    try {
+      const response = await fetch(
+        `/api/dashboard/microsites/${encodeURIComponent(micrositeId)}/progress-tracker/reset`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          cache: "no-store",
+          body: JSON.stringify({
+            stateId: selectedState.id,
+            blockId: selectedTracker.id,
+            ...(resetConfirmation.historyId ? { historyId: resetConfirmation.historyId } : {}),
+          }),
+        },
+      );
+      const result = (await response.json().catch(() => ({}))) as {
+        ok?: boolean;
+        error?: string;
+        deletedCount?: number;
+      };
+      if (!response.ok || result.ok !== true) {
+        throw new Error(result.error || "Unable to delete completed-session history.");
+      }
+      setResetConfirmation(null);
+      await load();
+      setResetMessage(
+        `${result.deletedCount ?? 0} completed-session record(s) deleted. Current progress was not changed.`,
+      );
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Unable to delete completed-session history.");
+    } finally {
+      setResetting(false);
+    }
+  }, [micrositeId, selectedState, selectedTracker, resetting, resetConfirmation, load]);
+
   const historyCounts = useMemo(() => {
     const counts = new Map<string, number>();
     for (const record of history) {
@@ -335,9 +378,15 @@ export default function ProgressTrackerManagementPage() {
           </button>
         </div>
         <p className="mt-3 text-xs text-neutral-500">
-          Read-only overview. No progress or history can be changed here.
+          View current progress without changing it. Owners can delete completed-session history for a selected user and tracker.
         </p>
       </div>
+
+      {resetMessage && (
+        <div role="status" className="rounded-xl border border-green-200 bg-green-50 p-4 text-sm text-green-800">
+          {resetMessage}
+        </div>
+      )}
 
       {error && (
         <div
@@ -376,6 +425,8 @@ export default function ProgressTrackerManagementPage() {
                   onChange={(event) => {
                     setSelectedTrackerId(event.target.value);
                     setSelectedStateId("");
+                    setResetConfirmation(null);
+                    setResetMessage("");
                   }}
                   className="mt-2 w-full rounded-xl border border-neutral-300 bg-white px-3 py-3 text-sm sm:max-w-xl"
                 >
@@ -437,7 +488,7 @@ export default function ProgressTrackerManagementPage() {
                             <td className="py-3">
                               <button
                                 type="button"
-                                onClick={() => setSelectedStateId(state.id)}
+                                onClick={() => { setSelectedStateId(state.id); setResetConfirmation(null); }}
                                 className="font-medium text-blue-700 hover:underline"
                               >
                                 View details
@@ -453,7 +504,47 @@ export default function ProgressTrackerManagementPage() {
 
               {selectedState && (
                 <section className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-                  <h2 className="text-lg font-semibold">User details</h2>
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <h2 className="text-lg font-semibold">User details</h2>
+                    <button
+                      type="button"
+                      onClick={() => { setResetConfirmation({ stateId: selectedState.id, historyId: null }); setResetMessage(""); }}
+                      disabled={resetting || loading || selectedHistory.length === 0}
+                      className="rounded-xl border border-red-300 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50 disabled:opacity-50"
+                    >
+                      Clear All Completed Sessions
+                    </button>
+                  </div>
+                  {resetConfirmation?.stateId === selectedState.id && (
+                    <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4" role="group" aria-label="Confirm history deletion">
+                      <p className="text-sm font-semibold text-red-900">
+                        {resetConfirmation.historyId ? "Delete this completed session?" : "Delete ALL completed sessions for this user and tracker?"}
+                      </p>
+                      <p className="mt-2 text-sm text-red-800">
+                        This permanently deletes completed-session history records only.
+                        The current incomplete session, targets, actual values, checkmarks, and session number stay unchanged.
+                      </p>
+                      <p className="mt-2 break-all text-xs text-red-700">User: {selectedState.participant_id}</p>
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={() => void deleteCompletedHistory()}
+                          disabled={resetting || loading}
+                          className="rounded-lg bg-red-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+                        >
+                          {resetting ? "Deleting…" : "Confirm Delete"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setResetConfirmation(null)}
+                          disabled={resetting}
+                          className="rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm font-medium disabled:opacity-50"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  )}
                   <p className="mt-2 break-all text-xs text-neutral-500">
                     User: {selectedState.participant_id} · State: {selectedState.id}
                   </p>
@@ -498,11 +589,17 @@ export default function ProgressTrackerManagementPage() {
                   ) : (
                     <div className="mt-3 space-y-3">
                       {selectedHistory.map((record) => (
-                        <HistoryDetails
-                          key={record.id}
-                          record={record}
-                          tracker={selectedTracker}
-                        />
+                        <div key={record.id} className="space-y-2">
+                          <HistoryDetails record={record} tracker={selectedTracker} />
+                          <button
+                            type="button"
+                            onClick={() => { setResetConfirmation({ stateId: selectedState.id, historyId: record.id }); setResetMessage(""); }}
+                            disabled={resetting || loading}
+                            className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50 disabled:opacity-50"
+                          >
+                            Delete Session {record.session_number}
+                          </button>
+                        </div>
                       ))}
                     </div>
                   )}
