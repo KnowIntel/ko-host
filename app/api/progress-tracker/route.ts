@@ -3,12 +3,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { validateProgressTrackerAccess } from "@/lib/progressTracker/validateAccess";
-import {
-  authenticateProgressParticipant,
-  createProgressParticipantSession,
-} from "@/lib/progressTracker/participantSession";
 
 export const dynamic = "force-dynamic";
+const SHARED_PROGRESS_PARTICIPANT_ID =
+  "00000000-0000-4000-8000-000000000001";
 
 type JsonObject = Record<string, unknown>;
 
@@ -97,9 +95,12 @@ function validateProgress(
 async function authorize(
   micrositeId: string,
   blockId: string,
-  createSession = false
+  _createSession = false
 ) {
-  const access = await validateProgressTrackerAccess(micrositeId, blockId);
+  const access = await validateProgressTrackerAccess(
+    micrositeId,
+    blockId
+  );
 
   if (!access.ok) {
     return {
@@ -108,22 +109,9 @@ async function authorize(
     };
   }
 
-  let session = await authenticateProgressParticipant(micrositeId);
-
-  if (createSession && !session.ok && session.status === 401) {
-    session = await createProgressParticipantSession(micrositeId);
-  }
-
-  if (!session.ok) {
-    return {
-      ok: false as const,
-      response: jsonError(session.error, session.status),
-    };
-  }
-
   return {
     ok: true as const,
-    participantId: session.participant.participantId,
+    participantId: SHARED_PROGRESS_PARTICIPANT_ID,
     configuration: access.block.data,
   };
 }

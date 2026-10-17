@@ -2,9 +2,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { validateProgressTrackerAccess } from "@/lib/progressTracker/validateAccess";
-import { authenticateProgressParticipant, createProgressParticipantSession } from "@/lib/progressTracker/participantSession";
 
 export const dynamic = "force-dynamic";
+const SHARED_PROGRESS_PARTICIPANT_ID =
+  "00000000-0000-4000-8000-000000000001";
 
 type JsonMap = Record<string, unknown>;
 const asMap = (value: unknown): JsonMap =>
@@ -25,15 +26,8 @@ export async function GET(request: NextRequest) {
   try {
     const access = await validateProgressTrackerAccess(micrositeId, blockId);
     if (!access.ok) return NextResponse.json({ error: access.error }, { status: access.status });
-    let auth = await authenticateProgressParticipant(micrositeId);
-    // Access has already been validated; mirror the Tracker GET session initialization.
-    if (!auth.ok && auth.status === 401) {
-      auth = await createProgressParticipantSession(micrositeId);
-    }
-    if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
-
-    const supabase = getSupabaseAdmin();
-    const participantId = auth.participant.participantId;
+const supabase = getSupabaseAdmin();
+const participantId = SHARED_PROGRESS_PARTICIPANT_ID;
     const { data: state, error: stateError } = await supabase
       .from("progress_tracker_states")
       .select("id, session_number, actuals")
