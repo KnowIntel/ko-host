@@ -15895,73 +15895,83 @@ const idsToExpand =
   </>
 ) : null}
 
+
 {selectedBlock?.type === "calendar_event" ||
 selectedBlock?.type === "poll" ||
 selectedBlock?.type === "highlight" ? (
   <>
-    <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
+    {selectedBlock.type !== "highlight" ? (
+      <>
+        <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
 
-    <input
-      type="color"
-      value={
-        selectedAppearance.backgroundColor === "transparent"
-          ? "#ffffff"
-          : (selectedAppearance.backgroundColor ?? "#ffffff")
-      }
-      onChange={(e) => applyFillColor(e.target.value)}
-      className={topBarColorClass(false)}
-      title={
-        selectedBlockFromDraft?.type === "poll"
-          ? pollStyleTarget === "field"
-            ? "Poll field background color"
-            : "Poll block background color"
-          : "Calendar background color"
-      }
-    />
+        <input
+          type="color"
+          value={
+            selectedAppearance.backgroundColor === "transparent"
+              ? "#ffffff"
+              : (selectedAppearance.backgroundColor ?? "#ffffff")
+          }
+          onChange={(e) => applyFillColor(e.target.value)}
+          className={topBarColorClass(false)}
+          title={
+            selectedBlock.type === "poll"
+              ? pollStyleTarget === "field"
+                ? "Poll field background color"
+                : "Poll block background color"
+              : "Calendar background color"
+          }
+        />
+
+        <button
+          type="button"
+          className={eyedropperButtonClass()}
+          onClick={() =>
+            void pickColorWithEyeDropper((color) => {
+              applyFillColor(color);
+            })
+          }
+          title={
+            selectedBlock.type === "poll"
+              ? pollStyleTarget === "field"
+                ? "Pick poll field background color from screen"
+                : "Pick poll block background color from screen"
+              : "Pick calendar background color from screen"
+          }
+        >
+          <Image
+            src="/icons/pick_color_icon.png"
+            alt="Pick Color"
+            width={20}
+            height={20}
+            className="pointer-events-none object-contain"
+          />
+        </button>
+      </>
+    ) : null}
 
     <button
       type="button"
-      className={eyedropperButtonClass()}
-      onClick={() =>
-        void pickColorWithEyeDropper((color) => {
-          applyFillColor(color);
-        })
-      }
-      title={
+      className={topBarButtonClass(
         selectedBlock.type === "poll"
           ? pollStyleTarget === "field"
-            ? "Pick poll field background color from screen"
-            : "Pick poll block background color from screen"
-          : "Pick calendar background color from screen"
-      }
-    >
-      <Image
-        src="/icons/pick_color_icon.png"
-        alt="Pick Color"
-        width={20}
-        height={20}
-        className="pointer-events-none object-contain"
-      />
-    </button>
+            ? (
+                (selectedBlock.data as any).fieldBackgroundColor ===
+                  "transparent" ||
+                (selectedBlock.data as any).optionBackgroundColor ===
+                  "transparent"
+              )
+            : selectedBlock.appearance?.backgroundColor === "transparent"
+          : selectedBlock.type === "highlight"
+            ? selectedBlock.appearance?.backgroundColor === "transparent"
+            : selectedAppearance.backgroundColor === "transparent",
+      )}
+      onClick={() => {
+        /*
+         * ================================================================
+         * POLL
+         * ================================================================
+         */
 
-<button
-  type="button"
-  className={topBarButtonClass(
-    selectedBlock.type === "poll"
-      ? pollStyleTarget === "field"
-        ? ((selectedBlock.data as any).fieldBackgroundColor === "transparent" ||
-            (selectedBlock.data as any).optionBackgroundColor === "transparent")
-        : selectedBlock.appearance?.backgroundColor === "transparent"
-      : selectedBlock.type === "highlight"
-        ? selectedBlock.appearance?.backgroundColor === "transparent"
-        : selectedAppearance.backgroundColor === "transparent",
-  )}
-  onClick={() => {
-    /*
-     * ================================================================
-     * POLL
-     * ================================================================
-     */
 
     if (selectedBlock.type === "poll") {
       const selectedPollId = selectedBlock.id;
