@@ -186,9 +186,22 @@ export default async function MicrositeCalendarBookingsPage({
     );
 
     return (
-      <div className="p-6">
-        Failed to load calendar bookings.
-      </div>
+      <main className="mx-auto w-full max-w-7xl px-4 py-8">
+        <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-5 text-sm text-red-800">
+          <p className="font-semibold">Failed to load calendar bookings.</p>
+          <p className="mt-2">The booking records could not be retrieved. This is a database error, not an empty booking list.</p>
+          {rowsErr.code ? (
+            <p className="mt-2 font-mono text-xs">Error code: {rowsErr.code}</p>
+          ) : null}
+          <p className="mt-2 text-xs">Check the server logs for “calendar bookings list failed” to see the database error details.</p>
+          <Link
+            href={`/dashboard/microsites/${site.id}`}
+            className="mt-4 inline-block font-medium underline underline-offset-2"
+          >
+            Back to Manage Site
+          </Link>
+        </div>
+      </main>
     );
   }
 
