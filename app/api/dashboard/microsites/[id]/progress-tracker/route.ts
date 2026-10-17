@@ -21,7 +21,16 @@ type TrackerInfo = {
 type DraftBlock = {
   id?: unknown;
   type?: unknown;
-  data?: { title?: unknown; measurements?: unknown; rows?: unknown } | null;
+
+  name?: unknown;
+  label?: unknown;
+  displayName?: unknown;
+
+  data?: {
+    title?: unknown;
+    measurements?: unknown;
+    rows?: unknown;
+  } | null;
 };
 
 function errorResponse(message: string, status: number) {
@@ -45,7 +54,13 @@ function collectTrackers(
     if (typeof block.id !== "string" || !block.id.trim()) continue;
     const id = block.id;
     if (output.has(id)) continue;
-    const rawTitle = block.data?.title;
+    const rawTitle =
+  [block.name, block.displayName, block.label, block.data?.title]
+    .find(
+      (value): value is string =>
+        typeof value === "string" &&
+        value.trim().length > 0,
+    );
     output.set(id, {
       id,
       title: typeof rawTitle === "string" && rawTitle.trim() ? rawTitle.trim() : "Progress Tracker",
