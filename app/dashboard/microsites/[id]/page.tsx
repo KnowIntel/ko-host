@@ -42,22 +42,6 @@ type EmailRecipientRow = {
   label: string;
 };
 
-type ConnectService = {
-  id: string;
-  slug: string;
-  name: string;
-};
-
-type ConnectProviderSettings = {
-  linked: boolean;
-  id: string | null;
-  displayName: string;
-  enabled: boolean;
-  serviceZipCode: string;
-  serviceRadiusMiles: number;
-  serviceIds: string[];
-};
-
 export default function DashboardMicrositeManagePage() {
   const params = useParams();
   const id = String(params?.id || "");
@@ -76,21 +60,6 @@ export default function DashboardMicrositeManagePage() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   
-  const [connectServices, setConnectServices] = useState<ConnectService[]>([]);
-const [connectProvider, setConnectProvider] =
-  useState<ConnectProviderSettings | null>(null);
-
-const [connectLoading, setConnectLoading] = useState(true);
-const [connectSaving, setConnectSaving] = useState(false);
-const [connectMessage, setConnectMessage] = useState("");
-
-const [connectDisplayName, setConnectDisplayName] = useState("");
-const [connectEnabled, setConnectEnabled] = useState(false);
-const [connectZipCode, setConnectZipCode] = useState("");
-const [connectRadiusMiles, setConnectRadiusMiles] = useState(10);
-const [connectServiceIds, setConnectServiceIds] = useState<string[]>([]);
-const [connectServicesExpanded, setConnectServicesExpanded] = useState(true);
-
   const [title, setTitle] = useState("");
   const [siteVisibility, setSiteVisibility] = useState<"public" | "private">("public");
   const [passcode, setPasscode] = useState("");
@@ -122,93 +91,6 @@ const [paymentsSummary, setPaymentsSummary] = useState<{
   totalPayments: 0,
   grossCents: 0,
 });
-
-function toggleConnectService(serviceId: string) {
-  setConnectServiceIds((prev) =>
-    prev.includes(serviceId)
-      ? prev.filter((id) => id !== serviceId)
-      : [...prev, serviceId],
-  );
-}
-
-async function saveConnectSettings() {
-  try {
-    setConnectSaving(true);
-    setConnectMessage("Saving Ko-Host Connect settings...");
-
-    const res = await fetch(
-      `/api/dashboard/microsites/${id}/connect`,
-      {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-        },
-body: JSON.stringify({
-  displayName: connectDisplayName,
-  enabled: connectEnabled,
-  serviceZipCode: connectZipCode,
-  serviceRadiusMiles: connectRadiusMiles,
-  serviceIds: connectServiceIds,
-}),
-      },
-    );
-
-    const data = await res.json().catch(() => ({}));
-
-    if (!res.ok) {
-      setConnectMessage(
-        data?.error ||
-          "Failed to save Ko-Host Connect settings.",
-      );
-      return;
-    }
-
-    const provider =
-      data?.provider &&
-      typeof data.provider === "object"
-        ? data.provider
-        : null;
-
-    if (provider) {
-      setConnectProvider(provider);
-      setConnectDisplayName(
-  String(provider.displayName || ""),
-);
-
-      setConnectEnabled(
-        Boolean(provider.enabled),
-      );
-
-      setConnectZipCode(
-        String(provider.serviceZipCode || ""),
-      );
-
-      setConnectRadiusMiles(
-        Number(provider.serviceRadiusMiles || 10),
-      );
-
-      setConnectServiceIds(
-        Array.isArray(provider.serviceIds)
-          ? provider.serviceIds.map(String)
-          : [],
-      );
-    }
-
-    setConnectMessage(
-      provider?.enabled
-        ? "Ko-Host Connect is active for this microsite."
-        : "Ko-Host Connect settings saved.",
-    );
-  } catch (error) {
-    setConnectMessage(
-      error instanceof Error
-        ? error.message
-        : "Failed to save Ko-Host Connect settings.",
-    );
-  } finally {
-    setConnectSaving(false);
-  }
-}
 
 async function loadEmailRecipients() {
   try {
@@ -330,83 +212,8 @@ const res = await fetch("/api/stripe/connect/start", {
   }
 };
 
-async function loadConnectSettings() {
-  try {
-    setConnectLoading(true);
-    setConnectMessage("");
-
-    const res = await fetch(
-      `/api/dashboard/microsites/${id}/connect`,
-      {
-        method: "GET",
-        cache: "no-store",
-      },
-    );
-
-    const data = await res.json().catch(() => ({}));
-
-    if (!res.ok) {
-      setConnectServices([]);
-      setConnectProvider(null);
-      setConnectMessage(
-        data?.error ||
-          "Failed to load Ko-Host Connect settings.",
-      );
-      return;
-    }
-
-    const services = Array.isArray(data?.services)
-      ? data.services
-      : [];
-
-    const provider =
-      data?.provider &&
-      typeof data.provider === "object"
-        ? data.provider
-        : null;
-
-    setConnectServices(services);
-    setConnectProvider(provider);
-    setConnectDisplayName(
-  String(provider?.displayName || ""),
-);
-
-    setConnectEnabled(
-      Boolean(provider?.enabled),
-    );
-
-    setConnectZipCode(
-      String(provider?.serviceZipCode || ""),
-    );
-
-    setConnectRadiusMiles(
-      Number(provider?.serviceRadiusMiles || 10),
-    );
-
-    setConnectServiceIds(
-      Array.isArray(provider?.serviceIds)
-        ? provider.serviceIds.map(String)
-        : [],
-    );
-  } catch (error) {
-    setConnectServices([]);
-    setConnectProvider(null);
-
-    setConnectMessage(
-      error instanceof Error
-        ? error.message
-        : "Failed to load Ko-Host Connect settings.",
-    );
-  } finally {
-    setConnectLoading(false);
-  }
-}
-
 useEffect(() => {
-  if (id) {
-    void loadEmailRecipients();
-    void loadConnectSettings();
-  }
+  if (id) void loadEmailRecipients();
 }, [id]);
 
 useEffect(() => {
@@ -755,239 +562,114 @@ async function sendBulkEmail() {
   Share Preview
 </Link>
 
-<Link
-  href={`/dashboard/microsites/${site.id}/live`}
-  className="inline-flex items-center justify-center rounded-xl border border-violet-300 bg-violet-50 px-4 py-2 text-sm font-medium text-violet-700 hover:border-violet-500 hover:bg-violet-100"
->
-  Live Manager
-</Link>
+
         </div>
       </div>
+
+<div className="mt-6 rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+  <div className="text-sm font-semibold text-neutral-900">
+    Manage Content
+  </div>
+
+  <div className="mt-1 text-sm text-neutral-600">
+    Manage submissions, participant activity, interactive features,
+    and connected services.
+  </div>
+
+  <div className="mt-5 grid gap-3 sm:grid-cols-2">
+    {[
+      {
+        label: "RSVP Submissions",
+        icon: "envelope-rsvp-confirm.svg",
+        href: `/dashboard/microsites/${site.id}/rsvp`,
+        disabled: site.template_key !== "wedding_rsvp",
+      },
+      {
+        label: "Calendar Bookings",
+        icon: "calendar-book-schedule.svg",
+        href: `/dashboard/microsites/${site.id}/calendar-bookings`,
+      },
+      {
+        label: "Text Entries",
+        icon: "text-entry-paper-write-note.svg",
+        href: `/dashboard/microsites/${site.id}/entries`,
+      },
+      {
+        label: "Media Uploads",
+        icon: "media-upload.svg",
+        href: `/dashboard/microsites/${site.id}/uploads`,
+      },
+      {
+        label: "Enrollment Board",
+        icon: "enroll-add-enlist-board.svg",
+        href: `/dashboard/microsites/${site.id}/enrollments`,
+      },
+      {
+        label: "Live Manager",
+        icon: "live-air-broadcast.svg",
+        href: `/dashboard/microsites/${site.id}/live`,
+      },
+      {
+        label: "Progress Tracker",
+        icon: "target-progress-increase-chart-bar.svg",
+        href: `/dashboard/microsites/${site.id}/progress-tracker`,
+      },
+      {
+        label: "Ko-Host Connect",
+        icon: "connect-social-network-web.svg",
+        href: `/dashboard/microsites/${site.id}/connect`,
+      },
+    ].map((item) => {
+      const content = (
+        <>
+          <img
+            src={`/media-icons/${item.icon}`}
+            alt=""
+            aria-hidden="true"
+            className="h-6 w-6 shrink-0 object-contain"
+          />
+          <span>{item.label}</span>
+        </>
+      );
+
+      const className = [
+        "flex min-h-14 items-center gap-3 rounded-xl border px-4 py-3",
+        "text-sm font-medium transition",
+        item.disabled
+          ? "cursor-not-allowed border-neutral-200 bg-neutral-50 text-neutral-400"
+          : "border-neutral-200 bg-white text-neutral-900 hover:border-blue-400 hover:bg-blue-50",
+      ].join(" ");
+
+      return item.disabled ? (
+        <div
+          key={item.label}
+          className={className}
+          aria-disabled="true"
+        >
+          {content}
+        </div>
+      ) : (
+        <Link
+          key={item.label}
+          href={item.href}
+          className={className}
+        >
+          {content}
+        </Link>
+      );
+    })}
+  </div>
+
+  <div className="mt-3 text-xs text-neutral-500">
+    <Link href={`/dashboard/microsites/${site.id}/connect-requests`} className="underline hover:text-neutral-900">
+      View Connect Requests
+    </Link>
+  </div>
+</div>
 
 <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
   <div className="text-sm font-semibold text-neutral-900">
     Microsite Settings
-  </div>
-
-  <div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50/50 p-5">
-    <div className="flex flex-wrap items-start justify-between gap-4">
-      <div>
-        <div className="text-sm font-semibold text-neutral-900">
-          Ko-Host Connect
-        </div>
-
-        <div className="mt-1 max-w-2xl text-sm text-neutral-600">
-          Link this microsite to Ko-Host Connect to receive relevant service
-          requests from people looking for providers in your area.
-        </div>
-      </div>
-
-      {connectProvider?.linked ? (
-        <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white px-3 py-1.5 text-xs font-semibold text-emerald-700">
-          <span className="h-2 w-2 rounded-full bg-emerald-500" />
-          Linked
-        </div>
-      ) : (
-        <div className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-3 py-1.5 text-xs font-semibold text-neutral-600">
-          <span className="h-2 w-2 rounded-full bg-neutral-400" />
-          Not Linked
-        </div>
-      )}
-    </div>
-
-    {connectLoading ? (
-      <div className="mt-5 rounded-xl border border-neutral-200 bg-white px-4 py-4 text-sm text-neutral-500">
-        Loading Ko-Host Connect settings...
-      </div>
-    ) : (
-      <>
-        <label className="mt-5 flex items-start gap-3 rounded-xl border border-neutral-200 bg-white px-4 py-3">
-          <input
-            type="checkbox"
-            checked={connectEnabled}
-            onChange={(e) => setConnectEnabled(e.target.checked)}
-            className="mt-1"
-          />
-
-          <div>
-            <div className="text-sm font-medium text-neutral-900">
-              Receive Connect Requests
-            </div>
-
-            <div className="mt-1 text-xs leading-5 text-neutral-500">
-              When enabled, this microsite can receive matching requests based
-              on the services and service area you select below.
-            </div>
-          </div>
-</label>
-
-<div className="mt-5">
-  <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
-    Provider Display Name
-  </div>
-
-  <input
-    type="text"
-    maxLength={100}
-    value={connectDisplayName}
-    onChange={(e) =>
-      setConnectDisplayName(e.target.value)
-    }
-    placeholder="Your Lawn Guy"
-    className="mt-2 h-11 w-full rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-900 outline-none"
-  />
-
-  <div className="mt-2 text-xs text-neutral-500">
-    This is the business or provider name customers will see on Ko-Host Connect.
-  </div>
-</div>
-
-<div className="mt-5">
-  <button
-    type="button"
-    onClick={() =>
-      setConnectServicesExpanded((current) => !current)
-    }
-    className="flex w-full items-center justify-between gap-4 rounded-xl border border-neutral-200 bg-white px-4 py-3 text-left transition hover:border-neutral-300"
-    aria-expanded={connectServicesExpanded}
-  >
-    <div>
-      <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
-        Services You Provide
-      </div>
-
-      <div className="mt-1 text-xs text-neutral-500">
-        {connectServiceIds.length === 0
-          ? "No services selected"
-          : `${connectServiceIds.length} ${
-              connectServiceIds.length === 1
-                ? "service"
-                : "services"
-            } selected`}
-      </div>
-    </div>
-
-    <span
-      className={[
-        "flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-sm text-neutral-600 transition-transform duration-200",
-        connectServicesExpanded ? "rotate-180" : "",
-      ].join(" ")}
-      aria-hidden="true"
-    >
-      ▼
-    </span>
-  </button>
-
-  {connectServicesExpanded ? (
-    <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-      {connectServices.map((service) => {
-        const checked = connectServiceIds.includes(service.id);
-
-        return (
-          <label
-            key={service.id}
-            className={[
-              "flex cursor-pointer items-center gap-3 rounded-xl border px-3 py-2.5 text-sm transition",
-              checked
-                ? "border-emerald-400 bg-emerald-50 text-neutral-900"
-                : "border-neutral-200 bg-white text-neutral-700 hover:border-neutral-300",
-            ].join(" ")}
-          >
-            <input
-              type="checkbox"
-              checked={checked}
-              onChange={() =>
-                toggleConnectService(service.id)
-              }
-            />
-
-            <span>{service.name}</span>
-          </label>
-        );
-      })}
-    </div>
-  ) : null}
-</div>
-
-        <div className="mt-5 grid gap-4 md:grid-cols-2">
-          <div>
-            <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
-              Service ZIP Code
-            </div>
-
-            <input
-              type="text"
-              inputMode="numeric"
-              maxLength={5}
-              value={connectZipCode}
-              onChange={(e) =>
-                setConnectZipCode(
-                  e.target.value.replace(/\D/g, "").slice(0, 5),
-                )
-              }
-              placeholder="22401"
-              className="mt-2 h-11 w-full rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-900 outline-none"
-            />
-
-            <div className="mt-2 text-xs text-neutral-500">
-              Enter the ZIP code at the center of your service area.
-            </div>
-          </div>
-
-          <div>
-            <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
-              Service Radius
-            </div>
-
-            <select
-              value={connectRadiusMiles}
-              onChange={(e) =>
-                setConnectRadiusMiles(Number(e.target.value))
-              }
-              className="mt-2 h-11 w-full rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-900 outline-none"
-            >
-              <option value={5}>5 miles</option>
-              <option value={10}>10 miles</option>
-              <option value={25}>25 miles</option>
-              <option value={50}>50 miles</option>
-            </select>
-
-            <div className="mt-2 text-xs text-neutral-500">
-              Matching requests within this service area can be sent to you.
-            </div>
-          </div>
-        </div>
-
-        {!site.is_published ? (
-          <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-            This microsite is not published yet. You can configure Ko-Host
-            Connect now, but it must be published before it can receive
-            requests.
-          </div>
-        ) : null}
-
-        {connectMessage ? (
-          <div className="mt-4 text-sm text-neutral-600">
-            {connectMessage}
-          </div>
-        ) : null}
-
-        <div className="mt-5">
-          <button
-            type="button"
-            onClick={() => void saveConnectSettings()}
-            disabled={connectSaving}
-            className="inline-flex items-center justify-center rounded-xl bg-emerald-700 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-800 disabled:opacity-60"
-          >
-            {connectSaving
-              ? "Saving..."
-              : connectProvider?.linked
-                ? "Save Connect Settings"
-                : "Link to Ko-Host Connect"}
-          </button>
-        </div>
-      </>
-    )}
   </div>
 
   <div className="mt-5 grid gap-5 md:grid-cols-2">
@@ -1162,78 +844,6 @@ async function sendBulkEmail() {
 </div>
 </div>
 
-<div className="mt-6 rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-  <div>
-    <div className="text-sm font-semibold text-neutral-900">Manage Content</div>
-    <div className="mt-1 text-sm text-neutral-600">
-      Review submissions, text entries, and uploaded media from this microsite.
-    </div>
-  </div>
-
-<div className="mt-5 grid gap-3 md:grid-cols-3">
-  {site.template_key === "wedding_rsvp" ? (
-    <Link
-      href={`/dashboard/microsites/${site.id}/rsvp`}
-      className="inline-flex items-center justify-center rounded-xl border border-violet-300 bg-white px-4 py-3 text-sm font-medium text-violet-700 hover:border-violet-500"
-    >
-      View RSVP Submissions
-    </Link>
-  ) : (
-    <button
-      type="button"
-      disabled
-      className="inline-flex items-center justify-center rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm font-medium text-neutral-400"
-    >
-      RSVP Submissions
-    </button>
-  )}
-
-  <Link
-    href={`/dashboard/microsites/${site.id}/calendar-bookings`}
-    className="inline-flex items-center justify-center rounded-xl border border-blue-300 bg-white px-4 py-3 text-sm font-medium text-blue-700 hover:border-blue-500"
-  >
-    Calendar Bookings
-  </Link>
-
-  <Link
-    href={`/dashboard/microsites/${site.id}/entries`}
-    className="inline-flex items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 py-3 text-sm font-medium text-neutral-900 hover:border-neutral-900"
-  >
-    View Text Entries
-  </Link>
-
-  <Link
-    href={`/dashboard/microsites/${site.id}/uploads`}
-    className="inline-flex items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 py-3 text-sm font-medium text-neutral-900 hover:border-neutral-900"
-  >
-    View Media Uploads
-  </Link>
-
-  <Link
-    href={`/dashboard/microsites/${site.id}/enrollments`}
-    className="inline-flex items-center justify-center rounded-xl border border-emerald-300 bg-white px-4 py-3 text-sm font-medium text-emerald-700 hover:border-emerald-500"
-  >
-    Enrollment Board
-  </Link>
-  <Link
-  href={`/dashboard/microsites/${site.id}/connect-requests`}
-  className={[
-    "inline-flex items-center justify-center rounded-xl border px-4 py-3 text-sm font-medium",
-    connectProvider?.linked
-      ? "border-emerald-300 bg-white text-emerald-700 hover:border-emerald-500"
-      : "border-neutral-200 bg-neutral-50 text-neutral-400",
-  ].join(" ")}
-  onClick={(e) => {
-    if (!connectProvider?.linked) {
-      e.preventDefault();
-    }
-  }}
-  aria-disabled={!connectProvider?.linked}
->
-  Connect Requests
-</Link>
-</div>
-</div>
 
       <div className="mt-6 rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
   <div className="flex items-center justify-between gap-3">
