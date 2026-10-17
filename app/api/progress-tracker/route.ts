@@ -1,3 +1,5 @@
+// app\api\progress-tracker\route.ts
+
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { validateProgressTrackerAccess } from "@/lib/progressTracker/validateAccess";
