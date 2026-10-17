@@ -15896,6 +15896,7 @@ const idsToExpand =
 ) : null}
 
 
+
 {selectedBlock?.type === "calendar_event" ||
 selectedBlock?.type === "poll" ||
 selectedBlock?.type === "highlight" ? (
@@ -15946,182 +15947,102 @@ selectedBlock?.type === "highlight" ? (
             className="pointer-events-none object-contain"
           />
         </button>
+
+        <button
+          type="button"
+          className={topBarButtonClass(
+            selectedBlock.type === "poll"
+              ? pollStyleTarget === "field"
+                ? (
+                    (selectedBlock.data as any).fieldBackgroundColor ===
+                      "transparent" ||
+                    (selectedBlock.data as any).optionBackgroundColor ===
+                      "transparent"
+                  )
+                : selectedBlock.appearance?.backgroundColor === "transparent"
+              : selectedAppearance.backgroundColor === "transparent",
+          )}
+          onClick={() => {
+            /*
+             * ================================================================
+             * POLL
+             * ================================================================
+             */
+
+            if (selectedBlock.type === "poll") {
+              const selectedPollId = selectedBlock.id;
+
+              setDraft((prev) => ({
+                ...prev,
+                blocks: prev.blocks.map((block) => {
+                  if (
+                    block.id !== selectedPollId ||
+                    block.type !== "poll"
+                  ) {
+                    return block;
+                  }
+
+                  if (pollStyleTarget === "block") {
+                    return {
+                      ...block,
+                      appearance: {
+                        ...(block.appearance ?? {}),
+                        backgroundColor: "transparent",
+                        backgroundOpacity: 0,
+                      },
+                    };
+                  }
+
+                  return applyPollStylePatch(
+                    block,
+                    pollStyleTarget,
+                    {
+                      backgroundColor: "transparent",
+                      backgroundOpacity: 0,
+                    },
+                  );
+                }),
+              }));
+
+              return;
+            }
+
+            /*
+             * ================================================================
+             * CALENDAR EVENT
+             * ================================================================
+             */
+
+            if (selectedBlock.type === "calendar_event") {
+              updateSelectedBlock((block) =>
+                block.type !== "calendar_event"
+                  ? block
+                  : applyCalendarEventStylePatch(
+                      block,
+                      calendarEventStyleTarget,
+                      {
+                        backgroundColor: "transparent",
+                        backgroundOpacity: 0,
+                      },
+                    ),
+              );
+            }
+          }}
+          title={
+            selectedBlock.type === "poll"
+              ? pollStyleTarget === "field"
+                ? "Transparent poll field background"
+                : "Transparent poll block background"
+              : "Transparent selected calendar style target"
+          }
+        >
+          ☐
+        </button>
       </>
     ) : null}
 
-    <button
-      type="button"
-      className={topBarButtonClass(
-        selectedBlock.type === "poll"
-          ? pollStyleTarget === "field"
-            ? (
-                (selectedBlock.data as any).fieldBackgroundColor ===
-                  "transparent" ||
-                (selectedBlock.data as any).optionBackgroundColor ===
-                  "transparent"
-              )
-            : selectedBlock.appearance?.backgroundColor === "transparent"
-          : selectedBlock.type === "highlight"
-            ? selectedBlock.appearance?.backgroundColor === "transparent"
-            : selectedAppearance.backgroundColor === "transparent",
-      )}
-      onClick={() => {
-        /*
-         * ================================================================
-         * POLL
-         * ================================================================
-         */
+    {/* Existing BG Opacity slider continues immediately below */}
 
-
-    if (selectedBlock.type === "poll") {
-      const selectedPollId = selectedBlock.id;
-
-      setDraft((prev) => ({
-        ...prev,
-
-        blocks: prev.blocks.map((block) => {
-          if (
-            block.id !== selectedPollId ||
-            block.type !== "poll"
-          ) {
-            return block;
-          }
-
-          if (pollStyleTarget === "block") {
-            return {
-              ...block,
-
-              appearance: {
-                ...(block.appearance ?? {}),
-                backgroundColor: "transparent",
-                backgroundOpacity: 0,
-              },
-            };
-          }
-
-          return applyPollStylePatch(
-            block,
-            pollStyleTarget,
-            {
-              backgroundColor: "transparent",
-              backgroundOpacity: 0,
-            },
-          );
-        }),
-      }));
-
-      return;
-    }
-
-    /*
-     * ================================================================
-     * HIGHLIGHT
-     * ================================================================
-     */
-
-    if (selectedBlock.type === "highlight") {
-      const selectedHighlightId = selectedBlock.id;
-
-      setDraft((prev) => ({
-        ...prev,
-
-        blocks: prev.blocks.map((block) => {
-          if (
-            block.id !== selectedHighlightId ||
-            block.type !== "highlight"
-          ) {
-            return block;
-          }
-
-if (
-  highlightUnifiedStyleTarget ===
-  "block"
-) {
-  const isDataCard =
-    (block.data as any).styleVariant ===
-    "data_card";
-
-  return {
-    ...block,
-
-    appearance: {
-      ...(block.appearance ?? {}),
-
-      backgroundColor:
-        "transparent",
-
-      backgroundOpacity:
-        0,
-    },
-
-    data: {
-      ...block.data,
-
-      ...(isDataCard
-        ? {
-            dataCardFrameStyle: {
-              ...((block.data as any)
-                .dataCardFrameStyle ?? {}),
-
-              backgroundColor:
-                "transparent",
-
-              backgroundOpacity:
-                0,
-            },
-          }
-        : {}),
-    },
-  };
-}
-
-          return applyHighlightStylePatch(
-            block,
-            highlightUnifiedStyleTarget,
-            {
-              backgroundColor: "transparent",
-              backgroundOpacity: 0,
-            },
-          );
-        }),
-      }));
-
-      return;
-    }
-
-    /*
-     * ================================================================
-     * CALENDAR EVENT
-     * ================================================================
-     */
-
-    if (selectedBlock.type === "calendar_event") {
-      updateSelectedBlock((block) =>
-        block.type !== "calendar_event"
-          ? block
-          : applyCalendarEventStylePatch(
-              block,
-              calendarEventStyleTarget,
-              {
-                backgroundColor: "transparent",
-                backgroundOpacity: 0,
-              },
-            ),
-      );
-    }
-  }}
-  title={
-    selectedBlock.type === "poll"
-      ? pollStyleTarget === "field"
-        ? "Transparent poll field background"
-        : "Transparent poll block background"
-      : selectedBlock.type === "highlight"
-        ? "Transparent highlight background"
-        : "Transparent selected calendar style target"
-  }
->
-  ☐
-</button>
 
 <div className={topBarSliderWrapClass()}>
   <span>BG Opacity</span>
