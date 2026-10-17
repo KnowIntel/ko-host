@@ -31141,11 +31141,11 @@ return () => {
  */
 
 if (isDataCard) {
-  const dataPointLabel =
-    String(
-      data.sourceDataPointLabel ??
-        "",
-    ).trim();
+  const dataPointLabel = String(
+    data.dataCardTitleOverride ||
+    data.sourceDataPointLabel ||
+    "",
+  ).trim();
 
   const unitLabel =
     String(data.unitLabel ?? (data.sourceType === "progress_tracker" ? "" : "VOTES"));
@@ -31155,7 +31155,9 @@ if (isDataCard) {
    * selected data point.
    */
   const percentage =
-    dataCardTotal > 0
+    data.sourceType === "progress_tracker" && data.sourceDataPointId === "completed_sessions_percentage"
+      ? Math.max(0, Math.min(100, dataCardCount))
+      : dataCardTotal > 0
       ? Math.max(
           0,
           Math.min(
@@ -31168,9 +31170,9 @@ if (isDataCard) {
       : 0;
 
   const roundedPercentage =
-    Math.round(
-      percentage,
-    );
+    data.sourceType === "progress_tracker" && data.sourceDataPointId === "completed_sessions_percentage"
+      ? Math.round(dataCardCount)
+      : Math.round(percentage);
 
   const showPercentage =
     data.showPercentage !==
@@ -31504,6 +31506,7 @@ if (isDataCard) {
         {/* IMAGE */}
         {/* ========================================================== */}
 
+        {imageUrl ? (
         <div className="flex w-full justify-center">
           <div
             className={[
@@ -31582,13 +31585,10 @@ if (isDataCard) {
                     imageOpacity,
                 }}
               />
-            ) : (
-              <div className="absolute inset-0 flex items-center justify-center border border-dashed border-white/15 text-xs opacity-40">
-                Add image
-              </div>
-            )}
+            ) : null}
           </div>
         </div>
+        ) : null}
 {/* ========================================================== */}
 {/* DATA POINT TITLE */}
 {/* ========================================================== */}

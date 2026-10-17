@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { validateProgressTrackerAccess } from "@/lib/progressTracker/validateAccess";
-import { authenticateProgressParticipant } from "@/lib/progressTracker/participantSession";
+import { authenticateProgressParticipant, createProgressParticipantSession } from "@/lib/progressTracker/participantSession";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +25,11 @@ export async function GET(request: NextRequest) {
   try {
     const access = await validateProgressTrackerAccess(micrositeId, blockId);
     if (!access.ok) return NextResponse.json({ error: access.error }, { status: access.status });
-    const auth = await authenticateProgressParticipant(micrositeId);
+    let auth = await authenticateProgressParticipant(micrositeId);
+    // Access has already been validated; mirror the Tracker GET session initialization.
+    if (!auth.ok && auth.status === 401) {
+      auth = await createProgressParticipantSession(micrositeId);
+    }
     if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
     const supabase = getSupabaseAdmin();

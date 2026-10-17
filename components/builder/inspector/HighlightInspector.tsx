@@ -521,6 +521,21 @@ export function HighlightInspector({
             Data Card Content
           </div>
 
+          {/* OPTIONAL DISPLAY TITLE */}
+          <div className="mt-4">
+            <div className={inspectorLabelClass()}>Display Title (Optional)</div>
+            <input
+              type="text"
+              value={selectedBlock.data.dataCardTitleOverride ?? ""}
+              onChange={(e) => updateHighlightData({ dataCardTitleOverride: e.target.value })}
+              placeholder={selectedBlock.data.sourceDataPointLabel || "Use linked data point title"}
+              className={inspectorInputClass()}
+            />
+            <div className="mt-1 text-xs text-neutral-500">
+              Overrides the title on this card only. The linked data point remains unchanged.
+            </div>
+          </div>
+
           {/* UNITS */}
 
           <div className="mt-4">
