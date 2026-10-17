@@ -250,7 +250,6 @@ export default function ProgressTrackerManagementPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedTrackerId, setSelectedTrackerId] = useState("");
-  const [selectedStateId, setSelectedStateId] = useState("");
   const [resetting, setResetting] = useState(false);
   const [resetConfirmation, setResetConfirmation] = useState<{ stateId: string; historyId: string | null } | null>(null);
   const [resetMessage, setResetMessage] = useState("");
@@ -293,13 +292,10 @@ export default function ProgressTrackerManagementPage() {
     ? selectedTrackerId
     : (trackers[0]?.id ?? "");
   const selectedTracker = trackers.find((tracker) => tracker.id === trackerId);
-  const states = useMemo(
-    () => (payload?.states ?? []).filter((state) => state.block_id === trackerId),
-    [payload, trackerId],
-  );
+  const selectedState = (payload?.states ?? []).find(
+    (state) => state.block_id === trackerId,
+  ) ?? null;
   const history = useMemo(() => payload?.history ?? [], [payload]);
-  const selectedState =
-    states.find((state) => state.id === selectedStateId) ?? states[0] ?? null;
   const selectedHistory = useMemo(
     () => history.filter((record) => record.state_id === selectedState?.id),
     [history, selectedState?.id],
@@ -344,14 +340,6 @@ export default function ProgressTrackerManagementPage() {
     }
   }, [micrositeId, selectedState, selectedTracker, resetting, resetConfirmation, load]);
 
-  const historyCounts = useMemo(() => {
-    const counts = new Map<string, number>();
-    for (const record of history) {
-      counts.set(record.state_id, (counts.get(record.state_id) ?? 0) + 1);
-    }
-    return counts;
-  }, [history]);
-
   return (
     <main className="mx-auto w-full max-w-6xl space-y-6 px-4 py-10 text-neutral-900">
       <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
@@ -378,7 +366,7 @@ export default function ProgressTrackerManagementPage() {
           </button>
         </div>
         <p className="mt-3 text-xs text-neutral-500">
-          View current progress without changing it. Owners can delete completed-session history for a selected user and tracker.
+          View current progress for each tracker without changing it. Owners can delete completed-session history for the selected tracker.
         </p>
       </div>
 
@@ -424,7 +412,6 @@ export default function ProgressTrackerManagementPage() {
                   value={trackerId}
                   onChange={(event) => {
                     setSelectedTrackerId(event.target.value);
-                    setSelectedStateId("");
                     setResetConfirmation(null);
                     setResetMessage("");
                   }}
@@ -448,64 +435,16 @@ export default function ProgressTrackerManagementPage() {
 
           {selectedTracker && (
             <>
-              <section className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <h2 className="text-lg font-semibold">Users ({states.length})</h2>
-                  <span className="text-xs text-neutral-500">
-                    Showing stored user progress
-                  </span>
-                </div>
-                {states.length === 0 ? (
-                  <p className="mt-4 text-sm text-neutral-600">
-                    No user progress has been recorded for this tracker.
-                  </p>
-                ) : (
-                  <div className="mt-4 overflow-x-auto">
-                    <table className="w-full min-w-[700px] text-left text-sm">
-                      <thead className="border-b text-xs text-neutral-500">
-                        <tr>
-                          <th className="py-3 pr-4">User ID</th>
-                          <th className="py-3 pr-4">Current session</th>
-                          <th className="py-3 pr-4">Last updated</th>
-                          <th className="py-3 pr-4">History records</th>
-                          <th className="py-3">Details</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-neutral-100">
-                        {states.map((state) => (
-                          <tr
-                            key={state.id}
-                            className={selectedState?.id === state.id ? "bg-blue-50" : ""}
-                          >
-                            <td className="break-all py-3 pr-4 font-mono text-xs">
-                              {state.participant_id}
-                            </td>
-                            <td className="py-3 pr-4">{state.session_number}</td>
-                            <td className="py-3 pr-4">{dateLabel(state.updated_at)}</td>
-                            <td className="py-3 pr-4">
-                              {historyCounts.get(state.id) ?? 0}
-                            </td>
-                            <td className="py-3">
-                              <button
-                                type="button"
-                                onClick={() => { setSelectedStateId(state.id); setResetConfirmation(null); }}
-                                className="font-medium text-blue-700 hover:underline"
-                              >
-                                View details
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </section>
+              {!selectedState && (
+                <section className="rounded-2xl border border-neutral-200 bg-white p-6 text-sm text-neutral-600 shadow-sm">
+                  No progress has been recorded for this tracker yet.
+                </section>
+              )}
 
               {selectedState && (
                 <section className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
                   <div className="flex flex-wrap items-center justify-between gap-3">
-                    <h2 className="text-lg font-semibold">User details</h2>
+                    <h2 className="text-lg font-semibold">Tracker progress</h2>
                     <button
                       type="button"
                       onClick={() => { setResetConfirmation({ stateId: selectedState.id, historyId: null }); setResetMessage(""); }}
@@ -518,13 +457,13 @@ export default function ProgressTrackerManagementPage() {
                   {resetConfirmation?.stateId === selectedState.id && (
                     <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4" role="group" aria-label="Confirm history deletion">
                       <p className="text-sm font-semibold text-red-900">
-                        {resetConfirmation.historyId ? "Delete this completed session?" : "Delete ALL completed sessions for this user and tracker?"}
+                        {resetConfirmation.historyId ? "Delete this completed session?" : "Delete ALL completed sessions for this tracker?"}
                       </p>
                       <p className="mt-2 text-sm text-red-800">
                         This permanently deletes completed-session history records only.
                         The current incomplete session, targets, actual values, checkmarks, and session number stay unchanged.
                       </p>
-                      <p className="mt-2 break-all text-xs text-red-700">User: {selectedState.participant_id}</p>
+                      <p className="mt-2 text-xs text-red-700">Tracker: {selectedTracker.title}</p>
                       <div className="mt-4 flex flex-wrap gap-2">
                         <button
                           type="button"
@@ -546,7 +485,7 @@ export default function ProgressTrackerManagementPage() {
                     </div>
                   )}
                   <p className="mt-2 break-all text-xs text-neutral-500">
-                    User: {selectedState.participant_id} · State: {selectedState.id}
+                    Tracker: {selectedTracker.title} · State: {selectedState.id}
                   </p>
                   <div className="mt-4 grid gap-3 sm:grid-cols-3">
                     <div className="rounded-xl bg-neutral-50 p-4">
@@ -584,7 +523,7 @@ export default function ProgressTrackerManagementPage() {
                   </h3>
                   {selectedHistory.length === 0 ? (
                     <p className="mt-3 text-sm text-neutral-600">
-                      No completed-session history returned for this user.
+                      No completed-session history returned for this tracker.
                     </p>
                   ) : (
                     <div className="mt-3 space-y-3">

@@ -8,6 +8,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const SHARED_PROGRESS_PARTICIPANT_ID =
+  "00000000-0000-4000-8000-000000000001";
 
 type TrackerInfo = {
   id: string;
@@ -164,13 +166,19 @@ export async function GET(
     }
 
     // Bound the result size. Pagination can be added for large sites.
-    let statesQuery = sb
-      .from("progress_tracker_states")
-      .select("id, site_key, block_id, participant_id, current_targets, actuals, completed_rows, session_number, updated_at, created_at")
-      .eq("site_key", micrositeId)
-      .order("updated_at", { ascending: false })
-      .limit(200);
-    if (blockId) statesQuery = statesQuery.eq("block_id", blockId);
+let statesQuery = sb
+  .from("progress_tracker_states")
+  .select(
+    "id, site_key, block_id, participant_id, current_targets, actuals, completed_rows, session_number, updated_at, created_at"
+  )
+  .eq("site_key", micrositeId)
+  .eq("participant_id", SHARED_PROGRESS_PARTICIPANT_ID)
+  .order("updated_at", { ascending: false })
+  .limit(200);
+
+if (blockId) {
+  statesQuery = statesQuery.eq("block_id", blockId);
+}
 
     const { data: states, error: statesError } = await statesQuery;
     if (statesError) {
