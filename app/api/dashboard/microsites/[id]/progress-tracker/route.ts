@@ -14,12 +14,14 @@ type TrackerInfo = {
   title: string;
   pageId: string | null;
   pageSlug: string | null;
+  measurements: Array<{ id: string; label: string; unit?: string; visible: boolean; targetEnabled: boolean; actualEnabled: boolean }>;
+  rows: Array<{ id: string; label: string }>;
 };
 
 type DraftBlock = {
   id?: unknown;
   type?: unknown;
-  data?: { title?: unknown } | null;
+  data?: { title?: unknown; measurements?: unknown; rows?: unknown } | null;
 };
 
 function errorResponse(message: string, status: number) {
@@ -49,6 +51,29 @@ function collectTrackers(
       title: typeof rawTitle === "string" && rawTitle.trim() ? rawTitle.trim() : "Progress Tracker",
       pageId,
       pageSlug,
+      measurements: Array.isArray(block.data?.measurements)
+        ? block.data.measurements.flatMap((entry: unknown) => {
+            if (!entry || typeof entry !== "object") return [];
+            const m = entry as Record<string, unknown>;
+            if (typeof m.id !== "string" || !m.id) return [];
+            return [{
+              id: m.id,
+              label: typeof m.label === "string" ? m.label : m.id,
+              ...(typeof m.unit === "string" ? { unit: m.unit } : {}),
+              visible: m.visible !== false,
+              targetEnabled: m.targetEnabled !== false,
+              actualEnabled: m.actualEnabled !== false,
+            }];
+          })
+        : [],
+      rows: Array.isArray(block.data?.rows)
+        ? block.data.rows.flatMap((entry: unknown) => {
+            if (!entry || typeof entry !== "object") return [];
+            const row = entry as Record<string, unknown>;
+            if (typeof row.id !== "string" || !row.id) return [];
+            return [{ id: row.id, label: typeof row.label === "string" ? row.label : row.id }];
+          })
+        : [],
     });
   }
 }
