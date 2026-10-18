@@ -4692,7 +4692,14 @@ if (!selectedBlock) return;
 
   window.addEventListener("keydown", handleTextShortcut);
   return () => window.removeEventListener("keydown", handleTextShortcut);
-}, [draft, onSaveDraft, selectedBlock?.id, selectedBlock?.type, updateSelectedBlock]);
+}, [
+  draft,
+  onSaveDraft,
+  blueprintActivePageName,
+  selectedBlock?.id,
+  selectedBlock?.type,
+  updateSelectedBlock,
+]);
   
   useEffect(() => {
   function handleKey(e: KeyboardEvent) {
@@ -8581,10 +8588,20 @@ if (block.type === "cta") {
   }));
 }
 
-const blueprintActivePageName =
-  pages?.find((page) => page.id === activePageId)?.title?.trim() ||
-  activePageSlug ||
-  "home";
+const blueprintActivePageName = (() => {
+  const activePage = pages?.find(
+    (page) =>
+      (activePageId && page.id === activePageId) ||
+      (activePageSlug && page.slug === activePageSlug),
+  );
+
+  return (
+    activePage?.title?.trim() ||
+    activePage?.slug?.trim() ||
+    activePageSlug?.trim() ||
+    "home"
+  );
+})();
 
 function downloadBlueprintSnapshot(
   nextDraft: BuilderDraft,
