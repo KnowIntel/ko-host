@@ -2640,20 +2640,28 @@ export default function DesignLayoutEditor({
   builderCapacityContent,
 }: Props) {
   // Resolve the current page name for blueprint downloads
-  const blueprintActivePageName = (() => {
-    const activePage = pages?.find(
-      (page) =>
-        (activePageId && page.id === activePageId) ||
-        (activePageSlug && page.slug === activePageSlug),
-    );
 
-    return (
-      activePage?.title?.trim() ||
-      activePage?.slug?.trim() ||
-      activePageSlug?.trim() ||
-      "home"
-    );
-  })();
+const blueprintActivePageName = (() => {
+  // Prefer the active page slug because it reflects
+  // the page currently being edited.
+  const activePageBySlug = pages?.find(
+    (page) => page.slug === activePageSlug,
+  );
+
+  const activePageById = pages?.find(
+    (page) => page.id === activePageId,
+  );
+
+  return (
+    activePageBySlug?.title?.trim() ||
+    activePageBySlug?.slug?.trim() ||
+    activePageSlug?.trim() ||
+    activePageById?.title?.trim() ||
+    activePageById?.slug?.trim() ||
+    "home"
+  );
+})();
+
 
   console.log("[Blueprint Page Diagnostic]", {
   activePageId,
