@@ -4620,7 +4620,7 @@ const zoomBeforeSave = canvasZoom;
 
 try {
   await onSaveDraft?.(draft);
-  downloadBlueprintSnapshot(draft);
+  downloadBlueprintSnapshot(draft, blueprintActivePageName);
 } finally {
   window.requestAnimationFrame(() => {
     setCanvasZoom(zoomBeforeSave);
@@ -8498,7 +8498,15 @@ if (block.type === "cta") {
   }));
 }
 
-function downloadBlueprintSnapshot(nextDraft: BuilderDraft) {
+const blueprintActivePageName =
+  pages?.find((page) => page.id === activePageId)?.title?.trim() ||
+  activePageSlug ||
+  "home";
+
+function downloadBlueprintSnapshot(
+  nextDraft: BuilderDraft,
+  activePageName?: string,
+) {
   const timestamp = Date.now();
   const blueprintJson = JSON.stringify(nextDraft, null, 2);
 
@@ -8506,18 +8514,14 @@ function downloadBlueprintSnapshot(nextDraft: BuilderDraft) {
     type: "text/plain;charset=utf-8",
   });
 
-const pageName =
-  (
-    (nextDraft as any)?.title ||
-    (nextDraft as any)?.pageName ||
-    (nextDraft as any)?.slug ||
-    "home"
+  const pageName = (
+    activePageName?.trim() ||
+    nextDraft.title?.trim() ||
+    "page"
   )
-    .toString()
-    .trim()
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "") || "home";
+    .replace(/^-|-$/g, "") || "page";
 
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
@@ -20528,7 +20532,7 @@ const zoomBeforeSave = canvasZoom;
 
 try {
   await onSaveDraft?.(draft);
-  downloadBlueprintSnapshot(draft);
+  downloadBlueprintSnapshot(draft, blueprintActivePageName);
 } finally {
   window.requestAnimationFrame(() => {
     setCanvasZoom(zoomBeforeSave);

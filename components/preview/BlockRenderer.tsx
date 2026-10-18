@@ -3290,6 +3290,7 @@ function renderCta(
     collapsed: boolean,
   ) => void,
   revealCollapsed = false,
+  isBuilderCanvas = false,
 ) {
 
 function CtaButtonLive() {
@@ -3930,6 +3931,9 @@ if (
 }
 
     async function handleLinkedFieldSubmit() {
+  if (isBuilderCanvas) {
+    return;
+  }
       if (submitting) {
         return;
       }
@@ -41749,6 +41753,7 @@ case "cta":
     pages,
     onRevealCollapsedChange,
     revealCollapsed,
+    isBuilder,
   );
 
     case "countdown":
