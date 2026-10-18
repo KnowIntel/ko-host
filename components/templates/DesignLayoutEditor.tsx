@@ -2613,6 +2613,7 @@ function inspectorSectionId(target: InspectorFocusTarget) {
   }
 }
 
+
 export default function DesignLayoutEditor({
   templateKey,
   designKey,
@@ -2629,59 +2630,68 @@ export default function DesignLayoutEditor({
   pages,
   activePageId,
   activePageSlug,
-micrositeSlug,
-micrositeId,
-onSelectPage,
+  micrositeSlug,
+  micrositeId,
+  onSelectPage,
   onReorderPages,
   saveState,
   saveMessage,
   microsite,
   builderCapacityContent,
 }: Props) {
+  // Resolve the current page name for blueprint downloads
+  const blueprintActivePageName = (() => {
+    const activePage = pages?.find(
+      (page) =>
+        (activePageId && page.id === activePageId) ||
+        (activePageSlug && page.slug === activePageSlug),
+    );
+
+    return (
+      activePage?.title?.trim() ||
+      activePage?.slug?.trim() ||
+      activePageSlug?.trim() ||
+      "home"
+    );
+  })();
+
   const { user, isLoaded: isUserLoaded } = useUser();
+
   const [resetDraftModalOpen, setResetDraftModalOpen] = useState(false);
   const [clearClipboardModalOpen, setClearClipboardModalOpen] = useState(false);
   const [draggedPageId, setDraggedPageId] = useState<string | null>(null);
-const selectedPageLength =
-  normalizePageLength(
+
+  const selectedPageLength = normalizePageLength(
     (draft as DraftWithPageExtras).pageLength,
   );
 
-function updatePageLength(
-  nextLength: number,
-) {
-  const normalizedLength =
-    normalizePageLength(
-      nextLength,
+  function updatePageLength(nextLength: number) {
+    const normalizedLength = normalizePageLength(nextLength);
+
+    setDraft((prev) => ({
+      ...(prev as DraftWithPageExtras),
+      pageLength: normalizedLength,
+    }));
+  }
+
+  function increasePageLength() {
+    updatePageLength(
+      Math.min(
+        MAX_PAGE_LENGTH,
+        selectedPageLength + PAGE_LENGTH_STEP,
+      ),
     );
+  }
 
-  setDraft((prev) => ({
-    ...(prev as DraftWithPageExtras),
+  function decreasePageLength() {
+    updatePageLength(
+      Math.max(
+        MIN_PAGE_LENGTH,
+        selectedPageLength - PAGE_LENGTH_STEP,
+      ),
+    );
+  }
 
-    pageLength:
-      normalizedLength,
-  }));
-}
-
-function increasePageLength() {
-  updatePageLength(
-    Math.min(
-      MAX_PAGE_LENGTH,
-      selectedPageLength +
-        PAGE_LENGTH_STEP,
-    ),
-  );
-}
-
-function decreasePageLength() {
-  updatePageLength(
-    Math.max(
-      MIN_PAGE_LENGTH,
-      selectedPageLength -
-        PAGE_LENGTH_STEP,
-    ),
-  );
-}
 
 
     
@@ -8587,21 +8597,6 @@ if (block.type === "cta") {
     }),
   }));
 }
-
-const blueprintActivePageName = (() => {
-  const activePage = pages?.find(
-    (page) =>
-      (activePageId && page.id === activePageId) ||
-      (activePageSlug && page.slug === activePageSlug),
-  );
-
-  return (
-    activePage?.title?.trim() ||
-    activePage?.slug?.trim() ||
-    activePageSlug?.trim() ||
-    "home"
-  );
-})();
 
 function downloadBlueprintSnapshot(
   nextDraft: BuilderDraft,
