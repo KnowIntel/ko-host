@@ -2655,6 +2655,17 @@ export default function DesignLayoutEditor({
     );
   })();
 
+  console.log("[Blueprint Page Diagnostic]", {
+  activePageId,
+  activePageSlug,
+  pages: pages?.map((page) => ({
+    id: page.id,
+    slug: page.slug,
+    title: page.title,
+  })),
+  resolvedFilenamePage: blueprintActivePageName,
+});
+
   const { user, isLoaded: isUserLoaded } = useUser();
 
   const [resetDraftModalOpen, setResetDraftModalOpen] = useState(false);
