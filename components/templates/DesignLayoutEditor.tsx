@@ -3117,6 +3117,9 @@ const [canvasZoom, setCanvasZoom] = useState(() => {
   const [blockGuideOpen, setBlockGuideOpen] = useState(false);
   const toolMenuRef = useRef<HTMLDivElement | null>(null);
 
+  const inspectorScrollRef = useRef<HTMLDivElement | null>(null);
+const toolSetBlockRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+
 const [postBoardStyleTarget, setPostBoardStyleTarget] = useState<
   | "block"
   | "block_heading"
@@ -4638,7 +4641,7 @@ try {
 if (!selectedBlock) return;
 
     const key = event.key.toLowerCase();
-    if (!["b", "i", "u"].includes(key)) return;
+    if (!["b", "u"].includes(key)) return;
 
     if (
       event.target instanceof HTMLInputElement ||
@@ -5079,131 +5082,203 @@ useEffect(() => {
   }, [openToolMenu]);
 
   useEffect(() => {
-function handleCanvasShortcuts(event: KeyboardEvent) {
-const blockId =
-  "blockId" in selectedContext ? selectedContext.blockId : null;
 
-const activeBlockId =
-  blockId ?? selectedBlockIds[0] ?? null;
+    function scrollToSelectedToolSetBlock(blockId: string) {
+  const inspector = inspectorScrollRef.current;
+  const target = toolSetBlockRefs.current.get(blockId);
+
+  if (!inspector || !target) return;
+
+  const inspectorRect = inspector.getBoundingClientRect();
+  const targetRect = target.getBoundingClientRect();
+
+  const targetTop =
+    inspector.scrollTop +
+    targetRect.top -
+    inspectorRect.top -
+    24;
+
+  inspector.scrollTo({
+    top: Math.max(0, targetTop),
+    behavior: "smooth",
+  });
+}
+
+
+function handleCanvasShortcuts(event: KeyboardEvent) {
+  const blockId =
+    "blockId" in selectedContext ? selectedContext.blockId : null;
+
+  const activeBlockId =
+    blockId ?? selectedBlockIds[0] ?? null;
 
   const target = event.target as HTMLElement | null;
+
   const isTyping =
     target?.tagName === "INPUT" ||
     target?.tagName === "TEXTAREA" ||
     target?.tagName === "SELECT" ||
     target?.isContentEditable;
 
-if (isTyping) return;
-
-if (event.key === "Escape") {
-  event.preventDefault();
-  setSelectedBlockIds([]);
-  setSelection(createEmptySelection());
-  return;
-}
-
-if (event.ctrlKey && event.key.toLowerCase() === "z") {
-  event.preventDefault();
-  handleUndo();
-  return;
-}
-
-if (event.ctrlKey && event.key.toLowerCase() === "y") {
-  event.preventDefault();
-  handleRedo();
-  return;
-}
-
-if (event.ctrlKey && event.key.toLowerCase() === "a") {
-  event.preventDefault();
-
-  const selectableIds = draft.blocks.map((block) => block.id);
-
-  setSelectedBlockIds(selectableIds);
-  setSelection(createEmptySelection());
-  return;
-}
-
-if (!activeBlockId && selectedBlockIds.length === 0) return;
-
-if (event.key === "Delete" || event.key === "Backspace") {
-  event.preventDefault();
-
-  const idsToDelete =
-    selectedBlockIds.length > 0
-      ? selectedBlockIds
-      : activeBlockId
-        ? [activeBlockId]
-        : [];
-
-removeCanvasBlocks(idsToDelete);
-
-setSelectedBlockIds([]);
-setSelection(createEmptySelection());
-return;
-}
-
-  if (!event.ctrlKey) return;
-
-if (event.key.toLowerCase() === "c") {
-  const active = document.activeElement;
-
-  const isTyping =
-    active instanceof HTMLInputElement ||
-    active instanceof HTMLTextAreaElement ||
-    active instanceof HTMLSelectElement ||
-    active?.getAttribute("contenteditable") === "true";
-
   if (isTyping) return;
 
-  const idsToCopy =
-    selectedBlockIds.length > 0
-      ? selectedBlockIds
-      : activeBlockId
-        ? [activeBlockId]
-        : [];
-
-  if (!idsToCopy.length) return;
-
-  event.preventDefault();
-  handleCopyCanvasBlocks(idsToCopy);
-  return;
-}
-
-if (
-  event.key.toLowerCase() === "v" ||
-  event.key.toLowerCase() === "d"
-) {
-  event.preventDefault();
-
-  const idsToDuplicate =
-    selectedBlockIds.length > 0
-      ? selectedBlockIds
-      : activeBlockId
-        ? [activeBlockId]
-        : [];
-
-handleDuplicateCanvasBlocks(idsToDuplicate);
-
-return;
-}
-
-  if (event.key.toLowerCase() === "x") {
+  // ESCAPE — Clear selection
+  if (event.key === "Escape") {
     event.preventDefault();
-const idsToDelete =
-  selectedBlockIds.length > 0
-    ? selectedBlockIds
-    : activeBlockId
-      ? [activeBlockId]
-      : [];
-
-removeCanvasBlocks(idsToDelete);
-
-setSelectedBlockIds([]);
-setSelection(createEmptySelection());
-return;
+    setSelectedBlockIds([]);
+    setSelection(createEmptySelection());
+    return;
   }
 
+  // CTRL + Z — Undo
+  if (event.ctrlKey && event.key.toLowerCase() === "z") {
+    event.preventDefault();
+    handleUndo();
+    return;
+  }
+
+  // CTRL + Y — Redo
+  if (event.ctrlKey && event.key.toLowerCase() === "y") {
+    event.preventDefault();
+    handleRedo();
+    return;
+  }
+
+  // CTRL + A — Select all blocks
+  if (event.ctrlKey && event.key.toLowerCase() === "a") {
+    event.preventDefault();
+
+    const selectableIds = draft.blocks.map((block) => block.id);
+
+    setSelectedBlockIds(selectableIds);
+    setSelection(createEmptySelection());
+    return;
+  }
+
+  // CTRL + P — Open Preview (no selection required)
+  if (
+    event.ctrlKey &&
+    !event.shiftKey &&
+    !event.altKey &&
+    event.key.toLowerCase() === "p"
+  ) {
+    event.preventDefault();
+    openPreviewWindow();
+    return;
+  }
+
+  // CTRL + I — Scroll to selected block in Tool Set
+  if (
+    event.ctrlKey &&
+    !event.shiftKey &&
+    !event.altKey &&
+    event.key.toLowerCase() === "i"
+  ) {
+    if (!activeBlockId) return;
+
+    event.preventDefault();
+
+    if (inspectorCollapsed) {
+      setInspectorCollapsed(false);
+    }
+
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        scrollToSelectedToolSetBlock(activeBlockId);
+      });
+    });
+
+    return;
+  }
+
+  // Remaining shortcuts require a selected block
+  if (!activeBlockId && selectedBlockIds.length === 0) return;
+
+  // DELETE / BACKSPACE — Remove selected blocks
+  if (event.key === "Delete" || event.key === "Backspace") {
+    event.preventDefault();
+
+    const idsToDelete =
+      selectedBlockIds.length > 0
+        ? selectedBlockIds
+        : activeBlockId
+          ? [activeBlockId]
+          : [];
+
+    removeCanvasBlocks(idsToDelete);
+
+    setSelectedBlockIds([]);
+    setSelection(createEmptySelection());
+    return;
+  }
+
+  // Remaining shortcuts require CTRL
+  if (!event.ctrlKey) return;
+
+  // CTRL + C — Copy selected blocks
+  if (event.key.toLowerCase() === "c") {
+    const active = document.activeElement;
+
+    const isActiveElementTyping =
+      active instanceof HTMLInputElement ||
+      active instanceof HTMLTextAreaElement ||
+      active instanceof HTMLSelectElement ||
+      active?.getAttribute("contenteditable") === "true";
+
+    if (isActiveElementTyping) return;
+
+    const idsToCopy =
+      selectedBlockIds.length > 0
+        ? selectedBlockIds
+        : activeBlockId
+          ? [activeBlockId]
+          : [];
+
+    if (!idsToCopy.length) return;
+
+    event.preventDefault();
+    handleCopyCanvasBlocks(idsToCopy);
+    return;
+  }
+
+  // CTRL + D — Duplicate selected blocks
+  if (
+    event.key.toLowerCase() === "d" &&
+    !event.shiftKey &&
+    !event.altKey
+  ) {
+    event.preventDefault();
+
+    const idsToDuplicate =
+      selectedBlockIds.length > 0
+        ? selectedBlockIds
+        : activeBlockId
+          ? [activeBlockId]
+          : [];
+
+    handleDuplicateCanvasBlocks(idsToDuplicate);
+    return;
+  }
+
+  // CTRL + X — Remove selected blocks
+  if (event.key.toLowerCase() === "x") {
+    event.preventDefault();
+
+    const idsToDelete =
+      selectedBlockIds.length > 0
+        ? selectedBlockIds
+        : activeBlockId
+          ? [activeBlockId]
+          : [];
+
+    removeCanvasBlocks(idsToDelete);
+
+    setSelectedBlockIds([]);
+    setSelection(createEmptySelection());
+    return;
+  }
+
+  // CTRL + SHIFT + DOWN — Send to back
   if (event.shiftKey && event.key === "ArrowDown") {
     event.preventDefault();
     handleSendToBack(activeBlockId);
@@ -5211,6 +5286,7 @@ return;
     return;
   }
 
+  // CTRL + SHIFT + UP — Bring to front
   if (event.shiftKey && event.key === "ArrowUp") {
     event.preventDefault();
     handleBringToFront(activeBlockId);
@@ -5218,6 +5294,7 @@ return;
     return;
   }
 
+  // CTRL + UP — Bring forward one layer
   if (event.key === "ArrowUp") {
     event.preventDefault();
     handleBringForward(activeBlockId);
@@ -5225,12 +5302,15 @@ return;
     return;
   }
 
+  // CTRL + DOWN — Send backward one layer
   if (event.key === "ArrowDown") {
     event.preventDefault();
     handleSendBackward(activeBlockId);
     setSelection(selectionFromCanvasBlockId(activeBlockId));
+    return;
   }
 }
+
 
   window.addEventListener("keydown", handleCanvasShortcuts);
 
@@ -5251,6 +5331,9 @@ return;
         target?.isContentEditable === true;
 
 if (isTypingTarget) return;
+
+// Ctrl + Arrow is reserved for changing layer order.
+if (event.ctrlKey || event.metaKey || event.altKey) return;
 
 const hasMovableSelection =
   selectedBlockIds.length > 0 || Boolean(selectedCanvasBlockId);
@@ -17722,7 +17805,10 @@ pageSurfaceStyle={{
     </div>
 
           {!inspectorCollapsed ? (
-            <div className="h-[calc(100vh-185px)] overflow-y-auto pr-2">
+            <div
+  ref={inspectorScrollRef}
+  className="h-[calc(100vh-185px)] overflow-y-auto pr-2"
+>
               <div className="space-y-4">
 <div className={inspectorCardClass()}>
   <div className={inspectorLabelClass()}>Inspector</div>
@@ -19933,6 +20019,13 @@ selectedBlock?.type === "cta" ? (
 {toolSetItems.map((tool) => (
   <div
     key={tool.id}
+    ref={(element) => {
+      if (element) {
+        toolSetBlockRefs.current.set(tool.id, element);
+      } else {
+        toolSetBlockRefs.current.delete(tool.id);
+      }
+    }}
     role="button"
     tabIndex={0}
     onClick={() => setSelection(selectionFromCanvasBlockId(tool.id))}
@@ -20001,7 +20094,7 @@ selectedBlock?.type === "cta" ? (
 
   <div className="pointer-events-none absolute left-1/2 top-full z-[9999] mt-2 w-max -translate-x-1/2 rounded-md bg-black px-3 py-2 text-center text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
     <div className="text-xs font-medium">Duplicate</div>
-    <div className="text-[10px] text-white/70">(CTRL+V)</div>
+    <div className="text-[10px] text-white/70">(CTRL+D)</div>
   </div>
 </div>
 
@@ -20087,29 +20180,10 @@ selectedBlock?.type === "cta" ? (
     ↓
   </button>
 
+
   <div className="pointer-events-none absolute left-1/2 top-full z-[9999] mt-2 w-max -translate-x-1/2 rounded-md bg-black px-3 py-2 text-center text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
     <div className="text-xs font-medium">Move backward one layer</div>
     <div className="text-[10px] text-white/70">(CTRL+↓)</div>
-  </div>
-</div>
-
-{/* REMOVE stays last */}
-<div className="group relative inline-flex overflow-visible">
-  <button
-    type="button"
-    className={toolSetButtonClass("remove")}
-    onClick={(e) => {
-      e.stopPropagation();
-      removeCanvasBlock(tool.id);
-    }}
-    aria-label="Remove block"
-  >
-    ×
-  </button>
-
-  <div className="pointer-events-none absolute left-1/2 top-full z-[9999] mt-2 w-max -translate-x-1/2 rounded-md bg-black px-3 py-2 text-center text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
-    <div className="text-xs font-medium">Remove block</div>
-    <div className="text-[10px] text-white/70">(CTRL+X)</div>
   </div>
 </div>
     </div>
@@ -20128,6 +20202,7 @@ selectedBlock?.type === "cta" ? (
           ) : null}
         </div>
       </div>
+
 
 <div
   ref={bottomBarRef}
