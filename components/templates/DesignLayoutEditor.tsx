@@ -14229,6 +14229,7 @@ return (
     blocks={draft.blocks}
     pages={pages}
     designKey={designKey}
+    isBuilder={true}
     optionButtonSelections={optionButtonSelections}
     onOptionButtonSelectionChange={(change) =>
       setOptionButtonSelections((prev) => ({
