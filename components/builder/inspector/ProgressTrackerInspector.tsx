@@ -782,9 +782,8 @@ progression: {
 </label>
             </div>
 
-            {/* TARGET VALUES */}
-            {measurement.targetEnabled && (
-              <div className="space-y-2 border-t pt-3">
+{/* TARGET VALUES */}
+<div className="space-y-2 border-t pt-3">
                 <h4 className="text-xs font-semibold">
                   Targets by Row
                 </h4>
@@ -815,8 +814,7 @@ progression: {
                     />
                   </label>
                 ))}
-              </div>
-            )}
+  </div>
 
             {/* PROGRESSION */}
             <div className="space-y-3 border-t pt-3">
