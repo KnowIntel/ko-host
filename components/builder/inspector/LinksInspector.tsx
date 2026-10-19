@@ -170,13 +170,13 @@ export function LinksInspector({
       return raw;
     }
 
-    if (
-      !raw ||
-      raw === "#" ||
-      raw === "/"
-    ) {
-      return siteBaseUrl;
-    }
+if (
+  !raw ||
+  raw === "#" ||
+  raw === "/"
+) {
+  return "";
+}
 
     if (raw.startsWith("/")) {
       return `${siteBaseUrl}${raw}`;
@@ -566,9 +566,7 @@ export function LinksInspector({
         },
       )
     }
-    placeholder={
-      siteBaseUrl
-    }
+placeholder="Enter URL..."
     className={[
       "mt-2 h-10 w-full rounded-xl border px-3 text-sm outline-none",
 
@@ -690,11 +688,9 @@ export function LinksInspector({
                              * Web Address links pointing
                              * to the microsite home page.
                              */
-                            url:
-                              siteBaseUrl,
+url: "",
 
-                            linkType:
-                              "url",
+linkType: "url",
 
                             pageId: "",
 

@@ -167,6 +167,8 @@ const draftPageCountByTemplateDesignKey: Record<string, number> = {
 
   "project:caffeine": 1,
 
+  "action_planner:workout": 5,
+
 
 
 

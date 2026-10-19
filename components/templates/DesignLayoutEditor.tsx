@@ -3226,6 +3226,14 @@ const currentSiteSlug =
   draftSlugSuggestion ||
   fallbackSiteSlug;
 
+console.log("[KO-HOST SITE SLUG SOURCE]", {
+  liveMicrositeSlug,
+  presetMicrositeSlug,
+  draftSlugSuggestion,
+  fallbackSiteSlug,
+  currentSiteSlug,
+});
+
 const currentPageSlug =
   (activePageSlug || "home")
     .trim()
