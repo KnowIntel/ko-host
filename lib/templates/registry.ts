@@ -1,6 +1,7 @@
 // lib/templates/registry.ts
 
 export type TemplateKey =
+  | "action_planner"
   | "baby_shower"
   | "crowdfunding_campaign"
   | "family_reunion"
@@ -218,6 +219,7 @@ const NEW_KEYS = new Set<TemplateKey>([
   "memory_timeline",
   "roast_session",
   "chat_room",
+  "action_planner",
   "speed_dating",
   "guided_tutorial",
   "game_day_central",
@@ -349,6 +351,12 @@ function inferFeatures(key: TemplateKey): string[] {
     community_poll: ["Poll", "Results", "Updates"],
     // newsletter_signup: ["Signup", "Benefits", "Links"],
     focus_group: ["Signup", "Schedule", "Details"],
+    action_planner: [
+  "Activity planning",
+  "Schedules",
+  "Goal tracking",
+  "Progress monitoring",
+],
     chat_room: ["Thread", "Updates", "Links"],
     memory_timeline: ["Milestones", "Gallery", "Notes"],
     cancer_journey: ["Updates", "Resources", "Support links"],
@@ -423,6 +431,29 @@ function assertUniqueKeys(defs: { key: string }[]) {
 }
 
 const RAW_TEMPLATE_DEFS: TemplateInput[] = [
+  
+  {
+    key: "action_planner",
+    title: "Action Planner",
+    description: "Organize activities, goals, and execution.",
+    thumb: "actionplanner",
+    category: "Personal",
+    badge: "New",
+    setupMins: 2,
+    demoSlug: "actionplanner",
+    features: [
+      "Activity planning",
+      "Schedules",
+      "Goal tracking",
+      "Progress monitoring",
+    ],
+    tags: ["Personal", "Planning", "Organization", "Goals"],
+    defaultDraft: {
+      title: "Action Planner",
+      slugSuggestion: "actionplanner",
+    },
+  },
+
   {
     key: "wedding_rsvp",
     title: "Wedding",

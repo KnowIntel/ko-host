@@ -8647,13 +8647,7 @@ function downloadBlueprintSnapshot(
 
   link.href = url;
   link.download = `ko-host-blueprint-${pageName}-${timestamp}.txt`;
-  console.log("[ACTUAL BLUEPRINT DOWNLOAD]", {
-  activePageId,
-  activePageSlug,
-  activePageName,
-  pageName,
-  filename: link.download,
-});
+
 
   document.body.appendChild(link);
   link.click();
