@@ -3178,7 +3178,9 @@ const liveMicrositeSlug =
   micrositeSlug?.trim() ?? "";
 
 const draftSlugSuggestion =
-  (draft as DraftWithPageExtras).slugSuggestion?.trim() ?? "";
+  micrositeSlug?.trim()
+    ? (draft as DraftWithPageExtras).slugSuggestion?.trim() ?? ""
+    : "";
 
 const normalizedTemplateKey =
   String(
@@ -3225,14 +3227,6 @@ const currentSiteSlug =
   presetMicrositeSlug ||
   draftSlugSuggestion ||
   fallbackSiteSlug;
-
-console.log("[KO-HOST SITE SLUG SOURCE]", {
-  liveMicrositeSlug,
-  presetMicrositeSlug,
-  draftSlugSuggestion,
-  fallbackSiteSlug,
-  currentSiteSlug,
-});
 
 const currentPageSlug =
   (activePageSlug || "home")
