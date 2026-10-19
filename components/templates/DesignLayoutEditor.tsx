@@ -4652,7 +4652,12 @@ const zoomBeforeSave = canvasZoom;
 
 try {
   await onSaveDraft?.(draft);
-  downloadBlueprintSnapshot(draft, blueprintActivePageName);
+  downloadBlueprintSnapshot(
+  draft,
+  activePageSlug && activePageSlug !== "home"
+    ? activePageSlug
+    : blueprintActivePageName,
+);
 } finally {
   window.requestAnimationFrame(() => {
     setCanvasZoom(zoomBeforeSave);
@@ -20646,7 +20651,12 @@ const zoomBeforeSave = canvasZoom;
 
 try {
   await onSaveDraft?.(draft);
-  downloadBlueprintSnapshot(draft, blueprintActivePageName);
+  downloadBlueprintSnapshot(
+  draft,
+  activePageSlug && activePageSlug !== "home"
+    ? activePageSlug
+    : blueprintActivePageName,
+);
 } finally {
   window.requestAnimationFrame(() => {
     setCanvasZoom(zoomBeforeSave);
